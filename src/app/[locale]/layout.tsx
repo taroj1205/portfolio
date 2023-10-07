@@ -6,6 +6,8 @@ import { switchThemeDuration } from '@/constants/switch-theme-duration'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import Header from '@/components/Header'
+import { Analytics } from '@vercel/analytics/react';
+import Script from 'next/script'
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ja' }];
@@ -66,7 +68,9 @@ export default async function RootLayout({
           <NextIntlClientProvider locale={locale} messages={messages}>
                 <Header />
                 <main className='content'>{children}</main>
-                <Footer />
+            <Footer />
+            <Script async src="https://analytics.eu.umami.is/script.js" data-website-id="3531a168-c010-41c6-b82f-34f9f492f84a"></Script>
+            <Analytics />
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>

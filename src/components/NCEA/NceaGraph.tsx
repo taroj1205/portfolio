@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes';
 import { useLocale, useTranslations } from 'next-intl';
 
 const Graph: React.FC = () => {
-    const { theme, setTheme } = useTheme();
+    const { resolvedTheme, setTheme } = useTheme();
     const pieChartRef = useRef<Chart | null>(null);
     const pieBarChartRef = useRef<Chart | null>(null);
     const barChartRef = useRef<Chart | null>(null);
@@ -93,7 +93,7 @@ const Graph: React.FC = () => {
                                 family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
                                 size: 13,
                             },
-                            color: theme === 'dark' ? '#fff' : '#000',
+                            color: resolvedTheme === 'dark' ? '#fff' : '#000',
                         },
                     },
                     title: {
@@ -104,7 +104,7 @@ const Graph: React.FC = () => {
                             size: 16,
                             weight: 'bold',
                         },
-                        color: theme === 'dark' ? '#fff' : '#000',
+                        color: resolvedTheme === 'dark' ? '#fff' : '#000',
                     },
                 },
                 maintainAspectRatio: false,
@@ -139,7 +139,7 @@ const Graph: React.FC = () => {
                                 family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
                                 size: 13,
                             },
-                            color: theme === 'dark' ? '#fff' : '#000',
+                            color: resolvedTheme === 'dark' ? '#fff' : '#000',
                         },
                     },
                     title: {
@@ -150,7 +150,7 @@ const Graph: React.FC = () => {
                             size: 16,
                             weight: 'bold',
                         },
-                        color: theme === 'dark' ? '#fff' : '#000',
+                        color: resolvedTheme === 'dark' ? '#fff' : '#000',
                     },
                 },
                 maintainAspectRatio: false,
@@ -190,7 +190,7 @@ const Graph: React.FC = () => {
                             size: 16,
                             weight: 'bold',
                         },
-                        color: theme === 'dark' ? '#fff' : '#000',
+                        color: resolvedTheme === 'dark' ? '#fff' : '#000',
                     },
                 },
                 maintainAspectRatio: false,
@@ -201,10 +201,10 @@ const Graph: React.FC = () => {
                                 family: "'Helvetica Neue', 'Helvetica', 'Arial', sans-serif",
                                 size: 13,
                             },
-                            color: theme === 'dark' ? '#fff' : '#000',
+                            color: resolvedTheme === 'dark' ? '#fff' : '#000',
                         },
                         grid: {
-                            color: theme === 'dark' ? '#c4c4c4' : '#e5e5e5',
+                            color: resolvedTheme === 'dark' ? '#c4c4c4' : '#e5e5e5',
                         },
                     },
                     x: {
@@ -215,7 +215,7 @@ const Graph: React.FC = () => {
                             },
                         },
                         grid: {
-                            color: theme === 'dark' ? '#c4c4c4' : '#e5e5e5',
+                            color: resolvedTheme === 'dark' ? '#c4c4c4' : '#e5e5e5',
                         },
                     },
                 },
@@ -225,7 +225,7 @@ const Graph: React.FC = () => {
         pieChartRef.current = rankScorePieChart as Chart;
         pieBarChartRef.current = rankCreditsPieBarChart as Chart;
         barChartRef.current = rankCreditsBarChart as Chart;
-    }, [theme, lang, rankScores, rankCredits]);
+    }, [resolvedTheme, lang, rankScores, rankCredits]);
 
     return (
         <div className="w-full max-w-3xl py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-0 lg:gap-4">
