@@ -5,7 +5,6 @@
 html,
 body {
   margin: 0;
-
 }
 
 html,
@@ -31,7 +30,7 @@ main {
 
 @layer base {
   body {
-    @apply text-black dark:text-white dark:bg-zinc-950 bg-white font-sans text-base;
+    @apply text-black dark:text-white dark:bg-gray-900 bg-white font-sans text-base;
   }
 }
 
@@ -45,6 +44,10 @@ a {
   left: 0;
   width: 0%;
   transform-origin: 0 50%;
+}
+
+.popup {
+  z-index: 9999;
 }
 
 .ReactCollapse--collapse {

@@ -146,13 +146,16 @@ export default function Header() {
         <header className="fixed top-0 z-10 w-full px-4 py-3 shadow-md bg-white dark:bg-gray-950">
             <div className='flex flex-col md:flex-row items-center justify-between '>
                 <div className="flex items-center">
+                    <div className='mr-2 sm:hidden'>
+                        <LanguageSwitcher isHeader />
+                    </div>
                     <Link href="/" className='flex items-center'>
                         <div className='text-lg lg:text-2xl'><Image src="/images/profile/pfp.webp" alt='profile picture' width={50} height={50} className='w-6 h-6 rounded-lg' /></div>
                         <h1 className="ml-2 text-md md:text-lg font-bold text-gray-900 dark:text-white">
                             {t('title')}
                         </h1>
                     </Link>
-                    <div className='ml-2'>
+                    <div className='ml-2 hidden sm:block'>
                         <LanguageSwitcher isHeader />
                     </div>
                     <div className='ml-2 sm:hidden'>
