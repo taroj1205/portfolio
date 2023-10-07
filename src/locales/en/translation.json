@@ -1,0 +1,192 @@
+{
+  "about": {
+    "about me": "Hello, I'm Shintaro, born on December 5, 2005, in Tokyo, Japan. After the earthquake in 2011, my family and I moved to Ehime. I've had the opportunity to live in different countries, including Japan, New Zealand, and the Philippines. My educational journey has been quite diverse, from attending various schools in Japan to studying in Auckland. In 2020, I underwent ACL knee surgery. My interests include coding, especially using React, Next.js, and Tailwind CSS. I also enjoy hobbies like jump rope, kendama, and reading news. Let's connect and share our experiences!",
+    "events and dev": "Throughout my life, I've experienced various significant events, from relocating due to natural disasters to undergoing knee surgery. In the realm of technology, I'm passionate about creating innovative solutions. I'm skilled in web development, using technologies like React.js, Next.js, and Tailwind CSS to craft modern and responsive applications. I also have experience with database management using Supabase. Let's build amazing digital experiences together!",
+    "birthdate": "Born on 5th of December 2005, in Tokyo. Moved to Ehime after the 2011 earthquake.",
+    "contact": "Contact me",
+    "countries": "Countries I've lived in",
+    "country": {
+      "japan": "Japan",
+      "newzealand": "New Zealand",
+      "philippines": "The Philippines"
+    },
+    "education": {
+      "headings": {
+        "duration": "Period",
+        "end": "End",
+        "grade": "Year Level",
+        "location": "Location",
+        "schoolName": "Name",
+        "start": "Start"
+      },
+      "schoolHistory": "Academic Background",
+      "schools": [
+        {
+          "duration": "About a year",
+          "end": "05/2010",
+          "grade": "First and Second Year of Kindergarten",
+          "location": "Tokyo",
+          "name": "Tokyo Tomonokai Setagaya Infant Life Group",
+          "start": "04/2009"
+        },
+        {
+          "duration": "A year",
+          "end": "04/2011",
+          "grade": "Second Year of Kindergarten",
+          "location": "Tokyo",
+          "name": "Kinuta Kindergarten",
+          "start": "05/2010"
+        },
+        {
+          "duration": "A year",
+          "end": "03/2012",
+          "grade": "Last (3rd) year of Kindergarten",
+          "location": "Ehime",
+          "name": "Wakakusa Kindergarten",
+          "start": "05/2011"
+        },
+        {
+          "duration": "2 months",
+          "end": "06/2012",
+          "grade": "Year 1",
+          "location": "Ehime",
+          "name": "Habu Elementary School",
+          "start": "04/2012"
+        },
+        {
+          "duration": "4.5 years",
+          "end": "12/2016",
+          "grade": "Year 1 to Year 5",
+          "location": "Ehime",
+          "name": "Hiura Elementary School",
+          "start": "06/2012"
+        },
+        {
+          "duration": "A year",
+          "end": "12/2017",
+          "grade": "Year 7",
+          "location": "Auckland",
+          "name": "Balmoral Intermediate",
+          "start": "02/2017"
+        },
+        {
+          "duration": "3 months",
+          "end": "03/2018",
+          "grade": "Year 6",
+          "location": "Ehime",
+          "name": "Hiura Elementary School",
+          "start": "01/2018"
+        },
+        {
+          "duration": "3 months",
+          "end": "07/2018",
+          "grade": "-",
+          "location": "Cebu",
+          "name": "Takahari English School",
+          "start": "04/2018"
+        },
+        {
+          "duration": "2 to 3 Weeks",
+          "end": "07/2018",
+          "grade": "Year 7",
+          "location": "Ehime",
+          "name": "Kuwabara Junior High School",
+          "start": "07/2018"
+        },
+        {
+          "duration": "A year",
+          "end": "05/2019",
+          "grade": "Year 8",
+          "location": "Cebu",
+          "name": "Centre for International Education British School",
+          "start": "08/2018"
+        },
+        {
+          "duration": "5 years",
+          "end": "12/2023",
+          "grade": "Year 9 to Year 13",
+          "location": "Auckland",
+          "name": "Westlake Boys High School (Expected graduation)",
+          "start": "08/2018"
+        }
+      ]
+    },
+    "events": "Important events",
+    "hobbies": "Hobbies",
+    "hobby": {
+      "jumprope": "Jump rope",
+      "kendama": "Kendama",
+      "programming": "Programming",
+      "reading": "Reading news",
+      "table tennis": "Table tennis"
+    },
+    "injury": "Underwent surgery for an ACL injury on the knee in July 2020.",
+    "ncea": {
+      "achievement": "Achievement",
+      "credits": "Credits",
+      "currentRankScore": "Current Rank Score: ",
+      "edit": "Edit data",
+      "ncea information": "NCEA information",
+      "noData": "Please enter data for rank score and graphs.",
+      "rankScore": "Rank Score",
+      "standard": "Standard",
+      "subjects": "Subjects",
+      "title": "National Certificate of Education Level 3"
+    },
+    "title": "About me",
+    "subtitle": "Hi, I'm Shintaro! I'm a passionate developer dedicated to creating innovative solutions.",
+    "passion": ""
+  },
+  "footer": {
+    "about": "About",
+    "all_rights_reserved": "All rights reserved",
+    "apps": "Apps",
+    "chat": "Chat",
+    "contact_info": "Contact information",
+    "edit_on_crowdin": "Edit translation",
+    "edit_on_github": "Edit on GitHub",
+    "home": "Home",
+    "name": "Shintaro Jokagi",
+    "settings": "Settings",
+    "sitemap": "Sitemap"
+  },
+  "header": {
+    "about": "About",
+    "apps": "Apps",
+    "chat": "Chat",
+    "home": "Home",
+    "title": "Shintaro Jokagi"
+  },
+  "index": {
+    "links": "Links:",
+    "madeWith": "This website uses these:",
+    "name": "I'm Shintaro Jokagi.",
+    "student": "I'm a student.",
+    "title": "Home",
+    "welcome": "Welcome to my website!",
+    "about": "About me",
+    "welcomeMessage": "Please take a look around and let me know if you have any questions."
+  },
+  "language switcher": {
+    "language": "Language",
+    "search": "Search..."
+  },
+  "skill": {
+    "css": "CSS",
+    "express": "Express",
+    "flask": "Flask",
+    "html": "HTML",
+    "javascript": "JavaScript",
+    "madeWith": "This website uses these:",
+    "mysql": "MySQL",
+    "nextjs": "Next.js",
+    "nodejs": "Node.js",
+    "postgres": "PostgreSQL",
+    "python": "Python",
+    "react": "React.js",
+    "sqlite3": "SQLite3",
+    "tailwind": "Tailwind",
+    "title": "Skills",
+    "typescript": "TypeScript"
+  }
+}

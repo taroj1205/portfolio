@@ -1,0 +1,75 @@
+import './globals.css'
+import type { Metadata } from 'next'
+import { ThemeProvider } from './theme-provider'
+import Footer from '@/components/Footer'
+import { switchThemeDuration } from '@/constants/switch-theme-duration'
+import { notFound } from 'next/navigation'
+import { NextIntlClientProvider } from 'next-intl'
+import Header from '@/components/Header'
+
+export function generateStaticParams() {
+  return [{ locale: 'en' }, { locale: 'ja' }];
+}
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://taroj.poyo.jp'),
+  title: 'taroj.poyo.jp',
+  description: 'A website for Shintaro Jokagi',
+  icons:
+  {
+    icon: 'favicon.ico',
+  },
+  openGraph: {
+    images: [
+      {
+        url:
+          '/images/thumbnail/thumbnail.png',
+        alt: 'Shintaro Jokagi Website Thumbnail',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'taroj.poyo.jp',
+    description: 'A website for Shintaro Jokagi',
+    site: '@taroj1205',
+    creator: '@taroj1205',
+    images: [
+      {
+        url:
+          '/images/thumbnail/thumbnail.png',
+        alt: 'Shintaro Jokagi Website Thumbnail',
+      }
+    ]
+  },
+};
+
+export default async function RootLayout({
+  children, params: { locale }
+}: {
+  children: React.ReactNode;
+  params: { locale: string };
+}) {
+  let messages;
+  try {
+    messages = (await import(`../../locales/${locale}/translation.json`)).default;
+  } catch (error) {
+    notFound();
+  }
+
+  return (
+    <html lang={locale}>
+      <body
+        className={` bg-white dark:bg-gray-900 ${switchThemeDuration}`}
+      >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+                <Header />
+                <main className='content'>{children}</main>
+                <Footer />
+          </NextIntlClientProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
