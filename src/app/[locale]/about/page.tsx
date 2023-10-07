@@ -83,8 +83,9 @@ export default function About() {
                 </div>
             </div>
             <section className='max-w-7xl w-full'>
-                <h2 className='text-3xl font-bold text-gray-900 dark:text-white mb-4'>{t('education.schoolHistory')}</h2>
-                <SchoolHistory />
+                <div className='flex items-center flex-col justify-center'>
+                    <SchoolHistory />
+                </div>
                 <div className='flex flex-col items-center'>
                     <h2 className="text-2xl md:text-4xl mt-6 font-bold">
                         {t('ncea.title')}
