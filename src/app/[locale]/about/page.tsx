@@ -1,14 +1,12 @@
 'use client'
 import SchoolHistory from '@/components/SchoolHistory';
 import { SiNextdotjs, SiReact, SiTailwindcss } from 'react-icons/si';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { IconType } from 'react-icons';
 import Contacts from '@/components/Contacts';
 import MySkills from '@/components/MySkills';
-import RankScore from '@/components/NCEA/RankScore';
-import Link from 'next-intl/link';
-import Graph from '@/components/NCEA/NceaGraph';
+
 import NCEA from '@/components/NCEA/Ncea';
 
 const SkillItem = ({ icon: Icon, label, color }: { icon: IconType; label: string; color: string }) => (
@@ -44,7 +42,6 @@ const MadeWith = () => {
 
 export default function About() {
     const t = useTranslations('about');
-    const lang = useLocale();
 
     return (
         <div className='flex flex-col items-center justify-center min-h-full bg-gray-100 dark:bg-gray-900 mb-12'>
@@ -75,7 +72,7 @@ export default function About() {
                     </p>
                 </div>
 
-                <div className='mb-5 max-w-3xl mx-auto'>
+                <div className='mb-1 max-w-3xl mx-auto'>
                     <h2 className="text-black dark:text-white text-2xl md:text-3xl lg:text-4xl mt-6 mb-2 font-bold">
                         {t('contact')}
                     </h2>
@@ -83,31 +80,18 @@ export default function About() {
                 </div>
             </div>
             <section className='max-w-7xl w-full'>
-                <div className='flex items-center flex-col justify-center'>
+                <div className='md:flex md:flex-col md:items-center md:justify-center'>
                     <SchoolHistory />
                 </div>
-                <div className='flex flex-col items-center'>
-                    <h2 className="text-2xl md:text-4xl mt-6 font-bold">
-                        {t('ncea.title')}
-                    </h2>
-                    {lang === 'ja' && (
-                        <Link href="https://www.edukiwi.com/highschool/ncea-ue/" target="_blank"
-                            rel="noopener noreferrer" className='flex items-center'>
-                            https://www.edukiwi.com/highschool/ncea-ue/
-                        </Link>
-                    )}
-                    <p className='text-lg font-bold mt-2'>{t('ncea.currentRankScore')}<RankScore /></p>
-                    <div className='flex items-center justify-center flex-col'>
-                        <Graph />
-                    </div>
+                <div className='md:flex md:flex-col md:items-center md:justify-center'>
                     <NCEA />
                 </div>
-            </section>
+            </section >
             <section className='max-w-7xl w-full'>
                 <div className='max-w-5xl w-full flex items-center flex-col'>
                     <MadeWith />
                 </div>
             </section>
-        </div>
+        </div >
     );
 }
