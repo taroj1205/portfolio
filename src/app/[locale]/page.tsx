@@ -61,8 +61,8 @@ const apps = [
 export default function Home() {
   const t = useTranslations('index');
   return (
-    <div className='py-6 flex flex-col items-center justify-center min-h-full'>
-      <div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center pt-8">
+    <div className='flex flex-col items-center justify-center min-h-full'>
+      <div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
         <div className="flex flex-col items-center justify-center py-12">
           <div className='text-9xl'><Image src="/images/profile/pfp.webp" alt="Logo" width={100} height={100} /></div>
           <h1 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
