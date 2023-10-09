@@ -61,6 +61,7 @@ export default function About() {
                         width={200}
                         height={200}
                         className="rounded-lg object-fit"
+                        priority
                     />
                 </div>
                 <div className="max-w-2xl text-md mx-auto mt-8 text-left">
