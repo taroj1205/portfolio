@@ -1,0 +1,191 @@
+{
+  "about": {
+    "about me": "こんにちは、私は心太朗です。2005年12月5日、東京で生まれました。2011年の震災の後、家族と愛媛に引っ越しました。日本、ニュージーランド、フィリピンなど、さまざまな国で生活経験があります。教育の道程も多様で、日本のさまざまな学校からオークランドでの学びまで経験しました。2020年にはACL膝の手術を受けました。趣味はコーディングで、特にReact、Next.js、Tailwind CSSを使った開発が大好きです。また、縄跳び、けん玉、ニュースを読むなどの趣味も楽しんでいます。一緒に経験を共有しましょう！",
+    "events and dev": "生涯を通じて、自然災害による引っ越しから膝の手術までさまざまな重要な出来事を経験してきました。テクノロジーの世界では、革新的なソリューションを作成することに情熱を注いでいます。React.js、Next.js、Tailwind CSSなどの技術を駆使して、モダンでレスポンシブなアプリケーションを開発するスキルを持っています。また、Supabaseを使用したデータベース管理の経験もあります。一緒に素晴らしいデジタル体験を創りましょう！",
+    "birthdate": "2005年12月05日生まれ。東京出身。2011年の震災の後愛媛に引っ越した。",
+    "contact": "連絡先",
+    "countries": "住んだことがある国",
+    "country": {
+      "japan": "日本",
+      "newzealand": "ニュージーランド",
+      "philippines": "フィリピン"
+    },
+    "education": {
+      "headings": {
+        "duration": "期間",
+        "end": "終",
+        "grade": "学年",
+        "location": "場所",
+        "schoolName": "学校名",
+        "start": "始"
+      },
+      "schoolHistory": "学校歴",
+      "schools": [
+        {
+          "duration": "1年ちょい",
+          "end": "2010年5月",
+          "grade": "年少～年中",
+          "location": "東京",
+          "name": "世田谷幼児生活団",
+          "start": "2009年4月"
+        },
+        {
+          "duration": "1年",
+          "end": "2011年4月",
+          "grade": "年中",
+          "location": "東京",
+          "name": "砧幼稚園",
+          "start": "2010年5月"
+        },
+        {
+          "duration": "1年",
+          "end": "2012年3月",
+          "grade": "年長",
+          "location": "愛媛県",
+          "name": "若草幼稚園",
+          "start": "2011年5月"
+        },
+        {
+          "duration": "2か月",
+          "end": "2012年6月",
+          "grade": "1年生",
+          "location": "愛媛県",
+          "name": "垣生小学校",
+          "start": "2012年4月"
+        },
+        {
+          "duration": "4年半",
+          "end": "2016年12月",
+          "grade": "1年生～5年生",
+          "location": "愛媛県",
+          "name": "日浦小学校",
+          "start": "2012年6月"
+        },
+        {
+          "duration": "1年",
+          "end": "2017年12月",
+          "grade": "Year 7",
+          "location": "オークランド",
+          "name": "Balmoral Intermediate",
+          "start": "2017年2月"
+        },
+        {
+          "duration": "3か月",
+          "end": "2018年3月",
+          "grade": "6年生",
+          "location": "愛媛県",
+          "name": "日浦小学校",
+          "start": "2018年1月"
+        },
+        {
+          "duration": "3か月",
+          "end": "2018年7月",
+          "grade": "-",
+          "location": "セブ",
+          "name": "Takahari English School",
+          "start": "2018年4月"
+        },
+        {
+          "duration": "2~3週間",
+          "end": "2018年7月",
+          "grade": "1年生",
+          "location": "愛媛県",
+          "name": "桑原中学校",
+          "start": "2018年7月"
+        },
+        {
+          "duration": "1年",
+          "end": "2019年5月",
+          "grade": "Year 8",
+          "location": "セブ",
+          "name": "Centre for International Education British School",
+          "start": "2018年8月"
+        },
+        {
+          "duration": "5年",
+          "end": "2023年12月",
+          "grade": "Year 9～Year 13",
+          "location": "オークランド",
+          "name": "Westlake Boys High School （卒業予定）",
+          "start": "2019年8月"
+        }
+      ]
+    },
+    "events": "重要な出来事など",
+    "hobbies": "趣味",
+    "hobby": {
+      "jumprope": "縄跳び",
+      "kendama": "けん玉",
+      "programming": "プログラミング",
+      "reading": "ニュースを読む",
+      "table tennis": "卓球"
+    },
+    "injury": "2020年7月に膝の怪我（ACL）の手術。",
+    "ncea": {
+      "achievement": "成績",
+      "credits": "クレジット",
+      "currentRankScore": "現在のランクスコア：",
+      "edit": "データを編集",
+      "ncea information": "NCEAの詳細情報",
+      "noData": "ランクスコアとグラフを見るにはデータを記入する必要があります。",
+      "rankScore": "ランクスコア",
+      "standard": "スタンダード",
+      "subjects": "科目",
+      "title": "National Certificate of Education レベル 3"
+    },
+    "title": "僕について",
+    "subtitle": "こんにちは、僕は心太朗です！私は革新的なソリューションを作成することに情熱を注いでいる開発者です。"
+  },
+  "footer": {
+    "about": "自己紹介",
+    "all_rights_reserved": "All rights reserved",
+    "apps": "アプリ",
+    "chat": "チャット",
+    "contact_info": "お問い合わせ先",
+    "edit_on_crowdin": "Edit translation",
+    "edit_on_github": "GitHubで編集する",
+    "home": "ホーム",
+    "name": "上鍵心太朗",
+    "settings": "設定",
+    "sitemap": "サイトマップ"
+  },
+  "header": {
+    "about": "僕について",
+    "apps": "アプリ",
+    "chat": "チャット",
+    "home": "ホーム",
+    "title": "上鍵心太朗"
+  },
+  "index": {
+    "links": "リンク：",
+    "madeWith": "このサイトはこれらを使用しています。",
+    "name": "僕は上鍵心太朗です。",
+    "student": "僕は学生です。",
+    "title": "ホーム",
+    "welcome": "僕のサイトへようこそ！",
+    "about": "僕について",
+    "welcomeMessage": "ぜひ見て回って、何か質問があればお知らせください。"
+  },
+  "language switcher": {
+    "language": "言語",
+    "search": "検索する。"
+  },
+  "skill": {
+    "css": "CSS",
+    "express": "Express",
+    "flask": "Flask",
+    "html": "HTML",
+    "javascript": "JavaScript",
+    "madeWith": "このサイトはこれらを使用しています。",
+    "mysql": "MySQL",
+    "nextjs": "Next.js",
+    "nodejs": "Node.js",
+    "postgres": "PostgreSQL",
+    "python": "Python",
+    "react": "React.js",
+    "sqlite3": "SQLite3",
+    "tailwind": "Tailwind",
+    "title": "スキル",
+    "typescript": "TypeScript"
+  }
+}

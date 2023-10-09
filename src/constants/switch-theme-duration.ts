@@ -1,0 +1,1 @@
+export const switchThemeDuration: string = "transition-colors duration-300";
