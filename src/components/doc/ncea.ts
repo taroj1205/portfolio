@@ -14,6 +14,11 @@ const ncea: NceaData = {
             "assessment": "Demonstrate understanding of a job cost subsystem for an entity",
             "credits": "4",
             "achievement": "Achieved"
+        },
+        "3.4": {
+            "assessment": "Prepare a report for an external user that interprets the annual report of a New Zealand reporting entity",
+            "credits": "5",
+            "achievement": "Achieved"
         }
     },
     "English Visuals": {
