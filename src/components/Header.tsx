@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { RiHome2Line, RiUserLine } from 'react-icons/ri';
 import { usePathname } from 'next-intl/client';
 import { usePathname as nextUsePathname } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import LanguageSwitcher from './LanguageSwitch';
 import { FaCubes } from 'react-icons/fa';
@@ -13,7 +13,8 @@ import { FaCubes } from 'react-icons/fa';
 export default function Header() {
     const pathname = usePathname();
     const currentPathname = nextUsePathname();
-    const nextPathname = pathname.startsWith('/apps') ? '/apps' : currentPathname;
+    const lang = useLocale();
+    const nextPathname = pathname.startsWith('/apps') ? `/${lang}/apps` : currentPathname;
     const t = useTranslations('header');
     const [activeLinkStyle, setActiveLinkStyle] = useState('hidden');
     const [active, setActive] = useState(false);
@@ -102,8 +103,7 @@ export default function Header() {
     };
 
     const handleMouseLeave = (e: React.MouseEvent<HTMLAnchorElement>) => {
-        const target = e.currentTarget;
-        console.log(nextPathname, target.href, nextPathname === target.href);
+        console.log(nextPathname);
         // if (nextPathname === `/${target.href.split('/').pop()}`) {
         //     if (activeRef.current) {
         //         const width = target.getBoundingClientRect().width;
