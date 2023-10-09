@@ -3,16 +3,17 @@ import Link from 'next-intl/link';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { RiHome2Line, RiUserLine } from 'react-icons/ri';
-import { TbMessageChatbot } from 'react-icons/tb';
 import { usePathname } from 'next-intl/client';
 import { usePathname as nextUsePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import LanguageSwitcher from './LanguageSwitch';
+import { FaCubes } from 'react-icons/fa';
 
 export default function Header() {
     const pathname = usePathname();
-    const nextPathname = nextUsePathname();
+    const currentPathname = nextUsePathname();
+    const nextPathname = pathname.startsWith('/apps') ? '/apps' : currentPathname;
     const t = useTranslations('header');
     const [activeLinkStyle, setActiveLinkStyle] = useState('hidden');
     const [active, setActive] = useState(false);
@@ -24,7 +25,7 @@ export default function Header() {
     const links = [
         { href: '/', text: t('home'), icon: <RiHome2Line /> },
         { href: '/about', text: t('about'), icon: <RiUserLine /> },
-        { href: 'https://chat-taroj.vercel.app/', text: t('chat'), icon: <TbMessageChatbot /> }
+        { href: '/apps', text: t('apps'), icon: <FaCubes /> },
     ];
 
     const handleResize = useCallback(() => {

@@ -46,7 +46,7 @@ export default function About() {
     return (
         <div className='flex flex-col items-center justify-center min-h-full bg-gray-100 dark:bg-gray-900 mb-12'>
             <div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col items-center justify-center pt-12 pb-4">
+                <div className="flex flex-col items-center justify-center pb-4">
                     <h1 className="mt-6 text-4xl font-extrabold">
                         {t('title')}
                     </h1>

@@ -1,7 +1,6 @@
 {
   "about": {
     "about me": "Hello, I'm Shintaro, born on December 5, 2005, in Tokyo, Japan. After the earthquake in 2011, my family and I moved to Ehime. I've had the opportunity to live in different countries, including Japan, New Zealand, and the Philippines. My educational journey has been quite diverse, from attending various schools in Japan to studying in Auckland. In 2020, I underwent ACL knee surgery. My interests include coding, especially using React, Next.js, and Tailwind CSS. I also enjoy hobbies like jump rope, kendama, and reading news. Let's connect and share our experiences!",
-    "events and dev": "Throughout my life, I've experienced various significant events, from relocating due to natural disasters to undergoing knee surgery. In the realm of technology, I'm passionate about creating innovative solutions. I'm skilled in web development, using technologies like React.js, Next.js, and Tailwind CSS to craft modern and responsive applications. I also have experience with database management using Supabase. Let's build amazing digital experiences together!",
     "birthdate": "Born on 5th of December 2005, in Tokyo. Moved to Ehime after the 2011 earthquake.",
     "contact": "Contact me",
     "countries": "Countries I've lived in",
@@ -112,6 +111,7 @@
       ]
     },
     "events": "Important events",
+    "events and dev": "Throughout my life, I've experienced various significant events, from relocating due to natural disasters to undergoing knee surgery. In the realm of technology, I'm passionate about creating innovative solutions. I'm skilled in web development, using technologies like React.js, Next.js, and Tailwind CSS to craft modern and responsive applications. I also have experience with database management using Supabase. Let's build amazing digital experiences together!",
     "hobbies": "Hobbies",
     "hobby": {
       "jumprope": "Jump rope",
@@ -133,9 +133,17 @@
       "subjects": "Subjects",
       "title": "National Certificate of Education Level 3"
     },
-    "title": "About me",
+    "passion": "",
     "subtitle": "Hi, I'm Shintaro! I'm a passionate developer dedicated to creating innovative solutions.",
-    "passion": ""
+    "title": "About me"
+  },
+  "apps": {
+    "analytics": "Analytics",
+    "chat": "Chat",
+    "list": "List of apps",
+    "ncea": "NCEA",
+    "title": "Apps",
+    "search": "Search"
   },
   "footer": {
     "about": "About",
@@ -158,13 +166,13 @@
     "title": "Shintaro Jokagi"
   },
   "index": {
+    "about": "About me",
     "links": "Links:",
     "madeWith": "This website uses these:",
     "name": "I'm Shintaro Jokagi.",
     "student": "I'm a student.",
     "title": "Home",
     "welcome": "Welcome to my website!",
-    "about": "About me",
     "welcomeMessage": "Please take a look around and let me know if you have any questions."
   },
   "language switcher": {
@@ -188,5 +196,12 @@
     "tailwind": "Tailwind",
     "title": "Skills",
     "typescript": "TypeScript"
+  },
+  "search": {
+    "previous": "Previous",
+    "next": "Next",
+    "results": "Results {startIndex} - {endIndex} of {totalResults}",
+    "searchTime": "Results took {searchTime} seconds",
+    "startSearch": "Start exploring the possibilities!"
   }
 }

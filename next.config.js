@@ -4,14 +4,4 @@ const withNextIntl = require('next-intl/plugin')(
     './i18n.ts'
 );
 
-module.exports = withNextIntl({
-    redirects: async () => {
-        return [
-            {
-                source: '/',
-                destination: '/en',
-                permanent: true,
-            }
-        ]
-    }
-});
+module.exports = withNextIntl();

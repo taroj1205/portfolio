@@ -6,6 +6,7 @@ import { FiGlobe } from 'react-icons/fi';
 import { useTheme } from 'next-themes';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter, usePathname } from 'next-intl/client';
+import { useSearchParams } from 'next/navigation';
 
 const LanguageSwitcher = ({ isHeader }: { isHeader: boolean }) => {
     const pathname = usePathname();
@@ -15,6 +16,7 @@ const LanguageSwitcher = ({ isHeader }: { isHeader: boolean }) => {
     const languageOptions: readonly LanguageOption[] = getLanguageOptions();
     const [set, setSet] = useState(false);
     const locale = useLocale();
+    const params = useSearchParams();
 
     const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -49,7 +51,7 @@ const LanguageSwitcher = ({ isHeader }: { isHeader: boolean }) => {
         console.log(router, pathname);
         const defaultLanguageOption = languageOptions.find((option) => option.lang === language);
         setValue(defaultLanguageOption);
-        router.push(pathname, {locale: language} );
+        router.push(`${pathname}?${params}`, { locale: language });
         setIsOpen(false);
     };
 
@@ -91,7 +93,7 @@ const LanguageSwitcher = ({ isHeader }: { isHeader: boolean }) => {
         );
     };
 
-    const {theme, resolvedTheme} = useTheme();
+    const { theme, resolvedTheme } = useTheme();
 
     const [currentTheme, setCurrentTheme] = useState(resolvedTheme === 'dark' ? 'dark' : 'light');
 
@@ -131,7 +133,7 @@ const LanguageSwitcher = ({ isHeader }: { isHeader: boolean }) => {
                     backgroundColor: currentTheme === 'light' ? '#B2D4FF' : 'rgb(16, 22, 33)',
                 }
             }
-            : {}),
+                : {}),
         })
     };
 
