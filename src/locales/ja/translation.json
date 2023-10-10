@@ -201,6 +201,7 @@
     "next": "次へ",
     "results": "{startIndex} - {endIndex} / {totalResults} の結果",
     "searchTime": "{searchTime}秒で結果が表示されました",
-    "startSearch": "今日から検索を始めましょう！"
+    "startSearch": "今日から検索を始めましょう！",
+    "lastUpdated": "最終更新日時：{time}"
   }
 }
