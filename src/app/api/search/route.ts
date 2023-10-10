@@ -73,7 +73,9 @@ export async function GET(request: NextRequest) {
                 console.error(insertError);
             }
 
-            return Response.json({ result: data, time: insertData.created_at }, { status: 200 });
+            console.log(data);
+
+            return Response.json({ result: data, time: new Date().getTime() }, { status: 200 });
         }
         return Response.json({ error: 'Unknown error' }, { status: 500 });
     } catch (error: any) {
