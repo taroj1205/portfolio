@@ -145,7 +145,7 @@ export default function Header() {
 
     return (
         <header className="fixed top-0 z-10 w-full px-4 py-3 shadow-md bg-white dark:bg-gray-950">
-            <div className='flex flex-col md:flex-row items-center justify-between '>
+            <div className='flex flex-col md:flex-row items-center justify-between'>
                 <div className="flex items-center">
                     <div className='mr-2 sm:hidden'>
                         <LanguageSwitcher isHeader />

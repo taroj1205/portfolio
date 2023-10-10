@@ -116,7 +116,7 @@ const Index = () => {
                 <h1 className="text-4xl md:text-6xl font-bold">
                     {t('list')}
                 </h1>
-                <div className="flex flex-wrap gap-4 my-6">
+                <div className="flex flex-wrap gap-4 my-6 justify-center">
                     {routes.map((route, index) => (
                         <RouteLink
                             key={index}

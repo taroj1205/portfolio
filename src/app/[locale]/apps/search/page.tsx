@@ -2,6 +2,7 @@
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next-intl/client';
 import Link from 'next-intl/link';
+import { useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaSearch, FaImage } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
@@ -26,14 +27,16 @@ const GoogleSearch: React.FC = () => {
     const format = useFormatter();
     const [query, setQuery] = useState<string>();
     const [results, setResults] = useState<SearchResult[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [startIndex, setStartIndex] = useState(1);
     const [searchTime, setSearchTime] = useState(0);
     const [totalResults, setTotalResults] = useState(0);
+    const [timeInfo, setTimeInfo] = useState<Date>(new Date);
     const [defaultSet, setDefaultSet] = useState(false);
     const router = useRouter();
     const lang = useLocale();
     const inputRef = useRef<HTMLInputElement>(null);
+    const params = useSearchParams();
 
     const handleSearch = useCallback(async (start: number) => {
         console.log(GOOGLE_API_KEY);
@@ -42,12 +45,15 @@ const GoogleSearch: React.FC = () => {
         }
         setLoading(true);
         try {
-            const response = await fetch(`https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CX}&q=${query}&num=10&start=${start}&lr=lang_${lang}`);
-            console.log(`https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CX}&q=${query}&num=10&start=${start}&lr=lang_${lang}`);
+            const urlParams = new URLSearchParams();
+            urlParams.set('q', query);
+            urlParams.set('page', String(start));
+            router.replace(`/apps/search?${urlParams.toString()}`);
+            const response = await fetch(`/api/search?q=${query}&num=10&start=${start}&lang=${lang}`);
             const data = await response.json();
-            if (data.error) {
-                console.error(data.error);
-                toast.error(data.error.message, {
+            if (data.code) {
+                console.log(data.message);
+                toast.error(data.message, {
                     position: "top-right",
                     autoClose: 5000,
                     hideProgressBar: false,
@@ -60,15 +66,15 @@ const GoogleSearch: React.FC = () => {
                 setLoading(false);
                 return;
             }
-            else if (data.items) {
-                setResults(data.items);
-                setTotalResults(data.searchInformation.totalResults);
-                setStartIndex(data.queries.request[0].startIndex);
-                setSearchTime(data.searchInformation.formattedSearchTime);
-                const urlParams = new URLSearchParams();
-                urlParams.set('q', query);
-                urlParams.set('page', String(start));
-                router.replace(`/apps/search?${urlParams.toString()}`);
+            else if (data.result) {
+                if (data.error) throw new Error(data.error);
+                const datas = data.result;
+                setResults(datas.items);
+                setTotalResults(datas.searchInformation.totalResults);
+                setStartIndex(datas.queries.request[0].startIndex);
+                setSearchTime(datas.searchInformation.formattedSearchTime);
+                console.log(data.time)
+                setTimeInfo(data.time);
                 setDefaultSet(true);
             }
         } catch (error: any) {
@@ -83,8 +89,10 @@ const GoogleSearch: React.FC = () => {
                 progress: undefined,
                 theme: 'colored',
             });
+        } finally {
+            setLoading(false);
+            setDefaultSet(true);
         }
-        setLoading(false);
     }, [lang, query, router]);
 
     useEffect(() => {
@@ -92,19 +100,21 @@ const GoogleSearch: React.FC = () => {
         if (defaultSet) {
             return;
         }
-        const urlParams = new URLSearchParams(window.location.search);
-        const searchQuery = urlParams.get("q");
-        const pageQuery = urlParams.get("page");
+        const searchQuery = params.get("q");
+        let pageQuery = Number(Math.max(Number(params.get('page')) || 1, 1) || 1);
+        pageQuery = Math.floor((pageQuery - 1) / 10) * 10 + 1;
         console.log(searchQuery)
-        setLoading(false);
         if (searchQuery) {
             setQuery(searchQuery);
             if (inputRef.current) {
                 inputRef.current.value = searchQuery;
             }
             handleSearch(Number(pageQuery));
-        } else { setDefaultSet(true) }
-    }, [defaultSet, handleSearch]);
+        } else {
+            setDefaultSet(true)
+            setLoading(false);
+        }
+    }, [defaultSet, handleSearch, params]);
 
     const handlePageClick = (start: number) => {
         handleSearch(start);
@@ -123,7 +133,7 @@ const GoogleSearch: React.FC = () => {
                     placeholder="Search Google"
                     onChange={(e) => { setQuery(e.target.value) }}
                     onKeyDown={(e) => { if (e.key === 'Enter') { handleSearch(1); } }}
-                    className={`w-full rounded-lg py-2 px-4 mr-2 ${defaultSet ? 'cursor-text' : 'cursor-not-allowed'} focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
+                    className={`w-full rounded-lg py-2 px-4 mr-2 ${defaultSet ? 'cursor-text' : 'cursor-wait'} focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
                     style={{ height: '2.5rem' }}
                     ref={inputRef}
                     autoFocus
@@ -170,11 +180,17 @@ const GoogleSearch: React.FC = () => {
                                 </div>
                             </Link>
                         ))}
-                        <div className="flex justify-between mt-4">
+                        <div className="flex flex-col md:flex-row items-center justify-center md:justify-between mt-4">
                             {results.length > 0 && (
                                 <>
                                     <p className="text-gray-500">{t('results', { startIndex, endIndex: startIndex + results.length - 1, totalResults })}</p>
-                                    <p className="text-gray-500">{t('searchTime', { searchTime: format.relativeTime(searchTime) })}</p>
+                                    <p
+                                        className="text-gray-500"
+                                        onClick={() => timeInfo && console.log(new Date(timeInfo))}
+                                    >
+                                        {t('lastUpdated', { time: format.relativeTime(new Date(timeInfo), new Date(new Date().getTime())) })}
+                                    </p>
+                                    <p className="text-gray-500">{t('searchTime', { searchTime })}</p>
                                 </>
                             )}
                         </div>
