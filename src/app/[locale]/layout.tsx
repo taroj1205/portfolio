@@ -60,6 +60,9 @@ export default async function RootLayout({
     notFound();
   }
 
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const isSearchPage = pathname.includes('/apps/search');
+
   return (
     <html lang={locale} className='bg-white dark:bg-gray-900'>
       <body

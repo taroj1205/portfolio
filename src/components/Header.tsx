@@ -29,7 +29,7 @@ export default function Header() {
         { href: '/apps', text: t('apps'), icon: <FaCubes /> },
     ];
 
-    const handleResize = useCallback(() => {
+    const handleResize = useCallback((): void => {
         const links = document.querySelectorAll('nav a');
         links.forEach((link) => {
             if (link.getAttribute('href') === nextPathname) {
@@ -39,8 +39,6 @@ export default function Header() {
                     const linkPosition = link.getBoundingClientRect();
                     activeRef.current.style.transform = `translate(${linkPosition.left}px, ${linkPosition.top + 1}px)`;
                     console.log(link.classList);
-                    link.classList.add('text-gray-900');
-                    link.classList.add('dark:text-white');
                     setActiveLinkStyle('fixed');
                 }
                 setActive(true);
@@ -62,21 +60,20 @@ export default function Header() {
                     const linkPosition = link.getBoundingClientRect();
                     activeRef.current.style.transform = `translate(${linkPosition.left}px, ${linkPosition.top + 1}px)`;
                     console.log(link.classList);
-                    link.classList.add('text-gray-900');
-                    link.classList.add('dark:text-white');
                     setActiveLinkStyle('fixed');
                 }
                 setActive(true);
             } else if (!active) {
                 setActiveLinkStyle('hidden');
-                link.classList.remove('text-gray-900');
-                link.classList.remove('dark:text-white');
             }
         });
 
+        const resizeObserver = new ResizeObserver(handleResize);
+        resizeObserver.observe(document.documentElement);
         window.addEventListener('resize', handleResize);
 
         return () => {
+            resizeObserver.disconnect();
             window.removeEventListener('resize', handleResize);
         };
     }, [active, handleResize, nextPathname]);
@@ -169,7 +166,7 @@ export default function Header() {
                             <Link
                                 key={link.href}
                                 href={link.href}
-                                className={`flex items-center ${pathname === link.href ? 'text-gray-700 dark:text-gray-300' : 'text-gray-600 dark:text-gray-400'} px-1 sm:px-4 hover:text-black dark:hover:text-white transition-colors duration-200`}
+                                className={`flex items-center ${pathname === link.href ? 'text-gray-700 dark:text-white' : 'text-gray-600 dark:text-gray-400'} px-1 sm:px-4 hover:text-black dark:hover:text-white transition-colors duration-200`}
                                 onMouseEnter={handleMouseEnter}
                                 onMouseLeave={handleMouseLeave}
                             >
