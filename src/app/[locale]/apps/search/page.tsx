@@ -44,11 +44,29 @@ const GoogleSearch: React.FC = () => {
             return;
         }
         setLoading(true);
+        const startTime = new Date().getTime();
         try {
             const urlParams = new URLSearchParams();
             urlParams.set('q', query);
             urlParams.set('page', String(start));
             router.replace(`/apps/search?${urlParams.toString()}`);
+            const cacheKey = `${query}_${start}_${lang}`;
+            const cacheValue = localStorage.getItem('search');
+            if (cacheValue) {
+                console.log("result cached")
+                const cacheData = JSON.parse(cacheValue);
+                const cachedResult = cacheData[cacheKey];
+                if (cachedResult) {
+                    setResults(cachedResult.items);
+                    setTotalResults(cachedResult.totalResults);
+                    setStartIndex(cachedResult.startIndex);
+                    // setSearchTime(cachedResult.searchTime);
+                    setTimeInfo(cachedResult.time);
+                    setDefaultSet(true);
+                    setLoading(false);
+                    return;
+                }
+            }
             const response = await fetch(`/api/search?q=${query}&num=10&start=${start}&lang=${lang}`);
             const data = await response.json();
             if (data.code) {
@@ -72,10 +90,20 @@ const GoogleSearch: React.FC = () => {
                 setResults(datas.items);
                 setTotalResults(datas.searchInformation.totalResults);
                 setStartIndex(datas.queries.request[0].startIndex);
-                setSearchTime(datas.searchInformation.formattedSearchTime);
+                // setSearchTime(datas.searchInformation.formattedSearchTime);
                 console.log(data.time)
                 setTimeInfo(data.time);
                 setDefaultSet(true);
+                const cacheValue = localStorage.getItem('search');
+                const cacheData = cacheValue ? JSON.parse(cacheValue) : {};
+                cacheData[cacheKey] = {
+                    items: datas.items,
+                    totalResults: datas.searchInformation.totalResults,
+                    startIndex: datas.queries.request[0].startIndex,
+                    searchTime: datas.searchInformation.formattedSearchTime,
+                    time: data.time,
+                };
+                localStorage.setItem('search', JSON.stringify(cacheData));
             }
         } catch (error: any) {
             console.error(error);
@@ -92,6 +120,9 @@ const GoogleSearch: React.FC = () => {
         } finally {
             setLoading(false);
             setDefaultSet(true);
+            const endTime = new Date().getTime();
+            console.log((endTime - startTime) / 1000);
+            setSearchTime((endTime - startTime) / 1000);
         }
     }, [lang, query, router]);
 
@@ -126,7 +157,7 @@ const GoogleSearch: React.FC = () => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-900 pt-12 p-4 rounded-lg shadow-md h-full">
+        <div className="bg-white dark:bg-gray-900 pt-12 p-4 rounded-lg">
             <div className="flex items-center mb-2">
                 <input
                     type="text"
@@ -148,9 +179,9 @@ const GoogleSearch: React.FC = () => {
                 </button>
             </div>
             {loading ? (
-                <div className="flex flex-col space-y-4 mt-4">
+                <div className="grid grid-cols-repeat-auto-fit gap-4">
                     {[1, 2, 3, 4, 5].map((_, index) => (
-                        <div key={index} className="flex space-x-4">
+                        <div key={index} className="flex flex-row space-y-4 space-x-2">
                             <div className="w-32 h-32 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
                             <div className="flex-1 space-y-2">
                                 <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
@@ -161,6 +192,21 @@ const GoogleSearch: React.FC = () => {
                     ))}
                 </div>
             ) : (
+                <>
+                    <div className="flex flex-col md:flex-row items-center justify-center md:justify-between mt-4">
+                        {results.length > 0 && (
+                            <>
+                                <p className="text-gray-500">{t('results', { startIndex, endIndex: startIndex + results.length - 1, totalResults })}</p>
+                                <p
+                                    className="text-gray-500"
+                                    onClick={() => timeInfo && console.log(new Date(timeInfo))}
+                                >
+                                    {t('lastUpdated', { time: format.relativeTime(new Date(timeInfo), new Date(new Date().getTime())) })}
+                                </p>
+                                <p className="text-gray-500">{t('searchTime', { searchTime })}</p>
+                            </>
+                        )}
+                    </div>
                     <div className="mt-4">
                         {results.map((result, index) => (
                             <Link href={result.link} target="_blank" rel="noopener noreferrer" key={result.link}>
@@ -180,20 +226,6 @@ const GoogleSearch: React.FC = () => {
                                 </div>
                             </Link>
                         ))}
-                        <div className="flex flex-col md:flex-row items-center justify-center md:justify-between mt-4">
-                            {results.length > 0 && (
-                                <>
-                                    <p className="text-gray-500">{t('results', { startIndex, endIndex: startIndex + results.length - 1, totalResults })}</p>
-                                    <p
-                                        className="text-gray-500"
-                                        onClick={() => timeInfo && console.log(new Date(timeInfo))}
-                                    >
-                                        {t('lastUpdated', { time: format.relativeTime(new Date(timeInfo), new Date(new Date().getTime())) })}
-                                    </p>
-                                    <p className="text-gray-500">{t('searchTime', { searchTime })}</p>
-                                </>
-                            )}
-                        </div>
                         <div className="flex justify-center mt-4">
                             {startIndex > 1 && (
                                 <button onClick={() => handlePageClick(startIndex - 10)} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 mr-2">
@@ -206,7 +238,11 @@ const GoogleSearch: React.FC = () => {
                                 </button>
                             )}
                             {results.length > 0 && (
-                                <select onChange={handlePageSelect} className="ml-2 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
+                                <select
+                                    onChange={handlePageSelect}
+                                    className="ml-2 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                                    value={Number(params.get('page')) || 1}
+                                >
                                     {Array.from({ length: Math.min(Math.ceil(totalResults / 10), 20) }, (_, i) => {
                                         const start = i * 10 + 1;
                                         const end = Math.min(start + 9, totalResults);
@@ -220,6 +256,7 @@ const GoogleSearch: React.FC = () => {
                             )}
                         </div>
                     </div>
+                </>
             )}
             {results.length === 0 && !loading ? (
                 <div className="flex flex-col items-center justify-center mt-4 cursor-pointer" onClick={() => { inputRef.current?.focus() }}>

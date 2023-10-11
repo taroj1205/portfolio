@@ -29,7 +29,7 @@ export default function Header() {
         { href: '/apps', text: t('apps'), icon: <FaCubes /> },
     ];
 
-    const handleResize = useCallback(() => {
+    const handleResize = useCallback((): void => {
         const links = document.querySelectorAll('nav a');
         links.forEach((link) => {
             if (link.getAttribute('href') === nextPathname) {
@@ -74,9 +74,12 @@ export default function Header() {
             }
         });
 
+        const resizeObserver = new ResizeObserver(handleResize);
+        resizeObserver.observe(document.documentElement);
         window.addEventListener('resize', handleResize);
 
         return () => {
+            resizeObserver.disconnect();
             window.removeEventListener('resize', handleResize);
         };
     }, [active, handleResize, nextPathname]);
