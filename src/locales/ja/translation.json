@@ -150,7 +150,7 @@
     "apps": "アプリ",
     "chat": "チャット",
     "contact_info": "お問い合わせ先",
-    "edit_on_crowdin": "Edit translation",
+    "edit_on_crowdin": "翻訳を編集する",
     "edit_on_github": "GitHubで編集する",
     "home": "ホーム",
     "name": "上鍵心太朗",
@@ -172,7 +172,33 @@
     "student": "僕は学生です。",
     "title": "ホーム",
     "welcome": "僕のサイトへようこそ！",
-    "welcomeMessage": "ぜひ見て回って、何か質問があればお知らせください。"
+    "welcomeMessage": "ぜひ見て回って、何か質問があればお知らせください。",
+    "apps": {
+      "about": {
+        "name": "自己紹介",
+        "description": "私の経歴、スキル、興味について学びましょう。"
+      },
+      "apps": {
+        "name": "アプリ",
+        "description": "ReactやTypeScriptなどを使用して作成したアプリを探索しましょう。"
+      },
+      "settings": {
+        "name": "設定",
+        "description": "アプリの設定や好みに合わせて調整しましょう。"
+      },
+      "blog": {
+        "name": "ブログ",
+        "description": "様々なトピックについての私の最新のブログ記事を読んでみましょう。"
+      },
+      "github": {
+        "name": "GitHub",
+        "description": "GitHub上での私のオープンソースプロジェクトや貢献を見てみましょう。"
+      },
+      "chat": {
+        "name": "チャット",
+        "description": "様々なトピックについて他の人とチャットしてみましょう。"
+      }
+    }
   },
   "language switcher": {
     "language": "言語",

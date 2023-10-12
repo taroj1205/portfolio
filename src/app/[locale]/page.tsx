@@ -17,42 +17,36 @@ const apps = [
     icon: <FaUser />,
     link: '/about',
     name: 'About',
-    description: 'Learn about my background, skills, and interests.',
     backgroundColor: 'bg-green-400 dark:bg-green-800'
   },
   {
     icon: <FaCubes />,
     link: '/apps',
     name: 'Apps',
-    description: 'Explore the apps I have built using React and TypeScript and others.',
     backgroundColor: 'bg-red-400 dark:bg-red-800'
   },
   {
     icon: <FaCog />,
     link: '/settings',
     name: 'Settings',
-    description: 'Adjust your preferences and settings for my apps.',
     backgroundColor: 'bg-purple-400 dark:bg-purple-800'
   },
   {
     icon: <FaBlog />,
     link: 'https://taroj1205.hatenablog.com',
     name: 'Blog',
-    description: 'Read my latest blog posts on a variety of topics.',
     backgroundColor: 'bg-yellow-400 dark:bg-yellow-800'
   },
   {
     icon: <FaGithub />,
     link: 'https://github.com/taroj1205',
     name: 'GitHub',
-    description: 'View my open-source projects and contributions on GitHub.',
     backgroundColor: 'bg-gray-400 dark:bg-gray-800'
   },
   {
     icon: <TbMessageChatbot />,
     link: 'https://chat-taroj.vercel.app/',
     name: 'Chat',
-    description: 'Connect with other people and chat about various topics.',
     backgroundColor: 'bg-blue-400 dark:bg-blue-800'
   }
 ];
@@ -74,17 +68,17 @@ export default function Home() {
         </div>
         <div className="flex flex-wrap justify-center gap-6 pb-6 max-w-3xl">
           {apps.map((app) => (
-            <Link key={app.link} href={app.link} className={`${app.name.toString() === 'Coming soon' ? 'cursor-not-allowed' : ''} flex flex-col items-center w-48 justify-center ${app.backgroundColor} rounded-lg shadow-md bg-opacity-90 hover:bg-opacity-100 dark:bg-opacity-90 dark:hover:bg-opacity-100`}>
+            <Link key={app.link} href={app.link} className={`flex flex-col items-center w-48 justify-center ${app.backgroundColor} rounded-lg shadow-md bg-opacity-90 hover:bg-opacity-100 dark:bg-opacity-90 dark:hover:bg-opacity-100`}>
               <div className='h-full'>
                 <div className="h-32 flex items-center justify-center text-6xl text-black dark:text-white">
                   {app.icon}
                 </div>
                 <div className="px-4 py-2 text-center">
                   <h2 className="text-lg font-medium text-gray-900 dark:text-white">
-                    {app.name}
+                    {t(`apps.${app.name.toString().toLowerCase()}.name`)}
                   </h2>
                   <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-break-spaces">
-                    {app.description}
+                    {t(`apps.${app.name.toString().toLowerCase()}.description`)}
                   </p>
                 </div>
               </div>

@@ -173,7 +173,33 @@
     "student": "I'm a student.",
     "title": "Home",
     "welcome": "Welcome to my website!",
-    "welcomeMessage": "Please take a look around and let me know if you have any questions."
+    "welcomeMessage": "Please take a look around and let me know if you have any questions.",
+    "apps": {
+      "about": {
+        "name": "About",
+        "description": "Learn about my background, skills, and interests."
+      },
+      "apps": {
+        "name": "Apps",
+        "description": "Explore the apps I have built using React and TypeScript and others."
+      },
+      "settings": {
+        "name": "Settings",
+        "description": "Adjust your preferences and settings for my apps."
+      },
+      "blog": {
+        "name": "Blog",
+        "description": "Read my latest blog posts on a variety of topics."
+      },
+      "github": {
+        "name": "GitHub",
+        "description": "View my open-source projects and contributions on GitHub."
+      },
+      "chat": {
+        "name": "Chat",
+        "description": "Connect with other people and chat about various topics."
+      }
+    }
   },
   "language switcher": {
     "language": "Language",
