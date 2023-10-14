@@ -176,7 +176,7 @@ export default function Header() {
                                     onMouseEnter={handleMouseEnter}
                                     onMouseLeave={handleMouseLeave}
                                 >
-                                    <span className="mr-0 md:mr-2">{link.icon}</span>
+                                    <span className="mr-1 md:mr-2">{link.icon}</span>
                                     {link.text}
                                 </Link>
                             ))}
