@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import Image from 'next/image';
 import { IconType } from 'react-icons';
 import Contacts from '@/components/Contacts';
-import MySkills from '@/components/MySkills';
 
 import NCEA from '@/components/NCEA/Ncea';
 

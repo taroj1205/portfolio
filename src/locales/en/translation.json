@@ -140,10 +140,30 @@
   "apps": {
     "analytics": "Analytics",
     "chat": "Chat",
+    "graphs": {
+      "achieved": "Achieved",
+      "achievementsForSubject": "Achievements for Each Subject",
+      "achievementsForSubjectNonStacked": "Achievements for Each Subject (Non-Stacked)",
+      "achievementsForSubjectStacked": "Achievements for Each Subject (Stacked)",
+      "credits": "Credits",
+      "distributionOfAchievements": "Distribution of Achievements",
+      "excellence": "Excellence",
+      "merit": "Merit",
+      "nonStacked": "Non-Stacked",
+      "stacked": "Stacked",
+      "switchToCredits": "Switch to Credits",
+      "switchToDistributionNonStacked": "Switch to Distribution (Non-Stacked)",
+      "switchToDistributionStacked": "Switch to Distribution (Stacked)",
+      "switchToRankScore": "Switch to Rank Score",
+      "switchToTotalCredits": "Switch to Total Credits",
+      "totalCreditsEarned": "Total Credits Earned for Each Achievement",
+      "rankScore": "Rank Score",
+      "totalCredits": "Total Credits"
+    },
     "list": "List of apps",
     "ncea": "NCEA",
-    "title": "Apps",
-    "search": "Search"
+    "search": "Search",
+    "title": "Apps"
   },
   "footer": {
     "about": "About",
@@ -167,43 +187,51 @@
   },
   "index": {
     "about": "About me",
+    "apps": {
+      "about": {
+        "description": "Learn about my background, skills, and interests.",
+        "name": "About"
+      },
+      "apps": {
+        "description": "Explore the apps I have built using React and TypeScript and others.",
+        "name": "Apps"
+      },
+      "blog": {
+        "description": "Read my latest blog posts on a variety of topics.",
+        "name": "Blog"
+      },
+      "chat": {
+        "description": "Connect with other people and chat about various topics.",
+        "name": "Chat"
+      },
+      "github": {
+        "description": "View my open-source projects and contributions on GitHub.",
+        "name": "GitHub"
+      },
+      "settings": {
+        "description": "Adjust your preferences and settings for my apps.",
+        "name": "Settings"
+      }
+    },
     "links": "Links:",
     "madeWith": "This website uses these:",
     "name": "I'm Shintaro Jokagi.",
     "student": "I'm a student.",
     "title": "Home",
     "welcome": "Welcome to my website!",
-    "welcomeMessage": "Please take a look around and let me know if you have any questions.",
-    "apps": {
-      "about": {
-        "name": "About",
-        "description": "Learn about my background, skills, and interests."
-      },
-      "apps": {
-        "name": "Apps",
-        "description": "Explore the apps I have built using React and TypeScript and others."
-      },
-      "settings": {
-        "name": "Settings",
-        "description": "Adjust your preferences and settings for my apps."
-      },
-      "blog": {
-        "name": "Blog",
-        "description": "Read my latest blog posts on a variety of topics."
-      },
-      "github": {
-        "name": "GitHub",
-        "description": "View my open-source projects and contributions on GitHub."
-      },
-      "chat": {
-        "name": "Chat",
-        "description": "Connect with other people and chat about various topics."
-      }
-    }
+    "welcomeMessage": "Please take a look around and let me know if you have any questions."
   },
   "language switcher": {
     "language": "Language",
     "search": "Search..."
+  },
+  "search": {
+    "lastUpdated": "Last updated: {time}",
+    "next": "Next",
+    "previous": "Previous",
+    "results": "Results {startIndex} - {endIndex} of {totalResults}",
+    "searchTime": "Results took {searchTime} seconds",
+    "startSearch": "Start exploring the possibilities!"
   },
   "skill": {
     "css": "CSS",
@@ -222,13 +250,5 @@
     "tailwind": "Tailwind",
     "title": "Skills",
     "typescript": "TypeScript"
-  },
-  "search": {
-    "previous": "Previous",
-    "next": "Next",
-    "results": "Results {startIndex} - {endIndex} of {totalResults}",
-    "searchTime": "Results took {searchTime} seconds",
-    "startSearch": "Start exploring the possibilities!",
-    "lastUpdated": "Last updated: {time}"
   }
 }

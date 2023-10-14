@@ -139,10 +139,30 @@
   "apps": {
     "analytics": "統計",
     "chat": "チャット",
+    "graphs": {
+      "achieved": "可 (Achieved)",
+      "achievementsForSubject": "各科目の成果",
+      "achievementsForSubjectNonStacked": "各科目の成果（非積み上げ）",
+      "achievementsForSubjectStacked": "各科目の成果（積み上げ）",
+      "credits": "単位",
+      "distributionOfAchievements": "成果の分布",
+      "excellence": "優 (Excellence)",
+      "merit": "良 (Merit)",
+      "nonStacked": "非積み上げ",
+      "stacked": "積み上げ",
+      "switchToCredits": "クレジットに切り替え",
+      "switchToDistributionNonStacked": "分布（非積み上げ）に切り替え",
+      "switchToDistributionStacked": "分布（積み上げ）に切り替え",
+      "switchToRankScore": "ランクスコアに切り替え",
+      "switchToTotalCredits": "合計クレジットに切り替え",
+      "totalCreditsEarned": "各成果で獲得した合計クレジット",
+      "rankScore": "ランクスコア",
+      "totalCredits": "合計クレジット"
+    },
     "list": "アプリ一覧",
     "ncea": "NCEA",
-    "title": "アプリ",
-    "search": "検索"
+    "search": "検索",
+    "title": "アプリ"
   },
   "footer": {
     "about": "自己紹介",
@@ -166,43 +186,51 @@
   },
   "index": {
     "about": "僕について",
+    "apps": {
+      "about": {
+        "description": "私の経歴、スキル、興味について学びましょう。",
+        "name": "自己紹介"
+      },
+      "apps": {
+        "description": "ReactやTypeScriptなどを使用して作成したアプリを探索しましょう。",
+        "name": "アプリ"
+      },
+      "blog": {
+        "description": "様々なトピックについての私の最新のブログ記事を読んでみましょう。",
+        "name": "ブログ"
+      },
+      "chat": {
+        "description": "様々なトピックについて他の人とチャットしてみましょう。",
+        "name": "チャット"
+      },
+      "github": {
+        "description": "GitHub上での私のオープンソースプロジェクトや貢献を見てみましょう。",
+        "name": "GitHub"
+      },
+      "settings": {
+        "description": "アプリの設定や好みに合わせて調整しましょう。",
+        "name": "設定"
+      }
+    },
     "links": "リンク：",
     "madeWith": "このサイトはこれらを使用しています。",
     "name": "僕は上鍵心太朗です。",
     "student": "僕は学生です。",
     "title": "ホーム",
     "welcome": "僕のサイトへようこそ！",
-    "welcomeMessage": "ぜひ見て回って、何か質問があればお知らせください。",
-    "apps": {
-      "about": {
-        "name": "自己紹介",
-        "description": "私の経歴、スキル、興味について学びましょう。"
-      },
-      "apps": {
-        "name": "アプリ",
-        "description": "ReactやTypeScriptなどを使用して作成したアプリを探索しましょう。"
-      },
-      "settings": {
-        "name": "設定",
-        "description": "アプリの設定や好みに合わせて調整しましょう。"
-      },
-      "blog": {
-        "name": "ブログ",
-        "description": "様々なトピックについての私の最新のブログ記事を読んでみましょう。"
-      },
-      "github": {
-        "name": "GitHub",
-        "description": "GitHub上での私のオープンソースプロジェクトや貢献を見てみましょう。"
-      },
-      "chat": {
-        "name": "チャット",
-        "description": "様々なトピックについて他の人とチャットしてみましょう。"
-      }
-    }
+    "welcomeMessage": "ぜひ見て回って、何か質問があればお知らせください。"
   },
   "language switcher": {
     "language": "言語",
     "search": "検索する。"
+  },
+  "search": {
+    "lastUpdated": "最終更新日時：{time}",
+    "next": "次へ",
+    "previous": "前へ",
+    "results": "{startIndex} - {endIndex} / {totalResults} の結果",
+    "searchTime": "{searchTime}秒で結果が表示されました",
+    "startSearch": "今日から検索を始めましょう！"
   },
   "skill": {
     "css": "CSS",
@@ -221,13 +249,5 @@
     "tailwind": "Tailwind",
     "title": "スキル",
     "typescript": "TypeScript"
-  },
-  "search": {
-    "previous": "前へ",
-    "next": "次へ",
-    "results": "{startIndex} - {endIndex} / {totalResults} の結果",
-    "searchTime": "{searchTime}秒で結果が表示されました",
-    "startSearch": "今日から検索を始めましょう！",
-    "lastUpdated": "最終更新日時：{time}"
   }
 }
