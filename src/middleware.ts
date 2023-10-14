@@ -4,7 +4,8 @@ import { NextRequest } from 'next/server';
 export default async function middleware(request: NextRequest) {
     // Step 1: Use the incoming request
     const defaultLocale = request.headers.get('x-default-locale') || 'en';
-    const acceptLanguage = request.headers.get('accept-language');
+    const pathname = request.nextUrl.pathname;
+    const locale = pathname.split('/')[1];
 
     // Step 2: Create and call the next-intl middleware
     const handleI18nRouting = createIntlMiddleware({
@@ -21,8 +22,10 @@ export default async function middleware(request: NextRequest) {
     // Step 3: Alter the response
     response.headers.set('x-default-locale', defaultLocale);
 
+    console.log(locale);
+
     let currentLocale = 'en';
-    if (acceptLanguage && acceptLanguage.includes('ja')) {
+    if (locale && locale.includes('ja')) {
         currentLocale = 'ja';
     }
 
