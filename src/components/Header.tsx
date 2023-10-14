@@ -1,7 +1,5 @@
 'use client'
-import { createSharedPathnamesNavigation } from 'next-intl/navigation';
-const locales = ['en', 'ja'] as const;
-const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
+import Link from 'next-intl/link';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { RiHome2Line, RiUserLine } from 'react-icons/ri';
@@ -10,6 +8,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import LanguageSwitcher from './LanguageSwitch';
 import { FaBlog, FaCubes } from 'react-icons/fa';
+import { usePathname } from 'next-intl/client';
 
 export default function Header() {
     const pathname = usePathname();

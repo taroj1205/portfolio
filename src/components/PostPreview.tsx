@@ -1,7 +1,5 @@
 import DateFormatter from "@/components/DateFormatter";
-import { createSharedPathnamesNavigation } from 'next-intl/navigation';
-const locales = ['en', 'ja'] as const;
-const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
+import Link from 'next-intl/link';
 import Image from "next/image";
 
 type Items = {
@@ -26,7 +24,7 @@ export default function PostPreview({ post }: { post: Items }) {
                         {post.title}
                     </p>
                     <DateFormatter dateString={post.date} />
-                    <p className="text-gray-600 dark:text-gray-300">{post.excerpt}</p>
+                    <p className="text-gray-600 dark:text-gray-300 line-clamp-5 md:line-clamp-6">{post.excerpt}</p>
                 </div>
             </Link>
         </div>

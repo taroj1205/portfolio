@@ -1,9 +1,7 @@
 import DateFormatter from "@/components/DateFormatter";
 import Image from "next/image";
 import { getPostBySlug } from "@/lib/api";
-import { createSharedPathnamesNavigation } from 'next-intl/navigation';
-const locales = ['en', 'ja'] as const;
-const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
+import Link from 'next-intl/link';
 import { useLocale } from "next-intl";
 import aboutImage from "../../public/blog/thumbnail/about.webp";
 
@@ -41,14 +39,8 @@ export default function PostHero() {
                         </p>
                         <DateFormatter dateString={heroPost.date} />
                     </div>
-                    <p className="text-gray-600 dark:text-gray-300">
-                        {lang === 'ja'
-                            ? heroPost.excerpt.length > 150
-                                ? heroPost.excerpt.substring(0, 150) + '...'
-                                : heroPost.excerpt
-                            : heroPost.excerpt.length > 300
-                                ? heroPost.excerpt.substring(0, 300) + '...'
-                                : heroPost.excerpt}
+                    <p className="text-gray-600 dark:text-gray-300 line-clamp-5">
+                        {heroPost.excerpt}
                     </p>
                 </div>
             </div>

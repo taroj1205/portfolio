@@ -8,9 +8,6 @@ import { NextIntlClientProvider } from 'next-intl'
 import Header from '@/components/Header'
 import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script'
-import { createSharedPathnamesNavigation } from 'next-intl/navigation';
-const locales = ['en', 'ja'] as const;
-const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ja' }];
@@ -67,17 +64,16 @@ export default async function RootLayout({
   }
 
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-  const isSearchPage = pathname.includes('/apps/search');
 
   return (
     <html lang={locale} className='bg-white dark:bg-gray-900'>
       <body
-        className={` bg-white dark:bg-gray-900 ${switchThemeDuration}`}
+        className={` bg-white dark:bg-gray-900 min-h-screen ${switchThemeDuration}`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <Header />
-            <main className='content pt-20 pb-6 bg-white dark:bg-gray-900'>{children}</main>
+            <main className='content pt-24 pb-6 bg-white dark:bg-gray-900'>{children}</main>
             <Footer />
             <Script async src="https://analytics.eu.umami.is/script.js" data-website-id="3531a168-c010-41c6-b82f-34f9f492f84a"></Script>
             <Analytics />

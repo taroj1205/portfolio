@@ -3,9 +3,7 @@ import { useTranslations } from 'next-intl';
 import { FaBlog, FaCog, FaCubes, FaGithub, FaUser } from 'react-icons/fa';
 import Image from 'next/image';
 import { TbMessageChatbot } from 'react-icons/tb';
-import { createSharedPathnamesNavigation } from 'next-intl/navigation';
-const locales = ['en', 'ja'] as const;
-const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
+import Link from 'next-intl/link';
 
 const apps = [
   // {

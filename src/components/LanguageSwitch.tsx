@@ -5,10 +5,8 @@ import { ImEarth } from 'react-icons/im';
 import { FiGlobe } from 'react-icons/fi';
 import { useTheme } from 'next-themes';
 import { useTranslations, useLocale } from 'next-intl';
-import { createSharedPathnamesNavigation } from 'next-intl/navigation';
-const locales = ['en', 'ja'] as const;
-const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
 import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next-intl/client';
 
 const LanguageSwitcher = ({ isHeader }: { isHeader: boolean }) => {
     const pathname = usePathname();

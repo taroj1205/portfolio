@@ -6,9 +6,7 @@ import { TbSchool } from 'react-icons/tb';
 import { IconType } from 'react-icons';
 import { useTheme } from 'next-themes';
 import { useLocale, useTranslations } from 'next-intl';
-import { createSharedPathnamesNavigation } from 'next-intl/navigation';
-const locales = ['en', 'ja'] as const;
-const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
+import Link from 'next-intl/link';
 
 const RouteLink = ({ path, label, icon: Icon }: { path: string; label: string; icon: IconType }) => (
     <Link href={path}
