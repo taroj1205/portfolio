@@ -36,7 +36,7 @@ export default function Home() {
                 </div>
                 <Link
                     href="/blog"
-                    className='text-xl mt-4 md:text-lg text-blue-500 hover:text-blue-700 hover:underline flex items-center px-4 py-2 rounded-md  bg-blue-200 dark:bg-gray-700'>
+                    className='text-xl mt-4 md:text-lg text-blue-500 hover:text-blue-600 hover:underline flex items-center px-4 py-2 rounded-md  bg-blue-200 dark:bg-gray-700'>
                     {locale === 'ja' ? 'もっと見る' : 'See more'} {' -> '}
                 </Link>
             </main>
