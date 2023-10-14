@@ -182,7 +182,8 @@
     "apps": "アプリ",
     "chat": "チャット",
     "home": "ホーム",
-    "title": "上鍵心太朗"
+    "title": "上鍵心太朗",
+    "blog": "ブログ"
   },
   "index": {
     "about": "僕について",
@@ -249,5 +250,9 @@
     "tailwind": "Tailwind",
     "title": "スキル",
     "typescript": "TypeScript"
+  },
+  "blog": {
+    "see more": "もっと見る",
+    "all posts": "すべての投稿"
   }
 }

@@ -3,29 +3,34 @@ import Link from 'next-intl/link';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { RiHome2Line, RiUserLine } from 'react-icons/ri';
-import { usePathname } from 'next-intl/client';
 import { usePathname as nextUsePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import LanguageSwitcher from './LanguageSwitch';
-import { FaCubes } from 'react-icons/fa';
+import { FaBlog, FaCubes } from 'react-icons/fa';
+import { usePathname } from 'next-intl/client';
 
 export default function Header() {
     const pathname = usePathname();
     const currentPathname = nextUsePathname();
     const lang = useLocale();
-    const nextPathname = pathname.startsWith('/apps') ? `/${lang}/apps` : currentPathname;
+
+    const nextPathname = pathname.startsWith('/apps') ? `/${lang}/apps` : pathname.startsWith('/blog') ? `/${lang}/posts` : currentPathname;
+
+    console.log(nextPathname)
+
     const t = useTranslations('header');
     const [activeLinkStyle, setActiveLinkStyle] = useState('hidden');
     const [active, setActive] = useState(false);
     const activeRef = useRef<HTMLDivElement>(null);
     const [scrollProgress, setScrollProgress] = useState(0);
     const [scrolled, setScrolled] = useState(0);
-    const timeoutRef = useRef <ReturnType<typeof setTimeout> | null>();
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>();
 
     const links = [
         { href: '/', text: t('home'), icon: <RiHome2Line /> },
         { href: '/about', text: t('about'), icon: <RiUserLine /> },
+        { href: '/posts', text: t('blog'), icon: <FaBlog /> },
         { href: '/apps', text: t('apps'), icon: <FaCubes /> },
     ];
 
@@ -162,25 +167,27 @@ export default function Header() {
                 </div>
                 <nav className='flex items-center justify-center relative'>
                     <div className='flex flex-row text-lg'>
-                        {links.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`flex items-center ${pathname === link.href ? 'text-gray-700 dark:text-white' : 'text-gray-600 dark:text-gray-400'} px-1 sm:px-4 hover:text-black dark:hover:text-white transition-colors duration-200`}
-                                onMouseEnter={handleMouseEnter}
-                                onMouseLeave={handleMouseLeave}
-                            >
-                                <span className="mr-2">{link.icon}</span>
-                                {link.text}
-                            </Link>
-                        ))}
+                        <div className='flex flex-row justify-between w-screen md:w-full items-center'>
+                            {links.map((link) => (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    className={`flex w-full justify-center whitespace-nowrap items-center ${pathname === link.href ? 'text-gray-700 dark:text-white' : 'text-gray-600 dark:text-gray-400'} lg:px-4 hover:text-black dark:hover:text-white transition-colors duration-200`}
+                                    onMouseEnter={handleMouseEnter}
+                                    onMouseLeave={handleMouseLeave}
+                                >
+                                    <span className="mr-0 md:mr-2">{link.icon}</span>
+                                    {link.text}
+                                </Link>
+                            ))}
+                        </div>
                         <div className='md:ml-2 hidden sm:flex'>
                             <ThemeSwitcher />
                         </div>
                     </div>
                 </nav>
                 <div
-                    className={`fixed max-w-[10rem] opacity-100 mt-3 sm:mt-4 md:mt-0 left-0 h-[2px] bg-blue-500 dark:bg-blue-600 ${activeLinkStyle}`}
+                    className={`fixed max-w-[10rem] opacity-100 mt-4 md:mt-2 left-0 h-[2px] bg-blue-500 dark:bg-blue-600 ${activeLinkStyle}`}
                     ref={activeRef}
                     style={{ transition: 'transform 0.3s ease-in-out, width 0.3s ease-in-out' }}
                 />
