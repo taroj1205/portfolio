@@ -194,7 +194,7 @@ const Graphs: React.FC = () => {
                         </span>
                     </h2>
                     <ReactTooltip id="Switch Pie" content={showRankScore ? t('switchToCredits') : t('switchToRankScore')} />
-                <div className="h-full max-w-[90%] w-[300px] md:w-[400px]">
+                <div className="h-[300px] max-w-[90%] w-[300px] md:w-[400px]">
                         {isLoading ? <Skeleton className="animate-pulse" count={1} height={300} /> : (
                             showRankScore ?
                                 <Pie
@@ -206,7 +206,8 @@ const Graphs: React.FC = () => {
                                                     color: resolvedTheme === 'dark' ? '#c4c4c4' : '#000',
                                                 }
                                             },
-                                        }
+                                        },
+                                        maintainAspectRatio: false
                                     }} />
                                 :
                                 <Pie
@@ -219,7 +220,8 @@ const Graphs: React.FC = () => {
                                                         color: resolvedTheme === 'dark' ? '#c4c4c4' : '#000',
                                                     }
                                                 },
-                                            }
+                                            },
+                                            maintainAspectRatio: false
                                         }
                                     }
                                 />
@@ -239,7 +241,7 @@ const Graphs: React.FC = () => {
                         </span>
                     </h2>
                     <ReactTooltip id="Switch Bar" content={getTooltipText()} />
-                    <div className="h-full max-w-[90%] w-[300px] md:w-[400px]">
+                    <div className="h-[300px] max-w-[90%] w-[300px] md:w-[400px]">
                         {isLoading ? <Skeleton className="animate-pulse" count={1} height={300} /> : (
                             displayMode === 0 ?
                                 <Bar
@@ -257,7 +259,7 @@ const Graphs: React.FC = () => {
                                                 }
                                             }
                                         },
-                                        aspectRatio: 1,
+                                        maintainAspectRatio: false,
                                         plugins: {
                                             legend: {
                                                 labels: {
@@ -285,7 +287,7 @@ const Graphs: React.FC = () => {
                                                 }
                                             }
                                         },
-                                        aspectRatio: 1,
+                                        maintainAspectRatio: false,
                                         plugins: {
                                             legend: {
                                                 labels: {
