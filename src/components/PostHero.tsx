@@ -26,9 +26,7 @@ export default function PostHero() {
                     <Image
                         alt={`cover image for ${heroPost.title}`}
                         src={aboutImage}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded-t-md"
+                        className="object-cover rounded-t-md"
                     />
                 </div>
 

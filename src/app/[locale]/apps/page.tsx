@@ -10,7 +10,7 @@ import Link from 'next-intl/link';
 
 const RouteLink = ({ path, label, icon: Icon }: { path: string; label: string; icon: IconType }) => (
     <Link href={path}
-        className="group flex flex-col items-center justify-center p-5 rounded-lg hover:bg-opacity-70 transition-colors shadow-md bg-white dark:bg-zinc-950 text-black dark:text-white">
+        className="group flex flex-col items-center justify-center p-5 rounded-lg hover:bg-opacity-70 transition-colors shadow-md bg-gray-100 dark:bg-zinc-950 text-black dark:text-white">
         {Icon && (
             <span
                 className="flex justify-center md:group-hover:opacity-10 opacity-100 text-4xl dark:text-white text-black transition-opacity duration-500">
@@ -112,7 +112,7 @@ const Index = () => {
                 <Image alt='thumbnail image' src="/image/thumbnail/thumbnail.webp" fill={true} className='object-right object-cover' />
             </div> */}
             <div ref={sceneRef}
-                className="flex flex-col items-center py-14 text-black dark:text-white bg-white dark:bg-gray-900">
+                className="flex flex-col items-center py-14 text-black dark:text-white">
                 <h1 className="text-4xl md:text-6xl font-bold">
                     {t('list')}
                 </h1>

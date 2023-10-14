@@ -75,7 +75,7 @@ export default async function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <Header />
-            <main className='content bg-white dark:bg-gray-900 pt-16 pb-6'>{children}</main>
+            <main className='content pt-20 pb-6 bg-white dark:bg-gray-900'>{children}</main>
             <Footer />
             <Script async src="https://analytics.eu.umami.is/script.js" data-website-id="3531a168-c010-41c6-b82f-34f9f492f84a"></Script>
             <Analytics />

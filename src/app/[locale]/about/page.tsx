@@ -43,7 +43,7 @@ export default function About() {
     const t = useTranslations('about');
 
     return (
-        <div className='flex flex-col items-center justify-center min-h-full bg-gray-100 dark:bg-gray-900 mb-12'>
+        <div className='flex flex-col items-center justify-center min-h-full mb-12'>
             <div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col items-center justify-center pb-4">
                     <h1 className="text-4xl font-extrabold">

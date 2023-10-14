@@ -25,7 +25,7 @@ export default function Header() {
     const activeRef = useRef<HTMLDivElement>(null);
     const [scrollProgress, setScrollProgress] = useState(0);
     const [scrolled, setScrolled] = useState(0);
-    const timeoutRef = useRef <ReturnType<typeof setTimeout> | null>();
+    const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>();
 
     const links = [
         { href: '/', text: t('home'), icon: <RiHome2Line /> },
@@ -167,18 +167,20 @@ export default function Header() {
                 </div>
                 <nav className='flex items-center justify-center relative'>
                     <div className='flex flex-row text-lg'>
-                        {links.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`flex items-center ${pathname === link.href ? 'text-gray-700 dark:text-white' : 'text-gray-600 dark:text-gray-400'} px-1 sm:px-4 hover:text-black dark:hover:text-white transition-colors duration-200`}
-                                onMouseEnter={handleMouseEnter}
-                                onMouseLeave={handleMouseLeave}
-                            >
-                                <span className="mr-2">{link.icon}</span>
-                                {link.text}
-                            </Link>
-                        ))}
+                        <div className='flex flex-row justify-between w-screen md:w-full items-center'>
+                            {links.map((link) => (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    className={`flex w-full justify-center whitespace-nowrap items-center ${pathname === link.href ? 'text-gray-700 dark:text-white' : 'text-gray-600 dark:text-gray-400'} lg:px-4 hover:text-black dark:hover:text-white transition-colors duration-200`}
+                                    onMouseEnter={handleMouseEnter}
+                                    onMouseLeave={handleMouseLeave}
+                                >
+                                    <span className="mr-0 md:mr-2">{link.icon}</span>
+                                    {link.text}
+                                </Link>
+                            ))}
+                        </div>
                         <div className='md:ml-2 hidden sm:flex'>
                             <ThemeSwitcher />
                         </div>
