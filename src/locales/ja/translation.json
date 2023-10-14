@@ -252,6 +252,7 @@
     "typescript": "TypeScript"
   },
   "blog": {
-    "see more": "もっと見る"
+    "see more": "もっと見る",
+    "all posts": "すべての投稿"
   }
 }

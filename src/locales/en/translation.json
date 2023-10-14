@@ -253,6 +253,7 @@
     "typescript": "TypeScript"
   },
   "blog": {
-    "see more": "See more"
+    "see more": "See more",
+    "all posts": "All posts"
   }
 }

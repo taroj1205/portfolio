@@ -1,16 +1,18 @@
 import { getAllPosts } from "@/lib/api";
 import PostPreview from "@/components/PostPreview";
-import { useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
+import { getLocale } from "next-intl/server";
 
 export default function Blog() {
-    const lang = useLocale();
+    const t = useTranslations('blog');
+    const lang = getLocale(); // en or ja
 
     const posts = getAllPosts(lang, ["title", "date", "excerpt", "coverImage", "slug"]);
 
     return (
         <div className="container mx-auto px-5">
             <main>
-                <h1 className="text-center text-3xl">All Posts</h1>
+                <h1 className="text-center text-3xl">{t('all posts')}</h1>
 
                 <div className="h-12"></div>
 
