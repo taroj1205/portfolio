@@ -112,7 +112,7 @@ const Index = () => {
                 <Image alt='thumbnail image' src="/image/thumbnail/thumbnail.webp" fill={true} className='object-right object-cover' />
             </div> */}
             <div ref={sceneRef}
-                className="flex flex-col items-center mt-4 py-14 text-black dark:text-white bg-white dark:bg-gray-900">
+                className="flex flex-col items-center py-14 text-black dark:text-white bg-white dark:bg-gray-900">
                 <h1 className="text-4xl md:text-6xl font-bold">
                     {t('list')}
                 </h1>

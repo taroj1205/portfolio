@@ -8,13 +8,17 @@ import { usePathname as nextUsePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import LanguageSwitcher from './LanguageSwitch';
-import { FaCubes } from 'react-icons/fa';
+import { FaBlog, FaCubes } from 'react-icons/fa';
 
 export default function Header() {
     const pathname = usePathname();
     const currentPathname = nextUsePathname();
     const lang = useLocale();
-    const nextPathname = pathname.startsWith('/apps') ? `/${lang}/apps` : currentPathname;
+
+    const nextPathname = pathname.startsWith('/apps') ? `/${lang}/apps` : pathname.startsWith('/blog') ? `/${lang}/posts` : currentPathname;
+
+    console.log(nextPathname)
+
     const t = useTranslations('header');
     const [activeLinkStyle, setActiveLinkStyle] = useState('hidden');
     const [active, setActive] = useState(false);
@@ -26,6 +30,7 @@ export default function Header() {
     const links = [
         { href: '/', text: t('home'), icon: <RiHome2Line /> },
         { href: '/about', text: t('about'), icon: <RiUserLine /> },
+        { href: '/posts', text: t('blog'), icon: <FaBlog /> },
         { href: '/apps', text: t('apps'), icon: <FaCubes /> },
     ];
 

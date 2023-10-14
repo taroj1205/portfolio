@@ -157,7 +157,7 @@ const GoogleSearch: React.FC = () => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-900 pt-12 p-4 rounded-lg">
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg">
             <div className="flex items-center mb-2">
                 <input
                     type="text"
