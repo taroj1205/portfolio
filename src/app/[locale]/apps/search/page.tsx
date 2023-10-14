@@ -1,7 +1,8 @@
 'use client'
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
-import { useRouter } from 'next-intl/client';
-import Link from 'next-intl/link';
+import { createSharedPathnamesNavigation } from 'next-intl/navigation';
+const locales = ['en', 'ja'] as const;
+const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
 import { useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaSearch, FaImage } from 'react-icons/fa';
