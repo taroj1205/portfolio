@@ -25,11 +25,13 @@ export default function PostHero() {
         <Link href={`/posts/${heroPost.slug}`}>
             <div className="w-full mx-auto group p-4 bg-gray-100 dark:bg-gray-800 shadow-md rounded-md">
                 <div className="w-full h-64 md:h-96 relative">
-                    <Image
-                        alt={`cover image for ${heroPost.title}`}
-                        src={aboutImage}
-                        className="object-cover rounded-t-md"
-                    />
+                    <div className="aspect-w-16 aspect-h-9">
+                        <Image
+                            alt={`cover image for ${heroPost.title}`}
+                            src={aboutImage}
+                            className="object-cover max-h-96 rounded-t-md"
+                        />
+                    </div>
                 </div>
 
                 <div className="grid mt-4 md:grid-cols-2 grid-cols-1 gap-4">
@@ -40,7 +42,13 @@ export default function PostHero() {
                         <DateFormatter dateString={heroPost.date} />
                     </div>
                     <p className="text-gray-600 dark:text-gray-300">
-                        {lang === 'ja' ? (heroPost.excerpt.length > 150 ? heroPost.excerpt.substring(0, 150) + "..." : heroPost.excerpt) : (heroPost.excerpt.length > 300 ? heroPost.excerpt.substring(0, 300) + "..." : heroPost.excerpt)}
+                        {lang === 'ja'
+                            ? heroPost.excerpt.length > 150
+                                ? heroPost.excerpt.substring(0, 150) + '...'
+                                : heroPost.excerpt
+                            : heroPost.excerpt.length > 300
+                                ? heroPost.excerpt.substring(0, 300) + '...'
+                                : heroPost.excerpt}
                     </p>
                 </div>
             </div>

@@ -1,12 +1,13 @@
 import { getAllPosts } from "@/lib/api";
 import PostPreview from "@/components/PostPreview";
 import PostHero from "@/components/PostHero";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { createSharedPathnamesNavigation } from 'next-intl/navigation';
 const locales = ['en', 'ja'] as const;
 const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
 
 export default function Home() {
+    const t = useTranslations('blog');
     const lang = useLocale();
     const posts = getAllPosts(lang, ["title", "date", "excerpt", "coverImage", "slug"]);
     const recentPosts = posts.slice(0, 2);
@@ -38,9 +39,8 @@ export default function Home() {
                 <div className="h-16"></div>
                 <Link
                     href="/blog"
-                    className="text-3xl text-blue-500 hover:text-blue-700 hover:underline flex items-center"
-                >
-                    Read More {' -> '}
+                    className='text-xl md:text-lg text-blue-500 hover:text-blue-700 hover:underline flex items-center px-4 py-2 rounded-md  bg-blue-200 dark:bg-gray-700'>
+                    {t('see more')} {' -> '}
                 </Link>
             </main>
         </div>

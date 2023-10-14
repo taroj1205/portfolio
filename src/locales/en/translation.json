@@ -251,5 +251,8 @@
     "tailwind": "Tailwind",
     "title": "Skills",
     "typescript": "TypeScript"
+  },
+  "blog": {
+    "see more": "See more"
   }
 }

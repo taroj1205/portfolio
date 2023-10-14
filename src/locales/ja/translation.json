@@ -250,5 +250,8 @@
     "tailwind": "Tailwind",
     "title": "スキル",
     "typescript": "TypeScript"
+  },
+  "blog": {
+    "see more": "もっと見る"
   }
 }
