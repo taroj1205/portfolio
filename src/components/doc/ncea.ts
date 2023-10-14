@@ -19,6 +19,11 @@ const ncea: NceaData = {
             "assessment": "Prepare a report for an external user that interprets the annual report of a New Zealand reporting entity",
             "credits": "5",
             "achievement": "Achieved"
+        },
+        "3.2": {
+            "assessment": "Demonstrate understanding of accounting for partnerships",
+            "credits": "4",
+            "achievement": "Merit"
         }
     },
     "English Visuals": {
@@ -30,6 +35,16 @@ const ncea: NceaData = {
         "3.7": {
             "assessment": "Respond critically to significant connections across texts, supported by evidence",
             "credits": "4",
+            "achievement": "Merit"
+        },
+        "3.6": {
+            "assessment": "Create a fluent and coherent visual text which develops, sustains, and structures ideas using verbal and visual language",
+            "credits": "3",
+            "achievement": "Excellence"
+        },
+        "3.5": {
+            "assessment": "Create and deliver a fluent and coherent oral text which develops, sustains, and structures ideas",
+            "credits": "3",
             "achievement": "Merit"
         }
     },
@@ -67,6 +82,18 @@ const ncea: NceaData = {
             "assessment": "Carry out a practical investigation to test a physics theory relating two variables in a non-linear relationship",
             "credits": "4",
             "achievement": "Achieved"
+        }
+    },
+    "Japanese": {
+        "3.5": {
+            "assessment": "Write a variety of text types in clear Japanese to explore and justify varied ideas and perspectives",
+            "credits": "5",
+            "achievement": "Excellence"
+        },
+        "3.3": {
+            "assessment": "Interact clearly using spoken Japanese to explore and justify varied ideas and perspectives in different situations",
+            "credits": "6",
+            "achievement": "Excellence"
         }
     }
 };
