@@ -1,18 +1,21 @@
 import { getAllPosts } from "@/lib/api";
 import PostPreview from "@/components/PostPreview";
-import { useTranslations } from "next-intl";
-import { getLocale } from "next-intl/server";
+import { headers } from 'next/headers';
 
 export default function Blog() {
-    const t = useTranslations('blog');
-    const lang = getLocale(); // en or ja
+    const headersList = headers();
 
-    const posts = getAllPosts(lang, ["title", "date", "excerpt", "coverImage", "slug"]);
+    const locale: string = headersList.get('x-current-locale') || 'en';
+
+    console.log(locale);
+    
+    const posts = getAllPosts(locale, ["title", "date", "excerpt", "coverImage", "slug"]);
+
 
     return (
         <div className="container mx-auto px-5">
             <main>
-                <h1 className="text-center text-3xl">{t('all posts')}</h1>
+                <h1 className="text-center text-3xl">{locale === 'ja' ? 'すべての投稿' : 'All posts'}</h1>
 
                 <div className="h-12"></div>
 
