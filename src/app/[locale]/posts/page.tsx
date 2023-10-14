@@ -2,8 +2,9 @@ import { getAllPosts } from "@/lib/api";
 import PostPreview from "@/components/PostPreview";
 import PostHero from "@/components/PostHero";
 import { useLocale } from "next-intl";
-import Link from "next-intl/link";
-import { FaArrowRight } from 'react-icons/fa';
+import { createSharedPathnamesNavigation } from 'next-intl/navigation';
+const locales = ['en', 'ja'] as const;
+const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
 
 export default function Home() {
     const lang = useLocale();

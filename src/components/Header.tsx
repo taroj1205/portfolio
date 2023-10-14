@@ -1,9 +1,10 @@
 'use client'
-import Link from 'next-intl/link';
+import { createSharedPathnamesNavigation } from 'next-intl/navigation';
+const locales = ['en', 'ja'] as const;
+const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { RiHome2Line, RiUserLine } from 'react-icons/ri';
-import { usePathname } from 'next-intl/client';
 import { usePathname as nextUsePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
@@ -187,7 +188,7 @@ export default function Header() {
                     </div>
                 </nav>
                 <div
-                    className={`fixed max-w-[10rem] opacity-100 mt-3 sm:mt-4 md:mt-0 left-0 h-[2px] bg-blue-500 dark:bg-blue-600 ${activeLinkStyle}`}
+                    className={`fixed max-w-[10rem] opacity-100 mt-4 md:mt-2 left-0 h-[2px] bg-blue-500 dark:bg-blue-600 ${activeLinkStyle}`}
                     ref={activeRef}
                     style={{ transition: 'transform 0.3s ease-in-out, width 0.3s ease-in-out' }}
                 />

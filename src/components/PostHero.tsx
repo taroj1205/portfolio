@@ -1,7 +1,9 @@
 import DateFormatter from "@/components/DateFormatter";
 import Image from "next/image";
 import { getPostBySlug } from "@/lib/api";
-import Link from "next-intl/link";
+import { createSharedPathnamesNavigation } from 'next-intl/navigation';
+const locales = ['en', 'ja'] as const;
+const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
 import { useLocale } from "next-intl";
 import aboutImage from "../../public/blog/thumbnail/about.webp";
 
