@@ -5,8 +5,8 @@ import { ImEarth } from 'react-icons/im';
 import { FiGlobe } from 'react-icons/fi';
 import { useTheme } from 'next-themes';
 import { useTranslations, useLocale } from 'next-intl';
-import { useRouter, usePathname } from 'next-intl/client';
 import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next-intl/client';
 
 const LanguageSwitcher = ({ isHeader }: { isHeader: boolean }) => {
     const pathname = usePathname();
