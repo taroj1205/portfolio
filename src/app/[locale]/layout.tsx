@@ -8,7 +8,9 @@ import { NextIntlClientProvider } from 'next-intl'
 import Header from '@/components/Header'
 import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script'
-import { usePathname } from 'next-intl/client'
+import { createSharedPathnamesNavigation } from 'next-intl/navigation';
+const locales = ['en', 'ja'] as const;
+const { Link, useRouter, usePathname, redirect } = createSharedPathnamesNavigation({ locales });
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ja' }];
