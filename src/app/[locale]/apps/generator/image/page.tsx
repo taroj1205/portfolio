@@ -100,7 +100,7 @@ const GeneratorPage: React.FC = () => {
         }
         setIsLoading(true);
         // Make the GET request.
-        fetch(`/api/og/image?image=${imageUrl}&url=${url}&title=${title}&description=${description}&imagePositionX=${position.x}&imagePositionY=${position.y}`)
+        fetch(`/api/og/image?url=${imageUrl}&articleUrl=${url}&title=${title}&description=${description}&imagePositionX=${position.x}&imagePositionY=${position.y}`)
             .then((response) => {
                 if (response.ok) {
                     // Assuming the response contains the image URL.

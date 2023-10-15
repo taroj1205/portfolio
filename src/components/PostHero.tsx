@@ -3,7 +3,7 @@ import Image from "next/image";
 import { getPostBySlug } from "@/lib/api";
 import Link from 'next-intl/link';
 import { useLocale } from "next-intl";
-import aboutImage from "../../public/blog/thumbnail/about.webp";
+import aboutImage from "../../public/blog/thumbnail/about/thumbnail.webp";
 
 type Items = {
     [key: string]: string;

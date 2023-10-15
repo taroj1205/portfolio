@@ -1,10 +1,13 @@
 ---
 title: "About me"
 excerpt: "Hello, I'm Shintaro, born on December 5, 2005, in Tokyo, Japan. After the earthquake in 2011, my family and I moved to Ehime. I've had the opportunity to live in different countries, including Japan, New Zealand, and the Philippines. My educational journey has been quite diverse, from attending various schools in Japan to studying in Auckland. In 2020, I underwent ACL knee surgery. My interests include coding, especially using React, Next.js, and Tailwind CSS. I also enjoy hobbies like jump rope, kendama, and reading news. Let's connect and share our experiences!"
-coverImage: "/blog/thumbnail/about.webp"
+coverImage: "/blog/thumbnail/about/thumbnail.webp"
 date: "2023-10-14T03:09:38.593Z"
 author: "Shintaro Jokagi"
 ---
+# About me
+
+![My image](/blog/thumbnail/about/profile.jpg)
 
 Hello, I'm Shintaro, born on December 5, 2005, in Tokyo, Japan. After the earthquake in 2011, my family and I moved to Ehime. I've had the opportunity to live in different countries, including Japan, New Zealand, and the Philippines. My educational journey has been quite diverse, from attending various schools in Japan to studying in Auckland. In 2020, I underwent ACL knee surgery. My interests include coding, especially using React, Next.js, and Tailwind CSS. I also enjoy hobbies like jump rope, kendama, and reading news. Let's connect and share our experiences!
 

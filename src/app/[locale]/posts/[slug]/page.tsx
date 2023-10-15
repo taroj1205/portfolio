@@ -13,8 +13,8 @@ export default async function Post({ params }: { params: { slug: string } }) {
     const content = await markdownToHtml(post.content || "");
 
     return (
-        <div className="container mx-auto">
-            <main>
+        <div className="container mx-auto min-h-fit">
+            <div>
                 <div className="w-full h-16 text-black dark:text-white">
                     <p className="text-2xl">{post.title}</p>
                     <p className="text-gray-400">{post.author}</p>
@@ -34,7 +34,7 @@ export default async function Post({ params }: { params: { slug: string } }) {
                         dangerouslySetInnerHTML={{ __html: content }}
                     />
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

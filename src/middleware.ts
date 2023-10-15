@@ -22,14 +22,13 @@ export default async function middleware(request: NextRequest) {
     // Step 3: Alter the response
     response.headers.set('x-default-locale', defaultLocale);
 
-    console.log(locale);
-
     let currentLocale = 'en';
     if (locale && locale.includes('ja')) {
         currentLocale = 'ja';
     }
 
     response.headers.set('x-current-locale', currentLocale);
+    response.headers.set('x-full-path', request.nextUrl.href);
 
     return response;
 }
