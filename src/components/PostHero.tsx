@@ -6,6 +6,7 @@ import { allPosts } from "contentlayer/generated";
 import { getMDXComponent } from 'next-contentlayer/hooks'
 import { formatDistanceToNow, format, isToday, isYesterday, parseISO } from 'date-fns'
 import ja from 'date-fns/locale/ja';
+import DateFormatter from "./DateFormatter";
 
 export default function PostHero() {
     const lang = useLocale();
@@ -46,9 +47,7 @@ export default function PostHero() {
                             {heroPost.title}
                         </p>
                         {/* <DateFormatter dateString={heroPost.date} /> */}
-                        <time dateTime={heroPost.date} className="mb-1 text-base text-gray-400">
-                            {formattedDate}
-                        </time>
+                        <DateFormatter date={String(heroPost.date)} lang={String(heroPost.locale)} />
                     </div>
                     <div className="text-gray-600 dark:text-gray-300 line-clamp-5">
                         <Content />
