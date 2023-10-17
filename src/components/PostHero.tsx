@@ -15,7 +15,7 @@ export default function PostHero() {
     const Content = getMDXComponent(heroPost.body.code)
 
     let formattedDate;
-    const postDate = parseISO(heroPost.date);
+    const postDate = parseISO(heroPost.publishedAt);
     const locale = heroPost.locale === 'ja' ? ja : undefined;
     const timeFormat = format(postDate, 'HH:mm');
 
@@ -47,7 +47,7 @@ export default function PostHero() {
                             {heroPost.title}
                         </p>
                         {/* <DateFormatter dateString={heroPost.date} /> */}
-                        <DateFormatter date={String(heroPost.date)} lang={String(heroPost.locale)} />
+                        <DateFormatter date={String(heroPost.publishedAt)} lang={String(heroPost.locale)} />
                     </div>
                     <div className="text-gray-600 dark:text-gray-300 line-clamp-5">
                         <Content />

@@ -25,7 +25,7 @@ export default function PostPreview(post: any) {
                     </p>
                     {/* <DateFormatter dateString={post.date} />
                      */}
-                    <DateFormatter date={String(post.date)} lang={String(post.locale)} />
+                    <DateFormatter date={String(post.publishedAt)} lang={String(post.locale)} />
                     <div className="text-gray-600 dark:text-gray-300 line-clamp-5 md:line-clamp-6">
                         <Content />
                     </div>

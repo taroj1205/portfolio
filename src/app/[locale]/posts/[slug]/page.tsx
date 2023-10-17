@@ -44,8 +44,8 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
     return (
         <article className="py-8 mx-auto max-w-2xl bg-gray-100 dark:bg-gray-800 shadow-lg rounded-lg">
             <div className="px-8 py-6">
-                <time dateTime={post.date} className="mb-1 text-xs text-gray-400">
-                    {format(parseISO(post.date), 'LLLL d, yyyy')}
+                <time dateTime={post.publishedAt} className="mb-1 text-xs text-gray-400">
+                    {format(parseISO(post.publishedAt), 'LLLL d, yyyy')}
                 </time>
                 <h1 className='text-4xl font-bold mb-4 text-gray-700 dark:text-white'>{post.title}</h1>
                 <div className="prose lg:prose-lg text-black dark:text-white space-y-4 leading-snug">
@@ -54,23 +54,23 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                 {prevPost || nextPost ? (
                     <div className="mt-4 flex justify-between">
                         {prevPost ? (
-                            <Link href={`/${params.locale}/posts/${prevPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">
+                            <Link href={`/${params.locale}/posts/${prevPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
                                 {params.locale === 'ja' ? '前の投稿' : 'Previous Post'}
                             </Link>
                         ) : (
                             <div></div>
                         )}
                         {nextPost && (
-                            <Link href={`${params.locale}/posts/${nextPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">
+                            <Link href={`${params.locale}/posts/${nextPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
                                 {params.locale === 'ja' ? '次の投稿' : 'Next Post'}
                             </Link>
                         )}
                     </div>
                 ) : (
-                        <div className='mt-4'>
-                            <Link href={`/${params.locale}/posts`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">
-                                {params.locale === 'ja' ? '一覧に戻る' : 'Go back to posts'}
-                            </Link>
+                    <div className='mt-4'>
+                        <Link href={`/${params.locale}/posts`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
+                            {params.locale === 'ja' ? '一覧に戻る' : 'Go back to posts'}
+                        </Link>
                     </div>
                 )
                 }
