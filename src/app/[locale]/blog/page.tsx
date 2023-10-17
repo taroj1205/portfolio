@@ -12,7 +12,7 @@ export default function Blog() {
     
     const posts = allPosts
         .filter(post => post._raw.sourceFileDir === locale)
-        .sort((a, b) => compareDesc(new Date(a.date), new Date(b.date)));
+        .sort((a, b) => compareDesc(new Date(a.publishedAt), new Date(b.publishedAt)));
 
 
     return (
