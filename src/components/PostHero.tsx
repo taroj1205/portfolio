@@ -1,23 +1,31 @@
-import DateFormatter from "@/components/DateFormatter";
 import Image from "next/image";
-import { getPostBySlug } from "@/lib/api";
 import Link from 'next-intl/link';
 import { useLocale } from "next-intl";
 import aboutImage from "../../public/blog/thumbnail/about/thumbnail.webp";
-
-type Items = {
-    [key: string]: string;
-};
+import { allPosts } from "contentlayer/generated";
+import { getMDXComponent } from 'next-contentlayer/hooks'
+import { formatDistanceToNow, format, isToday, isYesterday, parseISO } from 'date-fns'
+import ja from 'date-fns/locale/ja';
 
 export default function PostHero() {
     const lang = useLocale();
-    const heroPost = getPostBySlug("about", lang, [
-        "title",
-        "excerpt",
-        "slug",
-        "date",
-        "coverImage",
-    ]);
+
+    const heroPost = allPosts.find((post: any) => post._raw.sourceFileDir === lang && post._raw.sourceFileName === 'about.mdx') as any;
+    const Content = getMDXComponent(heroPost.body.code)
+
+    let formattedDate;
+    const postDate = parseISO(heroPost.date);
+    const locale = heroPost.locale === 'ja' ? ja : undefined;
+    const timeFormat = format(postDate, 'HH:mm');
+
+    if (isToday(postDate)) {
+        formattedDate = `${formatDistanceToNow(postDate, { addSuffix: true, locale })} ${heroPost.locale === 'ja' ? '' : 'at'} ${timeFormat}`;
+    } else if (isYesterday(postDate)) {
+        formattedDate = heroPost.locale === 'ja' ? `昨日 ${timeFormat}` : `${heroPost.locale === 'ja' ? '昨日の' : 'Yesterday at'} ${timeFormat}`;
+    } else {
+        formattedDate = `${formatDistanceToNow(postDate, { addSuffix: true, locale })} ${heroPost.locale === 'ja' ? '' : 'at'} ${timeFormat}`;
+    }
+
 
     return (
         <Link href={`/posts/${heroPost.slug}`}>
@@ -37,11 +45,14 @@ export default function PostHero() {
                         <p className="font-semibold text-xl group-hover:underline text-gray-800 dark:text-white">
                             {heroPost.title}
                         </p>
-                        <DateFormatter dateString={heroPost.date} />
+                        {/* <DateFormatter dateString={heroPost.date} /> */}
+                        <time dateTime={heroPost.date} className="mb-1 text-base text-gray-400">
+                            {formattedDate}
+                        </time>
                     </div>
-                    <p className="text-gray-600 dark:text-gray-300 line-clamp-5">
-                        {heroPost.excerpt}
-                    </p>
+                    <div className="text-gray-600 dark:text-gray-300 line-clamp-5">
+                        <Content />
+                    </div>
                 </div>
             </div>
         </Link>

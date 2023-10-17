@@ -1,6 +1,7 @@
-import { getAllPosts } from "@/lib/api";
 import PostPreview from "@/components/PostPreview";
 import { headers } from 'next/headers';
+import { allPosts } from "contentlayer/generated";
+import { compareDesc } from "date-fns";
 
 export default function Blog() {
     const headersList = headers();
@@ -9,7 +10,9 @@ export default function Blog() {
 
     console.log(locale);
     
-    const posts = getAllPosts(locale, ["title", "date", "excerpt", "coverImage", "slug"]);
+    const posts = allPosts
+        .filter(post => post._raw.sourceFileDir === locale)
+        .sort((a, b) => compareDesc(new Date(a.date), new Date(b.date)));
 
 
     return (
@@ -20,10 +23,8 @@ export default function Blog() {
                 <div className="h-12"></div>
 
                 <div className="grid md:grid-cols-2 grid-cols-1 lg:gap-32 gap-8">
-                    {posts.map((post) => (
-                        <div key={post.title}>
-                            <PostPreview post={post} />
-                        </div>
+                    {posts.map((post, idx) => (
+                        <PostPreview key={idx} {...post} />
                     ))}
                 </div>
             </main>
