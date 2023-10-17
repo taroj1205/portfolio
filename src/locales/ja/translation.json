@@ -211,6 +211,10 @@
       "settings": {
         "description": "アプリの設定や好みに合わせて調整しましょう。",
         "name": "設定"
+      },
+      "search": {
+        "description": "僕が作った検索エンジン",
+        "name": "検索"
       }
     },
     "links": "リンク：",
@@ -223,7 +227,7 @@
   },
   "language switcher": {
     "language": "言語",
-    "search": "検索する。"
+    "search": "検索"
   },
   "search": {
     "lastUpdated": "最終更新日時：{time}",

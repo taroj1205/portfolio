@@ -1,6 +1,6 @@
 'use client'
 import { useTranslations } from 'next-intl';
-import { FaBlog, FaCog, FaCubes, FaGithub, FaUser } from 'react-icons/fa';
+import { FaBlog, FaCog, FaCubes, FaGithub, FaSearch, FaUser } from 'react-icons/fa';
 import Image from 'next/image';
 import { TbMessageChatbot } from 'react-icons/tb';
 import Link from 'next-intl/link';
@@ -25,12 +25,12 @@ const apps = [
     name: 'Apps',
     backgroundColor: 'bg-red-400 dark:bg-red-800'
   },
-  {
-    icon: <FaCog />,
-    link: '/settings',
-    name: 'Settings',
-    backgroundColor: 'bg-purple-400 dark:bg-purple-800'
-  },
+  // {
+  //   icon: <FaCog />,
+  //   link: '/settings',
+  //   name: 'Settings',
+  //   backgroundColor: 'bg-purple-400 dark:bg-purple-800'
+  // },
   {
     icon: <FaBlog />,
     link: 'https://taroj1205.hatenablog.com',
@@ -48,6 +48,12 @@ const apps = [
     link: 'https://chat-taroj.vercel.app/',
     name: 'Chat',
     backgroundColor: 'bg-blue-400 dark:bg-blue-800'
+  },
+  {
+    icon: <FaSearch />,
+    link: '/search',
+    name: 'Search',
+    backgroundColor: 'bg-orange-400 dark:bg-orange-800'
   }
 ];
 
