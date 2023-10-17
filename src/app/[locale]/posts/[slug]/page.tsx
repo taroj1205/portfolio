@@ -33,7 +33,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
 
     const sortedPosts = [...allPosts]
         .filter(post => post._raw.sourceFileDir === params.locale)
-        .sort((a, b) => compareDesc(new Date(a.date), new Date(b.date)));
+        .sort((a, b) => compareDesc(new Date(a.publishedAt), new Date(b.publishedAt)));
 
     const currentIndex = sortedPosts.findIndex(p => p.slug === post.slug);
     const prevPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;

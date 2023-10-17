@@ -14,8 +14,8 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://taroj.poyo.jp'),
-  title: 'taroj.poyo.jp',
+  metadataBase: new URL('https://taroj.vercel.app'),
+  title: 'taroj.vercel.app',
   description: 'A website for Shintaro Jokagi',
   icons:
   {

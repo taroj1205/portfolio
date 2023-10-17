@@ -1,4 +1,5 @@
 import { defineDocumentType, makeSource } from 'contentlayer/source-files'
+import readingTime from 'reading-time';
 
 const Post = defineDocumentType(() => ({
     name: 'Post',
@@ -10,10 +11,15 @@ const Post = defineDocumentType(() => ({
             description: 'The title of the post',
             required: true,
         },
-        date: {
+        publishedAt: {
             type: 'date',
             description: 'The date of the post',
             required: true,
+        },
+        updatedAt: {
+            type: 'date',
+            description: 'The update date of the post',
+            required: false,
         },
         image: {
             type: 'string',
@@ -36,6 +42,7 @@ const Post = defineDocumentType(() => ({
             type: 'string',
             resolve: (doc) => `/posts/${doc.slug}`,
         },
+        readingTime: { type: 'json', resolve: (doc) => readingTime(doc.body.raw) }
     }
 }))
 
