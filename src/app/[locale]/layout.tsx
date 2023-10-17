@@ -55,7 +55,7 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
   params: { locale: string };
-}) {
+  }) {
   let messages;
   try {
     messages = (await import(`../../locales/${locale}/translation.json`)).default;
@@ -68,12 +68,12 @@ export default async function RootLayout({
   return (
     <html lang={locale} className='bg-white dark:bg-gray-900'>
       <body
-        className={` bg-white dark:bg-gray-900 min-h-screen ${switchThemeDuration}`}
+        className={` bg-white dark:bg-gray-900 ${switchThemeDuration}`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <Header />
-            <main className='content pt-24 pb-6 bg-white dark:bg-gray-900'>{children}</main>
+            <main className='content relative pt-24 pb-6 bg-white dark:bg-gray-900'>{children}</main>
             <Footer />
             <Script async src="https://analytics.eu.umami.is/script.js" data-website-id="3531a168-c010-41c6-b82f-34f9f492f84a"></Script>
             <Analytics />

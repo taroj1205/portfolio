@@ -15,7 +15,7 @@ export default function Header() {
     const currentPathname = nextUsePathname();
     const lang = useLocale();
 
-    const nextPathname = pathname.startsWith('/apps') ? `/${lang}/apps` : pathname.startsWith('/blog') ? `/${lang}/posts` : currentPathname;
+    const nextPathname = pathname.startsWith('/apps') ? `/${lang}/apps` : pathname.startsWith('/blog') || pathname.startsWith('/posts') ? `/${lang}/posts` : currentPathname;
 
     console.log(nextPathname)
 

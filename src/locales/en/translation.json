@@ -212,6 +212,10 @@
       "settings": {
         "description": "Adjust your preferences and settings for my apps.",
         "name": "Settings"
+      },
+      "search": {
+        "description": "Search Engine made by me.",
+        "name": "Search"
       }
     },
     "links": "Links:",
