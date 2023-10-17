@@ -51,7 +51,7 @@ const apps = [
   },
   {
     icon: <FaSearch />,
-    link: '/search',
+    link: '/apps/search',
     name: 'Search',
     backgroundColor: 'bg-orange-400 dark:bg-orange-800'
   }
