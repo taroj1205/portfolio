@@ -24,7 +24,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                 <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
                     {params.locale === 'ja' ? '投稿が見つかりません' : 'Post not found'}
                 </p>
-                <Link href={`${params.locale}/posts`} className="text-blue-500 hover:underline">
+                <Link href={`/${params.locale}/posts`} className="text-blue-500 hover:underline">
                     {params.locale === 'ja' ? '投稿に戻る' : 'Go back to posts'}
                 </Link>
             </div>
@@ -54,7 +54,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                 {prevPost || nextPost ? (
                     <div className="mt-4 flex justify-between">
                         {prevPost ? (
-                            <Link href={`${params.locale}/posts/${prevPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">
+                            <Link href={`/${params.locale}/posts/${prevPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">
                                 {params.locale === 'ja' ? '前の投稿' : 'Previous Post'}
                             </Link>
                         ) : (
@@ -68,7 +68,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                     </div>
                 ) : (
                         <div className='mt-4'>
-                            <Link href={`${params.locale}/posts`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">
+                            <Link href={`/${params.locale}/posts`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 text-white font-bold rounded">
                                 {params.locale === 'ja' ? '一覧に戻る' : 'Go back to posts'}
                             </Link>
                     </div>

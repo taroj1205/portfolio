@@ -12,6 +12,8 @@ export default function Home() {
         .filter(post => post._raw.sourceFileDir === locale)
         .sort((a, b) => compareDesc(new Date(a.date), new Date(b.date)));
 
+    console.log(locale)
+    
     return (
         <div className="container mt-4 mx-auto px-5">
             <div>
@@ -35,7 +37,7 @@ export default function Home() {
                     ))}
                 </div>
                 <Link
-                    href={`${locale}/posts`}
+                    href={`/${locale}/posts`}
                     className='text-xl mt-4 md:text-lg text-blue-500 hover:text-blue-600 hover:underline flex items-center px-4 py-2 rounded-md  bg-blue-200 dark:bg-gray-700'>
                     {locale === 'ja' ? 'もっと見る' : 'See more'} {' -> '}
                 </Link>
