@@ -1,7 +1,7 @@
 import { compareDesc, format, parseISO } from "date-fns";
 import { allPosts, Post } from "contentlayer/generated";
 import { headers } from 'next/headers'
-import Link from "next-intl/link";
+import Link from "next/link";
 import PostHero from "@/components/PostHero";
 import PostPreview from "@/components/PostPreview";
 
@@ -35,7 +35,7 @@ export default function Home() {
                     ))}
                 </div>
                 <Link
-                    href="/blog"
+                    href={`${locale}/posts`}
                     className='text-xl mt-4 md:text-lg text-blue-500 hover:text-blue-600 hover:underline flex items-center px-4 py-2 rounded-md  bg-blue-200 dark:bg-gray-700'>
                     {locale === 'ja' ? 'もっと見る' : 'See more'} {' -> '}
                 </Link>
