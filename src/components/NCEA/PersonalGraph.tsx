@@ -183,7 +183,7 @@ const Graphs: React.FC = () => {
             <div key={key} className="flex flex-col lg:flex-row lg:justify-between items-start space-y-4 lg:space-y-0 lg:space-x-4">
                 <div className="w-full h-full flex flex-col justify-center items-center max-w-screen">
                     <h2 className="text-center mb-2 flex flex-row items-center justify-center">
-                        <span className={`${lang === 'ja' ? 'w-[250px]' : 'w-[350px]'} flex justify-between items-center whitespace-nowrap`}>
+                        <span className={`${lang === 'ja' ? 'w-[250px]' : 'w-[350px]'} flex justify-between items-center whitespace-normal`}>
                             {t('distributionOfAchievements')} {showRankScore ? `(${t('rankScore')})` : `(${t('totalCredits')})`}
                             <FaExchangeAlt
                                 className="ml-2 cursor-pointer"
@@ -230,7 +230,7 @@ const Graphs: React.FC = () => {
                 </div>
                 <div className="w-full h-full flex flex-col justify-center items-center max-w-screen">
                     <h2 className="text-center mb-2 flex flex-row items-center justify-center">
-                        <span className={`${lang === 'ja' ? 'w-[270px]' : 'w-[350px]'} flex justify-between items-center whitespace-nowrap`}>
+                        <span className={`${lang === 'ja' ? 'w-[270px]' : 'w-[350px]'} flex justify-between items-center whitespace-normal`}>
                             {displayMode === 0 ? t('totalCreditsEarned') : `${t('achievementsForSubject')} (${displayMode === 1 ? t('stacked') : t('nonStacked')})`}
                             <FaExchangeAlt
                                 className="ml-2 cursor-pointer"

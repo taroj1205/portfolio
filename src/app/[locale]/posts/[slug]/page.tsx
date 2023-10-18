@@ -1,10 +1,15 @@
 import { allPosts } from 'contentlayer/generated'
-import { getMDXComponent } from 'next-contentlayer/hooks'
+import { getMDXComponent, useMDXComponent } from 'next-contentlayer/hooks'
 import { compareDesc } from 'date-fns'
 import Image from 'next/image'
 import DateFormatter from '@/components/DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 import Link from 'next/link';
+import NCEA from '@/components/NCEA/Ncea';
+
+const usedcomponents = {
+    NCEA,
+}
 
 export const generateStaticParams = async () => allPosts.map((post) => ({ slug: post._raw.flattenedPath }))
 
@@ -87,7 +92,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
 
                 </div>
                 <article className='mx-auto space-y-4 leading-snug prose-md prose prose-indigo py-4 md:py-6 lg:prose-lg rounded-lg'>
-                    <Content />
+                    <Content components={usedcomponents} />
                 </article>
                 {prevPost || nextPost ? (
                     <div className="mt-4 flex justify-between">
