@@ -14,6 +14,17 @@ const config: Config = {
         'gradient-conic':
           'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
+      animation: {
+        'arrow': 'arrow 2s infinite',
+      },
+      keyframes: {
+        arrow: {
+          '0%': { transform: 'translateX(0)' },
+          '25%': { transform: 'translateX(1px)' },
+          '75%': { transform: 'translateX(-1px)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+      },
     },
   },
   plugins: [],
