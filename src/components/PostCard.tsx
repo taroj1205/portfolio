@@ -8,7 +8,7 @@ export default function PostCard({ image, category, title, description, readingT
     const readTime = `${Math.round(readingTime.minutes)}${locale === 'ja' ? '分で読めます' : ' min to read'}`
     const categories = category?.split(',') || [];
     return (
-        <div className='max-w-[30rem]'>
+        <div className='min-w-[25rem]'>
             <section className='text-gray-600 body-font'>
                 <div className='container px-5 py-6 mx-auto'>
                     <div className='flex flex-wrap -m-4'>

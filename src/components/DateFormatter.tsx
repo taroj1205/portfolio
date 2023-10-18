@@ -13,7 +13,7 @@ const DateFormatter = ({ date, lang}: { date: string; lang: string }) => {
     } else if (isYesterday(postDate)) {
         formattedDate = lang === 'ja' ? `昨日の${timeFormat}` : `Yesterday at ${timeFormat}`;
     } else if (isWithinInterval(postDate, { start: subWeeks(new Date(), 1), end: new Date() })) {
-        formattedDate = `${formatDistanceToNow(postDate, { addSuffix: true, locale })}${lang === 'ja' ? 'の' : ' at '}${timeFormat}`;
+        formattedDate = `${formatDistanceToNow(postDate, { addSuffix: true, locale })}`;
     } else {
         formattedDate = format(postDate, 'Pp', { locale });
     }
