@@ -57,10 +57,10 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                     {post.title}
                 </h1>
                 <div className='flex items-center justify-center'>
-                    <span className='text-gray-400 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200 dark:border-gray-500'>
+                    <span className='text-gray-600 dark:text-gray-400 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200 dark:border-gray-600'>
                         {readTime}
                     </span>
-                    <span className='items-center text-gray-400 text-sm py-1 inline-flex space-x-1'>
+                    <span className='items-center text-gray-600 dark:text-gray-400 text-sm py-1 inline-flex space-x-1'>
                         <IoChatbubbleOutline />
                         <DateFormatter date={String(post.publishedAt)} lang={String(post.locale)} />
                     </span>
