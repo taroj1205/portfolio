@@ -45,7 +45,7 @@ export default function PostHero() {
                             <div className='p-6'>
                                 <h3 className='tracking-widest text-xs font-medium mb-1'>
                                     {categories.map((item: any, index: any) => (
-                                        <Link className='text-gray-400 hover:underline hover:text-gray-500' href={`/${locale}/posts/categories/${item}`} key={index}>#{item}</Link>
+                                        <Link className='text-gray-400 hover:underline hover:text-gray-500' href={`/${heroPost.locale}/posts/categories/${item}`} key={index}>#{item}</Link>
                                     ))}
                                 </h3>
                                 <h2 className='title-font text-lg font-medium text-gray-900 dark:text-gray-100 mb-3'>
@@ -54,7 +54,7 @@ export default function PostHero() {
                                 <p className='leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-4'>{heroPost.description}</p>
                                 <div className='flex items-center flex-wrap justify-between'>
                                     <Link
-                                        href={`/${locale}/posts/${heroPost.slug}`}
+                                        href={`/${heroPost.locale}/posts/${heroPost.slug}`}
                                         className='text-indigo-500 hover:underline hover:text-indigo-600 order-2 md:order-1 inline-flex items-center'
                                     >
                                         {lang === 'ja' ? 'もっと読む' : 'Read More'}
