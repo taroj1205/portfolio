@@ -8,9 +8,9 @@ export default function PostCard({ image, category, title, description, readingT
     const readTime = `${Math.round(readingTime.minutes)}${locale === 'ja' ? '分で読めます' : ' min to read'}`
     const categories = category?.split(',') || [];
     return (
-        <div className='min-w-[25rem]'>
+        <div className='max-w-[25rem]'>
             <section className='text-gray-600 body-font'>
-                <div className='container px-5 py-6 mx-auto'>
+                <div className='container py-6 mx-auto'>
                     <div className='flex flex-wrap -m-4'>
                         <div className='p-4'>
                             <div className='h-full border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden'>
@@ -30,11 +30,11 @@ export default function PostCard({ image, category, title, description, readingT
                                     <h2 className='title-font text-lg font-medium text-gray-900 dark:text-gray-100 mb-3'>
                                         {title}
                                     </h2>
-                                    <p className='leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-2'>{description}</p>
+                                    <p className='leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-3'>{description}</p>
                                     <div className='flex items-center flex-wrap justify-between'>
                                         <Link
                                             href={`/${locale}/posts/${slug}`}
-                                            className='text-indigo-500 hover:underline hover:text-indigo-600 order-2 md:order-1 inline-flex items-center'
+                                            className='text-indigo-500 hover:underline hover:text-indigo-600 inline-flex items-center'
                                         >
                                             {locale === 'ja' ? 'もっと読む' : 'Read More'}
                                             <svg
@@ -50,7 +50,7 @@ export default function PostCard({ image, category, title, description, readingT
                                                 <path d='M12 5l7 7-7 7'></path>
                                             </svg>
                                         </Link>
-                                        <div className='order-1 md:order-2 flex items-center'>
+                                        <div className='flex items-center'>
                                             <span className='text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200 dark:border-gray-500'>
                                                 {readTime}
                                             </span>

@@ -23,13 +23,9 @@ export default function Home() {
                     </p>
                 </div>
 
-                <div className="h-12"></div>
-
                 <PostHero />
 
-                <div className="h-16"></div>
-
-                <p className="text-3xl mb-6">{locale === 'ja' ? '最近の投稿' : 'Recent posts'}</p>
+                <p className="text-3xl mt-4">{locale === 'ja' ? '最近の投稿' : 'Recent posts'}</p>
                 <div className="grid md:grid-cols-2 grid-cols-1 mx-auto md:gap-32 gap-8">
                     {posts.slice(0, 4).map((post, idx) => (
                         <ArticleCard key={idx} {...post} category={post.category} />

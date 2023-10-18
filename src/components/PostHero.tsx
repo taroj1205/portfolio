@@ -32,7 +32,7 @@ export default function PostHero() {
 
     return (
         <section className='text-gray-600 body-font'>
-            <div className='container px-5 py-6 mx-auto'>
+            <div className='container py-6 mx-auto'>
                 <div className='absolute text-black bg-white dark:bg-gray-800 dark:text-gray-300 border-t-2 border-l-2 border-gray-200 dark:border-gray-700 px-3 py-2 flex items-center flex-row rounded-tl-lg rounded-br-lg'>
                     <BsPinAngle className='text-xl' />
                     <span className='text-xs ml-1'>{heroPost.locale === 'ja' ? '固定' : 'Pinned'}</span>
@@ -60,7 +60,7 @@ export default function PostHero() {
                                 <div className='flex items-center flex-wrap justify-between'>
                                     <Link
                                         href={`/${heroPost.locale}/posts/${heroPost.slug}`}
-                                        className='text-indigo-500 hover:underline hover:text-indigo-600 order-2 md:order-1 inline-flex items-center'
+                                        className='text-indigo-500 hover:underline hover:text-indigo-600 inline-flex items-center'
                                     >
                                         {lang === 'ja' ? 'もっと読む' : 'Read More'}
                                         <svg
@@ -76,7 +76,7 @@ export default function PostHero() {
                                             <path d='M12 5l7 7-7 7'></path>
                                         </svg>
                                     </Link>
-                                    <div className='order-1 md:order-2 flex items-center'>
+                                    <div className='flex items-center'>
                                         <span className='text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200 dark:border-gray-500'>
                                             {readTime}
                                         </span>
