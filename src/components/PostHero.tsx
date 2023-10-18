@@ -6,6 +6,7 @@ import ja from 'date-fns/locale/ja';
 import DateFormatter from "./DateFormatter";
 import { IoChatbubbleOutline } from "react-icons/io5";
 import Link from "next/link";
+import { BsPinAngle } from 'react-icons/bs';
 
 export default function PostHero() {
     const lang = useLocale();
@@ -32,9 +33,13 @@ export default function PostHero() {
     return (
         <section className='text-gray-600 body-font'>
             <div className='container px-5 py-6 mx-auto'>
+                <div className='absolute text-black bg-white dark:bg-gray-800 dark:text-gray-300 border-t-2 border-l-2 border-gray-200 dark:border-gray-700 px-3 py-2 flex items-center flex-row rounded-tl-lg rounded-br-lg'>
+                    <BsPinAngle className='text-xl' />
+                    <span className='text-xs ml-1'>{heroPost.locale === 'ja' ? '固定' : 'Pinned'}</span>
+                </div>
                 <div className='flex flex-wrap -m-4'>
                     <div className='p-4'>
-                        <div className='h-full border-2 border-gray-200 dark:border-gray-700 border-opacity-60 rounded-lg overflow-hidden'>
+                        <div className='h-full border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden'>
                             <Image
                                 className='lg:h-48 md:h-36 w-full object-cover object-center'
                                 src={heroPost.image}
