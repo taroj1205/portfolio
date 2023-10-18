@@ -13,7 +13,7 @@ export default function Header() {
     const lang = useLocale();
     const pathname = usePathname();
     const currentPathname = nextUsePathname();
-    const dynamicPathname = pathname.startsWith('/apps') ? '/apps' : pathname.startsWith('/blog') || pathname.startsWith('/posts') ? '/posts' : currentPathname;
+    const dynamicPathname = pathname.startsWith('/apps') ? '/apps' : pathname.startsWith('/blog') || pathname.startsWith('/posts') ? '/posts' : pathname;
     const nextPathname = pathname.startsWith('/apps') ? `/${lang}/apps` : pathname.startsWith('/blog') || pathname.startsWith('/posts') ? `/${lang}/posts` : currentPathname;
 
     console.log(nextPathname)
