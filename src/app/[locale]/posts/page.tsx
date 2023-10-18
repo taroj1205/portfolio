@@ -3,7 +3,6 @@ import { allPosts, Post } from "contentlayer/generated";
 import { headers } from 'next/headers'
 import Link from "next/link";
 import PostHero from "@/components/PostHero";
-import PostPreview from "@/components/PostPreview";
 import ArticleCard from "@/components/PostCard";
 
 export default function Home() {
@@ -39,7 +38,7 @@ export default function Home() {
                 </div>
                 {/* <Link
                     href={`/${locale}/blog`}
-                    className='text-xl mt-4 md:text-lg text-blue-500 hover:text-blue-600 hover:underline flex items-center px-4 py-2 rounded-md  bg-blue-200 dark:bg-gray-700'>
+                    className='mx-4 text-2xl mt-4 md:text-xl font-bold text-blue-700 hover:text-blue-800 hover:underline flex items-center px-6 py-3 rounded-lg bg-blue-200 dark:bg-blue-800 dark:text-white dark:hover:bg-blue-700 transition-colors duration-200'>
                     {locale === 'ja' ? 'もっと見る' : 'See more'} {' -> '}
                 </Link> */}
             </div>

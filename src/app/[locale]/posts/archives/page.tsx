@@ -1,7 +1,7 @@
-import PostPreview from "@/components/PostPreview";
 import { headers } from 'next/headers';
 import { allPosts } from "contentlayer/generated";
 import { compareDesc } from "date-fns";
+import ArticleCard from "@/components/PostCard";
 
 export default function Blog() {
     const headersList = headers();
@@ -24,7 +24,7 @@ export default function Blog() {
 
                 <div className="grid md:grid-cols-2 grid-cols-1 lg:gap-32 gap-8">
                     {posts.map((post, idx) => (
-                        <PostPreview key={idx} {...post} />
+                        <ArticleCard category={post.category} key={idx} {...post} />
                     ))}
                 </div>
             </main>
