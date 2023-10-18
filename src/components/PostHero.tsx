@@ -47,7 +47,9 @@ export default function PostHero() {
                             {heroPost.title}
                         </p>
                         {/* <DateFormatter dateString={heroPost.date} /> */}
-                        <DateFormatter date={String(heroPost.publishedAt)} lang={String(heroPost.locale)} />
+                        <span className="text-base text-gray-400">
+                            <DateFormatter date={String(heroPost.publishedAt)} lang={String(heroPost.locale)} />
+                        </span>
                     </div>
                     <div className="text-gray-600 dark:text-gray-300 line-clamp-5">
                         <Content />

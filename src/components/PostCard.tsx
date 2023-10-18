@@ -2,13 +2,14 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import DateFormatter from './DateFormatter';
+import { IoChatbubbleOutline } from 'react-icons/io5';
 
-export default function ArticleCard({image, category, title, description, readingTime, publishedAt, slug, locale}: {image: string, category: any, title: string, description: string, readingTime: any, publishedAt: string, slug: string, locale: string}) {
+export default function ArticleCard({ image, category, title, description, readingTime, publishedAt, slug, locale }: { image: string, category: any, title: string, description: string, readingTime: any, publishedAt: string, slug: string, locale: string }) {
     // minutes to text
     const readTime = `${Math.round(readingTime.minutes)}${locale === 'ja' ? '分で読めます' : ' min to read'}`
 
     return (
-        <div className='w-[30rem]'>
+        <div className='max-w-[30rem]'>
             <section className='text-gray-600 body-font'>
                 <div className='container px-5 py-6 mx-auto'>
                     <div className='flex flex-wrap -m-4'>
@@ -48,23 +49,15 @@ export default function ArticleCard({image, category, title, description, readin
                                                 <path d='M12 5l7 7-7 7'></path>
                                             </svg>
                                         </Link>
-                                        <span className='text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200'>
-                                            {readTime}
-                                        </span>
-                                        <span className='text-gray-400 inline-flex items-center leading-none text-sm'>
-                                            <svg
-                                                className='w-4 h-4 mr-1'
-                                                stroke='currentColor'
-                                                strokeWidth='2'
-                                                fill='none'
-                                                strokeLinecap='round'
-                                                strokeLinejoin='round'
-                                                viewBox='0 0 24 24'
-                                            >
-                                                <path d='M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z'></path>
-                                            </svg>
-                                            <DateFormatter date={String(publishedAt)} lang={String(locale)} />
-                                        </span>
+                                        <div>
+                                            <span className='text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200'>
+                                                {readTime}
+                                            </span>
+                                            <span className='items-center text-gray-400 text-sm py-1 inline-flex space-x-1'>
+                                                <IoChatbubbleOutline />
+                                                <DateFormatter date={String(publishedAt)} lang={String(locale)} />
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

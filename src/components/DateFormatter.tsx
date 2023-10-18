@@ -19,7 +19,7 @@ const DateFormatter = ({ date, lang}: { date: string; lang: string }) => {
     }
 
     return (
-        <time dateTime={date} className="mb-1 text-base text-gray-400">
+        <time dateTime={date}>
             {formattedDate}
         </time>
     )
