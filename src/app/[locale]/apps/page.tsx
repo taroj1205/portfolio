@@ -6,7 +6,7 @@ import { TbSchool } from 'react-icons/tb';
 import { IconType } from 'react-icons';
 import { useTheme } from 'next-themes';
 import { useLocale, useTranslations } from 'next-intl';
-import Link from 'next-intl/link';
+import { Link } from '@/lib/next-intl';
 
 const RouteLink = ({ path, label, icon: Icon }: { path: string; label: string; icon: IconType }) => (
     <Link href={path}

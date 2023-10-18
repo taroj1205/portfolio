@@ -1,5 +1,13 @@
-import { defineDocumentType, makeSource } from 'contentlayer/source-files'
+import { defineDocumentType, defineNestedType, makeSource } from 'contentlayer/source-files'
 import readingTime from 'reading-time';
+
+const Author = defineNestedType(() => ({
+    name: 'Author',
+    fields: {
+        name: { type: 'string', required: true },
+        image: { type: 'string', required: true },
+    },
+}));
 
 const Post = defineDocumentType(() => ({
     name: 'Post',
@@ -9,6 +17,11 @@ const Post = defineDocumentType(() => ({
         title: {
             type: 'string',
             description: 'The title of the post',
+            required: true,
+        },
+        description: {
+            type: 'string',
+            description: 'The description of the post',
             required: true,
         },
         publishedAt: {
@@ -35,6 +48,15 @@ const Post = defineDocumentType(() => ({
             type: 'string',
             description: 'The slug of the post',
             required: true,
+        },
+        category: {
+            type: 'string',
+            description: 'The category of the post',
+            required: false,
+        },
+        author: {
+            type: 'nested',
+            of: Author,
         }
     },
     computedFields: {

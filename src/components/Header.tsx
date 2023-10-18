@@ -1,5 +1,4 @@
 'use client'
-import Link from 'next-intl/link';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { RiHome2Line, RiUserLine } from 'react-icons/ri';
@@ -8,13 +7,13 @@ import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import LanguageSwitcher from './LanguageSwitch';
 import { FaBlog, FaCubes } from 'react-icons/fa';
-import { usePathname } from 'next-intl/client';
+import { usePathname, Link } from "@/lib/next-intl";
 
 export default function Header() {
+    const lang = useLocale();
     const pathname = usePathname();
     const currentPathname = nextUsePathname();
-    const lang = useLocale();
-
+    const dynamicPathname = pathname.startsWith('/apps') ? '/apps' : pathname.startsWith('/blog') || pathname.startsWith('/posts') ? '/posts' : currentPathname;
     const nextPathname = pathname.startsWith('/apps') ? `/${lang}/apps` : pathname.startsWith('/blog') || pathname.startsWith('/posts') ? `/${lang}/posts` : currentPathname;
 
     console.log(nextPathname)
@@ -172,7 +171,7 @@ export default function Header() {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className={`flex w-full justify-center whitespace-nowrap items-center ${pathname === link.href ? 'text-gray-700 dark:text-white' : 'text-gray-600 dark:text-gray-400'} lg:px-4 hover:text-black dark:hover:text-white transition-colors duration-200`}
+                                    className={`flex w-full justify-center whitespace-nowrap items-center ${dynamicPathname === link.href ? 'text-gray-700 dark:text-white' : 'text-gray-600 dark:text-gray-400'} lg:px-4 hover:text-black dark:hover:text-white transition-colors duration-200`}
                                     onMouseEnter={handleMouseEnter}
                                     onMouseLeave={handleMouseLeave}
                                 >
@@ -187,7 +186,7 @@ export default function Header() {
                     </div>
                 </nav>
                 <div
-                    className={`fixed max-w-[10rem] opacity-100 mt-4 md:mt-2 left-0 h-[2px] bg-blue-500 dark:bg-blue-600 ${activeLinkStyle}`}
+                    className={`fixed max-w-[10rem] opacity-100 mt-4 md:mt-2 left-0 h-[2px] bg-black dark:bg-gray-400 ${activeLinkStyle}`}
                     ref={activeRef}
                     style={{ transition: 'transform 0.3s ease-in-out, width 0.3s ease-in-out' }}
                 />
