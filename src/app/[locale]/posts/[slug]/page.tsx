@@ -1,10 +1,10 @@
 import { allPosts } from 'contentlayer/generated'
 import { getMDXComponent } from 'next-contentlayer/hooks'
-import { Link } from '@/lib/next-intl'
 import { compareDesc } from 'date-fns'
 import Image from 'next/image'
 import DateFormatter from '@/components/DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
+import Link from 'next/link';
 
 export const generateStaticParams = async () => allPosts.map((post) => ({ slug: post._raw.flattenedPath }))
 
@@ -92,21 +92,21 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                 {prevPost || nextPost ? (
                     <div className="mt-4 flex justify-between">
                         {prevPost ? (
-                            <Link href={`/posts/${prevPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
+                            <Link href={`/${params.locale}/posts/${prevPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
                                 {params.locale === 'ja' ? '前の投稿' : 'Previous Post'}
                             </Link>
                         ) : (
                             <div></div>
                         )}
                         {nextPost && (
-                            <Link href={`/posts/${nextPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
+                            <Link href={`/${params.locale}/posts/${nextPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
                                 {params.locale === 'ja' ? '次の投稿' : 'Next Post'}
                             </Link>
                         )}
                     </div>
                 ) : (
                     <div className='mt-4'>
-                        <Link href='/posts' className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
+                            <Link href={`/${params.locale}/posts`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
                             {params.locale === 'ja' ? '一覧に戻る' : 'Go back to posts'}
                         </Link>
                     </div>

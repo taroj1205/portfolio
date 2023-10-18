@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import { Link } from "@/lib/next-intl";
+import Link from 'next/link';
 import DateFormatter from './DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 
@@ -24,7 +24,7 @@ export default function PostCard({ image, category, title, description, readingT
                                 <div className='p-6'>
                                     <h3 className='tracking-widest text-xs font-medium mb-1'>
                                         {categories.map((item: any, index: any) => (
-                                            <Link className='text-gray-400 hover:underline hover:text-gray-500' href={`/posts/categories/${item}`} key={index}>#{item}</Link>
+                                            <Link className='text-gray-400 hover:underline hover:text-gray-500' href={`/${locale}/posts/categories/${item}`} key={index}>#{item}</Link>
                                         ))}
                                     </h3>
                                     <h2 className='title-font text-lg font-medium text-gray-900 dark:text-gray-100 mb-3'>
@@ -33,7 +33,7 @@ export default function PostCard({ image, category, title, description, readingT
                                     <p className='leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-2'>{description}</p>
                                     <div className='flex items-center flex-wrap justify-between'>
                                         <Link
-                                            href={`/posts/${slug}`}
+                                            href={`/${locale}/posts/${slug}`}
                                             className='text-indigo-500 hover:underline hover:text-indigo-600 order-2 md:order-1 inline-flex items-center'
                                         >
                                             {locale === 'ja' ? 'もっと読む' : 'Read More'}
