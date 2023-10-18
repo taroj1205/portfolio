@@ -1,7 +1,6 @@
 'use client'
+import { Link, useRouter } from '@/lib/next-intl';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
-import { useRouter } from 'next-intl/client';
-import Link from 'next-intl/link';
 import { useSearchParams } from 'next/navigation';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaSearch, FaImage } from 'react-icons/fa';

@@ -5,13 +5,14 @@ import { useLocale, useTranslations } from 'next-intl';
 import { Table, Thead, Tbody, Tr, Th, Td } from 'react-super-responsive-table';
 import 'react-super-responsive-table/dist/SuperResponsiveTableStyle.css';
 import RankScore from '@/components/NCEA/RankScore';
-import Link from 'next-intl/link';
+import { Link } from "@/lib/next-intl";
 import Graph from '@/components/NCEA/PersonalGraph';
 import { useSpring, animated } from 'react-spring';
 import { FaChevronDown } from 'react-icons/fa';
 
 const NCEA: React.FC = () => {
     const t = useTranslations('about');
+
     const lang = useLocale();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const springProps = useSpring({

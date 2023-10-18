@@ -1,7 +1,6 @@
 import { compareDesc, format, parseISO } from "date-fns";
 import { allPosts, Post } from "contentlayer/generated";
 import { headers } from 'next/headers'
-import Link from "next/link";
 import PostHero from "@/components/PostHero";
 import ArticleCard from "@/components/PostCard";
 

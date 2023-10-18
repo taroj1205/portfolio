@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl';
 import { FaBlog, FaCog, FaCubes, FaGithub, FaSearch, FaUser } from 'react-icons/fa';
 import Image from 'next/image';
 import { TbMessageChatbot } from 'react-icons/tb';
-import Link from 'next-intl/link';
+import { Link } from '@/lib/next-intl';
 
 const apps = [
   // {

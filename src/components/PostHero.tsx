@@ -1,19 +1,16 @@
 import Image from "next/image";
-import Link from 'next-intl/link';
 import { useLocale } from "next-intl";
-import aboutImage from "../../public/blog/thumbnail/about/thumbnail.webp";
 import { allPosts } from "contentlayer/generated";
-import { getMDXComponent } from 'next-contentlayer/hooks'
 import { formatDistanceToNow, format, isToday, isYesterday, parseISO } from 'date-fns'
 import ja from 'date-fns/locale/ja';
 import DateFormatter from "./DateFormatter";
 import { IoChatbubbleOutline } from "react-icons/io5";
+import { Link } from "@/lib/next-intl";
 
 export default function PostHero() {
     const lang = useLocale();
 
     const heroPost = allPosts.find((post: any) => post._raw.sourceFileDir === lang && post._raw.sourceFileName === 'about.mdx') as any;
-    const Content = getMDXComponent(heroPost.body.code)
 
     let formattedDate;
     const postDate = parseISO(heroPost.publishedAt);
@@ -30,6 +27,8 @@ export default function PostHero() {
 
     const readTime = `${Math.round(heroPost.readingTime.minutes)}${lang === 'ja' ? '分で読めます' : ' min to read'}`
 
+    const categories = heroPost.category?.split(',') || [];
+
     return (
         <section className='text-gray-600 body-font'>
             <div className='container px-5 py-6 mx-auto'>
@@ -39,22 +38,24 @@ export default function PostHero() {
                             <Image
                                 className='lg:h-48 md:h-36 w-full object-cover object-center'
                                 src={heroPost.image}
-                                width={720}
-                                height={400}
+                                width={1920}
+                                height={1080}
                                 alt='blog'
                             />
                             <div className='p-6'>
-                                <h2 className='tracking-widest text-xs title-font font-medium text-gray-400 mb-1'>
-                                    {heroPost.category}
-                                </h2>
-                                <h1 className='title-font text-lg font-medium text-gray-900 dark:text-gray-100 mb-3'>
+                                <h3 className='tracking-widest text-xs font-medium mb-1'>
+                                    {categories.map((item: any, index: any) => (
+                                        <Link className='text-gray-400 hover:underline hover:text-gray-500' href={`/posts/categories/${item}`} key={index}>#{item}</Link>
+                                    ))}
+                                </h3>
+                                <h2 className='title-font text-lg font-medium text-gray-900 dark:text-gray-100 mb-3'>
                                     {heroPost.title}
-                                </h1>
+                                </h2>
                                 <p className='leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-4'>{heroPost.description}</p>
                                 <div className='flex items-center flex-wrap justify-between'>
                                     <Link
                                         href={`/posts/${heroPost.slug}`}
-                                        className='text-indigo-500 inline-flex items-center'
+                                        className='text-indigo-500 hover:underline hover:text-indigo-600 order-2 md:order-1 inline-flex items-center'
                                     >
                                         {lang === 'ja' ? 'もっと読む' : 'Read More'}
                                         <svg
@@ -70,7 +71,7 @@ export default function PostHero() {
                                             <path d='M12 5l7 7-7 7'></path>
                                         </svg>
                                     </Link>
-                                    <div className='ml-2 flex items-center'>
+                                    <div className='md:ml-2 order-1 md:order-2 flex items-center'>
                                         <span className='text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200 dark:border-gray-500'>
                                             {readTime}
                                         </span>

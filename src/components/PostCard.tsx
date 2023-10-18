@@ -1,12 +1,12 @@
 import React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from "@/lib/next-intl";
 import DateFormatter from './DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 
-export default function ArticleCard({ image, category, title, description, readingTime, publishedAt, slug, locale }: { image: string, category: any, title: string, description: string, readingTime: any, publishedAt: string, slug: string, locale: string }) {
+export default function PostCard({ image, category, title, description, readingTime, publishedAt, slug, locale }: { image: string, category: string | undefined, title: string, description: string, readingTime: any, publishedAt: string, slug: string, locale: string }) {
     const readTime = `${Math.round(readingTime.minutes)}${locale === 'ja' ? '分で読めます' : ' min to read'}`
-
+    const categories = category?.split(',') || [];
     return (
         <div className='max-w-[30rem]'>
             <section className='text-gray-600 body-font'>
@@ -22,17 +22,19 @@ export default function ArticleCard({ image, category, title, description, readi
                                     alt='blog'
                                 />
                                 <div className='p-6'>
-                                    <h2 className='tracking-widest text-xs title-font font-medium text-gray-400 mb-1'>
-                                        {category}
-                                    </h2>
-                                    <h1 className='title-font text-lg font-medium text-gray-900 dark:text-gray-100 mb-3'>
+                                    <h3 className='tracking-widest text-xs font-medium mb-1'>
+                                        {categories.map((item: any, index: any) => (
+                                            <Link className='text-gray-400 hover:underline hover:text-gray-500' href={`/posts/categories/${item}`} key={index}>#{item}</Link>
+                                        ))}
+                                    </h3>
+                                    <h2 className='title-font text-lg font-medium text-gray-900 dark:text-gray-100 mb-3'>
                                         {title}
-                                    </h1>
+                                    </h2>
                                     <p className='leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-2'>{description}</p>
                                     <div className='flex items-center flex-wrap justify-between'>
                                         <Link
                                             href={`/posts/${slug}`}
-                                            className='text-indigo-500 inline-flex items-center'
+                                            className='text-indigo-500 hover:underline hover:text-indigo-600 order-2 md:order-1 inline-flex items-center'
                                         >
                                             {locale === 'ja' ? 'もっと読む' : 'Read More'}
                                             <svg
@@ -48,7 +50,7 @@ export default function ArticleCard({ image, category, title, description, readi
                                                 <path d='M12 5l7 7-7 7'></path>
                                             </svg>
                                         </Link>
-                                        <div className='ml-2 flex items-center'>
+                                        <div className='md:ml-2 order-1 md:order-2 flex items-center'>
                                             <span className='text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200 dark:border-gray-500'>
                                                 {readTime}
                                             </span>

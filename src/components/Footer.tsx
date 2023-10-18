@@ -1,12 +1,12 @@
 'use client'
+import { Link } from '@/lib/next-intl';
 import { useTranslations } from 'next-intl';
-import Link from 'next-intl/link';
 import React from 'react';
 import { AiOutlineEdit } from 'react-icons/ai';
 
 const Footer = () => {
     const t = useTranslations('footer');
-
+    
     return (
         <footer className="z-10 w-full bg-gray-200 dark:bg-gray-950 mt-auto">
             <div className="mx-auto p-4">

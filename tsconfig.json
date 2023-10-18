@@ -38,7 +38,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".contentlayer/generated"
-, "astro.config.mjs"  ],
+, "astro.config.mjs", "src/app/[locale]/posts/[slug]/page.tsx.temp"  ],
   "exclude": [
     "node_modules"
   ]
