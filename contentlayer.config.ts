@@ -11,6 +11,11 @@ const Post = defineDocumentType(() => ({
             description: 'The title of the post',
             required: true,
         },
+        description: {
+            type: 'string',
+            description: 'The description of the post',
+            required: true,
+        },
         publishedAt: {
             type: 'date',
             description: 'The date of the post',
@@ -35,6 +40,11 @@ const Post = defineDocumentType(() => ({
             type: 'string',
             description: 'The slug of the post',
             required: true,
+        },
+        category: {
+            type: 'string',
+            description: 'The category of the post',
+            required: false,
         }
     },
     computedFields: {

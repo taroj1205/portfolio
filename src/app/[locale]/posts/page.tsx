@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import Link from "next/link";
 import PostHero from "@/components/PostHero";
 import PostPreview from "@/components/PostPreview";
+import ArticleCard from "@/components/PostCard";
 
 export default function Home() {
     const headerList = headers();
@@ -33,14 +34,14 @@ export default function Home() {
                 <p className="text-3xl mb-6">{locale === 'ja' ? '最近の投稿' : 'Recent posts'}</p>
                 <div className="grid md:grid-cols-2 grid-cols-1 mx-auto md:gap-32 gap-8">
                     {posts.slice(0, 4).map((post, idx) => (
-                        <PostPreview key={idx} {...post} />
+                        <ArticleCard key={idx} {...post} category={post.category} />
                     ))}
                 </div>
-                <Link
-                    href={`/${locale}/posts`}
+                {/* <Link
+                    href={`/${locale}/blog`}
                     className='text-xl mt-4 md:text-lg text-blue-500 hover:text-blue-600 hover:underline flex items-center px-4 py-2 rounded-md  bg-blue-200 dark:bg-gray-700'>
                     {locale === 'ja' ? 'もっと見る' : 'See more'} {' -> '}
-                </Link>
+                </Link> */}
             </div>
         </div>
     );
