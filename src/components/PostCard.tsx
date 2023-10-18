@@ -14,7 +14,7 @@ export default function ArticleCard({ image, category, title, description, readi
                 <div className='container px-5 py-6 mx-auto'>
                     <div className='flex flex-wrap -m-4'>
                         <div className='p-4'>
-                            <div className='h-full border-2 border-gray-200 dark:border-gray-800 border-opacity-60 rounded-lg overflow-hidden'>
+                            <div className='h-full border-2 border-gray-200 dark:border-gray-700 border-opacity-60 rounded-lg overflow-hidden'>
                                 <Image
                                     className='lg:h-48 md:h-36 w-full object-cover object-center'
                                     src={image}
@@ -49,7 +49,7 @@ export default function ArticleCard({ image, category, title, description, readi
                                                 <path d='M12 5l7 7-7 7'></path>
                                             </svg>
                                         </Link>
-                                        <div>
+                                        <div className='ml-2'>
                                             <span className='text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200'>
                                                 {readTime}
                                             </span>
