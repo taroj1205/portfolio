@@ -5,7 +5,6 @@ import DateFormatter from './DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 
 export default function ArticleCard({ image, category, title, description, readingTime, publishedAt, slug, locale }: { image: string, category: any, title: string, description: string, readingTime: any, publishedAt: string, slug: string, locale: string }) {
-    // minutes to text
     const readTime = `${Math.round(readingTime.minutes)}${locale === 'ja' ? '分で読めます' : ' min to read'}`
 
     return (
@@ -50,7 +49,7 @@ export default function ArticleCard({ image, category, title, description, readi
                                             </svg>
                                         </Link>
                                         <div className='ml-2 flex items-center'>
-                                            <span className='text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200'>
+                                            <span className='text-gray-400 mr-3 inline-flex items-center lg:ml-auto md:ml-0 ml-auto leading-none text-sm pr-3 py-1 border-r-2 border-gray-200 dark:border-gray-500'>
                                                 {readTime}
                                             </span>
                                             <span className='items-center text-gray-400 text-sm py-1 inline-flex space-x-1'>
