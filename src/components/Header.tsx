@@ -146,9 +146,9 @@ export default function Header() {
 
     return (
         <>
-            <div className='fixed top-0 z-10 progress bg-blue-500' style={{ width: scrollProgress + '%' }}></div>
-            <header className="relative w-full px-4 py-3 shadow-md bg-white dark:bg-gray-950">
-                <div className='flex flex-col md:flex-row items-center justify-between'>
+            <header className="relative w-full shadow-md bg-white dark:bg-gray-950">
+                <div className='absolute top-0 z-10 progress bg-blue-500' style={{ width: scrollProgress + '%' }}></div>
+                <div className='flex flex-col px-4 py-3 md:flex-row items-center justify-between'>
                     <div className="flex items-center">
                         <div className='mr-2 sm:hidden'>
                             <LanguageSwitcher isHeader />
