@@ -13,7 +13,7 @@ export default function Header() {
     const lang = useLocale();
     const pathname = usePathname();
     const currentPathname = nextUsePathname();
-    const dynamicPathname = pathname.startsWith('/apps') ? '/apps' : pathname.startsWith('/blog') || pathname.startsWith('/posts') ? '/posts' : currentPathname;
+    const dynamicPathname = pathname.startsWith('/apps') ? '/apps' : pathname.startsWith('/blog') || pathname.startsWith('/posts') ? '/posts' : pathname;
     const nextPathname = pathname.startsWith('/apps') ? `/${lang}/apps` : pathname.startsWith('/blog') || pathname.startsWith('/posts') ? `/${lang}/posts` : currentPathname;
 
     console.log(nextPathname)
@@ -145,53 +145,55 @@ export default function Header() {
     }, []);
 
     return (
-        <header className="fixed top-0 z-10 w-full px-4 py-3 shadow-md bg-white dark:bg-gray-950">
-            <div className='flex flex-col md:flex-row items-center justify-between'>
-                <div className="flex items-center">
-                    <div className='mr-2 sm:hidden'>
-                        <LanguageSwitcher isHeader />
-                    </div>
-                    <Link href="/" className='flex items-center'>
-                        <div className='text-lg lg:text-2xl'><Image src="/images/profile/pfp.webp" alt='profile picture' width={50} height={50} className='w-6 h-6 rounded-lg' /></div>
-                        <h1 className="ml-2 text-md md:text-lg font-bold text-gray-900 dark:text-white">
-                            {t('title')}
-                        </h1>
-                    </Link>
-                    <div className='ml-2 hidden sm:block'>
-                        <LanguageSwitcher isHeader />
-                    </div>
-                    <div className='ml-2 sm:hidden'>
-                        <ThemeSwitcher />
-                    </div>
-                </div>
-                <nav className='flex items-center justify-center relative'>
-                    <div className='flex flex-row text-lg'>
-                        <div className='flex flex-row justify-between w-screen md:w-full items-center'>
-                            {links.map((link) => (
-                                <Link
-                                    key={link.href}
-                                    href={link.href}
-                                    className={`flex w-full justify-center whitespace-nowrap items-center ${dynamicPathname === link.href ? 'text-gray-700 dark:text-white' : 'text-gray-600 dark:text-gray-400'} lg:px-4 hover:text-black dark:hover:text-white transition-colors duration-200`}
-                                    onMouseEnter={handleMouseEnter}
-                                    onMouseLeave={handleMouseLeave}
-                                >
-                                    <span className="mr-1 md:mr-2">{link.icon}</span>
-                                    {link.text}
-                                </Link>
-                            ))}
+        <>
+            <header className="relative w-full shadow-md bg-white dark:bg-gray-950">
+                <div className='absolute top-0 z-10 progress bg-blue-500' style={{ width: scrollProgress + '%' }}></div>
+                <div className='flex flex-col px-4 py-3 md:flex-row items-center justify-between'>
+                    <div className="flex items-center">
+                        <div className='mr-2 sm:hidden'>
+                            <LanguageSwitcher isHeader />
                         </div>
-                        <div className='md:ml-2 hidden sm:flex'>
+                        <Link href="/" className='flex items-center'>
+                            <div className='text-lg lg:text-2xl'><Image src="/images/profile/pfp.webp" alt='profile picture' width={50} height={50} className='w-6 h-6 rounded-lg' /></div>
+                            <h1 className="ml-2 text-md md:text-lg font-bold text-gray-900 dark:text-white">
+                                {t('title')}
+                            </h1>
+                        </Link>
+                        <div className='ml-2 hidden sm:block'>
+                            <LanguageSwitcher isHeader />
+                        </div>
+                        <div className='ml-2 sm:hidden'>
                             <ThemeSwitcher />
                         </div>
                     </div>
-                </nav>
-                <div
-                    className={`fixed max-w-[10rem] opacity-100 mt-4 md:mt-2 left-0 h-[2px] bg-black dark:bg-gray-400 ${activeLinkStyle}`}
-                    ref={activeRef}
-                    style={{ transition: 'transform 0.3s ease-in-out, width 0.3s ease-in-out' }}
-                />
-            </div>
-            <div className='progress mt-3 bg-blue-500' style={{ width: scrollProgress + '%' }}></div>
-        </header>
+                    <nav className='flex items-center justify-center relative'>
+                        <div className='flex flex-row text-lg'>
+                            <div className='flex flex-row justify-between w-screen md:w-full items-center'>
+                                {links.map((link) => (
+                                    <Link
+                                        key={link.href}
+                                        href={link.href}
+                                        className={`flex md:px-4 w-full justify-center whitespace-nowrap items-center ${dynamicPathname === link.href ? 'text-gray-700 dark:text-white' : 'text-gray-600 dark:text-gray-400'} lg:px-4 hover:text-black dark:hover:text-white transition-colors duration-200`}
+                                        onMouseEnter={handleMouseEnter}
+                                        onMouseLeave={handleMouseLeave}
+                                    >
+                                        <span className="mr-1 md:mr-2">{link.icon}</span>
+                                        {link.text}
+                                    </Link>
+                                ))}
+                            </div>
+                            <div className='md:ml-2 hidden sm:flex'>
+                                <ThemeSwitcher />
+                            </div>
+                        </div>
+                    </nav>
+                    <div
+                        className={`absolute max-w-[10rem] opacity-100 mt-4 md:mt-2 left-0 h-[2px] bg-black dark:bg-gray-400 ${activeLinkStyle}`}
+                        ref={activeRef}
+                        style={{ transition: 'transform 0.3s ease-in-out, width 0.3s ease-in-out' }}
+                    />
+                </div>
+            </header>
+        </>
     );
 }

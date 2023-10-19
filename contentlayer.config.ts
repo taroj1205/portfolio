@@ -1,5 +1,7 @@
 import { defineDocumentType, defineNestedType, makeSource } from 'contentlayer/source-files'
 import readingTime from 'reading-time';
+import rehypeSlug from 'rehype-slug';
+import GithubSlugger from "github-slugger"
 
 const Author = defineNestedType(() => ({
     name: 'Author',
@@ -64,11 +66,34 @@ const Post = defineDocumentType(() => ({
             type: 'string',
             resolve: (doc) => `/posts/${doc.slug}`,
         },
-        readingTime: { type: 'json', resolve: (doc) => readingTime(doc.body.raw) }
+        readingTime: { type: 'json', resolve: (doc) => readingTime(doc.body.raw) },
+        headings: {
+            type: "json",
+            resolve: async (doc) => {
+                const regXHeader = /\n(?<flag>#{1,6})\s+(?<content>.+)/g;
+                const slugger = new GithubSlugger()
+                const headings = Array.from(doc.body.raw.matchAll(regXHeader)).map(
+                    ({ groups }) => {
+                        const flag = groups?.flag;
+                        const content = groups?.content;
+                        console.log("flag", flag?.length)
+                        return {
+                            ['level']: (flag?.length ?? 0) - 1,
+                            text: content,
+                            slug: content ? slugger.slug(content) : undefined
+                        };
+                    }
+                );
+                return headings;
+            },
+        }
     }
 }))
 
 export default makeSource({
     contentDirPath: 'posts',
     documentTypes: [Post],
+    mdx: {
+        rehypePlugins: [rehypeSlug],
+    },
 })

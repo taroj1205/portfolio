@@ -52,11 +52,11 @@ const RankScore = () => {
         const { rankScore, assessments, equation } = calculateRankScore(subjectData);
         rankScores[subject] = rankScore;
         assessmentDetails[subject] = assessments;
-        console.log(`Equation for ${subject}: ${equation}`);
+        // console.log(`Equation for ${subject}: ${equation}`);
     }
 
     // Log the assessment details
-    console.log(JSON.stringify(assessmentDetails, null, 2));
+    // console.log(JSON.stringify(assessmentDetails, null, 2));
 
     // Find the top 5 subjects with the highest rank scores
     const topSubjects = Object.keys(rankScores)
@@ -64,7 +64,7 @@ const RankScore = () => {
         .slice(0, 5);
 
     // Log the top subjects
-    console.log(JSON.stringify(topSubjects, null, 2));
+    // console.log(JSON.stringify(topSubjects, null, 2));
 
     // Calculate the total rank score for the top subjects
     const totalTopRankScore = topSubjects.reduce((total, subject) => total + rankScores[subject], 0);
