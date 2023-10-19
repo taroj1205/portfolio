@@ -5,10 +5,14 @@ import Image from 'next/image'
 import DateFormatter from '@/components/DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 import Link from 'next/link';
-import NCEA from '@/components/NCEA/Ncea';
+import Graph from '@/components/NCEA/PersonalGraph';
+import TableContents from '@/components/TableContents';
+import markdownStyles from './/markdown-styles.module.css'
+import { BsArrowLeft, BsArrowRight } from 'react-icons/bs';
 
 const usedcomponents = {
-    NCEA,
+    Graph,
+    TableContents
 }
 
 export const generateStaticParams = async () => allPosts.map((post) => ({ slug: post._raw.flattenedPath }))
@@ -51,7 +55,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
     const readTime = `${Math.round(post.readingTime.minutes)}${post.locale === 'ja' ? '分で読めます' : ' min to read'}`
 
     return (
-        <div className='md:px-4 md:py-24'>
+        <div className='md:px-4 md:pb-24 pt-4 md:pt-12'>
             <div className='mx-auto max-w-2xl p-4 md:px-6 md:rounded-lg'>
                 <p className='block text-center text-base font-semibold uppercase tracking-wide'>
                     {categories.map((item: any, index: any) => (
@@ -91,32 +95,26 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                     </div>
 
                 </div>
-                <article className='mx-auto space-y-4 leading-snug prose-md prose prose-indigo py-4 md:py-6 lg:prose-lg rounded-lg'>
+                <article className={`${markdownStyles['markdown']} mx-auto space-y-4 leading-snug prose-md prose prose-indigo py-4 md:py-6 lg:prose-lg rounded-lg`}>
                     <Content components={usedcomponents} />
                 </article>
-                {prevPost || nextPost ? (
-                    <div className="mt-4 flex justify-between">
-                        {prevPost ? (
-                            <Link href={`/${params.locale}/posts/${prevPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
-                                {params.locale === 'ja' ? '前の投稿' : 'Previous Post'}
-                            </Link>
-                        ) : (
-                            <div></div>
-                        )}
-                        {nextPost && (
-                            <Link href={`/${params.locale}/posts/${nextPost.slug}`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
-                                {params.locale === 'ja' ? '次の投稿' : 'Next Post'}
-                            </Link>
-                        )}
-                    </div>
-                ) : (
-                    <div className='mt-4'>
-                            <Link href={`/${params.locale}/posts`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
-                            {params.locale === 'ja' ? '一覧に戻る' : 'Go back to posts'}
+                <div className="mt-4">
+                    {prevPost && (
+                        <Link href={`/${params.locale}/posts/${prevPost.slug}`} className="flex float-left items-center flex-row py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
+                            <BsArrowLeft className="sm:mr-1" />
+                            <span className='hidden sm:block'>{params.locale === 'ja' ? '前の投稿' : 'Previous Post'}</span>
                         </Link>
-                    </div>
-                )
-                }
+                    )}
+                    {/* <Link href={`/${params.locale}/posts`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
+                        {params.locale === 'ja' ? '一覧に戻る' : 'Go back to posts'}
+                    </Link> */}
+                    {nextPost && (
+                        <Link href={`/${params.locale}/posts/${nextPost.slug}`} className="flex float-right items-center flex-row py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
+                            <span className='hidden sm:block'>{params.locale === 'ja' ? '次の投稿' : 'Next Post'}</span>
+                            <BsArrowRight className="sm:ml-1" />
+                        </Link>
+                    )}
+                </div>
             </div>
         </div>
     )

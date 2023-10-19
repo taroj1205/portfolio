@@ -180,7 +180,7 @@ const Graphs: React.FC = () => {
 
 
     return (
-            <div key={key} className="flex flex-col lg:flex-row lg:justify-between items-start space-y-4 lg:space-y-0 lg:space-x-4">
+            <div key={key} className="max-w-full flex-wrap flex flex-col lg:flex-row lg:justify-between items-start space-y-4 lg:space-x-4">
                 <div className="w-full h-full flex flex-col justify-center items-center max-w-screen">
                     <h2 className="text-center mb-2 flex flex-row items-center justify-center">
                         <span className={`${lang === 'ja' ? 'w-[250px]' : 'w-[350px]'} flex justify-between items-center whitespace-normal`}>

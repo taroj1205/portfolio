@@ -9,7 +9,7 @@ const DateFormatter = ({ date, lang}: { date: string; lang: string }) => {
     const timeFormat = format(postDate, 'HH:mm');
 
     if (isToday(postDate)) {
-        formattedDate = `${formatDistanceToNow(postDate, { addSuffix: true, locale })}${lang === 'ja' ? 'の' : ' at '}${timeFormat}`;
+        formattedDate = `${formatDistanceToNow(postDate, { addSuffix: true, locale })}`;
     } else if (isYesterday(postDate)) {
         formattedDate = lang === 'ja' ? `昨日の${timeFormat}` : `Yesterday at ${timeFormat}`;
     } else if (isWithinInterval(postDate, { start: subWeeks(new Date(), 1), end: new Date() })) {

@@ -26,7 +26,7 @@ export default function Home() {
                 <PostHero />
 
                 <p className="text-3xl mt-4">{locale === 'ja' ? '最近の投稿' : 'Recent posts'}</p>
-                <div className="grid md:grid-cols-2 grid-cols-1 mx-auto md:gap-32 gap-8">
+                <div className="flex flex-wrap md:space-x-12 items-start justify-start">
                     {posts.slice(0, 4).map((post, idx) => (
                         <ArticleCard key={idx} {...post} category={post.category} />
                     ))}

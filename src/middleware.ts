@@ -28,6 +28,9 @@ export default async function middleware(request: NextRequest) {
     }
 
     response.headers.set('x-current-locale', currentLocale);
+    // remove /locale from pathname
+    const path = pathname.replace(`/${currentLocale}`, '');
+    response.headers.set('x-slug', path)
     response.headers.set('x-full-path', request.nextUrl.href);
 
     return response;
