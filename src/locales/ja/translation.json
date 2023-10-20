@@ -25,7 +25,7 @@
           "duration": "1年ちょい",
           "end": "2010年5月",
           "grade": "年少～年中",
-                    "location": {
+          "location": {
             "country": "日本",
             "region": "東京"
           },
@@ -47,7 +47,7 @@
           "duration": "1年",
           "end": "2012年3月",
           "grade": "年長",
-                    "location": {
+          "location": {
             "country": "日本",
             "region": "愛媛県"
           },
@@ -58,7 +58,7 @@
           "duration": "2か月",
           "end": "2012年6月",
           "grade": "1年生",
-                    "location": {
+          "location": {
             "country": "日本",
             "region": "愛媛県"
           },
@@ -69,7 +69,7 @@
           "duration": "4年半",
           "end": "2016年12月",
           "grade": "1年生～5年生",
-                    "location": {
+          "location": {
             "country": "日本",
             "region": "愛媛県"
           },
@@ -80,7 +80,7 @@
           "duration": "1年",
           "end": "2017年12月",
           "grade": "Year 7",
-                    "location": {
+          "location": {
             "country": "ニュージーランド",
             "region": "オークランド"
           },
@@ -91,7 +91,7 @@
           "duration": "3か月",
           "end": "2018年3月",
           "grade": "6年生",
-                    "location": {
+          "location": {
             "country": "日本",
             "region": "愛媛県"
           },
@@ -102,7 +102,7 @@
           "duration": "3か月",
           "end": "2018年7月",
           "grade": "-",
-                    "location": {
+          "location": {
             "country": "フィリピン",
             "region": "セブ"
           },
@@ -113,7 +113,7 @@
           "duration": "2~3週間",
           "end": "2018年7月",
           "grade": "1年生",
-                    "location": {
+          "location": {
             "country": "日本",
             "region": "愛媛県"
           },
@@ -124,7 +124,7 @@
           "duration": "1年",
           "end": "2019年5月",
           "grade": "Year 8",
-                    "location": {
+          "location": {
             "country": "フィリピン",
             "region": "セブ"
           },
@@ -135,7 +135,7 @@
           "duration": "5年",
           "end": "2023年12月",
           "grade": "Year 9～Year 13",
-                    "location": {
+          "location": {
             "country": "ニュージーランド",
             "region": "オークランド"
           },
@@ -209,7 +209,8 @@
     "home": "ホーム",
     "name": "上鍵心太朗",
     "settings": "設定",
-    "sitemap": "サイトマップ"
+    "sitemap": "サイトマップ",
+    "blog": "ブログ"
   },
   "header": {
     "about": "僕について",
@@ -269,7 +270,8 @@
     "previous": "前へ",
     "results": "{startIndex} - {endIndex} / {totalResults} の結果",
     "searchTime": "{searchTime}秒で結果が表示されました",
-    "startSearch": "今日から検索を始めましょう！"
+    "startSearch": "今日から検索を始めましょう！",
+    "placeholder": "Googleで検索"
   },
   "skill": {
     "css": "CSS",

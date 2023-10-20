@@ -210,7 +210,8 @@
     "home": "Home",
     "name": "Shintaro Jokagi",
     "settings": "Settings",
-    "sitemap": "Sitemap"
+    "sitemap": "Sitemap",
+    "blog": "Blog"
   },
   "header": {
     "about": "About",
@@ -270,7 +271,8 @@
     "previous": "Previous",
     "results": "Results {startIndex} - {endIndex} of {totalResults}",
     "searchTime": "Results took {searchTime} seconds",
-    "startSearch": "Start exploring the possibilities!"
+    "startSearch": "Start exploring the possibilities!",
+    "placeholder": "Search Google"
   },
   "skill": {
     "css": "CSS",

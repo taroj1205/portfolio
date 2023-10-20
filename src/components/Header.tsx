@@ -53,6 +53,10 @@ export default function Header() {
     }, [active, nextPathname]);
 
     useEffect(() => {
+        handleResize();
+    })
+
+    useEffect(() => {
         setActive(false);
         const links = document.querySelectorAll('nav a');
         links.forEach((link) => {
@@ -168,7 +172,7 @@ export default function Header() {
                     </div>
                     <nav className='flex items-center justify-center relative'>
                         <div className='flex flex-row text-lg'>
-                            <div className='flex flex-row justify-between w-[95vw] lg:w-full items-center'>
+                            <div className='flex flex-row justify-between w-[94vw] lg:w-full items-center'>
                                 {links.map((link) => (
                                     <Link
                                         key={link.href}
@@ -188,7 +192,7 @@ export default function Header() {
                         </div>
                     </nav>
                     <div
-                        className={`fixed max-w-[10rem] md:max-w-[20rem] opacity-100 mt-4 lg:mt-2 left-0 h-[2px] bg-black dark:bg-gray-400 ${activeLinkStyle}`}
+                        className={`absolute max-w-[10rem] md:max-w-[20rem] opacity-100 mt-4 lg:mt-2 left-0 h-[2px] bg-black dark:bg-gray-400 ${activeLinkStyle}`}
                         ref={activeRef}
                         style={{ transition: 'transform 0.3s ease-in-out, width 0.3s ease-in-out' }}
                     />
