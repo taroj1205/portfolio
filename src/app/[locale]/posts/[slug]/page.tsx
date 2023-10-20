@@ -10,12 +10,14 @@ import SchoolHistory from '@/components/SchoolHistory';
 import TableContents from '@/components/TableContents';
 import markdownStyles from './/markdown-styles.module.css'
 import { BsArrowLeft, BsArrowRight } from 'react-icons/bs';
-import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin, FaRegFileExcel } from 'react-icons/fa';
+import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin } from 'react-icons/fa';
+import WordCounter from '@/components/WordCounter';
 
 const usedcomponents = {
     Graph,
     TableContents,
-    SchoolHistory
+    SchoolHistory,
+    WordCounter
 }
 
 export const generateStaticParams = async () => allPosts.map((post) => ({ slug: post._raw.flattenedPath }))
@@ -103,18 +105,6 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
     const categories = post.category?.split(',') || [];
     const readTime = `${Math.round(post.readingTime.minutes)}${post.locale === 'ja' ? '分で読めます' : ' min to read'}`
 
-    const regXCounter = /{\/\* counter \*\/}([\s\S]+?){\/\* counter \*\/}/g;
-    const match = regXCounter.exec(post.body.raw.toString());
-    const text = match ? removeHeadingsAndQuotes(match[1].trim()) : '';
-    const words = text.split(/\s+/).length;
-    const characters = text.length;
-
-    function removeHeadingsAndQuotes(text: string) {
-        text = text.replace(/^#.*$/gm, '');
-        text = text.replace(/^>\s*/gm, '');
-        return text;
-    }
-
     return (
         <div className='md:px-4 pt-4 md:pt-12'>
             <div className='mx-auto max-w-3xl p-4 md:px-6 md:rounded-lg'>
@@ -157,9 +147,6 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                 </div>
                 <article className={`${markdownStyles['markdown']} mx-auto space-y-4 leading-snug prose-md prose prose-indigo lg:prose-lg rounded-lg`}>
                     <Content components={usedcomponents} />
-                    {words > 1 && (
-                        `${words} words`
-                        )}
                 </article>
                 <div className="mt-4">
                     {prevPost && (
