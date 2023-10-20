@@ -5,7 +5,16 @@ const nextConfig = {
     // Configure `pageExtensions`` to include MDX files
     pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
     reactStrictMode: true,
-    swcMinify: true
+    swcMinify: true,
+    images: {
+        dangerouslyAllowSVG: true,
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'img.shields.io',
+            },
+        ],
+    }
 }
 
 module.exports = withMDX(nextConfig)

@@ -20,3 +20,35 @@
 .markdown ul {
     @apply list-disc list-inside my-6;
 }
+
+.markdown blockquote {
+    @apply p-4 italic border-l-4 bg-gray-100 text-gray-600 dark:text-gray-300 dark:border-gray-500;
+}
+
+
+.markdown blockquote p {
+    @apply my-2
+}
+:global(.dark) .markdown blockquote {
+    @apply bg-gray-800 text-gray-300;
+}
+
+.markdown blockquote::before {
+    @apply block text-gray-400;
+    content: open-quote;
+}
+
+:global(.dark) .markdown blockquote::before {
+    @apply block text-gray-500;
+    content: open-quote;
+}
+
+.markdown blockquote::after {
+    @apply block text-gray-400;
+    content: close-quote;
+}
+
+:global(.dark) .markdown blockquote::after {
+    @apply block text-gray-500;
+    content: close-quote;
+}

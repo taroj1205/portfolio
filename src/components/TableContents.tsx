@@ -9,11 +9,10 @@ const TableContents = () => {
   const locale = headerList.get('x-current-locale') as string;
   const path = headerList.get('x-slug')?.replace('/posts/', '') as string;
   const post = allPosts.find(post => post._raw.sourceFileDir === locale && post.slug.trim() === path.trim()) as any;
-  console.log(post)
   if (!post) return undefined;
   return (
-    <div className="bg-white dark:bg-gray-800 px-6 pb-4 pt-1 rounded-lg shadow-lg">
-      <h3 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">{locale === 'ja'? '目次' : 'Table of Contents'}</h3>
+    <div className="bg-white dark:bg-gray-800 px-6 pb-4 rounded-lg shadow-lg">
+      <p className="text-2xl font-semibold pt-4 text-gray-800 dark:text-white">{locale === 'ja'? '目次' : 'Table of Contents'}</p>
       <div className="space-y-2">
         {post.headings.map((heading: { level: number; text: string; slug: string }) => {
           const levelStyle = heading.level === 1 ? 'text-lg font-semibold' : 'text-base';
