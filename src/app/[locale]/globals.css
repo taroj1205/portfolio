@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  overflow: hidden;
+}
+
 html,
 body {
   margin: 0;
@@ -12,11 +16,17 @@ body,
 #__next {
   height: 100%;
   width: 100%;
+  background-color: white;
+}
+
+:global(.dark) html, :global(.dark) body, :global(.dark) #__next {
+    background-color: #202124;
 }
 
 body {
   display: flex;
   flex-direction: column;
+  overflow: auto;
 }
 
 main {

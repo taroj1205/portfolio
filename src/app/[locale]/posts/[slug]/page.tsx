@@ -6,13 +6,16 @@ import DateFormatter from '@/components/DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 import Link from 'next/link';
 import Graph from '@/components/NCEA/PersonalGraph';
+import SchoolHistory from '@/components/SchoolHistory';
 import TableContents from '@/components/TableContents';
 import markdownStyles from './/markdown-styles.module.css'
 import { BsArrowLeft, BsArrowRight } from 'react-icons/bs';
+import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin, FaRegFileExcel } from 'react-icons/fa';
 
 const usedcomponents = {
     Graph,
-    TableContents
+    TableContents,
+    SchoolHistory
 }
 
 export const generateStaticParams = async () => allPosts.map((post) => ({ slug: post._raw.flattenedPath }))
@@ -23,12 +26,57 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
     return { title: post.title }
 }
 
+const socialData = [
+    {
+        name: 'Twitter',
+        url: 'https://twitter.com/taroj1205',
+        icon: <FaTwitter />,
+        color: '#1DA1F2'
+    },
+    {
+        name: 'Instagram',
+        url: 'https://instagram.com/taroj1205',
+        icon: <FaInstagram />,
+        color: '#E4405F'
+    },
+    {
+        name: 'Facebook',
+        url: 'https://www.facebook.com/taroj1205',
+        icon: <FaFacebook />,
+        color: '#1877F2'
+    },
+    {
+        name: 'LinkedIn',
+        url: 'https://www.linkedin.com/in/taroj/',
+        icon: <FaLinkedin />,
+        color: '#0A66C2'
+    },
+];
+
+const Socials = () => {
+    return (
+        <div className="flex space-x-4">
+            {socialData.map((social, index) => (
+                <Link
+                    key={index}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`text-gray-500 ${social.url.includes('instagram') ? 'hover:text-pink-500' : 'hover:text-blue-500'} transition-colors duration-300`}
+                >
+                    {social.icon}
+                </Link>
+            ))}
+        </div>
+    );
+};
+
 const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) => {
     const post = allPosts.find(post => post._raw.sourceFileDir === params.locale && post.slug.trim() === params.slug) as any;
 
     if (!post) {
         return (
-            <div className="flex flex-col items-center justify-center text-center">
+            <div className="md:px-4 pt-4 md:pt-12 flex flex-col items-center justify-center text-center">
                 <h1 className="text-6xl font-bold text-gray-700 dark:text-gray-300 mb-4">
                     {params.locale === 'ja' ? '404' : '404'}
                 </h1>
@@ -51,12 +99,25 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
     const nextPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null;
 
     const Content = getMDXComponent(post.body.code)
+
     const categories = post.category?.split(',') || [];
     const readTime = `${Math.round(post.readingTime.minutes)}${post.locale === 'ja' ? '分で読めます' : ' min to read'}`
 
+    const regXCounter = /{\/\* counter \*\/}([\s\S]+?){\/\* counter \*\/}/g;
+    const match = regXCounter.exec(post.body.raw.toString());
+    const text = match ? removeHeadingsAndQuotes(match[1].trim()) : '';
+    const words = text.split(/\s+/).length;
+    const characters = text.length;
+
+    function removeHeadingsAndQuotes(text: string) {
+        text = text.replace(/^#.*$/gm, '');
+        text = text.replace(/^>\s*/gm, '');
+        return text;
+    }
+
     return (
-        <div className='md:px-4 md:pb-24 pt-4 md:pt-12'>
-            <div className='mx-auto max-w-2xl p-4 md:px-6 md:rounded-lg'>
+        <div className='md:px-4 pt-4 md:pt-12'>
+            <div className='mx-auto max-w-3xl p-4 md:px-6 md:rounded-lg'>
                 <p className='block text-center text-base font-semibold uppercase tracking-wide'>
                     {categories.map((item: any, index: any) => (
                         <Link className='text-indigo-600 hover:text-indigo-700 hover:underline' href={`/posts/categories/${item}`} key={index}>#{item}</Link>
@@ -82,21 +143,23 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                     alt='blog'
                 />
                 <div className='flex flex-col md:flex-row items-start md:justify-between md:items-center mt-4'>
-                    <div>
+                    <div className='flex flex-col'>
                         <div className='flex items-center rounded-lg space-x-4'>
                             <Image src={post.author.image} width={50} height={50} alt='blog' className='rounded-full' />
 
-                            <div className='text-gray-800 dark:text-gray-200'>
+                            <div className='text-gray-800 dark:text-gray-200 flex flex-col'>
                                 <strong className='text-lg'>{post.author.name}</strong>
-                                <br />
-                                <span className='text-sm'>{post.locale === 'ja' ? '高校生' : 'High School Student'}</span>
+                                <span className='text-sm mb-1'>{post.locale === 'ja' ? '高校生' : 'High School Student'}</span>
+                                <Socials />
                             </div>
                         </div>
                     </div>
-
                 </div>
-                <article className={`${markdownStyles['markdown']} mx-auto space-y-4 leading-snug prose-md prose prose-indigo py-4 md:py-6 lg:prose-lg rounded-lg`}>
+                <article className={`${markdownStyles['markdown']} mx-auto space-y-4 leading-snug prose-md prose prose-indigo lg:prose-lg rounded-lg`}>
                     <Content components={usedcomponents} />
+                    {words > 1 && (
+                        `${words} words`
+                        )}
                 </article>
                 <div className="mt-4">
                     {prevPost && (

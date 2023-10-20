@@ -5,9 +5,12 @@ import 'react-super-responsive-table/dist/SuperResponsiveTableStyle.css'
 import { useState } from 'react';
 import { FaChevronDown } from 'react-icons/fa';
 import { useSpring, animated } from 'react-spring';
+import { Tooltip } from "react-tooltip";
+import { useTheme } from "next-themes";
 
 export default function SchoolHistory() {
     const t = useTranslations('about');
+    const { resolvedTheme } = useTheme();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const springProps = useSpring({
         maxHeight: isCollapsed ? 0 : 1000,
@@ -38,19 +41,10 @@ export default function SchoolHistory() {
                     <Thead>
                         <Tr className="bg-teal-700 text-white">
                             <Th className="py-2 px-4 rounded-tl-lg">
-                                {t('education.headings.start')}
-                            </Th>
-                            <Th className="py-2 px-4">
-                                {t('education.headings.end')}
+                                {t('education.headings.period')}
                             </Th>
                             <Th className="py-2 px-4">
                                 {t('education.headings.schoolName')}
-                            </Th>
-                            <Th className="py-2 px-4">
-                                {t('education.headings.grade')}
-                            </Th>
-                            <Th className="py-2 px-4">
-                                {t('education.headings.duration')}
                             </Th>
                             <Th className="py-2 px-4 rounded-tr-lg">
                                 {t('education.headings.location')}
@@ -68,24 +62,38 @@ export default function SchoolHistory() {
                                 }
                                 style={{ Transition: 'background-color 0.3s' }}
                             >
-                                <Td className={`py-2 px-4 ${index === 10 ? 'rounded-bl-lg' : ''}`}>
-                                    {t(`education.schools.${index}.start`)}
-                                </Td>
-                                <Td className="py-2 px-4">
-                                    {t(`education.schools.${index}.end`)}
-                                </Td>
-                                <Td className="py-2 px-4 flex items-center">
-                                    {t(`education.schools.${index}.name`)}
-                                </Td>
-                                <Td className="py-2 px-4">
-                                    {t(`education.schools.${index}.grade`)}
-                                </Td>
-                                <Td className="py-2 px-4">
+                                <Td className="py-2 px-4 cursor-pointer"
+                                    data-tooltip-content={`${t(`education.schools.${index}.start`)} - ${t(`education.schools.${index}.end`)}`}
+                                    data-tooltip-id={`tooltip-${index}-period`}
+                                    data-tooltip-place="top-start"
+                                    data-tooltip-delay-hide={0}
+                                    data-tooltip-delay-show={0}
+                                >
                                     {t(`education.schools.${index}.duration`)}
                                 </Td>
-                                <Td className={`py-2 px-4 ${index === 10 ? 'rounded-br-lg' : ''}`}>
-                                    {t(`education.schools.${index}.location`)}
+                                <Tooltip id={`tooltip-${index}-period`} />
+                                <Td className={`py-2 px-4 flex items-center ${index === 7 ? '' : 'cursor-pointer'}`}
+                                    data-tooltip-content={t(`education.schools.${index}.grade`)}
+                                    data-tooltip-id={`tooltip-${index}-grade`}
+                                    data-tooltip-place="top-start"
+                                    data-tooltip-delay-hide={0}
+                                    data-tooltip-delay-show={0}
+                                    data-tooltip-hidden={index === 7}
+                                >
+                                    {t(`education.schools.${index}.name`)}
                                 </Td>
+                                <Tooltip id={`tooltip-${index}-grade`} data-tooltip-content={t(`education.schools.${index}.grade`)} />
+                                <Td className={`py-2 px-4 cursor-pointer ${index === 10 ? 'rounded-br-lg' : ''}`}
+                                    data-tooltip-content={t(`education.schools.${index}.location.region`)}
+                                    data-tooltip-id={`tooltip-${index}-location`}
+                                    data-tooltip-place="top-start"
+                                    data-tooltip-variant={resolvedTheme}
+                                    data-tooltip-delay-hide={0}
+                                    data-tooltip-delay-show={0}
+                                >
+                                    {t(`education.schools.${index}.location.country`)}
+                                </Td>
+                                <Tooltip id={`tooltip-${index}-location`} data-tooltip-content={t(`education.schools.${index}.location.region`)} />
                             </Tr>
                         ))}
                     </Tbody>
