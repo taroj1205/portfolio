@@ -14,7 +14,7 @@ export default function Home() {
     console.log(locale)
     
     return (
-        <div className="container mt-4 mx-auto px-5">
+        <div className="container mx-auto px-5">
             <div>
                 <div className="space-y-4">
                     <h1 className="text-center text-5xl">{locale === 'ja' ? 'ようこそ！' : 'Welcome!'}</h1>
@@ -26,7 +26,7 @@ export default function Home() {
                 <PostHero />
 
                 <p className="text-3xl mt-4">{locale === 'ja' ? '最近の投稿' : 'Recent posts'}</p>
-                <div className="flex flex-wrap md:space-x-12 items-start justify-start">
+                <div className="flex flex-wrap lg:space-x-12 items-start justify-start">
                     {posts.slice(0, 4).map((post, idx) => (
                         <ArticleCard key={idx} {...post} category={post.category} />
                     ))}

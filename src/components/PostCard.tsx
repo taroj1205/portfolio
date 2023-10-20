@@ -8,8 +8,8 @@ export default function PostCard({ image, category, title, description, readingT
     const readTime = `${Math.round(readingTime.minutes)}${locale === 'ja' ? '分で読めます' : ' min to read'}`
     const categories = category?.split(',') || [];
     return (
-        <div className='max-w-[25rem]'>
-            <section className='text-gray-600 body-font'>
+        <div className='max-w-[25rem] h-full'>
+            <section className='text-gray-600'>
                 <div className='container py-6 mx-auto'>
                     <div className='flex flex-wrap -m-4'>
                         <div className='p-4'>
@@ -30,7 +30,7 @@ export default function PostCard({ image, category, title, description, readingT
                                     <h2 className='title-font text-lg font-medium text-gray-900 dark:text-gray-100 mb-3'>
                                         {title}
                                     </h2>
-                                    <p className='leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-3'>{description}</p>
+                                    <p className='md:h-20 leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-3'>{description}</p>
                                     <div className='flex items-center flex-wrap justify-between'>
                                         <Link
                                             href={`/${locale}/posts/${slug}`}
