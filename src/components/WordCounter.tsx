@@ -8,7 +8,7 @@ const WordCounter = () => {
     console.log("slug", slug)
     const post = allPosts.find(post => post.locale === locale && post.slug.trim() === slug.replace('/posts/', '')) as any;
 
-    const regXCounter = /{\/\* counter \*\/}([\s\S]+?){\/\* counter \*\/}/g;
+    const regXCounter = /{\/\* counter \*\/}([\s\S]+?){\/\* \/counter \*\/}/g;
     const match = regXCounter.exec(post.body.raw.toString());
     const text = match ? removeHeadingsAndQuotes(match[1].trim()) : '';
     const words = text.trim().split(/\s+/).length;

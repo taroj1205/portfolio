@@ -12,7 +12,6 @@ export default async function middleware(request: NextRequest) {
         // A list of all locales that are supported
         locales: ['en', 'ja'],
 
-        // If this locale is matched, pathnames work without a prefix (e.g. `/about`)
         defaultLocale: 'en',
         localePrefix: 'always',
     });
