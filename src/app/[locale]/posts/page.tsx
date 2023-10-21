@@ -3,6 +3,41 @@ import { allPosts, Post } from "contentlayer/generated";
 import { headers } from 'next/headers'
 import PostHero from "@/components/PostHero";
 import ArticleCard from "@/components/PostCard";
+import metadata from '@/app/metadata.json';
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: { locale: string; } }): Promise<Metadata | null> {
+    const locale = params.locale;
+    console.log("params", params)
+    const headerList = headers();
+
+    let pageMetadata = (metadata as Record<string, any>)['posts'];
+
+    return {
+        metadataBase: new URL(pageMetadata.metadataBase),
+        title: pageMetadata.title[locale],
+        description: pageMetadata.description[locale],
+        icons: pageMetadata.icons,
+        openGraph: {
+            images: pageMetadata.openGraph.images.map((image: { url: string, alt: { [key: string]: string } }) => ({
+                url: image.url,
+                alt: image.alt[locale],
+            })),
+        },
+        twitter: {
+            card: pageMetadata.twitter.card,
+            title: pageMetadata.twitter.title[locale],
+            description: pageMetadata.twitter.description[locale],
+            site: pageMetadata.twitter.site,
+            creator: pageMetadata.twitter.creator,
+            images: pageMetadata.twitter.images.map((image: { url: string, alt: { [key: string]: string } }) => ({
+                url: image.url,
+                alt: image.alt[locale],
+            })),
+        },
+        viewport: pageMetadata.viewport,
+    }
+};
 
 export default function Home() {
     const headerList = headers();
@@ -14,7 +49,7 @@ export default function Home() {
     console.log(locale)
     
     return (
-        <div className="container mt-4 mx-auto px-5">
+        <div className="container mx-auto px-5">
             <div>
                 <div className="space-y-4">
                     <h1 className="text-center text-5xl">{locale === 'ja' ? 'ようこそ！' : 'Welcome!'}</h1>
@@ -26,7 +61,7 @@ export default function Home() {
                 <PostHero />
 
                 <p className="text-3xl mt-4">{locale === 'ja' ? '最近の投稿' : 'Recent posts'}</p>
-                <div className="flex flex-wrap md:space-x-12 items-start justify-start">
+                <div className="flex flex-wrap lg:space-x-12 items-start justify-start">
                     {posts.slice(0, 4).map((post, idx) => (
                         <ArticleCard key={idx} {...post} category={post.category} />
                     ))}

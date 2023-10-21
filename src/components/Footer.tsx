@@ -46,13 +46,13 @@ const Footer = () => {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/apps" className="text-blue-700 dark:text-blue-500 hover:underline">
-                                    {t('apps')}
+                                <Link href="/posts" className="text-blue-700 dark:text-blue-500 hover:underline">
+                                    {t('blog')}
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/settings" className="text-blue-700 dark:text-blue-500 hover:underline">
-                                    {t('settings')}
+                                <Link href="/apps" className="text-blue-700 dark:text-blue-500 hover:underline">
+                                    {t('apps')}
                                 </Link>
                             </li>
                         </ul>

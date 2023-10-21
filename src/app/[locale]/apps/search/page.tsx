@@ -156,14 +156,14 @@ const GoogleSearch: React.FC = () => {
     };
 
     return (
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg">
+        <div className="bg-white dark:bg-gray-900 px-4 rounded-lg">
             <div className="flex items-center mb-2">
                 <input
                     type="text"
-                    placeholder="Search Google"
+                    placeholder={t('placeholder')}
                     onChange={(e) => { setQuery(e.target.value) }}
                     onKeyDown={(e) => { if (e.key === 'Enter') { handleSearch(1); } }}
-                    className={`w-full rounded-lg py-2 px-4 mr-2 ${defaultSet ? 'cursor-text' : 'cursor-wait'} focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
+                    className={`bg-gray-200 dark:bg-gray-700 w-full rounded-lg py-2 px-4 mr-2 ${defaultSet ? 'cursor-text' : 'cursor-wait'} focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
                     style={{ height: '2.5rem' }}
                     ref={inputRef}
                     autoFocus

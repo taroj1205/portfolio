@@ -30,6 +30,8 @@ export default async function middleware(request: NextRequest) {
     // remove /locale from pathname
     const path = pathname.replace(`/${currentLocale}`, '');
     response.headers.set('x-slug', path)
+    const pathWithoutFirstSlash = path.substring(1);
+    response.headers.set('slug', pathWithoutFirstSlash);
     response.headers.set('x-full-path', request.nextUrl.href);
 
     return response;
