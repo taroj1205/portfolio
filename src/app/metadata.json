@@ -257,8 +257,8 @@
     "posts": {
         "metadataBase": "https://taroj.vercel.app",
         "title": {
-            "ja": "投稿",
-            "en": "Posts"
+            "ja": "ブログ",
+            "en": "Blog"
         },
         "description": {
             "ja": "上鍵心太朗のブログ投稿一覧",
@@ -281,8 +281,8 @@
         "twitter": {
             "card": "summary_large_image",
             "title": {
-                "ja": "投稿",
-                "en": "Posts"
+                "ja": "ブログ",
+                "en": "Blog"
             },
             "description": {
                 "ja": "上鍵心太朗のブログ投稿一覧",

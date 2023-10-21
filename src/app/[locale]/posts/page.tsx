@@ -3,6 +3,41 @@ import { allPosts, Post } from "contentlayer/generated";
 import { headers } from 'next/headers'
 import PostHero from "@/components/PostHero";
 import ArticleCard from "@/components/PostCard";
+import metadata from '@/app/metadata.json';
+import { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: { locale: string; } }): Promise<Metadata | null> {
+    const locale = params.locale;
+    console.log("params", params)
+    const headerList = headers();
+
+    let pageMetadata = (metadata as Record<string, any>)['posts'];
+
+    return {
+        metadataBase: new URL(pageMetadata.metadataBase),
+        title: pageMetadata.title[locale],
+        description: pageMetadata.description[locale],
+        icons: pageMetadata.icons,
+        openGraph: {
+            images: pageMetadata.openGraph.images.map((image: { url: string, alt: { [key: string]: string } }) => ({
+                url: image.url,
+                alt: image.alt[locale],
+            })),
+        },
+        twitter: {
+            card: pageMetadata.twitter.card,
+            title: pageMetadata.twitter.title[locale],
+            description: pageMetadata.twitter.description[locale],
+            site: pageMetadata.twitter.site,
+            creator: pageMetadata.twitter.creator,
+            images: pageMetadata.twitter.images.map((image: { url: string, alt: { [key: string]: string } }) => ({
+                url: image.url,
+                alt: image.alt[locale],
+            })),
+        },
+        viewport: pageMetadata.viewport,
+    }
+};
 
 export default function Home() {
     const headerList = headers();
