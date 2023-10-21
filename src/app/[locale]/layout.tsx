@@ -21,6 +21,9 @@ export async function generateMetadata({ params }: { params: { locale: string; }
   console.log("params", params)
   const headerList = headers();
   let slugValue = headerList.get('slug') as string;
+  if (!slugValue) {
+    slugValue = 'home';
+  }
   let slugMap: { [key: string]: string } = { null: 'home', 'posts/categories': 'categories', 'posts/archives': 'categories' };
   let slug = slugMap[slugValue] || slugValue;
 
