@@ -40,7 +40,7 @@ const Index = () => {
     }, [theme, lang]);
 
     const routes = [
-        { path: '/apps/chat', label: 'Chat', icon: FaComments },
+        { path: 'https://chat-taroj.vercel.app/', label: 'Chat', icon: FaComments },
         { path: 'https://taroj.poyo.jp/apps/ncea', label: 'NCEA', icon: TbSchool },
         {path: '/apps/search', label: 'Search', icon: FaSearch},
         { path: 'https://analytics.umami.is/share/gbBddDRRyRvseyAP/taroj.poyo.jp', label: 'Analytics', icon: FaChartBar },

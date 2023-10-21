@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { allPosts } from "contentlayer/generated";
 import { compareDesc } from "date-fns";
 import ArticleCard from "@/components/PostCard";
+import { notFound } from 'next/navigation';
 
 export default function Blog({params}: {params: {slug: string}}) {
     const headersList = headers();
@@ -13,6 +14,8 @@ export default function Blog({params}: {params: {slug: string}}) {
     const posts = allPosts
         .filter(post => post._raw.sourceFileDir === locale && post.category && post.category.split(',').map(item => item.trim()).includes(params.slug))
         .sort((a, b) => compareDesc(new Date(a.publishedAt), new Date(b.publishedAt)));
+    
+    if (!posts) notFound();
 
     return (
         <div className="container mx-auto px-5">

@@ -2,7 +2,7 @@
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { RiHome2Line, RiUserLine } from 'react-icons/ri';
-import { usePathname as nextUsePathname } from 'next/navigation';
+import { usePathname as nextUsePathname, useSelectedLayoutSegment, useSelectedLayoutSegments } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import Image from 'next/image';
 import LanguageSwitcher from './LanguageSwitch';
@@ -12,9 +12,13 @@ import { usePathname, Link } from "@/lib/next-intl";
 export default function Header() {
     const lang = useLocale();
     const pathname = usePathname();
+    const segments = useSelectedLayoutSegment();
+    console.log(segments)
     const currentPathname = nextUsePathname();
-    const dynamicPathname = pathname.startsWith('/apps') ? '/apps' : pathname.startsWith('/blog') || pathname.startsWith('/posts') ? '/posts' : pathname;
-    const nextPathname = pathname.startsWith('/apps') ? `/${lang}/apps` : pathname.startsWith('/blog') || pathname.startsWith('/posts') ? `/${lang}/posts` : currentPathname;
+    // const dynamicPathname = pathname.startsWith('/apps') ? '/apps' : pathname.startsWith('/posts') ? '/posts' : pathname;
+    const dynamicPathname = segments ? `/${segments}` : '/';
+    console.log(dynamicPathname)
+    const nextPathname = segments ? `/${lang}/${segments}` : currentPathname;
 
     console.log(nextPathname)
 
@@ -42,7 +46,6 @@ export default function Header() {
                     activeRef.current.style.width = `${width}px`;
                     const linkPosition = link.getBoundingClientRect();
                     activeRef.current.style.transform = `translate(${linkPosition.left}px, ${linkPosition.top + 1}px)`;
-                    console.log(link.classList);
                     setActiveLinkStyle('fixed');
                 }
                 setActive(true);
