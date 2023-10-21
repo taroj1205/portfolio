@@ -10,7 +10,6 @@ import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script'
 import metadata from '../metadata.json';
 import { headers } from 'next/headers'
-import { allPosts } from 'contentlayer/generated'
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ja' }];
