@@ -111,6 +111,7 @@ export default function NextHeader() {
             }}
             shouldHideOnScroll
             onMenuOpenChange={setIsMenuOpen}
+            isBordered
         >
             <NavbarContent>
                 <NavbarMenuToggle
