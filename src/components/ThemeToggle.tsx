@@ -2,7 +2,6 @@
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Avatar } from "@nextui-org/react";
 import { FiMonitor, FiMoon, FiSun } from "react-icons/fi";
 import { useTheme } from "next-themes";
-import { FaSpinner } from "react-icons/fa";
 import { useEffect, useState } from "react";
 
 const ThemeToggle: React.FC = () => {
@@ -14,25 +13,25 @@ const ThemeToggle: React.FC = () => {
         setMounted(true);
     }, [theme]);
 
+    if (!mounted) {
+        return null
+    }
+
     return (
         <Dropdown placement="bottom-end">
             <DropdownTrigger>
-                {mounted ? (
-                    resolvedTheme === 'dark' ? (
-                        <Avatar
-                            as="button"
-                            className="transition-transform bg-transparent h-6 w-6"
-                            src="/svg/theme/moon.svg"
-                        />
-                    ) : (
-                        <Avatar
-                            as="button"
-                            className="transition-transform bg-transparent h-6 w-6"
-                            src="/svg/theme/sun.svg"
-                        />
-                    )
+                {resolvedTheme === 'dark' ? (
+                    <Avatar
+                        as="button"
+                        className="transition-transform bg-transparent h-6 w-6"
+                        src="/svg/theme/moon.svg"
+                    />
                 ) : (
-                    <FaSpinner className="animate-spin text-gray-500 w-6 h-6" />
+                    <Avatar
+                        as="button"
+                        className="transition-transform bg-transparent h-6 w-6"
+                        src="/svg/theme/sun.svg"
+                    />
                 )}
             </DropdownTrigger>
             <DropdownMenu selectionMode="single" selectedKeys={theme ? [theme] : undefined} aria-label="Theme Options">

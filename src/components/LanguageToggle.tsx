@@ -1,9 +1,11 @@
+'use client'
 import React from "react";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Avatar } from "@nextui-org/react";
 import { usePathname, useRouter } from "@/lib/next-intl";
 import { useLocale } from "next-intl";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const LanguageToggle: React.FC = () => {
     const router = useRouter();
@@ -11,10 +13,22 @@ const LanguageToggle: React.FC = () => {
     const currentLocale = useLocale();
     const params = useSearchParams();
 
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return null
+    }
+
     const handleLanguageChange = (locale: string) => {
-        console.log(locale)
-        console.log(`${pathname}?${params}`, { locale: locale });
-        router.push(`${pathname}?${params}`, { locale: locale });
+        if (params.toString().length > 0) {
+            router.push(`${pathname}${params ? `?${params.toString()}` : ''}`, { locale: locale });
+            return;
+        }
+        router.push(`${pathname}`, { locale: locale });
     };
 
     return (

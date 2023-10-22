@@ -2,10 +2,8 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { ThemeProvider } from './theme-provider'
 import Footer from '@/components/Footer'
-import { switchThemeDuration } from '@/constants/switch-theme-duration'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
-import Header from '@/components/Header'
 import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script'
 import metadata from '../metadata.json';
@@ -92,9 +90,9 @@ export default async function RootLayout({
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
   return (
-    <html lang={locale} className='bg-white dark:bg-gray-900'>
+    <html lang={locale} className='dark' style={{colorScheme: 'dark'}}>
       <body
-        className={`bg-white dark:bg-gray-900 ${switchThemeDuration}`}
+        className={`bg-white dark:bg-gray-900`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider locale={locale} messages={messages}>
