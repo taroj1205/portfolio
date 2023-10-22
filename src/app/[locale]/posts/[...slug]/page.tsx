@@ -1,5 +1,5 @@
 import { allPosts } from 'contentlayer/generated'
-import { getMDXComponent, useMDXComponent } from 'next-contentlayer/hooks'
+import { getMDXComponent } from 'next-contentlayer/hooks'
 import { compareDesc } from 'date-fns'
 import Image from 'next/image'
 import DateFormatter from '@/components/DateFormatter';
@@ -15,6 +15,7 @@ import WordCounter from '@/components/WordCounter';
 import { notFound } from 'next/navigation';
 import metadata from '@/app/metadata.json';
 import NCEA from '@/components/NCEA/Ncea';
+import { headers } from 'next/headers';
 
 const usedcomponents = {
     Graph,
@@ -24,13 +25,26 @@ const usedcomponents = {
     WordCounter
 }
 
-export const generateStaticParams = async () => allPosts.map((post) => ({ slug: post._raw.flattenedPath }))
+export const generateStaticParams = async () => {
+    return allPosts.map((post) => {
+        const slug = post.path.split('/').filter(Boolean);
+        return { params: { slug: slug } };
+    });
+}
 
 export const generateMetadata = ({ params }: { params: { slug: string; locale: string } }) => {
-    const post = allPosts.find(post => post._raw.sourceFileDir === params.locale && post.slug.trim() === params.slug) as any;
     const locale = params.locale;
+    const headerList = headers();
+    const slug = headerList.get('x-slug') as string;
+    const path = slug.split('/').slice(2).join('/') as string;
+    const post = allPosts.find(post => post.locale === locale && post.path.trim() === path) as any;
 
-    if (!post) notFound();
+    console.log("post:", post)
+
+    if (!post) {
+        console.log("post not found")
+        notFound()
+    };
 
     let pageMetadata = (metadata as Record<string, any>)['blog-post'];
 
@@ -111,15 +125,23 @@ const Socials = () => {
 };
 
 const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) => {
-    const post = allPosts.find(post => post._raw.sourceFileDir === params.locale && post.slug.trim() === params.slug) as any;
+    const headerList = headers();
+    const slug = headerList.get('x-slug') as string;
+    const path = slug.split('/').slice(2).join('/') as string;
+    console.log("postURL",path)
+    const post = allPosts.find(post => post.locale === params.locale && post.path.trim() === path) as any;
 
-    if (!post) notFound();
+
+    if (!post) {
+        console.log("post not found")
+        notFound()
+    };
 
     const sortedPosts = [...allPosts]
-        .filter(post => post._raw.sourceFileDir === params.locale)
+        .filter(post => post.locale === params.locale)
         .sort((a, b) => compareDesc(new Date(a.publishedAt), new Date(b.publishedAt)));
-
-    const currentIndex = sortedPosts.findIndex(p => p.slug === post.slug);
+    
+    const currentIndex = sortedPosts.findIndex(p => p.path.trim() === post.path.trim());
     const prevPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
     const nextPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null;
 
@@ -173,7 +195,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                 </article>
                 <div className="mt-4">
                     {prevPost && (
-                        <Link href={`/${params.locale}/posts/${prevPost.slug}`} className="flex float-left items-center flex-row py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
+                        <Link href={`/${params.locale}${prevPost.url}`} className="flex float-left items-center flex-row py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
                             <BsArrowLeft className="sm:mr-1" />
                             <span className='hidden sm:block'>{params.locale === 'ja' ? '前の投稿' : 'Previous Post'}</span>
                         </Link>
@@ -182,7 +204,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                         {params.locale === 'ja' ? '一覧に戻る' : 'Go back to posts'}
                     </Link> */}
                     {nextPost && (
-                        <Link href={`/${params.locale}/posts/${nextPost.slug}`} className="flex float-right items-center flex-row py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
+                        <Link href={`/${params.locale}${nextPost.url}`} className="flex float-right items-center flex-row py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
                             <span className='hidden sm:block'>{params.locale === 'ja' ? '次の投稿' : 'Next Post'}</span>
                             <BsArrowRight className="sm:ml-1" />
                         </Link>

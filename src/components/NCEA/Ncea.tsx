@@ -19,7 +19,7 @@ const NCEA: React.FC = () => {
                     <h2 className='text-3xl float-left font-bold text-gray-900 dark:text-white'>
                         {t('ncea.title')}
                     </h2>
-                } subtitle={t('expand')} className='font-bold text-gray-900 px-4 dark:text-white'>
+                } subtitle={t('collapse')} className='font-bold text-gray-900 px-4 dark:text-white'>
                     {lang === 'ja' && (
                         <Link href="https://www.edukiwi.com/highschool/ncea-ue/" target="_blank"
                             rel="noopener noreferrer" className='flex justify-center items-center'>

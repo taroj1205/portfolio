@@ -14,7 +14,7 @@ export default function SchoolHistory() {
                     <h2 className='text-3xl float-left font-bold text-gray-900 dark:text-white'>
                         {t('education.schoolHistory')}
                     </h2>
-                } subtitle={t('expand')} className='font-bold text-gray-900 dark:text-white'>
+                } subtitle={t('collapse')} className='font-bold text-gray-900 dark:text-white'>
                 <div
                     className="overflow-x-auto w-full font-normal"
                 >

@@ -77,7 +77,7 @@ export default function NextHeader() {
     const nested: NestedType = {
         blog: [
             { href: '/posts', text: t('posts.list.name'), icon: icons.list, description: t('posts.list.description') },
-            { href: '/posts/archive', text: t('posts.archive.name'), icon: icons.archive, description: t('posts.archive.description') },
+            { href: '/posts/archives', text: t('posts.archive.name'), icon: icons.archive, description: t('posts.archive.description') },
         ],
         apps: [
             { href: 'https://chat-taroj.vercel.app/', text: 'Chat', icon: icons.chat, description: 'Chat app' },
@@ -239,7 +239,7 @@ export default function NextHeader() {
                     } else {
                         return (
                             <NavbarMenuItem key={`${link.href}-${index}`}>
-                                <Link className="py-2 flex text-black dark:text-white items-center" href={`${link.href === '/' ? '' : link.href}`}>
+                                <Link className="py-2 flex text-black dark:text-white items-center" href={link.href}>
                                     <span className="mr-1 lg:mr-2">{link.icon}</span>
                                     {link.text}
                                 </Link>

@@ -2,6 +2,8 @@ import { defineDocumentType, defineNestedType, makeSource } from 'contentlayer/s
 import readingTime from 'reading-time';
 import rehypeSlug from 'rehype-slug';
 import GithubSlugger from "github-slugger"
+import rehypePrismPlus from "rehype-prism-plus"
+import remarkGfm from "remark-gfm"
 
 const Author = defineNestedType(() => ({
     name: 'Author',
@@ -13,7 +15,7 @@ const Author = defineNestedType(() => ({
 
 const Post = defineDocumentType(() => ({
     name: 'Post',
-    filePathPattern: `**/*.mdx`,
+    filePathPattern: `**/**/*.mdx`,
     contentType: 'mdx',
     fields: {
         title: {
@@ -64,7 +66,19 @@ const Post = defineDocumentType(() => ({
     computedFields: {
         url: {
             type: 'string',
-            resolve: (doc) => `/posts/${doc.slug}`,
+            resolve: (doc) => {
+                const pathSegments = doc._raw.flattenedPath.split('/');
+                pathSegments.shift(); // Remove the first element
+                return `/posts/${pathSegments.join('/')}`;
+            },
+        },
+        path: {
+            type: 'string',
+            resolve: (doc) => {
+                const pathSegments = doc._raw.flattenedPath.split('/');
+                pathSegments.shift();
+                return pathSegments.join('/');
+            },
         },
         readingTime: { type: 'json', resolve: (doc) => readingTime(doc.body.raw) },
         headings: {
@@ -94,6 +108,7 @@ export default makeSource({
     contentDirPath: 'posts',
     documentTypes: [Post],
     mdx: {
-        rehypePlugins: [rehypeSlug],
+        remarkPlugins: [remarkGfm],
+        rehypePlugins: [[rehypePrismPlus, { ignoreMissing: true }]],
     },
 })

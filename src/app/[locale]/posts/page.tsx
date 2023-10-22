@@ -43,10 +43,8 @@ export default function Home() {
     const headerList = headers();
     const locale = headerList.get('x-current-locale') || 'en';
     const posts = allPosts
-        .filter(post => post._raw.sourceFileDir === locale)
+        .filter(post => post.locale === locale)
         .sort((a, b) => compareDesc(new Date(a.publishedAt), new Date(b.publishedAt)));
-
-    console.log(locale)
     
     return (
         <div className="container mx-auto px-5">

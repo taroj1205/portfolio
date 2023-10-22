@@ -105,7 +105,7 @@ const RankScore = () => {
     }, [isVisible, totalTopRankScore]);
 
     return (
-        <span ref={ref}>{score}</span>
+        <span ref={ref}>{totalTopRankScore}</span>
     );
 };
 

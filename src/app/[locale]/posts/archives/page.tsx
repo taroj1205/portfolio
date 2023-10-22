@@ -12,7 +12,7 @@ export default function Blog() {
     console.log(locale);
     
     const posts = allPosts
-        .filter(post => post._raw.sourceFileDir === locale)
+        .filter(post => post.locale === locale)
         .sort((a, b) => compareDesc(new Date(a.publishedAt), new Date(b.publishedAt)));
     
     if (!posts) notFound();
@@ -24,7 +24,7 @@ export default function Blog() {
 
                 <div className="h-12"></div>
 
-                <div className="grid md:grid-cols-2 grid-cols-1 lg:gap-32 gap-8">
+                <div className="flex flex-wrap lg:space-x-12 items-start justify-start">
                     {posts.map((post, idx) => (
                         <ArticleCard category={post.category} key={idx} {...post} />
                     ))}

@@ -170,7 +170,8 @@
     "passion": "",
     "subtitle": "Hi, I'm Shintaro! I'm a passionate developer dedicated to creating innovative solutions.",
     "title": "About me",
-    "expand": "Press to expand"
+    "expand": "Press to expand",
+    "collapse": "Press to close"
   },
   "apps": {
     "analytics": "Analytics",
