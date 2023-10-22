@@ -9,7 +9,8 @@ import Header from '@/components/Header'
 import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script'
 import metadata from '../metadata.json';
-import { headers } from 'next/headers'
+import { headers } from 'next/headers';
+import NextHeader from '@/components/NextHeader';
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ja' }];
@@ -97,7 +98,7 @@ export default async function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider locale={locale} messages={messages}>
-            <Header />
+            <NextHeader />
             <main className='content relative pt-8 pb-6 bg-white dark:bg-gray-900'>{children}</main>
             <Footer />
             <Script async src="https://analytics.eu.umami.is/script.js" data-website-id="3531a168-c010-41c6-b82f-34f9f492f84a"></Script>

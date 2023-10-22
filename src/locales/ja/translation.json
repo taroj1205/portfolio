@@ -218,7 +218,17 @@
     "chat": "チャット",
     "home": "ホーム",
     "title": "上鍵心太朗",
-    "blog": "ブログ"
+    "blog": "ブログ",
+    "posts": {
+      "list": {
+        "name": "一覧",
+        "description": "ブログ投稿一覧"
+      },
+      "archive": {
+        "name": "アーカイブ",
+        "description": "ブログ投稿のアーカイブ"
+      }
+    }
   },
   "index": {
     "about": "僕について",

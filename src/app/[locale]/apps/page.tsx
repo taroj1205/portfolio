@@ -43,7 +43,7 @@ const Index = () => {
         { path: 'https://chat-taroj.vercel.app/', label: 'Chat', icon: FaComments },
         { path: 'https://taroj.poyo.jp/apps/ncea', label: 'NCEA', icon: TbSchool },
         {path: '/apps/search', label: 'Search', icon: FaSearch},
-        { path: 'https://analytics.umami.is/share/gbBddDRRyRvseyAP/taroj.poyo.jp', label: 'Analytics', icon: FaChartBar },
+        { path: 'https://analytics.eu.umami.is/share/V1djMkaLDvEhYDvY/taroj.vercel.app', label: 'Analytics', icon: FaChartBar },
     ];
 
     const sceneRef = React.useRef<HTMLDivElement>(null);

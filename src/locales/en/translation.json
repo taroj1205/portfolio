@@ -219,7 +219,17 @@
     "chat": "Chat",
     "home": "Home",
     "title": "Shintaro Jokagi",
-    "blog": "Blog"
+    "blog": "Blog",
+    "posts": {
+      "list": {
+        "name": "List of Blogs",
+        "description": "List of blog posts"
+      },
+      "archive": {
+        "name": "Blog Archives",
+        "description": "Archives of blog posts"
+      }
+    }
   },
   "index": {
     "about": "About me",
