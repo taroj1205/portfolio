@@ -168,7 +168,8 @@
       "title": "National Certificate of Education レベル 3"
     },
     "subtitle": "こんにちは、僕は心太朗です！私は革新的なソリューションを作成することに情熱を注いでいる開発者です。",
-    "title": "僕について"
+    "title": "僕について",
+    "expand": "押して展開"
   },
   "apps": {
     "analytics": "統計",

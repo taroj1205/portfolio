@@ -14,9 +14,11 @@ import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin } from 'react-icons/fa';
 import WordCounter from '@/components/WordCounter';
 import { notFound } from 'next/navigation';
 import metadata from '@/app/metadata.json';
+import NCEA from '@/components/NCEA/Ncea';
 
 const usedcomponents = {
     Graph,
+    NCEA,
     TableContents,
     SchoolHistory,
     WordCounter
@@ -127,7 +129,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
     const readTime = `${Math.round(post.readingTime.minutes)}${post.locale === 'ja' ? '分で読めます' : ' min to read'}`
 
     return (
-        <div className='md:px-4'>
+        <div className='md:px-2'>
             <div className='mx-auto max-w-3xl p-4 md:px-6 md:rounded-lg'>
                 <p className='block text-center text-base font-semibold uppercase tracking-wide'>
                     {categories.map((item: any, index: any) => (
