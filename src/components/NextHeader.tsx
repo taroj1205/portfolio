@@ -2,12 +2,12 @@
 import React, { useEffect } from "react";
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Button, NavbarMenuToggle, NavbarMenu, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, NavbarMenuItem } from "@nextui-org/react";
 import Image from "next/image";
-import { FaArchive, FaBlog, FaCubes, FaListAlt } from 'react-icons/fa';
+import { FaArchive, FaBlog, FaCubes, FaListAlt, FaSpinner } from 'react-icons/fa';
 import { RiHome2Line, RiUserLine } from 'react-icons/ri';
 import { FaChartBar, FaComments, FaSearch } from 'react-icons/fa';
 import { TbSchool } from 'react-icons/tb';
-import { usePathname, useSelectedLayoutSegment, useSelectedLayoutSegments } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useSelectedLayoutSegment } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Link } from "@/lib/next-intl";
 import LanguageToggle from "./LanguageToggle";
 import ThemeToggle from "./ThemeToggle";
@@ -21,6 +21,15 @@ type NestedType = {
 };
 
 const ChevronDown = ({ fill, size, height, width, ...props }: ChevronDownProps) => {
+    const [mounted, setMounted] = React.useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+    if (!mounted) {
+        return <FaSpinner className="animate-spin text-gray-500 w-4 h-4" />
+    }
+
     return (
         <svg
             fill="none"
@@ -44,19 +53,9 @@ const ChevronDown = ({ fill, size, height, width, ...props }: ChevronDownProps) 
 
 export default function NextHeader() {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-    const [mounted, setMounted] = React.useState(false);
     const t = useTranslations('header');
-    const locale = useLocale();
     const segment = useSelectedLayoutSegment() || '';
-    const segments = useSelectedLayoutSegments();
-    const pathname = usePathname();
-    console.log("segment", segment)
-    console.log("segments", segments)
-    console.log("pathname", pathname)
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     const links = [
         { href: '/', text: t('home'), icon: <RiHome2Line /> },
@@ -138,32 +137,16 @@ export default function NextHeader() {
                             <Dropdown key={link.href}>
                                 <NavbarItem isActive={link.href === `/${segment}`}>
                                     <DropdownTrigger>
-                                        <>
-                                            {!mounted ? (
-                                                <Button
-                                                    disableRipple
-                                                    className="p-0 bg-transparent data-[hover=true]:bg-transparent pr-6"
-                                                    startContent={link.icon}
-                                                    radius="md"
-                                                    variant="light"
-                                                    as={Link}
-                                                    href={`/${locale}${link.href}`}
-                                                >
-                                                    {link.text}
-                                                </Button>
-                                            ) : (
-                                                <Button
-                                                    disableRipple
-                                                    className="p-0 bg-transparent data-[hover=true]:bg-transparent"
-                                                    startContent={link.icon}
-                                                    endContent={icons.chevron}
-                                                    radius="md"
-                                                    variant="light"
-                                                >
-                                                    {link.text}
-                                                </Button>
-                                            )}
-                                        </>
+                                        <Button
+                                            disableRipple
+                                            className="p-0 bg-transparent data-[hover=true]:bg-transparent"
+                                            startContent={link.icon}
+                                            endContent={icons.chevron}
+                                            radius="md"
+                                            variant="light"
+                                        >
+                                            {link.text}
+                                        </Button>
                                     </DropdownTrigger>
                                 </NavbarItem>
                                 <DropdownMenu
