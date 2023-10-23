@@ -42,6 +42,11 @@ export async function generateMetadata({ params }: { params: { locale: string; }
     pageMetadata.title[locale] = pageMetadata.title[locale].replace('#{category}', '');
   }
   else if (slugValue.startsWith('posts')) return null;
+  else if (slugValue.startsWith('apps/search')) {
+    slug = 'apps search';
+    pageMetadata = (metadata as Record<string, any>)[slug];
+    console.log("Category:", slug)
+  }
   else if (!pageMetadata) {
     slug = '404';
     pageMetadata = (metadata as Record<string, any>)[slug];

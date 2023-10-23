@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const q = searchParams.get('q');
     const query = q?.trim();
     let start = Math.max(Number(searchParams.get('start')) || 1, 1);
-    start = Math.floor((start - 1) / 10) * 10 + 1;
+    start = (start - 1) * 10 + 1;
     const lang = searchParams.get('lang') || 'en';
     const num = searchParams.get('num') || '10';
     
