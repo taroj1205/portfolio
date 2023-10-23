@@ -111,7 +111,7 @@ export default async function RootLayout({
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
                 gtag('js', new Date());
-                gtag('config', 'G-HKGB6DG5Q0');
+                gtag('config', 'G-HF6EPWF0XB');
               `}
             </Script>
             <Script id="clarity" strategy='afterInteractive'>
