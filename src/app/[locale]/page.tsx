@@ -15,7 +15,7 @@ const apps = [
   // },
   {
     icon: <FaUser />,
-    link: '/about',
+    link: '/posts/about',
     name: 'About',
     backgroundColor: 'bg-green-400 dark:bg-green-800'
   },

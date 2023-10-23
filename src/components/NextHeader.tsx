@@ -59,7 +59,7 @@ export default function NextHeader() {
 
     const links = [
         { href: '/', text: t('home'), icon: <RiHome2Line /> },
-        { href: '/about', text: t('about'), icon: <RiUserLine /> },
+        { href: '/posts/about', text: t('about'), icon: <RiUserLine /> },
         { href: '/posts', text: t('blog'), icon: <FaBlog /> },
         { href: '/apps', text: t('apps'), icon: <FaCubes /> },
     ];

@@ -43,7 +43,7 @@ const calculateRankScore = (subjectData: SubjectData) => {
     return { rankScore, assessments, equation };
 };
 
-const RankScore = () => {
+const RankScore = ({className}: {className?: string}) => {
     const rankScores: { [key: string]: number } = {};
     const assessmentDetails: { [key: string]: any } = {};
 
@@ -105,7 +105,7 @@ const RankScore = () => {
     }, [isVisible, totalTopRankScore]);
 
     return (
-        <span ref={ref}>{totalTopRankScore}</span>
+        <span className={className?.toString()} ref={ref}>{totalTopRankScore}</span>
     );
 };
 

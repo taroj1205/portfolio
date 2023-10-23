@@ -1,9 +1,10 @@
 import { defineDocumentType, defineNestedType, makeSource } from 'contentlayer/source-files'
 import readingTime from 'reading-time';
-import rehypeSlug from 'rehype-slug';
 import GithubSlugger from "github-slugger"
 import rehypePrismPlus from "rehype-prism-plus"
 import remarkGfm from "remark-gfm"
+import { v4 as uuidv4 } from 'uuid';
+import rehypeSlug from "rehype-slug";
 
 const Author = defineNestedType(() => ({
     name: 'Author',
@@ -100,6 +101,10 @@ const Post = defineDocumentType(() => ({
                 );
                 return headings;
             },
+        },
+        id: {
+            type: 'string',
+            resolve: (doc) => uuidv4(),
         }
     }
 }))
@@ -109,6 +114,6 @@ export default makeSource({
     documentTypes: [Post],
     mdx: {
         remarkPlugins: [remarkGfm],
-        rehypePlugins: [[rehypePrismPlus, { ignoreMissing: true }]],
+        rehypePlugins: [[rehypePrismPlus, { ignoreMissing: true }], rehypeSlug],
     },
 })

@@ -5,8 +5,6 @@ import Image from 'next/image'
 import DateFormatter from '@/components/DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 import Link from 'next/link';
-import Graph from '@/components/NCEA/PersonalGraph';
-import SchoolHistory from '@/components/SchoolHistory';
 import TableContents from '@/components/TableContents';
 import markdownStyles from './/markdown-styles.module.css'
 import { BsArrowLeft, BsArrowRight } from 'react-icons/bs';
@@ -14,14 +12,12 @@ import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin } from 'react-icons/fa';
 import WordCounter from '@/components/WordCounter';
 import { notFound } from 'next/navigation';
 import metadata from '@/app/metadata.json';
-import NCEA from '@/components/NCEA/Ncea';
 import { headers } from 'next/headers';
+import Education from '@/components/Education';
 
 const usedcomponents = {
-    Graph,
-    NCEA,
+    Education,
     TableContents,
-    SchoolHistory,
     WordCounter
 }
 
