@@ -105,7 +105,7 @@ export default async function RootLayout({
             <ScrollToTopButton />
             <Footer />
             <Script async src="https://analytics.eu.umami.is/script.js" data-website-id="3531a168-c010-41c6-b82f-34f9f492f84a"></Script>
-            <Script async src="https://www.googletagmanager.com/gtag/js?id=G-HKGB6DG5Q0"></Script>
+            <Script async src="https://www.googletagmanager.com/gtag/js?id=G-HF6EPWF0XB"></Script>
             <Script id="google-analytics" strategy="afterInteractive">
               {`
                 window.dataLayer = window.dataLayer || [];
