@@ -16,6 +16,8 @@ import metadata from '@/app/metadata.json';
 import { headers } from 'next/headers';
 import Education from '@/components/Education';
 
+export const dynamic = 'force-dynamic';
+
 const usedcomponents = {
     Education,
     TableContents,
