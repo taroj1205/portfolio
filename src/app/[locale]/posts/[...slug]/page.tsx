@@ -1,3 +1,4 @@
+import '../../code.css';
 import { allPosts } from 'contentlayer/generated'
 import { getMDXComponent } from 'next-contentlayer/hooks'
 import { compareDesc } from 'date-fns'
@@ -167,7 +168,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                     </span>
                 </div>
                 <Image
-                    className='lg:h-48 mt-3 mb-2 md:h-36 w-full object-cover object-center'
+                    className='md:h-[18rem] h-[14rem] mt-3 mb-2 w-full object-cover object-center'
                     src={post.image}
                     width={720}
                     height={400}
