@@ -179,7 +179,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                     height={400}
                     alt='blog'
                 />
-                <div className='flex flex-col md:flex-row items-start md:justify-between md:items-center mt-4'>
+                <div className='flex flex-col md:flex-row items-start md:justify-between md:items-center my-4'>
                     <div className='flex flex-col'>
                         <div className='flex items-center rounded-lg space-x-4'>
                             <Image src={post.author.image} width={50} height={50} alt='blog' className='rounded-full' />
