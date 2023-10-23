@@ -12,7 +12,7 @@ import { Link } from "@/lib/next-intl";
 import LanguageToggle from "./LanguageToggle";
 import ThemeToggle from "./ThemeToggle";
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 interface ChevronDownProps extends React.SVGProps<SVGSVGElement> {
     size?: number;
