@@ -15,11 +15,15 @@ import { notFound } from 'next/navigation';
 import metadata from '@/app/metadata.json';
 import { headers } from 'next/headers';
 import Education from '@/components/Education';
+import NCEA from '@/components/NCEA/Ncea';
+import SchoolHistory from '@/components/SchoolHistory';
 
 export const dynamic = 'force-dynamic';
 
 const usedcomponents = {
     Education,
+    NCEA,
+    SchoolHistory,
     TableContents,
     WordCounter
 }
@@ -38,7 +42,6 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
     const path = slug.split('/').slice(2).join('/') as string;
     const post = allPosts.find(post => post.locale === locale && post.path.trim() === path) as any;
 
-    console.log("post:", post)
 
     if (!post) {
         console.log("post not found")

@@ -69,7 +69,7 @@ const Post = defineDocumentType(() => ({
             type: 'string',
             resolve: (doc) => {
                 const pathSegments = doc._raw.flattenedPath.split('/');
-                pathSegments.shift(); // Remove the first element
+                pathSegments.shift();
                 return `/posts/${pathSegments.join('/')}`;
             },
         },
@@ -91,7 +91,6 @@ const Post = defineDocumentType(() => ({
                     ({ groups }) => {
                         const flag = groups?.flag;
                         const content = groups?.content;
-                        console.log("flag", flag?.length)
                         return {
                             ['level']: (flag?.length ?? 0) - 1,
                             text: content,
