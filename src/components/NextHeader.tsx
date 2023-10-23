@@ -89,7 +89,8 @@ export default function NextHeader() {
 
     useEffect(() => {
         setIsMenuOpen(false);
-    }, [])
+        console.log("menu closed!")
+    }, [segment])
 
     return (
         <Navbar
@@ -109,8 +110,9 @@ export default function NextHeader() {
                     "data-[active=true]:after:bg-primary",
                 ],
             }}
+            isMenuOpen={isMenuOpen}
             shouldHideOnScroll
-            onMenuOpenChange={setIsMenuOpen}
+            onMenuOpenChange={() => setIsMenuOpen(!isMenuOpen)}
             isBordered
         >
             <NavbarContent>
