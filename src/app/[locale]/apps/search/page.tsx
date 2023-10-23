@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaSearch, FaImage } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Pagination } from '@nextui-org/react';
 
 type SearchResult = {
     link: string;
@@ -28,6 +29,7 @@ const GoogleSearch: React.FC = () => {
     const [results, setResults] = useState<SearchResult[]>([]);
     const [loading, setLoading] = useState(true);
     const [startIndex, setStartIndex] = useState(1);
+    const [page, setPage] = useState<number | null>(null);
     const [searchTime, setSearchTime] = useState(0);
     const [totalResults, setTotalResults] = useState(0);
     const [timeInfo, setTimeInfo] = useState<Date>(new Date);
@@ -127,32 +129,29 @@ const GoogleSearch: React.FC = () => {
 
     useEffect(() => {
         inputRef.current?.focus();
-        if (defaultSet) {
-            return;
-        }
         const searchQuery = params.get("q");
-        let pageQuery = Number(Math.max(Number(params.get('page')) || 1, 1) || 1);
-        pageQuery = Math.floor((pageQuery - 1) / 10) * 10 + 1;
-        console.log(searchQuery)
+        const pageQuery = Number(params.get('page'));
+        console.log("Current page", pageQuery);
         if (searchQuery) {
             setQuery(searchQuery);
+            setPage(pageQuery);
             if (inputRef.current) {
                 inputRef.current.value = searchQuery;
             }
-            handleSearch(Number(pageQuery));
+            handleSearch(pageQuery);
         } else {
             setDefaultSet(true)
             setLoading(false);
         }
-    }, [defaultSet, handleSearch, params]);
+    }, [handleSearch, params]);
 
     const handlePageClick = (start: number) => {
         handleSearch(start);
     };
 
-    const handlePageSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const selectedPage = Number(event.target.value);
-        handleSearch(selectedPage);
+    const handlePageChange = (page: number) => {
+        scrollTo({ top: 0, behavior: 'smooth' });
+        handleSearch(page);
     };
 
     return (
@@ -226,32 +225,8 @@ const GoogleSearch: React.FC = () => {
                             </Link>
                         ))}
                         <div className="flex justify-center mt-4">
-                            {startIndex > 1 && (
-                                <button onClick={() => handlePageClick(startIndex - 10)} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 mr-2">
-                                    {t('previous')}
-                                </button>
-                            )}
-                            {startIndex + results.length < totalResults && (
-                                <button onClick={() => handlePageClick(startIndex + 10)} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                    {t('next')}
-                                </button>
-                            )}
-                            {results.length > 0 && (
-                                <select
-                                    onChange={handlePageSelect}
-                                    className="ml-2 border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                                    value={Number(params.get('page')) || 1}
-                                >
-                                    {Array.from({ length: Math.min(Math.ceil(totalResults / 10), 20) }, (_, i) => {
-                                        const start = i * 10 + 1;
-                                        const end = Math.min(start + 9, totalResults);
-                                        const optionValue = start;
-                                        const optionText = `${start}-${end}`;
-                                        return (
-                                            <option key={i + 1} value={optionValue}>{optionText}</option>
-                                        );
-                                    })}
-                                </select>
+                            {page && (
+                                <Pagination showControls isCompact total={results.length || 0} initialPage={page} onChange={handlePageChange} />
                             )}
                         </div>
                     </div>

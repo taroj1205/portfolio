@@ -4,7 +4,7 @@ import Link from 'next/link';
 import DateFormatter from './DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 
-export default function PostCard({ image, category, title, description, readingTime, publishedAt, slug, locale }: { image: string, category: string | undefined, title: string, description: string, readingTime: any, publishedAt: string, slug: string, locale: string }) {
+export default function PostCard({ image, category, title, description, readingTime, publishedAt, url, locale }: { image: string, category: string | undefined, title: string, description: string, readingTime: any, publishedAt: string, url: string, locale: string }) {
     const readTime = `${Math.round(readingTime.minutes)}${locale === 'ja' ? '分で読めます' : ' min to read'}`
     const categories = category?.split(',') || [];
     return (
@@ -33,7 +33,7 @@ export default function PostCard({ image, category, title, description, readingT
                                     <p className='md:h-20 leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-3'>{description}</p>
                                     <div className='flex items-center flex-wrap justify-between'>
                                         <Link
-                                            href={`/${locale}/posts/${slug}`}
+                                            href={`/${locale}${url}`}
                                             className='text-indigo-500 hover:underline hover:text-indigo-600 inline-flex items-center'
                                         >
                                             {locale === 'ja' ? 'もっと読む' : 'Read More'}

@@ -8,7 +8,7 @@ const Footer = () => {
     const t = useTranslations('footer');
     
     return (
-        <footer className="z-10 w-full bg-gray-200 dark:bg-gray-950 mt-auto">
+        <footer className="w-full bg-gray-200 dark:bg-gray-950 mt-auto">
             <div className="mx-auto p-4">
                 <div className="flex justify-between items-center mx-auto md:max-w-2xl">
                     <div className="flex flex-col">
@@ -41,7 +41,7 @@ const Footer = () => {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/about" className="text-blue-700 dark:text-blue-500 hover:underline">
+                                <Link href="/posts/about" className="text-blue-700 dark:text-blue-500 hover:underline">
                                     {t('about')}
                                 </Link>
                             </li>

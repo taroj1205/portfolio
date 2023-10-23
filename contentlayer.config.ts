@@ -1,7 +1,10 @@
 import { defineDocumentType, defineNestedType, makeSource } from 'contentlayer/source-files'
 import readingTime from 'reading-time';
-import rehypeSlug from 'rehype-slug';
 import GithubSlugger from "github-slugger"
+import rehypePrismPlus from "rehype-prism-plus"
+import remarkGfm from "remark-gfm"
+import { v4 as uuidv4 } from 'uuid';
+import rehypeSlug from "rehype-slug";
 
 const Author = defineNestedType(() => ({
     name: 'Author',
@@ -13,7 +16,7 @@ const Author = defineNestedType(() => ({
 
 const Post = defineDocumentType(() => ({
     name: 'Post',
-    filePathPattern: `**/*.mdx`,
+    filePathPattern: `**/**/*.mdx`,
     contentType: 'mdx',
     fields: {
         title: {
@@ -64,7 +67,19 @@ const Post = defineDocumentType(() => ({
     computedFields: {
         url: {
             type: 'string',
-            resolve: (doc) => `/posts/${doc.slug}`,
+            resolve: (doc) => {
+                const pathSegments = doc._raw.flattenedPath.split('/');
+                pathSegments.shift();
+                return `/posts/${pathSegments.join('/')}`;
+            },
+        },
+        path: {
+            type: 'string',
+            resolve: (doc) => {
+                const pathSegments = doc._raw.flattenedPath.split('/');
+                pathSegments.shift();
+                return pathSegments.join('/');
+            },
         },
         readingTime: { type: 'json', resolve: (doc) => readingTime(doc.body.raw) },
         headings: {
@@ -76,7 +91,6 @@ const Post = defineDocumentType(() => ({
                     ({ groups }) => {
                         const flag = groups?.flag;
                         const content = groups?.content;
-                        console.log("flag", flag?.length)
                         return {
                             ['level']: (flag?.length ?? 0) - 1,
                             text: content,
@@ -86,6 +100,10 @@ const Post = defineDocumentType(() => ({
                 );
                 return headings;
             },
+        },
+        id: {
+            type: 'string',
+            resolve: (doc) => uuidv4(),
         }
     }
 }))
@@ -94,6 +112,7 @@ export default makeSource({
     contentDirPath: 'posts',
     documentTypes: [Post],
     mdx: {
-        rehypePlugins: [rehypeSlug],
+        remarkPlugins: [remarkGfm],
+        rehypePlugins: [[rehypePrismPlus, { ignoreMissing: true }], rehypeSlug],
     },
 })

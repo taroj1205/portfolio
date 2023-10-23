@@ -22,7 +22,7 @@
       "schoolHistory": "Academic Background",
       "schools": [
         {
-          "duration": "About a year",
+          "duration": "A year",
           "end": "05/2010",
           "grade": "1 & 2nd Year",
           "location": {
@@ -110,7 +110,7 @@
           "start": "04/2018"
         },
         {
-          "duration": "2 to 3 Weeks",
+          "duration": "2-3 Weeks",
           "end": "07/2018",
           "grade": "Year 7",
           "location": {
@@ -169,7 +169,9 @@
     },
     "passion": "",
     "subtitle": "Hi, I'm Shintaro! I'm a passionate developer dedicated to creating innovative solutions.",
-    "title": "About me"
+    "title": "About me",
+    "expand": "Press to expand",
+    "collapse": "Press to close"
   },
   "apps": {
     "analytics": "Analytics",
@@ -219,7 +221,17 @@
     "chat": "Chat",
     "home": "Home",
     "title": "Shintaro Jokagi",
-    "blog": "Blog"
+    "blog": "Blog",
+    "posts": {
+      "list": {
+        "name": "List of Blogs",
+        "description": "List of blog posts"
+      },
+      "archive": {
+        "name": "Blog Archives",
+        "description": "Archives of blog posts"
+      }
+    }
   },
   "index": {
     "about": "About me",
@@ -251,6 +263,22 @@
       "search": {
         "description": "Search Engine made by me.",
         "name": "Search"
+      },
+      "hatena blog": {
+        "description": "My personal blog on Hatena.",
+        "name": "Hatena Blog"
+      },
+      "note": {
+        "description": "My personal blog on note.com",
+        "name": "note.com"
+      },
+      "youtube": {
+        "description": "My personal YouTube channel",
+        "name": "YouTube"
+      },
+      "medium": {
+        "description": "My personal blog on Medium",
+        "name": "Medium"
       }
     },
     "links": "Links:",

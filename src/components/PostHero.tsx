@@ -42,7 +42,7 @@ export default function PostHero() {
                         <div className='h-full border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden'>
                             <Image
                                 className='lg:h-48 md:h-36 w-full object-cover object-center'
-                                src={heroPost.image}
+                                src='/blog/thumbnail/hero/thumbnail.webp'
                                 width={1920}
                                 height={1080}
                                 alt='blog'

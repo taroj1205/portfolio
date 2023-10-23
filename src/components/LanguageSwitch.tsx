@@ -1,3 +1,4 @@
+'use client'
 import { ReactNode, useEffect, useState } from 'react';
 import Select, { StylesConfig } from 'react-select';
 import { LanguageOption, getLanguageOptions } from './doc/data';
@@ -51,6 +52,7 @@ const LanguageSwitcher = ({ isHeader }: { isHeader: boolean }) => {
         console.log(router, pathname);
         const defaultLanguageOption = languageOptions.find((option) => option.lang === language);
         setValue(defaultLanguageOption);
+        console.log(`${pathname}?${params}`, { locale: language });
         router.push(`${pathname}?${params}`, { locale: language });
         setIsOpen(false);
     };

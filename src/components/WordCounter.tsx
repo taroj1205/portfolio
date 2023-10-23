@@ -5,8 +5,9 @@ const WordCounter = () => {
     const headerList = headers();
     const locale = headerList.get('x-current-locale') as string;
     const slug = headerList.get('x-slug') as string;
+    const path = slug.split('/').slice(2).join('/') as string;
     console.log("slug", slug)
-    const post = allPosts.find(post => post.locale === locale && post.slug.trim() === slug.replace('/posts/', '')) as any;
+    const post = allPosts.find(post => post.locale === locale && post.path.trim() === path) as any;
 
     const regXCounter = /{\/\* counter \*\/}([\s\S]+?){\/\* \/counter \*\/}/g;
     const match = regXCounter.exec(post.body.raw.toString());

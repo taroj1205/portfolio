@@ -2,14 +2,14 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { ThemeProvider } from './theme-provider'
 import Footer from '@/components/Footer'
-import { switchThemeDuration } from '@/constants/switch-theme-duration'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
-import Header from '@/components/Header'
 import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script'
 import metadata from '../metadata.json';
-import { headers } from 'next/headers'
+import { headers } from 'next/headers';
+import NextHeader from '@/components/NextHeader';
+import ScrollToTopButton from '@/components/ScrollTop'
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ja' }];
@@ -42,6 +42,11 @@ export async function generateMetadata({ params }: { params: { locale: string; }
     pageMetadata.title[locale] = pageMetadata.title[locale].replace('#{category}', '');
   }
   else if (slugValue.startsWith('posts')) return null;
+  else if (slugValue.startsWith('apps/search')) {
+    slug = 'apps search';
+    pageMetadata = (metadata as Record<string, any>)[slug];
+    console.log("Category:", slug)
+  }
   else if (!pageMetadata) {
     slug = '404';
     pageMetadata = (metadata as Record<string, any>)[slug];
@@ -91,14 +96,15 @@ export default async function RootLayout({
   const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
   return (
-    <html lang={locale} className='bg-white dark:bg-gray-900'>
+    <html lang={locale} className='dark' style={{colorScheme: 'dark'}}>
       <body
-        className={`bg-white dark:bg-gray-900 ${switchThemeDuration}`}
+        className={`bg-white dark:bg-gray-900 scroll-smooth`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider locale={locale} messages={messages}>
-            <Header />
+            <NextHeader />
             <main className='content relative pt-8 pb-6 bg-white dark:bg-gray-900'>{children}</main>
+            <ScrollToTopButton />
             <Footer />
             <Script async src="https://analytics.eu.umami.is/script.js" data-website-id="3531a168-c010-41c6-b82f-34f9f492f84a"></Script>
             <Analytics />

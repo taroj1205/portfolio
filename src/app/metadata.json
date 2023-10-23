@@ -254,6 +254,57 @@
             "initialScale": 1
         }
     },
+    "apps search": {
+        "metadataBase": "https://taroj.vercel.app",
+        "title": {
+            "ja": "検索エンジン",
+            "en": "Search Engine"
+        },
+        "description": {
+            "ja": "心太朗のカスタム検索エンジン",
+            "en": "Shintaro's custom search engine"
+        },
+        "icons": {
+            "icon": "/favicon.ico"
+        },
+        "openGraph": {
+            "images": [
+                {
+                    "url": "/images/thumbnail/thumbnail.png",
+                    "alt": {
+                        "ja": "上鍵心太朗の検索エンジンページのサムネ",
+                        "en": "Shintaro Jokagi Search Engine Page Thumbnail"
+                    }
+                }
+            ]
+        },
+        "twitter": {
+            "card": "summary_large_image",
+            "title": {
+                "ja": "検索エンジン",
+                "en": "Search Engine"
+            },
+            "description": {
+                "ja": "心太朗のカスタム検索エンジン",
+                "en": "Shintaro's custom search engine"
+            },
+            "site": "@taroj1205",
+            "creator": "@taroj1205",
+            "images": [
+                {
+                    "url": "/images/thumbnail/thumbnail.png",
+                    "alt": {
+                        "ja": "上鍵心太朗の検索エンジンページのサムネ",
+                        "en": "Shintaro Jokagi Search Engine Page Thumbnail"
+                    }
+                }
+            ]
+        },
+        "viewport": {
+            "width": "device-width",
+            "initialScale": 1
+        }
+    },
     "posts": {
         "metadataBase": "https://taroj.vercel.app",
         "title": {

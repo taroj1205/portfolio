@@ -1,12 +1,11 @@
+import '../../code.css';
 import { allPosts } from 'contentlayer/generated'
-import { getMDXComponent, useMDXComponent } from 'next-contentlayer/hooks'
+import { getMDXComponent } from 'next-contentlayer/hooks'
 import { compareDesc } from 'date-fns'
 import Image from 'next/image'
 import DateFormatter from '@/components/DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 import Link from 'next/link';
-import Graph from '@/components/NCEA/PersonalGraph';
-import SchoolHistory from '@/components/SchoolHistory';
 import TableContents from '@/components/TableContents';
 import markdownStyles from './/markdown-styles.module.css'
 import { BsArrowLeft, BsArrowRight } from 'react-icons/bs';
@@ -14,21 +13,40 @@ import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin } from 'react-icons/fa';
 import WordCounter from '@/components/WordCounter';
 import { notFound } from 'next/navigation';
 import metadata from '@/app/metadata.json';
+import { headers } from 'next/headers';
+import Education from '@/components/Education';
+import NCEA from '@/components/NCEA/Ncea';
+import SchoolHistory from '@/components/SchoolHistory';
+
+export const dynamic = 'force-dynamic';
 
 const usedcomponents = {
-    Graph,
-    TableContents,
+    Education,
+    NCEA,
     SchoolHistory,
+    TableContents,
     WordCounter
 }
 
-export const generateStaticParams = async () => allPosts.map((post) => ({ slug: post._raw.flattenedPath }))
+export const generateStaticParams = async () => {
+    return allPosts.map((post) => {
+        const slug = post.path.split('/').filter(Boolean);
+        return { params: { slug: slug } };
+    });
+}
 
 export const generateMetadata = ({ params }: { params: { slug: string; locale: string } }) => {
-    const post = allPosts.find(post => post._raw.sourceFileDir === params.locale && post.slug.trim() === params.slug) as any;
     const locale = params.locale;
+    const headerList = headers();
+    const slug = headerList.get('x-slug') as string;
+    const path = slug.split('/').slice(2).join('/') as string;
+    const post = allPosts.find(post => post.locale === locale && post.path.trim() === path) as any;
 
-    if (!post) notFound();
+
+    if (!post) {
+        console.log("post not found")
+        notFound()
+    };
 
     let pageMetadata = (metadata as Record<string, any>)['blog-post'];
 
@@ -109,15 +127,23 @@ const Socials = () => {
 };
 
 const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) => {
-    const post = allPosts.find(post => post._raw.sourceFileDir === params.locale && post.slug.trim() === params.slug) as any;
+    const headerList = headers();
+    const slug = headerList.get('x-slug') as string;
+    const path = slug.split('/').slice(2).join('/') as string;
+    console.log("postURL",path)
+    const post = allPosts.find(post => post.locale === params.locale && post.path.trim() === path) as any;
 
-    if (!post) notFound();
+
+    if (!post) {
+        console.log("post not found")
+        notFound()
+    };
 
     const sortedPosts = [...allPosts]
-        .filter(post => post._raw.sourceFileDir === params.locale)
+        .filter(post => post.locale === params.locale)
         .sort((a, b) => compareDesc(new Date(a.publishedAt), new Date(b.publishedAt)));
-
-    const currentIndex = sortedPosts.findIndex(p => p.slug === post.slug);
+    
+    const currentIndex = sortedPosts.findIndex(p => p.path.trim() === post.path.trim());
     const prevPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
     const nextPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null;
 
@@ -127,7 +153,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
     const readTime = `${Math.round(post.readingTime.minutes)}${post.locale === 'ja' ? '分で読めます' : ' min to read'}`
 
     return (
-        <div className='md:px-4'>
+        <div className='md:px-2'>
             <div className='mx-auto max-w-3xl p-4 md:px-6 md:rounded-lg'>
                 <p className='block text-center text-base font-semibold uppercase tracking-wide'>
                     {categories.map((item: any, index: any) => (
@@ -147,13 +173,13 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                     </span>
                 </div>
                 <Image
-                    className='lg:h-48 mt-3 mb-2 md:h-36 w-full object-cover object-center'
+                    className='md:h-[18rem] h-[14rem] mt-3 mb-2 w-full object-cover object-center'
                     src={post.image}
                     width={720}
                     height={400}
                     alt='blog'
                 />
-                <div className='flex flex-col md:flex-row items-start md:justify-between md:items-center mt-4'>
+                <div className='flex flex-col md:flex-row items-start md:justify-between md:items-center my-4'>
                     <div className='flex flex-col'>
                         <div className='flex items-center rounded-lg space-x-4'>
                             <Image src={post.author.image} width={50} height={50} alt='blog' className='rounded-full' />
@@ -171,7 +197,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                 </article>
                 <div className="mt-4">
                     {prevPost && (
-                        <Link href={`/${params.locale}/posts/${prevPost.slug}`} className="flex float-left items-center flex-row py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
+                        <Link href={`/${params.locale}${prevPost.url}`} className="flex float-left items-center flex-row py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
                             <BsArrowLeft className="sm:mr-1" />
                             <span className='hidden sm:block'>{params.locale === 'ja' ? '前の投稿' : 'Previous Post'}</span>
                         </Link>
@@ -180,7 +206,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                         {params.locale === 'ja' ? '一覧に戻る' : 'Go back to posts'}
                     </Link> */}
                     {nextPost && (
-                        <Link href={`/${params.locale}/posts/${nextPost.slug}`} className="flex float-right items-center flex-row py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
+                        <Link href={`/${params.locale}${nextPost.url}`} className="flex float-right items-center flex-row py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
                             <span className='hidden sm:block'>{params.locale === 'ja' ? '次の投稿' : 'Next Post'}</span>
                             <BsArrowRight className="sm:ml-1" />
                         </Link>

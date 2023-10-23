@@ -168,7 +168,9 @@
       "title": "National Certificate of Education レベル 3"
     },
     "subtitle": "こんにちは、僕は心太朗です！私は革新的なソリューションを作成することに情熱を注いでいる開発者です。",
-    "title": "僕について"
+    "title": "僕について",
+    "expand": "押して展開",
+    "collapse": "押して閉じる"
   },
   "apps": {
     "analytics": "統計",
@@ -218,7 +220,17 @@
     "chat": "チャット",
     "home": "ホーム",
     "title": "上鍵心太朗",
-    "blog": "ブログ"
+    "blog": "ブログ",
+    "posts": {
+      "list": {
+        "name": "一覧",
+        "description": "ブログ投稿一覧"
+      },
+      "archive": {
+        "name": "アーカイブ",
+        "description": "ブログ投稿のアーカイブ"
+      }
+    }
   },
   "index": {
     "about": "僕について",
@@ -250,6 +262,22 @@
       "search": {
         "description": "僕が作った検索エンジン",
         "name": "検索"
+      },
+      "hatena blog": {
+        "description": "僕のはてなブログです",
+        "name": "はてなブログ"
+      },
+      "note": {
+        "description": "note.comでのブログです",
+        "name": "note.com"
+      },
+      "youtube": {
+        "description": "僕のYouTubeです。",
+        "name": "YouTube"
+      },
+      "medium": {
+        "description": "僕のMediumでの記事を読んでみてください。",
+        "name": "Medium"
       }
     },
     "links": "リンク：",
