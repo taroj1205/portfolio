@@ -6,7 +6,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const headers = req.headers;
     let image = searchParams.get('url') as string;
-    const articleUrl = searchParams.get('articleUrl') as string;
+    let articleUrl = searchParams.get('articleUrl') as string;
     const title = searchParams.get('title') as string;
     const description = searchParams.get('description') as string;
     let imagePositionX = searchParams.get('imagePositionX') as string;
@@ -15,25 +15,21 @@ export async function GET(req: Request) {
     const width = Number(searchParams.get('width'));
 
     if (!imagePositionX) {
-        imagePositionX = '-50%';
+        imagePositionX = 'center';
     } else {
         imagePositionX = `calc(-50% + ${imagePositionX}px)`;
     }
     if (!imagePositionY) {
-        imagePositionY = '-50%';
+        imagePositionY = 'center';
     } else {
         imagePositionY = `calc(-50% + ${imagePositionY}px)`;
     }
-
-    console.log(headers)
 
     if (!image.startsWith('https://')) {
         const pathname = (headers.get('host') === 'localhost:3000' ? 'http' : 'https') + '://' + headers.get('host');
         console.log(pathname);
         image = pathname + image;
     }
-
-    console.log(image)
 
     return new ImageResponse(
         (
@@ -68,7 +64,7 @@ export async function GET(req: Request) {
                         {title && (
                             <h2
                                 style={{
-                                    fontSize: '2.5rem',
+                                    fontSize: '3rem',
                                     fontWeight: 'bold',
                                     color: '#fff',
                                     margin: '0 0 1rem 0',
@@ -80,7 +76,7 @@ export async function GET(req: Request) {
                         {description && (
                             <p
                                 style={{
-                                    fontSize: '1.8rem',
+                                    fontSize: '2rem',
                                     margin: '0 0 1rem 0',
                                     color: '#ddd',
                                 }}
@@ -90,14 +86,14 @@ export async function GET(req: Request) {
                         )}
 
                         {articleUrl && (
-                            <div style={{ display: 'flex', flexDirection: 'row', fontSize: '1.5rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'row', fontSize: '1.8rem' }}>
                                 <p
                                     style={{
                                         color: '#ddd',
                                     }}
                                 >
                                     Read more at:
-                                    <span style={{ color: 'rgb(59 130 246)', cursor: 'pointer', textDecoration: 'underline', marginLeft: '0.5rem' }}>{articleUrl}</span>
+                                    <span style={{ color: 'rgb(59 130 246)', cursor: 'pointer', textDecoration: 'underline', marginLeft: '0.5rem', width: '100%', overflow: 'hidden' }}>{articleUrl}</span>
                                 </p>
                             </div>
                         )}
