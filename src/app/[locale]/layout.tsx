@@ -93,10 +93,8 @@ export default async function RootLayout({
     notFound();
   }
 
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-
   return (
-    <html lang={locale} className='dark' style={{colorScheme: 'dark'}}>
+    <html lang={locale} className='dark' style={{ colorScheme: 'dark' }}>
       <body
         className={`bg-white dark:bg-gray-900 scroll-smooth`}
       >
@@ -107,7 +105,25 @@ export default async function RootLayout({
             <ScrollToTopButton />
             <Footer />
             <Script async src="https://analytics.eu.umami.is/script.js" data-website-id="3531a168-c010-41c6-b82f-34f9f492f84a"></Script>
-            <Analytics />
+            <Script async src="https://www.googletagmanager.com/gtag/js?id=G-HKGB6DG5Q0"></Script>
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-HKGB6DG5Q0');
+              `}
+            </Script>
+            <Script id="clarity" strategy='afterInteractive'>
+              {`
+                (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                })(window, document, "clarity", "script", "jf03ut1bzl");
+              `}
+            </Script>
+            {/* <Analytics /> */}
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>
