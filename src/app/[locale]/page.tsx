@@ -1,9 +1,10 @@
 'use client'
 import { useTranslations } from 'next-intl';
-import { FaBlog, FaCog, FaCubes, FaGithub, FaSearch, FaUser } from 'react-icons/fa';
+import { FaBlog, FaCog, FaCubes, FaGithub, FaMedium, FaSearch, FaUser, FaYoutube } from 'react-icons/fa';
 import Image from 'next/image';
 import { TbMessageChatbot } from 'react-icons/tb';
 import { Link } from '@/lib/next-intl';
+import { PiNotePencilBold } from 'react-icons/pi';
 
 const apps = [
   // {
@@ -13,28 +14,28 @@ const apps = [
   //   description: 'Visit my home page to learn more about me and my work.',
   //   backgroundColor: 'bg-blue-400 dark:bg-blue-800'
   // },
-  {
-    icon: <FaUser />,
-    link: '/posts/about',
-    name: 'About',
-    backgroundColor: 'bg-green-400 dark:bg-green-800'
-  },
-  {
-    icon: <FaCubes />,
-    link: '/apps',
-    name: 'Apps',
-    backgroundColor: 'bg-red-400 dark:bg-red-800'
-  },
   // {
-  //   icon: <FaCog />,
-  //   link: '/settings',
-  //   name: 'Settings',
-  //   backgroundColor: 'bg-purple-400 dark:bg-purple-800'
+  //   icon: <FaUser />,
+  //   link: '/posts/about',
+  //   name: 'About',
+  //   backgroundColor: 'bg-green-400 dark:bg-green-800'
   // },
+  // {
+  //   icon: <FaCubes />,
+  //   link: '/apps',
+  //   name: 'Apps',
+  //   backgroundColor: 'bg-red-400 dark:bg-red-800'
+  // },
+  {
+    icon: <PiNotePencilBold />,
+    link: 'https://note.com/taroj1205',
+    name: 'Note',
+    backgroundColor: 'bg-purple-400 dark:bg-purple-800'
+  },
   {
     icon: <FaBlog />,
     link: 'https://taroj1205.hatenablog.com',
-    name: 'Blog',
+    name: 'Hatena Blog',
     backgroundColor: 'bg-yellow-400 dark:bg-yellow-800'
   },
   {
@@ -44,17 +45,29 @@ const apps = [
     backgroundColor: 'bg-gray-400 dark:bg-gray-800'
   },
   {
+    icon: <FaYoutube />,
+    link: 'https://www.youtube.com/@taroj-ic8zi',
+    name: 'YouTube',
+    backgroundColor: 'bg-red-400 dark:bg-red-800'
+  },
+  {
+    icon: <FaMedium />,
+    link: 'https://taroj1205.medium.com/',
+    name: 'Medium',
+    backgroundColor: 'bg-teal-200 dark:bg-teal-700'
+  },
+  {
     icon: <TbMessageChatbot />,
     link: 'https://chat-taroj.vercel.app/',
     name: 'Chat',
     backgroundColor: 'bg-blue-400 dark:bg-blue-800'
   },
-  {
-    icon: <FaSearch />,
-    link: '/apps/search',
-    name: 'Search',
-    backgroundColor: 'bg-orange-400 dark:bg-orange-800'
-  }
+  // {
+  //   icon: <FaSearch />,
+  //   link: '/apps/search',
+  //   name: 'Search',
+  //   backgroundColor: 'bg-orange-400 dark:bg-orange-800'
+  // }
 ];
 
 

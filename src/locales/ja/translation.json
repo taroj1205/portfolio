@@ -262,6 +262,22 @@
       "search": {
         "description": "僕が作った検索エンジン",
         "name": "検索"
+      },
+      "hatena blog": {
+        "description": "僕のはてなブログです",
+        "name": "はてなブログ"
+      },
+      "note": {
+        "description": "note.comでのブログです",
+        "name": "note.com"
+      },
+      "youtube": {
+        "description": "僕のYouTubeです。",
+        "name": "YouTube"
+      },
+      "medium": {
+        "description": "僕のMediumでの記事を読んでみてください。",
+        "name": "Medium"
       }
     },
     "links": "リンク：",

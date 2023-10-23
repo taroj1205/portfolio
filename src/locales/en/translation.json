@@ -263,6 +263,22 @@
       "search": {
         "description": "Search Engine made by me.",
         "name": "Search"
+      },
+      "hatena blog": {
+        "description": "My personal blog on Hatena.",
+        "name": "Hatena Blog"
+      },
+      "note": {
+        "description": "My personal blog on note.com",
+        "name": "note.com"
+      },
+      "youtube": {
+        "description": "My personal YouTube channel",
+        "name": "YouTube"
+      },
+      "medium": {
+        "description": "My personal blog on Medium",
+        "name": "Medium"
       }
     },
     "links": "Links:",
