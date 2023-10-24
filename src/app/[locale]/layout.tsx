@@ -114,7 +114,7 @@ export default async function RootLayout({
                 gtag('config', 'G-HF6EPWF0XB');
               `}
             </Script>
-            <Script id="clarity" strategy='afterInteractive'>
+            <Script id="ms_clarity" strategy='afterInteractive'>
               {`
                 (function(c,l,a,r,i,t,y){
                 c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
