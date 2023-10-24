@@ -93,10 +93,10 @@ export default function Home() {
                   {app.icon}
                 </div>
                 <div className="px-4 py-2 text-center">
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                  <h2 className="text-lg font-medium text-black dark:text-white">
                     {t(`apps.${app.name.toString().toLowerCase()}.name`)}
                   </h2>
-                  <p className="mt-2 text-sm text-gray-700 dark:text-gray-300 whitespace-break-spaces">
+                  <p className="mt-2 text-sm text-gray-950 dark:text-gray-200 whitespace-break-spaces">
                     {t(`apps.${app.name.toString().toLowerCase()}.description`)}
                   </p>
                 </div>
