@@ -51,7 +51,7 @@ const LanguageToggle: React.FC = () => {
                 )}
             </DropdownTrigger>
             <DropdownMenu selectionMode="single" selectedKeys={[currentLocale]} aria-label="Language Options">
-                <DropdownItem key="en" as={Link} href={`/en${pathname}`} className="text-white">
+                <DropdownItem key="en" as={Link} href={`/en${pathname}`} className="text-black dark:text-white">
                     <div className="flex flex-row items-center">
                         <Image
                             className="transition-transform mr-1"
