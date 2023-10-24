@@ -59,6 +59,7 @@ const LanguageToggle: React.FC = () => {
                             height={30}
                             width={30}
                             alt="New Zealand flag"
+                            priority
                         />
                         English
                     </div>
@@ -71,6 +72,7 @@ const LanguageToggle: React.FC = () => {
                             height={30}
                             width={30}
                             alt="Japanese flag"
+                            priority
                         />
                         日本語
                     </div>
