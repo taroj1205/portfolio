@@ -52,7 +52,7 @@ const LanguageToggle: React.FC = () => {
             </DropdownTrigger>
             <DropdownMenu selectionMode="single" selectedKeys={[currentLocale]} aria-label="Language Options">
                 <DropdownItem key="en" as={Link} href={`/en${pathname}`} className="text-black dark:text-white">
-                    <div className="flex flex-row items-center">
+                    <div className="flex flex-row items-center text-black dark:text-white">
                         <Image
                             className="transition-transform mr-1"
                             src="/svg/flag/nz.svg"
@@ -64,7 +64,7 @@ const LanguageToggle: React.FC = () => {
                     </div>
                 </DropdownItem>
                 <DropdownItem key="ja" as={Link} href={`/ja${pathname}`} className="flex flex-row items-center text-white">
-                    <div className="flex flex-row items-center">
+                    <div className="flex flex-row items-center text-black dark:text-white">
                         <Image
                             className="transition-transform mr-1"
                             src="/svg/flag/jp.svg"
