@@ -7,7 +7,7 @@ import DateFormatter from '@/components/DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 import Link from 'next/link';
 import TableContents from '@/components/TableContents';
-import markdownStyles from './/markdown-styles.module.css'
+import markdownStyles from './markdown-styles.module.css'
 import { BsArrowLeft, BsArrowRight } from 'react-icons/bs';
 import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin } from 'react-icons/fa';
 import WordCounter from '@/components/WordCounter';
