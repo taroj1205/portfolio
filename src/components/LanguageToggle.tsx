@@ -7,6 +7,8 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import nzFlag from "@/../public/svg/flag/nz.svg";
+import jpFlag from "@/../public/svg/flag/jp.svg";
 
 const LanguageToggle: React.FC = () => {
     const router = useRouter();
@@ -55,7 +57,7 @@ const LanguageToggle: React.FC = () => {
                     <div className="flex flex-row items-center text-black dark:text-white">
                         <Image
                             className="transition-transform mr-1"
-                            src="/svg/flag/nz.svg"
+                            src={nzFlag}
                             height={30}
                             width={30}
                             alt="New Zealand flag"
@@ -68,7 +70,7 @@ const LanguageToggle: React.FC = () => {
                     <div className="flex flex-row items-center text-black dark:text-white">
                         <Image
                             className="transition-transform mr-1"
-                            src="/svg/flag/jp.svg"
+                            src={jpFlag}
                             height={30}
                             width={30}
                             alt="Japanese flag"
