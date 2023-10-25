@@ -111,7 +111,6 @@ export default function NextHeader() {
                 ],
             }}
             isMenuOpen={isMenuOpen}
-            shouldHideOnScroll
             onMenuOpenChange={() => setIsMenuOpen(!isMenuOpen)}
             isBordered
         >

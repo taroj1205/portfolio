@@ -17,6 +17,7 @@ import { headers } from 'next/headers';
 import Education from '@/components/Education';
 import NCEA from '@/components/NCEA/Ncea';
 import SchoolHistory from '@/components/SchoolHistory';
+import { Kbd, KbdKey } from "@nextui-org/react";
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +26,10 @@ const usedcomponents = {
     NCEA,
     SchoolHistory,
     TableContents,
-    WordCounter
+    WordCounter,
+    Kbd(props: {keys: KbdKey[], text: string}) {
+        return <Kbd keys={props.keys}>{props.text}</Kbd>;
+    }
 }
 
 export const generateStaticParams = async () => {
@@ -40,7 +44,7 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
     const headerList = headers();
     const slug = headerList.get('x-slug') as string;
     const path = slug.split('/').slice(2).join('/') as string;
-    const post = allPosts.find(post => post.locale === locale && post.path.trim() === path) as any;
+    const post = allPosts.find(post => post.locale === locale && post.path.trim() === path && post.draft !== true) as any;
 
 
     if (!post) {
@@ -131,7 +135,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
     const slug = headerList.get('x-slug') as string;
     const path = slug.split('/').slice(2).join('/') as string;
     console.log("postURL",path)
-    const post = allPosts.find(post => post.locale === params.locale && post.path.trim() === path) as any;
+    const post = allPosts.find(post => post.locale === params.locale && post.path.trim() === path && post.draft !== true) as any;
 
 
     if (!post) {

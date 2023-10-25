@@ -12,7 +12,7 @@ export default function Blog({params}: {params: {slug: string}}) {
     console.log(locale);
 
     const posts = allPosts
-        .filter(post => post.locale === locale && post.category && post.category.split(',').map(item => item.trim()).includes(params.slug))
+        .filter(post => post.locale === locale && post.category && post.category.split(',').map(item => item.trim()).includes(params.slug) && post.draft !== true)
         .sort((a, b) => compareDesc(new Date(a.publishedAt), new Date(b.publishedAt)));
     
     if (!posts) notFound();

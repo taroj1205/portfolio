@@ -9,7 +9,6 @@ author:
     image: '/blog/profile.webp',
   }
 locale: en
-slug: about
 category: about
 ---
 
@@ -25,10 +24,10 @@ Throughout my life, I've experienced various significant events, from relocating
 
 ### Jump Rope
 
-From my early years in primary school, jump rope has been a captivating activity for me. Over time, I've refined my skills to the point where I can execute 30 successive double jumps, and even accomplish 10 crossed double jumps in a single sequence.
+From my early years in primary school, jump rope has been a captivating activity for me. I've refined my skills to the point where I can execute 30 successive double jumps, and even accomplish 10 crossed double jumps in a single sequence.
 
 ### Kendama
-Kendama, a traditional Japanese game that involves balancing a ball and a "sword", has been a favorite pastime of mine since my primary school days. My proficiency has grown to the point where I can juggle with the Kendama.
+Kendama, a traditional Japanese game that involves balancing a ball and a "sword", has been a favorite pastime of mine since my primary school days. My proficiency has grown to the point where I can juggle with the Kendama and still land it.
 
 ### Reading News
 Keeping abreast of current events is a daily habit of mine. I find reading news to be both informative and engaging.
@@ -43,6 +42,8 @@ I have played soccer for fun with my friends for a long time until I had an ACL 
 
 ## Education
 
+I currently plan to take double major in Computer Science and IT Management at University of Auckland.
+
 ### School History
 
 <SchoolHistory />
@@ -50,6 +51,8 @@ I have played soccer for fun with my friends for a long time until I had an ACL 
 ### NCEA
 
 <NCEA />
+
+---
 
 ## Programming
 
@@ -61,6 +64,8 @@ One of my hobby is to code. Here are what I have used throughout the journey of 
 - [TypeScript](https://www.typescriptlang.org/)
 - [Python](https://www.python.org/)
 - [Markdown](https://en.wikipedia.org/wiki/Markdown)
+- [HTML](https://en.wikipedia.org/wiki/HTML)
+- [CSS](https://en.wikipedia.org/wiki/CSS)
 - [C# (with Unity)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 
 ### Framework
@@ -84,4 +89,43 @@ One of my hobby is to code. Here are what I have used throughout the journey of 
 - [Supabase](https://supabase.com/)
 - [Auth0](https://auth0.com/)
 
-### Projects
+## Projects
+
+Here are some of the projects I have worked on.
+
+### Python
+
+I made a typing game that would help the user learn English vocabularies through playing typing game. [https://github.com/taroj1205/Learn-Vocabs-Through-Typing](https://github.com/taroj1205/Learn-Vocabs-Through-Typing)
+
+<details>
+  <summary>Features</summary>
+- When the program is launched, it will automatically create the necessary folders and text files if they do not exist.
+- If the entered word is correct, the score will be increased.
+- If the entered word is incorrect, the score will be decreased.
+- The current score and the number of presented words will be displayed on the screen. Additionally, the number of previously presented words is displayed in the top left corner. The most recent word is marked with `<`, making it easier to identify the last word entered.
+- The score and word count can be reset using the <Kbd keys={["escape"]} text="ESC" /> key. Before resetting, the previous score and word count are automatically backed up and saved in the data folder as `data Year-Month-Date Hour-Minute-Seconds (backup).txt`. The history of presented words is saved as `words Year-Month-Date Hour-Minute-Seconds (backup).txt`, and the number of correct and incorrect answers is saved as `accuracy Year-Month-Date Hour-Minute-Seconds (backup).txt`.
+- At the end of the game, the score and word count are saved in the data folder as data.txt, the history of presented words is saved as words.txt, and the number of correct and incorrect answers is saved as accuracy.txt. These files are automatically loaded when the program is launched.
+</details>
+
+### C# (with Unity)
+
+I have made a 2D Typing Game with Unity. This is a rewritten version of the previously made Python typing game.
+[https://github.com/taroj1205/Typing-Game](https://github.com/taroj1205/Typing-Game)
+
+I have written a Japanese [blog](https://taroj1205.hatenablog.com/archive/category/%E3%82%BF%E3%82%A4%E3%83%94%E3%83%B3%E3%82%B0%E3%82%B2%E3%83%BC%E3%83%A0) about me developing this game as well.
+
+<video controls src="https://user-images.githubusercontent.com/61367823/218281409-3a401dec-83d4-4689-bbfb-766ee6d9a07b.mp4" type="video/mp4">
+</video>
+
+### JavaScript (Flask)
+
+I have made a JavaScript version of the typing game I made with python, and C#. [https://github.com/taroj1205/taroj1205.github.io/tree/main/typing](https://github.com/taroj1205/taroj1205.github.io/tree/main/typing)
+
+I have hosted the game with the github.io. This uses flask to get/save the user data which uses SQLite3.
+
+**Content work in progress**
+- JavaScript with Node.js
+- Nextjs 12 and 13 (pages and app directory)
+  - MySQL
+  - PostgreSQL
+  - React.js

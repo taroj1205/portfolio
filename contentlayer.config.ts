@@ -52,7 +52,7 @@ const Post = defineDocumentType(() => ({
         slug: {
             type: 'string',
             description: 'The slug of the post',
-            required: true,
+            required: false,
         },
         category: {
             type: 'string',
@@ -62,6 +62,10 @@ const Post = defineDocumentType(() => ({
         author: {
             type: 'nested',
             of: Author,
+        },
+        draft: {
+            type: 'boolean',
+            default: false,
         }
     },
     computedFields: {
@@ -72,6 +76,14 @@ const Post = defineDocumentType(() => ({
                 pathSegments.shift();
                 return `/posts/${pathSegments.join('/')}`;
             },
+        },
+        fileName: {
+            type: 'string',
+            resolve: (doc) => {
+                const fileName = doc._raw.sourceFileName.trim();
+                const contentType = doc._raw.contentType.trim();
+                return fileName.replace(`.${contentType}`, '');
+            }
         },
         path: {
             type: 'string',
