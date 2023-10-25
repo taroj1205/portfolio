@@ -7,7 +7,7 @@ import DateFormatter from '@/components/DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 import Link from 'next/link';
 import TableContents from '@/components/TableContents';
-import markdownStyles from './/markdown-styles.module.css'
+import markdownStyles from './markdown-styles.module.css'
 import { BsArrowLeft, BsArrowRight } from 'react-icons/bs';
 import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin } from 'react-icons/fa';
 import WordCounter from '@/components/WordCounter';
@@ -18,6 +18,7 @@ import Education from '@/components/Education';
 import NCEA from '@/components/NCEA/Ncea';
 import SchoolHistory from '@/components/SchoolHistory';
 import { Kbd, KbdKey } from "@nextui-org/react";
+import Socials from '@/components/Socials';
 
 export const dynamic = 'force-dynamic';
 
@@ -84,51 +85,6 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
         viewport: pageMetadata.viewport,
     }
 }
-
-const socialData = [
-    {
-        name: 'Twitter',
-        url: 'https://twitter.com/taroj1205',
-        icon: <FaTwitter />,
-        color: '#1DA1F2'
-    },
-    {
-        name: 'Instagram',
-        url: 'https://instagram.com/taroj1205',
-        icon: <FaInstagram />,
-        color: '#E4405F'
-    },
-    {
-        name: 'Facebook',
-        url: 'https://www.facebook.com/taroj1205',
-        icon: <FaFacebook />,
-        color: '#1877F2'
-    },
-    {
-        name: 'LinkedIn',
-        url: 'https://www.linkedin.com/in/taroj/',
-        icon: <FaLinkedin />,
-        color: '#0A66C2'
-    },
-];
-
-const Socials = () => {
-    return (
-        <div className="flex space-x-4">
-            {socialData.map((social, index) => (
-                <Link
-                    key={index}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`text-gray-500 ${social.url.includes('instagram') ? 'hover:text-pink-500' : 'hover:text-blue-500'} transition-colors duration-300`}
-                >
-                    {social.icon}
-                </Link>
-            ))}
-        </div>
-    );
-};
 
 const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) => {
     const headerList = headers();

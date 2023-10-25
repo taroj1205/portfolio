@@ -14,15 +14,6 @@ const nextConfig = {
                 hostname: 'img.shields.io',
             },
         ],
-    },
-    redirects: async () => {
-        return [
-            {
-                source: '/about',
-                destination: '/posts/about',
-                permanent: true,
-            },
-        ]
     }
 }
 
