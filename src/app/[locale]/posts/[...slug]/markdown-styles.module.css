@@ -1,17 +1,25 @@
 .markdown {
-    @apply text-lg leading-relaxed;
+    @apply text-lg leading-relaxed break-words hyphens-auto;
 }
 
 .markdown h2 {
-    @apply text-3xl my-4 leading-snug font-semibold;
+    @apply text-2xl md:text-3xl my-4 leading-snug font-semibold;
 }
 
 .markdown h3 {
-    @apply text-2xl mt-8 mb-4 leading-snug font-medium;
+    @apply text-xl md:text-2xl mt-8 mb-4 leading-snug font-medium;
+}
+
+.markdown h4 {
+    @apply text-lg md:text-xl mt-8 mb-4 leading-snug font-medium;
 }
 
 .markdown ul {
     @apply list-disc list-inside my-6;
+}
+
+.markdown ul ul {
+    @apply pl-5 my-0;
 }
 
 .markdown blockquote {
@@ -45,4 +53,12 @@
 :global(.dark) .markdown blockquote::after {
     @apply block text-gray-500;
     content: close-quote;
+}
+
+.markdown a {
+    @apply text-blue-500 hover:underline;
+}
+
+.markdown code {
+    @apply px-2 py-1 h-fit font-mono font-normal inline-block whitespace-nowrap bg-default/40 text-default-foreground text-small rounded-small;
 }
