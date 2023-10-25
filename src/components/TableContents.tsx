@@ -7,7 +7,11 @@ import { useLocale } from 'next-intl';
 const TableContents = () => {
   const locale = useLocale();
   const pathname = usePathname();
-  const path = pathname.replace('/posts/', '') as string;
+  let path = pathname.replace('/posts/', '') as string;
+
+  if (pathname === '/about') {
+    path = 'about';
+  }
   const post = allPosts.find(post => post._raw.sourceFileDir === locale && post.fileName.trim() === path.trim()) as any;
   if (!post) return undefined;
 
@@ -53,7 +57,7 @@ const TableContents = () => {
         >
           {item.text}
         </Link>
-        {item.children && <ol className="list-decimal list-inside pl-4">{item.children.map(renderListItem)}</ol>}
+        {item.children && <ol className="list-[lower-roman] list-inside pl-4">{item.children.map(renderListItem)}</ol>}
       </li>
     );
   };
