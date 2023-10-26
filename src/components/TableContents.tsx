@@ -53,7 +53,7 @@ const TableContents = () => {
               });
             }
           }}
-          className={`text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 no-underline hover:no-underline dark:hover:no-underline overflow-hidden overflow-ellipsis whitespace-nowrap`}
+          className={`transition-colors duration-200 !text-gray-600 dark:!text-gray-300 hover:!text-blue-500 dark:hover:!text-blue-400 !no-underline hover:!no-underline dark:hover:!no-underline overflow-hidden overflow-ellipsis whitespace-nowrap`}
         >
           {item.text}
         </Link>
