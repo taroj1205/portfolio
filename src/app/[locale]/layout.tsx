@@ -10,9 +10,16 @@ import metadata from '../metadata.json';
 import { headers } from 'next/headers';
 import NextHeader from '@/components/NextHeader';
 import ScrollToTopButton from '@/components/ScrollTop'
+import type { Viewport } from 'next'
 
 export function generateStaticParams() {
   return [{ locale: 'en' }, { locale: 'ja' }];
+}
+
+export const viewport:Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  colorScheme: 'dark'
 }
 
 export async function generateMetadata({ params }: { params: { locale: string; } }): Promise<Metadata | null> {
@@ -76,7 +83,6 @@ export async function generateMetadata({ params }: { params: { locale: string; }
         alt: image.alt[locale],
       })),
     },
-    viewport: pageMetadata.viewport,
   }
 };
 
