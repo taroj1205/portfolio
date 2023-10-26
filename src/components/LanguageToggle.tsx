@@ -29,10 +29,10 @@ const LanguageToggle: React.FC = () => {
     const handleLanguageChange = (locale: string) => {
         console.log(locale, params, params.toString().length, pathname);
         if (params.toString().length > 0) {
-            router.replace(`${pathname}${params ? `?${params.toString()}` : ''}`, { locale: locale });
+            router.push(`${pathname}${params ? `?${params.toString()}` : ''}`, { locale: locale });
             return;
         }
-        router.replace(`${pathname}`, { locale: locale });
+        router.push(`${pathname}`, { locale: locale });
     };
 
     return (
@@ -53,12 +53,7 @@ const LanguageToggle: React.FC = () => {
                 )}
             </DropdownTrigger>
             <DropdownMenu selectionMode="single" selectedKeys={[currentLocale]} aria-label="Language Options">
-                <DropdownItem key="en" as={Link} href={`/en${pathname}`}
-                    onClick={(e) => {
-                        e.preventDefault();
-                        handleLanguageChange('en')
-                    }}
-                    className="text-black dark:text-white">
+                <DropdownItem key="en" as={Link} href={`/en${pathname}`} className="text-black dark:text-white">
                     <div className="flex flex-row items-center text-black dark:text-white">
                         <Image
                             className="transition-transform mr-1"
@@ -71,12 +66,7 @@ const LanguageToggle: React.FC = () => {
                         English
                     </div>
                 </DropdownItem>
-                <DropdownItem key="ja" as={Link} href={`/ja${pathname}`}
-                    onClick={(e) => {
-                        e.preventDefault();
-                        handleLanguageChange('ja')
-                    }}
-                    className="flex flex-row items-center text-white">
+                <DropdownItem key="ja" as={Link} href={`/ja${pathname}`} className="flex flex-row items-center text-white">
                     <div className="flex flex-row items-center text-black dark:text-white">
                         <Image
                             className="transition-transform mr-1"
