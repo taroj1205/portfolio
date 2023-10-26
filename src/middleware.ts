@@ -34,6 +34,8 @@ export default async function middleware(request: NextRequest) {
     response.headers.set('slug', pathWithoutFirstSlash);
     response.headers.set('x-full-path', request.nextUrl.href);
 
+    console.log("User agent: ", request.headers.get('user-agent'));
+
     return response;
 }
 
