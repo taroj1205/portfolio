@@ -91,7 +91,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
     const slug = headerList.get('x-slug') as string;
     const path = slug.split('/').slice(2).join('/') as string;
     console.log("postURL",path)
-    const post = allPosts.find(post => post.locale === params.locale && post.path.trim() === path && post.draft !== true) as any;
+    const post = allPosts.find(post => post.locale === params.locale && post.path.trim() === path && !post.draft) as any;
 
 
     if (!post) {
@@ -165,7 +165,7 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                     {/* <Link href={`/${params.locale}/posts`} className="inline-block py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
                         {params.locale === 'ja' ? '一覧に戻る' : 'Go back to posts'}
                     </Link> */}
-                    {nextPost && (
+                    {nextPost && !nextPost.draft && (
                         <Link href={`/${params.locale}${nextPost.url}`} className="flex float-right items-center flex-row py-2 px-4 bg-blue-500 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-bold rounded">
                             <span className='hidden sm:block'>{params.locale === 'ja' ? '次の投稿' : 'Next Post'}</span>
                             <BsArrowRight className="sm:ml-1" />

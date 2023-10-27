@@ -119,11 +119,13 @@ I have written a Japanese [blog](https://taroj1205.hatenablog.com/archive/catego
 
 ### JavaScript (Flask)
 
-I have made a JavaScript version of the typing game I made with python, and C#. [https://github.com/taroj1205/taroj1205.github.io/tree/main/typing](https://github.com/taroj1205/taroj1205.github.io/tree/main/typing)
+I have created a JavaScript version of the typing game that was originally developed using Python and C#. The game can be found on [GitHub](https://github.com/taroj1205/taroj1205.github.io/tree/main/typing).
 
-I have hosted the game with the github.io. This uses flask to get/save the user data which uses SQLite3.
+I have hosted the game on GitHub Pages. The server-side uses Flask to handle user data, which is stored in SQLite3.
 
-Client side is built with HTML, CSS and JavaScript.
+The client-side of the game is built using HTML, CSS, and JavaScript.
+
+Here's a snippet of the server-side code:
 
 ```py
 from flask import Flask, request, jsonify
@@ -134,15 +136,31 @@ import pykakasi
 from passlib.hash import bcrypt_sha256
 import pytz
 from datetime import datetime
-...
-see more at the github repo
+# ... other code
+```
+For more details, please visit the [GitHub repository](https://github.com/taroj1205/taroj1205.github.io/tree/main/typing).
+
+### JavaScript (Node.js)
+
+I switched to using Node.js, and instead of using saved data, import the data from Quizlet api.
+
+```ts
+async function quizlet(id: Number) {
+    const response = await fetch(`https://quizlet.com/webapi/3.4/studiable-item-documents?filters%5BstudiableContainerId%5D=${id}&filters%5BstudiableContainerType%5D=1&page=1&perPage=2000`, {
+        method: 'GET'
+    });
+	console.log(response);
+    const data = await response.json();
+    const terms = data.responses[0].models.studiableItem;
+    return terms;
+}
 ```
 
 ---
 
 **Content work in progress**
 - JavaScript with Node.js
-- Nextjs 12 and 13 (pages and app directory)
+- Next.js 12 and 13 (pages and app directory)
   - MySQL
   - PostgreSQL
   - React.js

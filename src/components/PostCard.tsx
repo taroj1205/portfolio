@@ -33,7 +33,7 @@ export default function PostCard({ image, category, title, description, readingT
                                     <p className='md:h-20 leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-3'>{description}</p>
                                     <div className='flex items-center flex-wrap justify-between'>
                                         <Link
-                                            href={`/${locale}${url}`}
+                                            href={`/${locale}${url === '/posts/about' ? '/about' : url}`}
                                             className='text-indigo-500 hover:underline hover:text-indigo-600 inline-flex items-center'
                                         >
                                             {locale === 'ja' ? 'もっと読む' : 'Read More'}
