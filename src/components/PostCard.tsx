@@ -4,7 +4,8 @@ import Link from 'next/link';
 import DateFormatter from './DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 
-export default function PostCard({ image, category, title, description, readingTime, publishedAt, url, locale }: { image: string, category: string | undefined, title: string, description: string, readingTime: any, publishedAt: string, url: string, locale: string }) {
+export default function PostCard({ image, category, title, description, readingTime, publishedAt, url, locale, draft }: { image: string, category: string | undefined, title: string, description: string, readingTime: any, publishedAt: string, url: string, locale: string, draft: boolean }) {
+    if (draft || url === '/posts/about') return null;
     const readTime = `${Math.round(readingTime.minutes)}${locale === 'ja' ? '分で読めます' : ' min to read'}`
     const categories = category?.split(',') || [];
     return (

@@ -142,7 +142,9 @@ For more details, please visit the [GitHub repository](https://github.com/taroj1
 
 ### JavaScript (Node.js)
 
-I switched to using Node.js, and instead of using saved data, import the data from Quizlet api.
+I have transitioned to using Node.js for my project and have made changes to how data is fetched. Instead of using saved data, I now import the data from the Quizlet API.
+
+Here's an example of the updated code:
 
 ```ts
 async function quizlet(id: Number) {
@@ -155,6 +157,9 @@ async function quizlet(id: Number) {
     return terms;
 }
 ```
+With this code, I make an asynchronous request to the Quizlet API and fetch the data based on the provided `id`. The response is then logged to the console, and the relevant data is extracted and returned.
+
+Feel free to visit the [GitHub repository](https://github.com/taroj1205/Typing-Game-Node/) for more details.
 
 ---
 

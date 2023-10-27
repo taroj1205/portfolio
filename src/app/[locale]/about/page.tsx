@@ -16,6 +16,7 @@ import NCEA from '@/components/NCEA/Ncea';
 import SchoolHistory from '@/components/SchoolHistory';
 import { Kbd, KbdKey } from "@nextui-org/react";
 import Socials from '@/components/Socials';
+import {BsArrowLeft, BsArrowRight} from "react-icons/bs";
 
 export const dynamic = 'force-dynamic';
 
@@ -147,6 +148,12 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
                 <article className={`${markdownStyles['markdown']} mx-auto space-y-4 leading-snug prose-md prose prose-indigo lg:prose-lg rounded-lg`}>
                     <Content components={usedcomponents} />
                 </article>
+                <div className="mt-4">
+                    <Link href={'/posts'} className="flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                        <BsArrowLeft className="mr-2" />
+                        {post.locale === 'ja' ? '投稿一覧へ' : 'Back to posts'}
+                    </Link>
+                </div>
             </div>
         </div>
     )
