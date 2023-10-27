@@ -5,13 +5,6 @@ import PostHero from "@/components/PostHero";
 import ArticleCard from "@/components/PostCard";
 import metadata from '@/app/metadata.json';
 import { Metadata } from "next";
-import type { Viewport } from 'next'
-
-export const viewport: Viewport = {
-    width: 'device-width',
-    initialScale: 1,
-    colorScheme: 'dark'
-}
 
 export async function generateMetadata({ params }: { params: { locale: string; } }): Promise<Metadata | null> {
     const locale = params.locale;
@@ -42,6 +35,7 @@ export async function generateMetadata({ params }: { params: { locale: string; }
                 alt: image.alt[locale],
             })),
         },
+        viewport: pageMetadata.viewport
     }
 };
 

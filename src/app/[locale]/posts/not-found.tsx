@@ -1,13 +1,6 @@
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import metadata from '@/app/metadata.json';
-import type { Viewport } from 'next'
-
-export const viewport: Viewport = {
-    width: 'device-width',
-    initialScale: 1,
-    colorScheme: 'dark'
-}
 
 export const generateMetadata = ({ params }: { params: { slug: string; locale: string } }) => {
     const locale = params.locale;
@@ -36,6 +29,7 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
                 alt: image.alt[locale],
             })),
         },
+        viewport: pageMetadata.viewport
     }
 }
 

@@ -19,7 +19,6 @@ import NCEA from '@/components/NCEA/Ncea';
 import SchoolHistory from '@/components/SchoolHistory';
 import { Kbd, KbdKey } from "@nextui-org/react";
 import Socials from '@/components/Socials';
-import type { Viewport } from 'next'
 
 export const dynamic = 'force-dynamic';
 
@@ -39,12 +38,6 @@ export const generateStaticParams = async () => {
         const slug = post.path.split('/').filter(Boolean);
         return { params: { slug: slug } };
     });
-}
-
-export const viewport: Viewport = {
-    width: 'device-width',
-    initialScale: 1,
-    colorScheme: 'dark'
 }
 
 export const generateMetadata = ({ params }: { params: { slug: string; locale: string } }) => {
@@ -89,6 +82,7 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
                 alt: image.alt[locale],
             })),
         },
+        viewport: pageMetadata.viewport
     }
 }
 
