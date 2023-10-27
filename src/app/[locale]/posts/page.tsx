@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: { locale: string; }
                 alt: image.alt[locale],
             })),
         },
-        viewport: pageMetadata.viewport,
+        viewport: pageMetadata.viewport
     }
 };
 

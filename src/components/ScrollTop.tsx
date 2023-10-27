@@ -42,6 +42,8 @@ const ScrollToTopButton = () => {
             color="primary"
             onClick={scrollToTop}
             isIconOnly
+            aria-label="Scroll to top"
+            title="Scroll to top"
         >
             <ArrowUpIcon className="h-7" />
         </Button>

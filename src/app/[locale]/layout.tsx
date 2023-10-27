@@ -11,10 +11,6 @@ import { headers } from 'next/headers';
 import NextHeader from '@/components/NextHeader';
 import ScrollToTopButton from '@/components/ScrollTop'
 
-export function generateStaticParams() {
-  return [{ locale: 'en' }, { locale: 'ja' }];
-}
-
 export async function generateMetadata({ params }: { params: { locale: string; } }): Promise<Metadata | null> {
   const locale = params.locale;
   console.log("params", params)
@@ -47,6 +43,11 @@ export async function generateMetadata({ params }: { params: { locale: string; }
     pageMetadata = (metadata as Record<string, any>)[slug];
     console.log("Category:", slug)
   }
+  else if (slugValue.startsWith('apps/generator/image')) {
+    slug = 'generator image';
+    pageMetadata = (metadata as Record<string, any>)[slug];
+    console.log("Category:", slug)
+  }
   else if (!pageMetadata) {
     slug = '404';
     pageMetadata = (metadata as Record<string, any>)[slug];
@@ -76,7 +77,7 @@ export async function generateMetadata({ params }: { params: { locale: string; }
         alt: image.alt[locale],
       })),
     },
-    viewport: pageMetadata.viewport,
+    viewport: pageMetadata.viewport
   }
 };
 
@@ -100,10 +101,12 @@ export default async function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider locale={locale} messages={messages}>
-            <NextHeader />
-            <main className='content relative pt-8 pb-6 bg-white dark:bg-gray-900'>{children}</main>
-            <ScrollToTopButton />
-            <Footer />
+            <div className='min-h-screen flex flex-col'>
+              <NextHeader />
+              <main className='content relative pt-8 pb-6 bg-white dark:bg-gray-900'>{children}</main>
+              <ScrollToTopButton />
+              <Footer />
+            </div>
             <Script async src="https://analytics.eu.umami.is/script.js" data-website-id="3531a168-c010-41c6-b82f-34f9f492f84a"></Script>
             <Script async src="https://www.googletagmanager.com/gtag/js?id=G-HF6EPWF0XB"></Script>
             <Script id="google-analytics" strategy="afterInteractive">

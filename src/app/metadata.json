@@ -305,6 +305,57 @@
             "initialScale": 1
         }
     },
+    "generator image": {
+        "metadataBase": "https://taroj.vercel.app",
+        "title": {
+            "ja": "画像ジェネレーター",
+            "en": "Image Generator"
+        },
+        "description": {
+            "ja": "心太朗のカスタム画像ジェネレーター",
+            "en": "Shintaro's custom image generator"
+        },
+        "icons": {
+            "icon": "/favicon.ico"
+        },
+        "openGraph": {
+            "images": [
+                {
+                    "url": "/images/thumbnail/thumbnail.png",
+                    "alt": {
+                        "ja": "上鍵心太朗の画像ジェネレーターページのサムネ",
+                        "en": "Shintaro Jokagi Image Generator Page Thumbnail"
+                    }
+                }
+            ]
+        },
+        "twitter": {
+            "card": "summary_large_image",
+            "title": {
+                "ja": "画像ジェネレーター",
+                "en": "Image Generator"
+            },
+            "description": {
+                "ja": "心太朗のカスタム画像ジェネレーター",
+                "en": "Shintaro's custom image generator"
+            },
+            "site": "@taroj1205",
+            "creator": "@taroj1205",
+            "images": [
+                {
+                    "url": "/images/thumbnail/thumbnail.png",
+                    "alt": {
+                        "ja": "上鍵心太朗の画像ジェネレーターページのサムネ",
+                        "en": "Shintaro Jokagi Image Generator Page Thumbnail"
+                    }
+                }
+            ]
+        },
+        "viewport": {
+            "width": "device-width",
+            "initialScale": 1
+        }
+    },
     "posts": {
         "metadataBase": "https://taroj.vercel.app",
         "title": {

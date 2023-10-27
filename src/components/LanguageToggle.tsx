@@ -26,14 +26,14 @@ const LanguageToggle: React.FC = () => {
         return null
     }
 
-    const handleLanguageChange = (locale: string) => {
-        console.log(locale, params, params.toString().length, pathname);
-        if (params.toString().length > 0) {
-            router.push(`${pathname}${params ? `?${params.toString()}` : ''}`, { locale: locale });
-            return;
-        }
-        router.push(`${pathname}`, { locale: locale });
-    };
+    // const handleLanguageChange = (locale: string) => {
+    //     console.log(locale, params, params.toString().length, pathname);
+    //     if (params.toString().length > 0) {
+    //         router.push(`${pathname}${params ? `?${params.toString()}` : ''}`, { locale: locale });
+    //         return;
+    //     }
+    //     router.push(`${pathname}`, { locale: locale });
+    // };
 
     return (
         <Dropdown placement="bottom-end">
@@ -41,19 +41,21 @@ const LanguageToggle: React.FC = () => {
                 {currentLocale === 'ja' ? (
                     <Avatar
                         as="button"
+                        title="日本語"
                         className="transition-transform h-6 w-6"
                         src="/svg/flag/jp.svg"
                     />
                 ) : (
                     <Avatar
                         as="button"
-                            className="transition-transform h-6 w-6"
+                        title="English"
+                        className="transition-transform h-6 w-6"
                         src="/svg/flag/nz.svg"
                     />
                 )}
             </DropdownTrigger>
             <DropdownMenu selectionMode="single" selectedKeys={[currentLocale]} aria-label="Language Options">
-                <DropdownItem key="en" as={Link} href={`/en${pathname}`} className="text-black dark:text-white">
+                <DropdownItem key="en" as={Link} href={`/en${pathname}`} lang="en" className="text-black dark:text-white">
                     <div className="flex flex-row items-center text-black dark:text-white">
                         <Image
                             className="transition-transform mr-1"
@@ -66,7 +68,7 @@ const LanguageToggle: React.FC = () => {
                         English
                     </div>
                 </DropdownItem>
-                <DropdownItem key="ja" as={Link} href={`/ja${pathname}`} className="flex flex-row items-center text-white">
+                <DropdownItem key="ja" as={Link} href={`/ja${pathname}`} lang="ja" className="flex flex-row items-center text-white">
                     <div className="flex flex-row items-center text-black dark:text-white">
                         <Image
                             className="transition-transform mr-1"

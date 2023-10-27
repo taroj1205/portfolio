@@ -82,7 +82,7 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
                 alt: image.alt[locale],
             })),
         },
-        viewport: pageMetadata.viewport,
+        viewport: pageMetadata.viewport
     }
 }
 
