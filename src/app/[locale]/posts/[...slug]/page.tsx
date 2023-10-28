@@ -45,7 +45,7 @@ export const generateMetadata = ({params}: { params: { slug: string; locale: str
     const headerList = headers();
     const slug = headerList.get('x-slug') as string;
     const path = slug.split('/').slice(2).join('/') as string;
-    const post = allPosts.find(post => post.locale === locale && post.path.trim() === path && post.draft !== true) as any;
+    const post = allPosts.find(post => post.locale === locale && post.path.trim() === path && !post.draft) as any;
 
 
     if (!post || post.url === '/posts/about') {

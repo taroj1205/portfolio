@@ -84,7 +84,7 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
 
 const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) => {
     const path = 'about';
-    const post = allPosts.find(post => post.locale === params.locale && post.path.trim() === path && post.draft !== true) as any;
+    const post = allPosts.find(post => post.locale === params.locale && post.path.trim() === path && !post.draft) as any;
 
 
     if (!post) {
