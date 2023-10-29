@@ -4,11 +4,12 @@ import Link from 'next/link';
 import DateFormatter from './DateFormatter';
 import { IoChatbubbleOutline } from 'react-icons/io5';
 
-export default function PostCard({ image, category, title, description, readingTime, publishedAt, url, locale }: { image: string, category: string | undefined, title: string, description: string, readingTime: any, publishedAt: string, url: string, locale: string }) {
+export default function PostCard({ image, category, title, description, readingTime, publishedAt, url, locale, draft }: { image: string, category: string | undefined, title: string, description: string, readingTime: any, publishedAt: string, url: string, locale: string, draft: boolean }) {
+    if (draft || url === '/posts/about') return null;
     const readTime = `${Math.round(readingTime.minutes)}${locale === 'ja' ? '分で読めます' : ' min to read'}`
     const categories = category?.split(',') || [];
     return (
-        <div className='max-w-[25rem] h-full'>
+        <div className='w-full sm:max-w-[25rem] h-full'>
             <section className='text-gray-600'>
                 <div className='container py-6 mx-auto'>
                     <div className='flex flex-wrap -m-4'>
@@ -33,12 +34,12 @@ export default function PostCard({ image, category, title, description, readingT
                                     <p className='md:h-20 leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-3'>{description}</p>
                                     <div className='flex items-center flex-wrap justify-between'>
                                         <Link
-                                            href={`/${locale}${url}`}
-                                            className='text-indigo-500 hover:underline hover:text-indigo-600 inline-flex items-center'
+                                            href={`/${locale}${url === '/posts/about' ? '/about' : url}`}
+                                            className='text-indigo-500 hover:underline hover:text-indigo-600 inline-flex items-center justify-center'
                                         >
                                             {locale === 'ja' ? 'もっと読む' : 'Read More'}
                                             <svg
-                                                className='w-4 h-4 ml-2 animate-arrow'
+                                                className='w-4 h-4 ml-1'
                                                 viewBox='0 0 24 24'
                                                 stroke='currentColor'
                                                 strokeWidth='2'

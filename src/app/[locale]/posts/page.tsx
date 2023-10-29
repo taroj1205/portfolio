@@ -43,7 +43,7 @@ export default function Home() {
     const headerList = headers();
     const locale = headerList.get('x-current-locale') || 'en';
     const posts = allPosts
-        .filter(post => post.locale === locale && post.draft !== true)
+        .filter(post => post.locale === locale && !post.draft)
         .sort((a, b) => compareDesc(new Date(a.publishedAt), new Date(b.publishedAt)));
     
     return (

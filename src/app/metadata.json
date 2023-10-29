@@ -254,7 +254,7 @@
             "initialScale": 1
         }
     },
-    "apps search": {
+    "search": {
         "metadataBase": "https://taroj.vercel.app",
         "title": {
             "ja": "検索エンジン",
@@ -305,7 +305,7 @@
             "initialScale": 1
         }
     },
-    "generator image": {
+    "image": {
         "metadataBase": "https://taroj.vercel.app",
         "title": {
             "ja": "画像ジェネレーター",

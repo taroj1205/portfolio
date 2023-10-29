@@ -59,12 +59,12 @@ export default function PostHero() {
                                 <p className='leading-relaxed mb-3 text-gray-600 dark:text-gray-300 line-clamp-4'>{heroPost.description}</p>
                                 <div className='flex items-center flex-wrap justify-between'>
                                     <Link
-                                        href={`/${heroPost.locale}${heroPost.url}`}
-                                        className='text-indigo-500 hover:underline hover:text-indigo-600 inline-flex items-center'
+                                        href={`/${heroPost.locale}/about`}
+                                        className='text-indigo-500 hover:underline hover:text-indigo-600 inline-flex items-center justify-center'
                                     >
                                         {lang === 'ja' ? 'もっと読む' : 'Read More'}
                                         <svg
-                                            className='w-4 h-4 ml-2 animate-arrow'
+                                            className='w-4 h-4 ml-1'
                                             viewBox='0 0 24 24'
                                             stroke='currentColor'
                                             strokeWidth='2'

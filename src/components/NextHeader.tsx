@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Button, NavbarMenuToggle, NavbarMenu, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, NavbarMenuItem } from "@nextui-org/react";
 import Image from "next/image";
 import { FaArchive, FaBlog, FaCubes, FaListAlt, FaSpinner } from 'react-icons/fa';
-import { RiHome2Line, RiUserLine } from 'react-icons/ri';
+import {RiAiGenerate, RiHome2Line, RiUserLine} from 'react-icons/ri';
 import { FaChartBar, FaComments, FaSearch } from 'react-icons/fa';
 import { TbSchool } from 'react-icons/tb';
 import { useSelectedLayoutSegment } from "next/navigation";
@@ -72,6 +72,7 @@ export default function NextHeader() {
         ncea: <TbSchool className="text-success" size={30} />,
         search: <FaSearch className="text-danger" size={30} />,
         analytics: <FaChartBar className="text-secondary" size={30} />,
+        generator: <RiAiGenerate className="text-primary" size={30} />
     };
 
     const nested: NestedType = {
@@ -83,6 +84,7 @@ export default function NextHeader() {
             { href: 'https://chat-taroj.vercel.app/', text: 'Chat', icon: icons.chat, description: 'Chat app' },
             { href: 'https://taroj.poyo.jp/apps/ncea', text: 'NCEA', icon: icons.ncea, description: 'NCEA app' },
             { href: '/apps/search', text: 'Search', icon: icons.search, description: 'Search app' },
+            {href: '/apps/generator/image', text: 'Image Generator', icon: icons.generator, description: 'Image Generator app'},
             { href: 'https://analytics.eu.umami.is/share/V1djMkaLDvEhYDvY/taroj.vercel.app', text: 'Analytics', icon: icons.analytics, description: 'Analytics app' },
         ]
     };

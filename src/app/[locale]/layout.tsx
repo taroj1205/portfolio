@@ -14,14 +14,17 @@ import ScrollToTopButton from '@/components/ScrollTop'
 export async function generateMetadata({ params }: { params: { locale: string; } }): Promise<Metadata | null> {
   const locale = params.locale;
   console.log("params", params)
-  const headerList = headers();
-  let slugValue = headerList.get('slug') as string;
-  if (!slugValue) {
-    slugValue = 'home';
-  }
-  let slugMap: { [key: string]: string } = { null: 'home', 'posts/categories': 'categories', 'posts/archives': 'categories' };
-  let slug = slugMap[slugValue] || slugValue;
 
+  const headerList = headers();
+  let slugValue = headerList.get('slug') || 'home';
+
+  const slugMap: { [key: string]: string } = {
+    null: 'home',
+    'posts/categories': 'categories',
+    'posts/archives': 'categories'
+  };
+
+  let slug = slugMap[slugValue] || slugValue;
   let pageMetadata = (metadata as Record<string, any>)[slug];
 
   if (slugValue.startsWith('posts/categories')) {
@@ -29,31 +32,26 @@ export async function generateMetadata({ params }: { params: { locale: string; }
     pageMetadata = (metadata as Record<string, any>)[slug];
     const category = slugValue.split('/')[2];
     console.log("Category:", category)
-    pageMetadata.title[locale] = pageMetadata.title[locale].replace('#{category}', (' #' + category));
-  }
-  else if (slugValue.startsWith('posts/archives')) {
+    pageMetadata.title[locale] = pageMetadata.title[locale].replace('#{category}', ` #${category}`);
+  } else if (slugValue.startsWith('posts/archives')) {
     slug = 'category';
     pageMetadata = (metadata as Record<string, any>)[slug];
     console.log("Category:", 'archives')
     pageMetadata.title[locale] = pageMetadata.title[locale].replace('#{category}', '');
-  }
-  else if (slugValue.startsWith('posts')) return null;
-  else if (slugValue.startsWith('apps/search')) {
-    slug = 'apps search';
+  } else if (slugValue.startsWith('posts')) {
+    return null;
+  } else if (slugValue.startsWith('apps/search') || slugValue.startsWith('apps/generator/image')) {
+    if (slugValue.startsWith('apps/search')) {
+      slug = slugValue.split('/')[1];
+    } else {
+        slug = slugValue.split('/')[2];
+    }
     pageMetadata = (metadata as Record<string, any>)[slug];
     console.log("Category:", slug)
-  }
-  else if (slugValue.startsWith('apps/generator/image')) {
-    slug = 'generator image';
-    pageMetadata = (metadata as Record<string, any>)[slug];
-    console.log("Category:", slug)
-  }
-  else if (!pageMetadata) {
+  } else if (!pageMetadata) {
     slug = '404';
     pageMetadata = (metadata as Record<string, any>)[slug];
   }
-
-  console.log("Slug:", slug);
 
   return {
     metadataBase: new URL(pageMetadata.metadataBase),
@@ -78,8 +76,8 @@ export async function generateMetadata({ params }: { params: { locale: string; }
       })),
     },
     viewport: pageMetadata.viewport
-  }
-};
+  };
+}
 
 export default async function RootLayout({
   children, params: { locale }
