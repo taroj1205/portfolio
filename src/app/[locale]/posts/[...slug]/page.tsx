@@ -22,7 +22,7 @@ import Socials from '@/components/Socials';
 
 export const dynamic = 'force-dynamic';
 
-const usedcomponents = {
+const usedComponents = {
     Education,
     NCEA,
     SchoolHistory,
@@ -167,7 +167,7 @@ const PostLayout = ({params}: { params: { slug: string; locale: string; } }) => 
                 </div>
                 <article
                     className={`${markdownStyles['markdown']} mx-auto space-y-4 leading-snug prose-md prose prose-indigo lg:prose-lg rounded-lg`}>
-                    <Content components={usedcomponents}/>
+                    <Content components={usedComponents}/>
                 </article>
                 <div className="mt-4">
                     {prevPost ? (
