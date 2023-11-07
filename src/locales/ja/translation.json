@@ -217,7 +217,6 @@
   "header": {
     "about": "僕について",
     "apps": "アプリ",
-    "chat": "チャット",
     "home": "ホーム",
     "title": "上鍵心太朗",
     "blog": "ブログ",
@@ -230,6 +229,29 @@
         "name": "アーカイブ",
         "description": "ブログ投稿のアーカイブ"
       }
+    },
+    "chat": {
+      "name": "チャット",
+      "description": "チャットアプリ"
+    },
+    "ncea": {
+      "description": "NCEAの管理"
+    },
+    "search": {
+      "name": "検索",
+      "description": "カスタマイズされたGoogleで検索"
+    },
+    "generator": {
+      "name": "画像作成",
+      "description": "画像を作成するアプリ"
+    },
+    "analytics": {
+      "name": "分析",
+      "description": "このサイトの分析情報を見る"
+    },
+    "schedule": {
+      "name": "日本での旅行計画",
+      "description": "日本での旅行計画を見る"
     }
   },
   "index": {

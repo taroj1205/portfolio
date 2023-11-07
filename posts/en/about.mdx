@@ -148,7 +148,7 @@ I have written a Japanese [blog](https://taroj1205.hatenablog.com/archive/catego
 <video controls src="https://user-images.githubusercontent.com/61367823/218281409-3a401dec-83d4-4689-bbfb-766ee6d9a07b.mp4" type="video/mp4">
 </video>
 
-### JavaScript (Flask)
+### Flask (JavaScript)
 
 I have created a JavaScript version of the typing game that was originally developed using Python and C#. The game can be found on [GitHub](https://github.com/taroj1205/taroj1205.github.io/tree/main/typing).
 
@@ -158,46 +158,57 @@ The client-side of the game is built using HTML, CSS, and JavaScript.
 
 Here's a snippet of the server-side code:
 
-```py
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import sqlite3
-import os
-import pykakasi
-from passlib.hash import bcrypt_sha256
-import pytz
-from datetime import datetime
-# ... other code
-```
+![app_py.webp](/blog/about/app_py.jpg)
 
 For more details, please visit the [GitHub repository](https://github.com/taroj1205/taroj1205.github.io/tree/main/typing).
 
-### JavaScript (Node.js)
+### Node.js (JavaScript)
 
 I have transitioned to using Node.js for my project and have made changes to how data is fetched. Instead of using saved data, I now import the data from the Quizlet API.
 
 Here's a preview of the code:
 
-```ts
-async function quizlet(id: Number) {
-    const response = await fetch(`https://quizlet.com/webapi/3.4/studiable-item-documents?filters%5BstudiableContainerId%5D=${id}&filters%5BstudiableContainerType%5D=1&page=1&perPage=2000`, {
-        method: 'GET'
-    });
-	console.log(response);
-    const data = await response.json();
-    const terms = data.responses[0].models.studiableItem;
-    return terms;
-}
-```
+![index_js.webp](/blog/about/index_js.jpg)
+
 With this code, I make an asynchronous request to the Quizlet API and fetch the data based on the provided `id`. The response is then logged to the console, and the relevant data is extracted and returned.
+
+The client-side of the game is built using HTML, CSS, and JavaScript.
 
 Feel free to visit the [GitHub repository](https://github.com/taroj1205/Typing-Game-Node/) for more details.
 
----
+### Next.js + React.js
 
-**Content work in progress**
-- JavaScript with Node.js
-- Next.js 12 and 13 (pages and app directory)
-  - MySQL
-  - PostgreSQL
-  - React.js
+Currently, my preferred framework is Next.js and React.js. I am grateful to [Vercel](https://vercel.com/) for providing hosting services for my projects using these technologies.
+
+#### taroj.poyo.jp
+I have started to learn Next.js and React.js. The first project I have made was [taroj.poyo.jp](https://taroj.poyo.jp/) on pages directory. I also tried adding a login system (with MySQL on PlanetScale but later switched to Supabase PostgreSQL) but it was only used for saving and loading data for managing NCEA. Access the app [here](https://taroj.poyo.jp/apps/ncea/).
+
+#### Chat app
+
+I have also made a chat app using Supabase. The project is also on [GitHub](https://github.com/taroj1205/chat). This has a lot of different features such as:
+
+- Authentication
+- Realtime database
+- Realtime messaging
+- Storage
+- Channels
+- Creating/Deleting/Editing:
+  - Channels
+  - Messages
+- Editing usernames/profile picture
+- Right click menu
+  - Reply
+  - Edit
+  - Copy
+  - Delete
+- Admin/Moderator system
+
+#### taroj.vercel.app
+
+As I tried to do a lot of new things everytime on [taroj.poyo.jp](https://taroj.poyo.jp/), the website started to load slower, and I thought I added too many things to complicate things. The locale system I was using changed its content language after the user loads the page, which resulted in a content change everytime. So I decided to completely rewrite the project. The project is on [GitHub](https://github.com/taroj1205/portfolio) as well. It uses Next.js 13 and on app directory. It is the website you are currently on.
+
+## Conclusion
+
+In conclusion, my journey of relocating to different countries, pursuing education, and my passion for coding has been a continuous learning experience. I have gained valuable experience working with various technologies and have successfully completed projects that I am proud of. My personal interests and hobbies, such as jump rope, kendama, and staying updated with news, have also played a significant role in shaping my personality.
+
+Moving forward, I am excited to continue advancing in the tech industry, enhancing my skills, and contributing to innovative projects. I am eager to connect with other professionals in the field, learn from their experiences, and share my own. Thank you for taking the time to get to know me. Let's connect and collaborate to create something remarkable together!

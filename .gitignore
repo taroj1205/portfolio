@@ -40,3 +40,7 @@ next-env.d.ts
 .contentlayer
 
 .idea
+mightymeld.secrets
+
+src/components/Schedule
+src/app/\[locale\]/schedule

@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/lib/next-intl";
 import LanguageToggle from "./LanguageToggle";
 import ThemeToggle from "./ThemeToggle";
+import { FcPlanner } from 'react-icons/fc';
 
 interface ChevronDownProps extends React.SVGProps<SVGSVGElement> {
     size?: number;
@@ -65,29 +66,71 @@ export default function NextHeader() {
     ];
 
     const icons = {
-        chevron: <ChevronDown fill="currentColor" size={16} />,
-        list: <FaListAlt className="text-warning" size={30} />,
-        archive: <FaArchive className="text-primary" size={30} />,
-        chat: <FaComments className="text-warning" size={30} />,
-        ncea: <TbSchool className="text-success" size={30} />,
-        search: <FaSearch className="text-danger" size={30} />,
-        analytics: <FaChartBar className="text-secondary" size={30} />,
-        generator: <RiAiGenerate className="text-primary" size={30} />
-    };
+			chevron: <ChevronDown fill="currentColor" size={16} />,
+			list: <FaListAlt className="text-warning" size={30} />,
+			archive: <FaArchive className="text-primary" size={30} />,
+			chat: <FaComments className="text-warning" size={30} />,
+			ncea: <TbSchool className="text-success" size={30} />,
+			search: <FaSearch className="text-danger" size={30} />,
+			analytics: <FaChartBar className="text-secondary" size={30} />,
+			generator: <RiAiGenerate className="text-primary" size={30} />,
+			plan: <FcPlanner className="text-success" size={30} />,
+		};
 
     const nested: NestedType = {
-        blog: [
-            { href: '/posts', text: t('posts.list.name'), icon: icons.list, description: t('posts.list.description') },
-            { href: '/posts/archives', text: t('posts.archive.name'), icon: icons.archive, description: t('posts.archive.description') },
-        ],
-        apps: [
-            { href: 'https://chat-taroj.vercel.app/', text: 'Chat', icon: icons.chat, description: 'Chat app' },
-            { href: 'https://taroj.poyo.jp/apps/ncea', text: 'NCEA', icon: icons.ncea, description: 'NCEA app' },
-            { href: '/apps/search', text: 'Search', icon: icons.search, description: 'Search app' },
-            {href: '/apps/generator/image', text: 'Image Generator', icon: icons.generator, description: 'Image Generator app'},
-            { href: 'https://analytics.eu.umami.is/share/V1djMkaLDvEhYDvY/taroj.vercel.app', text: 'Analytics', icon: icons.analytics, description: 'Analytics app' },
-        ]
-    };
+			blog: [
+				{
+					href: "/posts",
+					text: t("posts.list.name"),
+					icon: icons.list,
+					description: t("posts.list.description"),
+				},
+				{
+					href: "/posts/archives",
+					text: t("posts.archive.name"),
+					icon: icons.archive,
+					description: t("posts.archive.description"),
+				},
+			],
+			apps: [
+				{
+					href: "/schedule",
+					text: t("schedule.name"),
+					icon: icons.plan,
+					description: t("schedule.description"),
+				},
+				{
+					href: "https://chat-taroj.vercel.app/",
+					text: t("chat.name"),
+					icon: icons.chat,
+					description: t("chat.description"),
+				},
+				{
+					href: "https://taroj.poyo.jp/apps/ncea",
+					text: "NCEA",
+					icon: icons.ncea,
+					description: t("ncea.description"),
+				},
+				{
+					href: "/apps/search",
+					text: t("search.name"),
+					icon: icons.search,
+					description: t("search.description"),
+				},
+				{
+					href: "/apps/generator/image",
+					text: t("generator.name"),
+					icon: icons.generator,
+					description: t("generator.description"),
+				},
+				{
+					href: "https://analytics.eu.umami.is/share/V1djMkaLDvEhYDvY/taroj.vercel.app",
+					text: t("analytics.name"),
+					icon: icons.analytics,
+					description: t("analytics.description"),
+				},
+			],
+		};
 
     useEffect(() => {
         setIsMenuOpen(false);
@@ -124,7 +167,7 @@ export default function NextHeader() {
                 <NavbarBrand>
                     <Link href="/" className='flex text-black dark:text-white items-center'>
                         <Image src="/images/profile/pfp.webp" alt='profile picture' width={50} height={50} className='w-6 h-6 rounded-lg' />
-                        <p className="font-bold text-inherit ml-1">{t('title')}</p>
+                        <p className="font-bold text-inherit ml-1 lg:ml-2">{t('title')}</p>
                     </Link>
                 </NavbarBrand>
             </NavbarContent>
