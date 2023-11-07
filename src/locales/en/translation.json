@@ -167,7 +167,6 @@
       "subjects": "Subjects",
       "title": "National Certificate of Education Level 3"
     },
-    "passion": "",
     "subtitle": "Hi, I'm Shintaro! I'm a passionate developer dedicated to creating innovative solutions.",
     "title": "About me",
     "expand": "Press to expand",
@@ -218,7 +217,6 @@
   "header": {
     "about": "About",
     "apps": "Apps",
-    "chat": "Chat",
     "home": "Home",
     "title": "Shintaro Jokagi",
     "blog": "Blog",
@@ -231,6 +229,29 @@
         "name": "Blog Archives",
         "description": "Archives of blog posts"
       }
+    },
+    "chat": {
+      "name": "Chat",
+      "description": "Chat App"
+    },
+    "ncea": {
+      "description": "Manage NCEA"
+    },
+    "search": {
+      "name": "Search",
+      "description": "Search using custom Google Search."
+    },
+    "generator": {
+      "name": "Image Generator",
+      "description": "Image generator app"
+    },
+    "analytics": {
+      "name": "Analytics",
+      "description": "See the analytics of this website."
+    },
+    "schedule": {
+      "name": "Schedule for trip in Japan",
+      "description": "See my trip plan while in Japan."
     }
   },
   "index": {
@@ -323,5 +344,36 @@
   "blog": {
     "see more": "See more",
     "all posts": "All posts"
+  },
+  "schedule": {
+    "month": "Month",
+    "week": "Week",
+    "day": "Day",
+    "context": "Context",
+    "start day": "Start Day",
+    "end day": "End Day",
+    "do": {
+      "microsoft": "Microsoft Japan Tour"
+    },
+    "ehime": "Ehime",
+    "tokyo": "Tokyo",
+    "auckland": "Auckland",
+    "date": "Date",
+    "time": "Time",
+    "location switch description": "Click to toggle location(s)",
+    "not decided": "Not Decided",
+    "title": "Schedule for trip in Japan",
+    "taira family": "Meeting Taira Family",
+    "calendar": "Calendar for Japan trip",
+    "close": "Close",
+    "event details": "Event details",
+    "detail": {
+      "time": "Time:",
+      "location": "Location:",
+      "context": "What to do:",
+      "subject": "Subject:",
+      "description": "Details:"
+    },
+    "allDay": "All Day"
   }
 }
