@@ -344,36 +344,5 @@
   "blog": {
     "see more": "See more",
     "all posts": "All posts"
-  },
-  "schedule": {
-    "month": "Month",
-    "week": "Week",
-    "day": "Day",
-    "context": "Context",
-    "start day": "Start Day",
-    "end day": "End Day",
-    "do": {
-      "microsoft": "Microsoft Japan Tour"
-    },
-    "ehime": "Ehime",
-    "tokyo": "Tokyo",
-    "auckland": "Auckland",
-    "date": "Date",
-    "time": "Time",
-    "location switch description": "Click to toggle location(s)",
-    "not decided": "Not Decided",
-    "title": "Schedule for trip in Japan",
-    "taira family": "Meeting Taira Family",
-    "calendar": "Calendar for Japan trip",
-    "close": "Close",
-    "event details": "Event details",
-    "detail": {
-      "time": "Time:",
-      "location": "Location:",
-      "context": "What to do:",
-      "subject": "Subject:",
-      "description": "Details:"
-    },
-    "allDay": "All Day"
   }
 }

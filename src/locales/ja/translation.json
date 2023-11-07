@@ -344,36 +344,5 @@
   "blog": {
     "see more": "もっと見る",
     "all posts": "すべての投稿"
-  },
-  "schedule": {
-    "month": "月",
-    "week": "週",
-    "day": "日",
-    "context": "内容",
-    "start day": "開始時間",
-    "end day": "終了時間",
-    "do": {
-      "microsoft": "マイクロソフト社見学"
-    },
-    "ehime": "愛媛",
-    "tokyo": "東京",
-    "auckland": "オークランド",
-    "date": "日付",
-    "time": "時間",
-    "location switch description": "押して場所を(非)表示",
-    "not decided": "未定",
-    "title": "日本での旅行計画",
-    "taira family": "平ファミリーに会う",
-    "calendar": "日本での予定カレンダー",
-    "close": "閉じる",
-    "event details": "イベント情報",
-    "detail": {
-      "time": "時間：",
-      "location": "場所：",
-      "context": "内容：",
-      "subject": "内容：",
-      "description": "詳細："
-    },
-    "allDay": "一日中"
   }
 }
