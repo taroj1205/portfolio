@@ -20,6 +20,7 @@ import SchoolHistory from "@/components/SchoolHistory";
 import { Kbd, KbdKey } from "@nextui-org/react";
 import Socials from "@/components/Socials";
 import { FiLink2 } from "react-icons/fi";
+import Hamburger from "./components/Hamburger";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ const usedComponents = {
 	TableContents,
 	WordCounter,
 	FiLink2,
+	Hamburger,
 	Kbd(props: { keys: KbdKey[]; text: string }) {
 		return <Kbd keys={props.keys}>{props.text}</Kbd>;
 	},
