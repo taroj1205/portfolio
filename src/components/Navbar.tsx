@@ -245,7 +245,7 @@ const Dropdown = ({ items }: DropdownProps) => {
                 onClick={() => setIsOpen(!isOpen)}
                 data-active={pathname.startsWith(items[0].href.toString())}
                 data-menu-open={isOpen}
-				className="navbar-link cursor-pointer w-full my-2 active:scale-95 data-menu-open:scale-95 transition-all h-full text-black dark:text-white flex items-center space-x-2 justify-start">
+				className="navbar-link cursor-pointer w-full my-2 transition-all h-full text-black dark:text-white flex items-center space-x-2 justify-start">
 				{items[0].href === "/posts" ? (
 					<>
 						<FaBlog />

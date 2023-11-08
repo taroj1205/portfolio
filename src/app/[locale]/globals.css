@@ -56,6 +56,10 @@ main {
   }
 }
 
+.navbar-link[data-menu-open='true'] {
+  transform: scale(0.97)
+}
+
 a {
   @apply text-blue-500;
 }
