@@ -106,57 +106,76 @@ const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) =
     const readTime = `${Math.round(post.readingTime.minutes)}${post.locale === 'ja' ? '分で読めます' : ' min to read'}`
 
     return (
-        <div className='md:px-2'>
-            <div className='mx-auto max-w-3xl p-4 md:px-6 md:rounded-lg'>
-                <p className='block text-center text-base font-semibold uppercase tracking-wide'>
-                    {categories.map((item: any, index: any) => (
-                        <Link className='text-indigo-600 hover:text-indigo-700 hover:underline' href={`/posts/categories/${item}`} key={index}>#{item}</Link>
-                    ))}
-                </p>
-                <h1 className='my-2 block text-center text-3xl font-extrabold leading-8 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl'>
-                    {post.title}
-                </h1>
-                <div className='flex items-center justify-center'>
-                    <span className='text-gray-600 dark:text-gray-400 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200 dark:border-gray-600'>
-                        {readTime}
-                    </span>
-                    <span className='items-center text-gray-600 dark:text-gray-400 text-sm py-1 inline-flex space-x-1'>
-                        <IoChatbubbleOutline />
-                        <DateFormatter date={String(post.publishedAt)} lang={String(post.locale)} />
-                    </span>
-                </div>
-                <Image
-                    className='md:h-[18rem] h-[14rem] mt-3 mb-2 w-full object-cover object-center'
-                    src={post.image}
-                    width={720}
-                    height={400}
-                    alt='blog'
-                />
-                <div className='flex flex-col md:flex-row items-start md:justify-between md:items-center my-4'>
-                    <div className='flex flex-col'>
-                        <div className='flex items-center rounded-lg space-x-4'>
-                            <Image src={post.author.image} width={50} height={50} alt='blog' className='rounded-full' />
+			<div className="md:px-2">
+				<div className="mx-auto max-w-3xl p-4 md:px-6 md:rounded-lg">
+					<p className="block text-center text-base font-semibold uppercase tracking-wide">
+						{categories.map((item: any, index: any) => (
+							<Link
+								className="text-indigo-600 hover:text-indigo-700 hover:underline"
+								href={`/posts/categories/${item}`}
+								key={index}>
+								#{item}
+							</Link>
+						))}
+					</p>
+					<h1 className="my-2 block text-center text-3xl font-extrabold leading-8 tracking-tight text-gray-900 dark:text-gray-100 sm:text-4xl">
+						{post.title}
+					</h1>
+					<div className="flex items-center justify-center">
+						<span className="text-gray-600 dark:text-gray-400 mr-3 inline-flex items-center leading-none text-sm pr-3 py-1 border-r-2 border-gray-200 dark:border-gray-600">
+							{readTime}
+						</span>
+						<span className="items-center text-gray-600 dark:text-gray-400 text-sm py-1 inline-flex space-x-1">
+							<IoChatbubbleOutline />
+							<DateFormatter
+								date={String(post.publishedAt)}
+								lang={String(post.locale)}
+							/>
+						</span>
+					</div>
+					<Image
+						className="md:h-[18rem] h-[14rem] mt-3 mb-2 w-full object-cover object-center"
+						src={post.image}
+						width={720}
+						height={400}
+						alt="blog"
+					/>
+					<div className="flex flex-col md:flex-row items-start md:justify-between md:items-center my-4">
+						<div className="flex flex-col">
+							<div className="flex items-center rounded-lg space-x-4">
+								<Image
+									src={post.author.image}
+									width={50}
+									height={50}
+									alt="blog"
+									className="rounded-full"
+								/>
 
-                            <div className='text-gray-800 dark:text-gray-200 flex flex-col'>
-                                <strong className='text-lg'>{post.author.name}</strong>
-                                <span className='text-sm mb-1'>{post.locale === 'ja' ? '高校生' : 'High School Student'}</span>
-                                <Socials />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <article className={`${markdownStyles['markdown']} mx-auto space-y-4 leading-snug prose-md prose prose-indigo lg:prose-lg rounded-lg`}>
-                    <Content components={usedcomponents} />
-                </article>
-                <div className="mt-4">
-                    <Link href={'/posts'} className="flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
-                        <BsArrowLeft className="mr-2" />
-                        {post.locale === 'ja' ? '投稿一覧へ' : 'Back to posts'}
-                    </Link>
-                </div>
-            </div>
-        </div>
-    )
+								<div className="text-gray-800 dark:text-gray-200 flex flex-col">
+									<strong className="text-lg">{post.author.name}</strong>
+									<span className="text-sm mb-1">
+										{post.locale === "ja" ? "高校生" : "High School Student"}
+									</span>
+									<Socials />
+								</div>
+							</div>
+						</div>
+					</div>
+					<article
+						className={`${markdownStyles["markdown"]} mx-auto space-y-4 leading-snug prose-md prose prose-indigo lg:prose-lg rounded-lg`}>
+						<Content components={usedcomponents} />
+					</article>
+					<div className="mt-4">
+						<Link
+							href={"/posts"}
+							className="flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+							<BsArrowLeft className="mr-2" />
+							{post.locale === "ja" ? "投稿一覧へ" : "Back to posts"}
+						</Link>
+					</div>
+				</div>
+			</div>
+		);
 }
 
 export default PostLayout

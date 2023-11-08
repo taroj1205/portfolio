@@ -19,7 +19,8 @@ import NCEA from "@/components/NCEA/Ncea";
 import SchoolHistory from "@/components/SchoolHistory";
 import { Kbd, KbdKey } from "@nextui-org/react";
 import Socials from "@/components/Socials";
-import {FiLink2} from "react-icons/fi";
+import { FiLink2 } from "react-icons/fi";
+import Hamburger from "./components/Hamburger";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,7 @@ const usedComponents = {
 	TableContents,
 	WordCounter,
 	FiLink2,
+	Hamburger,
 	Kbd(props: { keys: KbdKey[]; text: string }) {
 		return <Kbd keys={props.keys}>{props.text}</Kbd>;
 	},
@@ -157,13 +159,13 @@ const PostLayout = ({
 	return (
 		<div className="md:px-2">
 			<div className="mx-auto max-w-3xl p-4 md:px-6 md:rounded-lg">
-				<p className="block text-center text-base font-semibold uppercase tracking-wide">
+				<p className="block text-center space-x-2 text-base font-semibold uppercase tracking-wide">
 					{categories.map((item: any, index: any) => (
 						<Link
 							className="text-indigo-600 hover:text-indigo-700 hover:underline"
-							href={`/posts/categories/${item}`}
+							href={`/posts/categories/${item.trim()}`}
 							key={index}>
-							#{item}
+							#{item.trim()}
 						</Link>
 					))}
 				</p>

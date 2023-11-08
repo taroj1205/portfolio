@@ -1,0 +1,94 @@
+---
+title: 要素のアニメーション
+description: 僕が作成したアニメーション要素の例を示します。
+image: /blog/thumbnail/programming/animate/thumbnail.jpg
+publishedAt: 2023-10-14T03:09:38.593Z
+author:
+  {
+    name: 'Shintaro Jokagi',
+    image: '/blog/profile.webp',
+  }
+locale: ja
+category: programming
+---
+
+## ハンバーガーメニューのボタン
+
+これはアニメーション付きのハンバーガーメニューボタンの例です。
+
+<Hamburger />
+
+### HTML (React.js)
+
+
+```tsx
+'use client'
+import React, { useState } from 'react'
+
+const Hamburger = () => {
+    const [open, setOpen] = useState(false);
+    return (
+			<button
+				title="Menu"
+				type="button"
+				className="focus:outline-none h-10 w-fit p-1"
+				onClick={() => setOpen(!open)}>
+				<div
+					data-menu-open={open}
+					className="menu-toggle before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"></div>
+			</button>
+		);
+}
+
+export default Hamburger
+```
+
+### CSS
+
+```css
+.menu-toggle {
+  position: relative;
+  width: 24px;
+  height: 2px;
+  background: transparent;
+  transition: all 0.3s ease-in-out;
+}
+.menu-toggle:hover {
+  cursor: pointer;
+  background: transparent;
+}
+
+.menu-toggle::before,
+.menu-toggle::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  transition: all 0.3s ease-in-out;
+}
+
+.menu-toggle::before {
+    top: 0;
+    transform: translateY(-5px);
+}
+
+.menu-toggle::after {
+    bottom: 0;
+    transform: translateY(5px);
+}
+
+.menu-toggle[data-menu-open='true'] {
+  background: transparent;
+}
+
+.menu-toggle[data-menu-open='true']::before {
+  transform: rotate(45deg);
+  top: 0;
+}
+
+.menu-toggle[data-menu-open='true']::after {
+  transform: rotate(-45deg);
+  bottom: 0;
+}
+```

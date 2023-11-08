@@ -512,8 +512,8 @@
 	"blog-post": {
 		"metadataBase": "https://taroj.vercel.app",
 		"title": {
-			"ja": "{title} - 上鍵心太朗のブログ",
-			"en": "{title} - Shintaro Jokagi Blog"
+			"ja": "{title} - ブログ",
+			"en": "{title} -  Blog"
 		},
 		"description": {
 			"ja": "{description}",
@@ -536,8 +536,8 @@
 		"twitter": {
 			"card": "summary_large_image",
 			"title": {
-				"ja": "{title} - 上鍵心太朗のブログ",
-				"en": "{title} - Shintaro Jokagi Blog"
+				"ja": "{title} - ブログ",
+				"en": "{title} - Blog"
 			},
 			"description": {
 				"ja": "{description}",
