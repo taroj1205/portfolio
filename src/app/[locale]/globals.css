@@ -52,7 +52,7 @@ main {
     @apply text-black dark:text-white dark:bg-gray-900 bg-white font-sans text-base;
   }
   .navbar-link {
-    @apply text-medium whitespace-nowrap box-border list-none data-[active=true]:font-semibold flex relative h-full items-center data-[active=true]:after:content-[''] data-[active=true]:after:absolute data-[active=true]:after:bottom-0 data-[active=true]:after:left-0 data-[active=true]:after:right-0 md:data-[active=true]:after:h-[2px] md:data-[active=true]:after:rounded-[2px] data-[active=true]:after:bg-primary;
+    @apply text-medium whitespace-nowrap box-border active:scale-[0.97] list-none data-[active=true]:font-semibold flex relative h-full items-center data-[active=true]:after:content-[''] data-[active=true]:after:absolute data-[active=true]:after:bottom-0 data-[active=true]:after:left-0 data-[active=true]:after:right-0 md:data-[active=true]:after:h-[2px] md:data-[active=true]:after:rounded-[2px] data-[active=true]:after:bg-primary;
   }
 }
 
