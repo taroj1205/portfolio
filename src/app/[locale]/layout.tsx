@@ -10,6 +10,8 @@ import metadata from "../metadata.json";
 import { headers } from "next/headers";
 import NextHeader from "@/components/NextHeader";
 import ScrollToTopButton from "@/components/ScrollTop";
+import Header from "@/components/Header";
+import { Navbar } from "@/components/Navbar";
 
 export async function generateMetadata({
 	params,
@@ -121,7 +123,7 @@ export default async function RootLayout({
 					disableTransitionOnChange>
 					<NextIntlClientProvider locale={locale} messages={messages}>
 						<div className="min-h-screen flex flex-col">
-							<NextHeader />
+							<Navbar />
 							<main className="content relative pt-8 pb-6 bg-white dark:bg-gray-900">
 								{children}
 							</main>
