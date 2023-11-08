@@ -146,7 +146,7 @@ export const Navbar = () => {
 					<button
 						title="Menu"
 						type="button"
-						className="focus:outline-none h-6 w-6 p-1"
+						className="focus:outline-none h-full w-fit p-1"
 						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
 						<div
 							data-menu-open={mobileMenuOpen}

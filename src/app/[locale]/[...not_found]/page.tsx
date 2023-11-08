@@ -45,7 +45,7 @@ export default function NotFound() {
             <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
                 {locale === 'ja' ? 'ページが見つかりません' : 'Page not found'}
             </p>
-            <Link href={`/${locale}/posts`} className="text-blue-500 hover:underline">
+            <Link href={`/${locale}`} className="text-blue-500 hover:underline">
                 {locale === 'ja' ? 'ホームに戻る' : 'Go back to Home'}
             </Link>
         </div>
