@@ -52,7 +52,7 @@ main {
     @apply text-black dark:text-white dark:bg-gray-900 bg-white font-sans text-base;
   }
   .navbar-link {
-    @apply text-medium whitespace-nowrap box-border active:scale-[0.97] list-none data-[active=true]:font-semibold flex relative h-full items-center data-[active=true]:after:content-[''] data-[active=true]:after:absolute data-[active=true]:after:bottom-0 data-[active=true]:after:left-0 data-[active=true]:after:right-0 md:data-[active=true]:after:h-[2px] md:data-[active=true]:after:rounded-[2px] data-[active=true]:after:bg-primary;
+    @apply subpixel-antialiased text-medium whitespace-nowrap box-border active:scale-[0.97] list-none data-[active=true]:font-semibold flex relative h-full items-center data-[active=true]:after:content-[''] data-[active=true]:after:absolute data-[active=true]:after:bottom-0 data-[active=true]:after:left-0 data-[active=true]:after:right-0 md:data-[active=true]:after:h-[2px] md:data-[active=true]:after:rounded-[2px] data-[active=true]:after:bg-primary;
   }
 }
 
@@ -225,16 +225,16 @@ a {
     transform: translateY(5px);
 }
 
-.menu-toggle[data-menu-opened='true'] {
+.menu-toggle[data-menu-open='true'] {
   background: transparent;
 }
 
-.menu-toggle[data-menu-opened='true']::before {
+.menu-toggle[data-menu-open='true']::before {
   transform: rotate(45deg);
   top: 0;
 }
 
-.menu-toggle[data-menu-opened='true']::after {
+.menu-toggle[data-menu-open='true']::after {
   transform: rotate(-45deg);
   bottom: 0;
 }
@@ -259,20 +259,20 @@ a {
   transition: all 0.3s ease-in-out;
 }
 
-.navbar-dropdown[data-menu-opened='true']::before {
+.navbar-dropdown[data-menu-open='true']::before {
   transform: translateY(3px) rotate(45deg);
 }
 
-.navbar-dropdown[data-menu-opened='true']::after {
+.navbar-dropdown[data-menu-open='true']::after {
   transform: translateY(-3px) rotate(-45deg);
 }
 
-.navbar-dropdown[data-menu-opened='false']::before,
+.navbar-dropdown[data-menu-open='false']::before,
 .navbar-dropdown:hover::before {
   transform: translateY(-3px) rotate(45deg);
 }
 
-.navbar-dropdown[data-menu-opened='false']::after,
+.navbar-dropdown[data-menu-open='false']::after,
 .navbar-dropdown:hover::after {
   transform: translateY(3px) rotate(-45deg);
 }

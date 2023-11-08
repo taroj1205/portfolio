@@ -134,12 +134,14 @@ export const Navbar = () => {
 		],
 	};
 
-	return (
+    return (
+        <>
+            <div data-menu-open={mobileMenuOpen} className="h-16"></div>
 		<nav
 			data-menu-open={mobileMenuOpen}
-			className="flex h-auto flex-col min-h-[4rem] z-40 w-full items-center justify-center data-[menu-open=true]:h-[100dvh] data-[menu-open=true]:justify-start data-[menu-open=true]:border-none sticky top-0 inset-x-0 border-b border-divider backdrop-blur-lg data-[menu-open=true]:backdrop-blur-xl backdrop-saturate-150 bg-background/70">
+			className="flex h-fit flex-col min-h-[4rem] z-40 w-full items-center justify-center data-[menu-open=true]:h-[100dvh] data-[menu-open=true]:justify-start data-[menu-open=true]:border-none fixed top-0 inset-x-0 border-b border-divider backdrop-blur-lg data-[menu-open=true]:backdrop-blur-xl backdrop-saturate-150 bg-background/70">
 			<div
-				data-menu-opened={mobileMenuOpen}
+				data-menu-open={mobileMenuOpen}
 				className={`flex items-center h-16 justify-between md:hidden w-full px-2 pl-3`}>
 				{/* Mobile hamburger menu button */}
 				<button
@@ -148,7 +150,7 @@ export const Navbar = () => {
 					className="focus:outline-none h-6 w-6 p-1"
 					onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
 					<div
-						data-menu-opened={mobileMenuOpen}
+						data-menu-open={mobileMenuOpen}
 						className="menu-toggle before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"></div>
 				</button>
 				<div className="flex items-center justify-center md:hidden">
@@ -206,7 +208,8 @@ export const Navbar = () => {
 					<ThemeSwitcher />
 				</div>
 			</header>
-		</nav>
+            </nav>
+            </>
 	);
 };
 
@@ -259,7 +262,7 @@ const Dropdown = ({ items }: DropdownProps) => {
 				)}
 				<div
 					className="navbar-dropdown before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"
-					data-menu-opened={isOpen}
+					data-menu-open={isOpen}
 				/>
 			</div>
 			{isOpen && (
