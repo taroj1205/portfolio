@@ -10,8 +10,7 @@ import { Link, usePathname } from "@/lib/next-intl";
 import { LangToggle } from "./LangToggle";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/router";
-import { useSelectedLayoutSegment, useSelectedLayoutSegments } from "next/navigation";
+import { useSelectedLayoutSegment } from "next/navigation";
 
 interface ChevronDownProps extends React.SVGProps<SVGSVGElement> {
 	size?: number;
@@ -55,17 +54,17 @@ const ChevronDown = ({
 
 export const Navbar = () => {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const pathname = usePathname();
-        const segment = useSelectedLayoutSegment() || "";
+	const pathname = usePathname();
+	const segment = useSelectedLayoutSegment() || "";
 	const t = useTranslations("header");
 	const links = [
 		{ href: "/", text: t("home"), icon: <RiHome2Line /> },
 		{ href: "/about", text: t("about"), icon: <RiUserLine /> },
-    ];
-    
-    useEffect(() => {
-        setMobileMenuOpen(false)
-    }, [segment])
+	];
+
+	useEffect(() => {
+		setMobileMenuOpen(false);
+	}, [segment]);
 
 	const icons = {
 		chevron: <ChevronDown fill="currentColor" size={16} />,
@@ -134,96 +133,96 @@ export const Navbar = () => {
 		],
 	};
 
-    return (
-        <>
-            <div data-menu-open={mobileMenuOpen} className="h-16"></div>
-		<nav
-			data-menu-open={mobileMenuOpen}
-			className="flex h-fit flex-col min-h-[4rem] z-40 w-full items-center justify-center data-[menu-open=true]:h-[100dvh] data-[menu-open=true]:justify-start data-[menu-open=true]:border-none fixed top-0 inset-x-0 border-b border-divider backdrop-blur-lg data-[menu-open=true]:backdrop-blur-xl backdrop-saturate-150 bg-background/70">
-			<div
+	return (
+		<>
+			<div data-menu-open={mobileMenuOpen} className="h-16"></div>
+			<nav
 				data-menu-open={mobileMenuOpen}
-				className={`flex items-center h-16 justify-between md:hidden w-full px-2 pl-3`}>
-				{/* Mobile hamburger menu button */}
-				<button
-					title="Menu"
-					type="button"
-					className="focus:outline-none h-6 w-6 p-1"
-					onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-					<div
-						data-menu-open={mobileMenuOpen}
-						className="menu-toggle before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"></div>
-				</button>
-				<div className="flex items-center justify-center md:hidden">
-					<LangToggle />
-					<ThemeSwitcher />
-				</div>
-			</div>
-			{/* Mobile menu */}
-			{mobileMenuOpen && (
-				<div className="flex flex-col justify-center md:hidden px-6 w-full">
-					{links.map((link, index) => (
-						<Link
-							key={index}
-							href={link.href}
-							className="text-black py-2 dark:text-white flex items-center space-x-2">
-							{link.icon}
-							<span>{link.text}</span>
-						</Link>
-					))}
-					<Dropdown items={nested["blog"]} />
-					<Dropdown items={nested["apps"]} />
-				</div>
-			)}
-			<header className="hidden h-16 z-40 md:flex px-6 gap-4 w-full flex-row relative flex-nowrap items-center justify-between max-w-[1024px]">
-				<Link
-					href="/"
-					className="h-full flex flex-grow text-black dark:text-white items-center justify-start">
-					<Image
-						src="/images/profile/pfp.webp"
-						alt="profile picture"
-						width={50}
-						height={50}
-						className="w-6 h-6 rounded-lg"
-					/>
-					<p className="font-bold text-inherit ml-1 md:ml-2">{t("title")}</p>
-				</Link>
-				{/* Desktop menu */}
+				className="flex h-fit flex-col min-h-[4rem] z-40 w-full items-center justify-center data-[menu-open=true]:h-[100dvh] data-[menu-open=true]:justify-start data-[menu-open=true]:border-none fixed top-0 inset-x-0 border-b border-divider backdrop-blur-lg data-[menu-open=true]:backdrop-blur-xl backdrop-saturate-150 bg-background/70">
 				<div
-					className={`hidden h-full md:flex space-x-4 items-center justify-center`}>
-					{links.map((link, index) => (
-						<Link
-							key={index}
-							href={link.href}
-							data-active={pathname === link.href}
-							className="navbar-link h-full text-black dark:text-white flex items-center space-x-2">
-							{link.icon}
-							<span>{link.text}</span>
-						</Link>
-					))}
-					<Dropdown items={nested["blog"]} />
-					<Dropdown items={nested["apps"]} />
+					data-menu-open={mobileMenuOpen}
+					className={`flex items-center h-16 justify-between md:hidden w-full px-2 pl-3`}>
+					{/* Mobile hamburger menu button */}
+					<button
+						title="Menu"
+						type="button"
+						className="focus:outline-none h-6 w-6 p-1"
+						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+						<div
+							data-menu-open={mobileMenuOpen}
+							className="menu-toggle before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"></div>
+					</button>
+					<div className="flex items-center justify-center md:hidden">
+						<LangToggle />
+						<ThemeSwitcher />
+					</div>
 				</div>
-				<div className="hidden h-full md:flex flex-grow space-x-1.5 items-center justify-end">
-					<LangToggle />
-					<ThemeSwitcher />
-				</div>
-			</header>
-            </nav>
-            </>
+				{/* Mobile menu */}
+				{mobileMenuOpen && (
+					<div className="flex flex-col justify-center md:hidden px-6 w-full">
+						{links.map((link, index) => (
+							<Link
+								key={index}
+								href={link.href}
+								className="text-black py-2 dark:text-white flex items-center space-x-2">
+								{link.icon}
+								<span>{link.text}</span>
+							</Link>
+						))}
+						<Dropdown items={nested["blog"]} />
+						<Dropdown items={nested["apps"]} />
+					</div>
+				)}
+				<header className="hidden h-16 z-40 md:flex px-6 gap-4 w-full flex-row relative flex-nowrap items-center justify-between max-w-[1024px]">
+					<Link
+						href="/"
+						className="h-full flex flex-grow text-black dark:text-white items-center justify-start">
+						<Image
+							src="/images/profile/pfp.webp"
+							alt="profile picture"
+							width={50}
+							height={50}
+							className="w-6 h-6 rounded-lg"
+						/>
+						<p className="font-bold text-inherit ml-1 md:ml-2">{t("title")}</p>
+					</Link>
+					{/* Desktop menu */}
+					<div
+						className={`hidden h-full md:flex space-x-4 items-center justify-center`}>
+						{links.map((link, index) => (
+							<Link
+								key={index}
+								href={link.href}
+								data-active={pathname === link.href}
+								className="navbar-link h-full text-black dark:text-white flex items-center space-x-2">
+								{link.icon}
+								<span>{link.text}</span>
+							</Link>
+						))}
+						<Dropdown items={nested["blog"]} />
+						<Dropdown items={nested["apps"]} />
+					</div>
+					<div className="hidden h-full md:flex flex-grow space-x-1.5 items-center justify-end">
+						<LangToggle />
+						<ThemeSwitcher />
+					</div>
+				</header>
+			</nav>
+		</>
 	);
 };
 
 type DropdownProps = {
 	items: {
 		href: string;
-        text: string;
-        icon: JSX.Element;
+		text: string;
+		icon: JSX.Element;
 	}[];
 };
 
 const Dropdown = ({ items }: DropdownProps) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const pathname = usePathname();
+	const [isOpen, setIsOpen] = useState(false);
+	const pathname = usePathname();
 	const t = useTranslations("header");
 
 	const ref = useRef<HTMLDivElement>(null);
@@ -244,10 +243,10 @@ const Dropdown = ({ items }: DropdownProps) => {
 
 	return (
 		<div className="relative flex items-center md:h-full w-full" ref={ref}>
-            <div
-                onClick={() => setIsOpen(!isOpen)}
-                data-active={pathname.startsWith(items[0].href.toString())}
-                data-menu-open={isOpen}
+			<div
+				onClick={() => setIsOpen(!isOpen)}
+				data-active={pathname.startsWith(items[0].href.toString())}
+				data-menu-open={isOpen}
 				className="navbar-link cursor-pointer w-full my-2 transition-all h-full text-black dark:text-white flex items-center space-x-2 justify-start">
 				{items[0].href === "/posts" ? (
 					<>

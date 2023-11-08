@@ -1,6 +1,6 @@
 "use client";
 import { allPosts } from "contentlayer/generated";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, usePathname } from "@/lib/next-intl";
 import { useLocale } from "next-intl";
 
@@ -80,7 +80,7 @@ const TableContents = () => {
 	const listItems = renderList([...post.headings], 1);
 
 	return (
-		<div className="toc bg-white dark:bg-gray-800 px-6 pb-4 rounded-lg shadow-lg">
+		<div id="table-of-contents" className="toc bg-white dark:bg-gray-800 px-6 pb-4 rounded-lg shadow-lg">
 			<p className="text-2xl font-semibold py-4 text-gray-800 dark:text-white">
 				{locale === "ja" ? "目次" : "Table of Contents"}
 			</p>
