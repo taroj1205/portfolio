@@ -20,11 +20,9 @@ export default function Blog({params}: {params: {slug: string}}) {
     return (
         <div className="container mx-auto px-5">
             <main>
-                <h1 className="text-center text-3xl">{locale === 'ja' ? 'すべての投稿' : 'All posts'} #{params.slug}</h1>
+                <h1 className="text-center text-3xl mb-1">{locale === 'ja' ? 'すべての投稿' : 'All Posts'} #{params.slug}</h1>
 
-                <div className="h-12"></div>
-
-                <div className="flex flex-wrap lg:space-x-12 items-start justify-start">
+                <div className="flex flex-wrap items-start justify-start">
                     {posts.map((post, idx) => (
                         <ArticleCard category={post.category} key={idx} {...post} />
                     ))}

@@ -76,8 +76,11 @@ export default function Home() {
 					{locale === "ja" ? "最近の投稿" : "Recent posts"}
 				</p>
 				<div className="flex flex-wrap items-start justify-start">
-					{posts.slice(0, 4).map((post, idx) => (
-						<ArticleCard key={idx} {...post} category={post.category} />
+					{posts
+						.filter(post => post.url !== '/posts/about')
+						.slice(0, 4)
+						.map((post, idx) => (
+							<ArticleCard key={idx} {...post} category={post.category} />
 					))}
 				</div>
 				{/* <Link

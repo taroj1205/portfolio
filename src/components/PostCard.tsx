@@ -25,14 +25,14 @@ export default function PostCard({
 	locale: string;
 	draft: boolean;
 }) {
-	if (draft || url === "/posts/about") return null;
+	if (draft) return null;
 	const readTime = `${Math.round(readingTime.minutes)}${
 		locale === "ja" ? "分で読めます" : " min to read"
 	}`;
 	const categories = category?.split(",") || [];
 	return (
 		<div className="w-full sm:w-[25rem] h-full">
-			<div className="container py-6 mx-auto text-gray-600">
+			<div className="container mx-auto text-gray-600">
 				<div className="w-full flex">
 					<div className="p-4 w-full">
 						<div className="w-full h-full border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
