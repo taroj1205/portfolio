@@ -21,6 +21,7 @@ import { Kbd, KbdKey } from "@nextui-org/react";
 import Socials from "@/components/Socials";
 import { FiLink2 } from "react-icons/fi";
 import Hamburger from "./components/Hamburger";
+import Dropdown from "./components/Dropdown";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ const usedComponents = {
 	WordCounter,
 	FiLink2,
 	Hamburger,
+	Dropdown,
 	Kbd(props: { keys: KbdKey[]; text: string }) {
 		return <Kbd keys={props.keys}>{props.text}</Kbd>;
 	},
