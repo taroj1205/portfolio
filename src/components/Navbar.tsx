@@ -224,6 +224,7 @@ const Dropdown = ({ items }: DropdownProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const pathname = usePathname();
 	const t = useTranslations("header");
+	const segment = useSelectedLayoutSegment();
 
 	const ref = useRef<HTMLDivElement>(null);
 
@@ -240,6 +241,10 @@ const Dropdown = ({ items }: DropdownProps) => {
 			document.removeEventListener("mousedown", handleClickOutside);
 		};
 	}, [ref]);
+
+	useEffect(() => {
+		setIsOpen(false);
+	}, [segment]);
 
 	return (
 		<div className="relative flex items-center md:h-full w-full" ref={ref}>
