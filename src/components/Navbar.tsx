@@ -94,12 +94,12 @@ export const Navbar = () => {
 			},
 		],
 		apps: [
-			{
-				href: "/schedule",
-				text: t("schedule.name"),
-				icon: icons.plan,
-				description: t("schedule.description"),
-			},
+			// {
+			// 	href: "/schedule",
+			// 	text: t("schedule.name"),
+			// 	icon: icons.plan,
+			// 	description: t("schedule.description"),
+			// },
 			{
 				href: "https://chat-taroj.vercel.app/",
 				text: t("chat.name"),
