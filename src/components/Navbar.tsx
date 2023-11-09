@@ -10,7 +10,6 @@ import { Link, usePathname } from "@/lib/next-intl";
 import { LangToggle } from "./LangToggle";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useSelectedLayoutSegment } from "next/navigation";
 
 interface ChevronDownProps extends React.SVGProps<SVGSVGElement> {
 	size?: number;
@@ -55,7 +54,6 @@ const ChevronDown = ({
 export const Navbar = () => {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const pathname = usePathname();
-	const segment = useSelectedLayoutSegment() || "";
 	const t = useTranslations("header");
 	const links = [
 		{ href: "/", text: t("home"), icon: <RiHome2Line /> },
@@ -64,7 +62,7 @@ export const Navbar = () => {
 
 	useEffect(() => {
 		setMobileMenuOpen(false);
-	}, [segment]);
+	}, [pathname]);
 
 	const icons = {
 		chevron: <ChevronDown fill="currentColor" size={16} />,
@@ -224,7 +222,6 @@ const Dropdown = ({ items }: DropdownProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const pathname = usePathname();
 	const t = useTranslations("header");
-	const segment = useSelectedLayoutSegment();
 
 	const ref = useRef<HTMLDivElement>(null);
 
@@ -244,7 +241,7 @@ const Dropdown = ({ items }: DropdownProps) => {
 
 	useEffect(() => {
 		setIsOpen(false);
-	}, [segment]);
+	}, [pathname]);
 
 	return (
 		<div className="relative flex items-center md:h-full w-full" ref={ref}>
