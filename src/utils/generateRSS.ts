@@ -3,10 +3,10 @@ import { allPosts } from 'contentlayer/generated'
 import { ownerConfigs, ownerMetaData } from '@/utils/ownerConfigs'
 import { NextRequest } from 'next/server'
 
-export function generateRss(request: NextRequest) {
+export function generateRss(request: NextRequest, locale: string) {
   const feed = new Feed({
-    title: ownerConfigs.name,
-    description: ownerMetaData.description,
+    title: (ownerConfigs.name as Record<string, string>)[locale],
+    description: (ownerConfigs.description as Record<string, string>)[locale],
     id: request.nextUrl.origin,
     link: request.nextUrl.origin,
     language: 'en',
@@ -20,25 +20,28 @@ export function generateRss(request: NextRequest) {
       rss: `${request.nextUrl.origin}/feed.xml`,
     },
     author: {
-      name: ownerConfigs.name,
+      name: (ownerConfigs.name as Record<string, string>)[locale],
       email: ownerConfigs.githubLink,
       link: ownerConfigs.githubLink,
     },
   })
 
-  allPosts.map((post) => {
-    return feed.addItem({
-      title: post.title,
-      id: `${request.nextUrl.origin}${post.slug}`,
-      guid: `${request.nextUrl.origin}${post.slug}`,
-      link: `${request.nextUrl.origin}${post.slug}`,
-      date: new Date(post.publishedAt),
-      description: post.description || post.body.raw.slice(0, 300),
-      author: [{ name: post.author.name, link: ownerConfigs.githubLink, email: ownerConfigs.githubLink }],
-      content: post.description || post.body.raw,
-      image: request.nextUrl.origin + post.image,
+  allPosts
+    .filter(post => post.locale === locale && !post.draft)
+    .map((post) => {
+      console.log((ownerConfigs.name as Record<string, string>)[locale])
+      return feed.addItem({
+        title: post.title,
+        id: `${request.nextUrl.origin}${post.slug}`,
+        guid: `${request.nextUrl.origin}${post.slug}`,
+        link: `${request.nextUrl.origin}${post.slug}`,
+        date: new Date(post.publishedAt),
+        description: post.description || post.body.raw.slice(0, 300),
+        author: [{ name: (ownerConfigs.name as Record<string, string>)[locale], link: ownerConfigs.githubLink, email: ownerConfigs.githubLink }],
+        content: post.description || post.body.raw,
+        image: request.nextUrl.origin + post.image,
+      })
     })
-  })
 
   return {
     rss: feed.rss2(),
