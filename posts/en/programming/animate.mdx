@@ -3,11 +3,7 @@ title: Animate Elements
 description: I will show examples of animated elements that I have made.
 image: /blog/thumbnail/programming/animate/thumbnail.jpg
 publishedAt: 2023-10-14T03:09:38.593Z
-author:
-  {
-    name: 'Shintaro Jokagi',
-    image: '/blog/profile.webp',
-  }
+author: { name: "Shintaro Jokagi", image: "/blog/profile.webp" }
 locale: en
 category: programming
 ---
@@ -20,27 +16,26 @@ Here is the example of this animated hamburger menu button.
 
 ### HTML (React.js)
 
-
 ```tsx
-'use client'
-import React, { useState } from 'react'
+"use client";
+import React, { useState } from "react";
 
 const Hamburger = () => {
-    const [open, setOpen] = useState(false);
-    return (
-			<button
-				title="Menu"
-				type="button"
-				className="focus:outline-none h-10 w-fit p-1"
-				onClick={() => setOpen(!open)}>
-				<div
-					data-menu-open={open}
-					className="menu-toggle before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"></div>
-			</button>
-		);
-}
+  const [open, setOpen] = useState(false);
+  return (
+    <button
+      title="Menu"
+      type="button"
+      className="focus:outline-none h-10 w-fit p-1"
+      onClick={() => setOpen(!open)}>
+      <div
+        data-menu-open={open}
+        className="menu-toggle before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"></div>
+    </button>
+  );
+};
 
-export default Hamburger
+export default Hamburger;
 ```
 
 ### CSS
@@ -60,7 +55,7 @@ export default Hamburger
 
 .menu-toggle::before,
 .menu-toggle::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   width: 100%;
@@ -69,25 +64,25 @@ export default Hamburger
 }
 
 .menu-toggle::before {
-    top: 0;
-    transform: translateY(-5px);
+  top: 0;
+  transform: translateY(-5px);
 }
 
 .menu-toggle::after {
-    bottom: 0;
-    transform: translateY(5px);
+  bottom: 0;
+  transform: translateY(5px);
 }
 
-.menu-toggle[data-menu-open='true'] {
+.menu-toggle[data-menu-open="true"] {
   background: transparent;
 }
 
-.menu-toggle[data-menu-open='true']::before {
+.menu-toggle[data-menu-open="true"]::before {
   transform: rotate(45deg);
   top: 0;
 }
 
-.menu-toggle[data-menu-open='true']::after {
+.menu-toggle[data-menu-open="true"]::after {
   transform: rotate(-45deg);
   bottom: 0;
 }

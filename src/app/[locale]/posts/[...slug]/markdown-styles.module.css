@@ -60,5 +60,5 @@
 }
 
 .markdown code {
-    @apply px-2 py-1 h-fit font-mono font-normal inline-block whitespace-nowrap bg-default/40 text-default-foreground text-small rounded-small;
+    @apply px-2 py-1 h-fit font-mono font-normal inline-block bg-default/40 text-default-foreground text-small rounded-small;
 }
