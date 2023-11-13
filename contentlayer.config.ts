@@ -62,6 +62,7 @@ const Post = defineDocumentType(() => ({
         author: {
             type: 'nested',
             of: Author,
+            required: true,
         },
         draft: {
             type: 'boolean',
@@ -125,6 +126,6 @@ export default makeSource({
     documentTypes: [Post],
     mdx: {
         remarkPlugins: [remarkGfm],
-        rehypePlugins: [[rehypePrismPlus, { ignoreMissing: true }], rehypeSlug],
+        rehypePlugins: [[rehypePrismPlus, { defaultLanguage: 'js', ignoreMissing: true, showLineNumbers: true }], rehypeSlug],
     },
 })
