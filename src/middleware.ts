@@ -12,8 +12,9 @@ export default async function middleware(request: NextRequest) {
         // A list of all locales that are supported
         locales: ['en', 'ja'],
 
-        defaultLocale: 'en',
+        defaultLocale,
         localePrefix: 'always',
+        localeDetection: true,
     });
 
     const response = handleI18nRouting(request);
