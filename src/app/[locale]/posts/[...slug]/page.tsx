@@ -9,7 +9,7 @@ import Link from "next/link";
 import TableContents from "@/components/TableContents";
 import markdownStyles from "./markdown-styles.module.css";
 import { BsArrowLeft, BsArrowRight } from "react-icons/bs";
-import { FaTwitter, FaInstagram, FaFacebook, FaLinkedin } from "react-icons/fa";
+import { ownerConfigs, ownerMetaData } from "@/utils/ownerConfigs";
 import WordCounter from "@/components/WordCounter";
 import { notFound } from "next/navigation";
 import metadata from "@/app/metadata.json";
@@ -197,7 +197,7 @@ const PostLayout = ({
 					<div className="flex flex-col">
 						<div className="flex items-center rounded-lg space-x-4">
 							<Image
-								src={post.author.image}
+								src={ownerConfigs.image as string}
 								width={50}
 								height={50}
 								alt="blog"
@@ -205,9 +205,15 @@ const PostLayout = ({
 							/>
 
 							<div className="text-gray-800 dark:text-gray-200 flex flex-col">
-								<strong className="text-lg">{post.author.name}</strong>
+								<strong className="text-lg">
+									{(ownerConfigs.name as Record<string, string>)[
+										params.locale
+									].toString()}
+								</strong>
 								<span className="text-sm mb-1">
-									{post.locale === "ja" ? "高校生" : "High School Student"}
+									{(ownerConfigs.job as Record<string, string>)[
+										params.locale
+									].toString()}
 								</span>
 								<Socials />
 							</div>

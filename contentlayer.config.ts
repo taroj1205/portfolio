@@ -9,8 +9,8 @@ import rehypeSlug from "rehype-slug";
 const Author = defineNestedType(() => ({
     name: 'Author',
     fields: {
-        name: { type: 'string', required: true },
-        image: { type: 'string', required: true },
+        name: { type: 'string', required: true, default: 'Shintaro Jokagi' },
+        image: { type: 'string', required: true, default: '/blog/profile.webp' },
     },
 }));
 
@@ -62,7 +62,6 @@ const Post = defineDocumentType(() => ({
         author: {
             type: 'nested',
             of: Author,
-            required: true,
         },
         draft: {
             type: 'boolean',
