@@ -252,7 +252,8 @@
     "schedule": {
       "name": "日本での旅行計画",
       "description": "日本での旅行計画を見る"
-    }
+    },
+    "apps external": "※外部リンク※"
   },
   "index": {
     "about": "僕について",
