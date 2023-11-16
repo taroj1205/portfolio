@@ -1,9 +1,10 @@
 "use client";
-import { FaArchive, FaBlog, FaCubes, FaListAlt } from "react-icons/fa";
+import { FaArchive, FaBlog, FaCubes, FaFacebook, FaGithub, FaInstagram, FaLinkedin, FaListAlt, FaTwitter, FaYoutube } from "react-icons/fa";
 import { RiAiGenerate, RiHome2Line, RiUserLine } from "react-icons/ri";
 import { FaChartBar, FaComments, FaSearch } from "react-icons/fa";
 import { TbSchool } from "react-icons/tb";
 import { FcPlanner } from "react-icons/fc";
+import { SlSocialDropbox } from "react-icons/sl";
 import { useTranslations } from "next-intl";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { Link, usePathname } from "@/lib/next-intl";
@@ -51,6 +52,24 @@ const ChevronDown = ({
 	);
 };
 
+const icons = {
+	chevron: <ChevronDown fill="currentColor" size={16} />,
+	list: <FaListAlt className="text-warning" size={30} />,
+	archive: <FaArchive className="text-primary" size={30} />,
+	chat: <FaComments className="text-warning" size={30} />,
+	ncea: <TbSchool className="text-success" size={30} />,
+	search: <FaSearch className="text-danger" size={30} />,
+	analytics: <FaChartBar className="text-secondary" size={30} />,
+	generator: <RiAiGenerate className="text-primary" size={30} />,
+	plan: <FcPlanner className="text-success" size={30} />,
+	twitter: <FaTwitter className="text-blue-400" size={30} />,
+	facebook: <FaFacebook className="text-primary" size={30} />,
+	youtube: <FaYoutube className="text-red-600" size={30} />,
+	github: <FaGithub className="text-gray-900 dark:text-white" size={30} />,
+	linkedin: <FaLinkedin className="text-blue-700 dark:text-blue-500" size={30} />,
+	instagram: <FaInstagram className="text-pink-600" size={30} />,
+};
+
 export const Navbar = () => {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const pathname = usePathname();
@@ -64,17 +83,103 @@ export const Navbar = () => {
 		setMobileMenuOpen(false);
 	}, [pathname]);
 
-	const icons = {
-		chevron: <ChevronDown fill="currentColor" size={16} />,
-		list: <FaListAlt className="text-warning" size={30} />,
-		archive: <FaArchive className="text-primary" size={30} />,
-		chat: <FaComments className="text-warning" size={30} />,
-		ncea: <TbSchool className="text-success" size={30} />,
-		search: <FaSearch className="text-danger" size={30} />,
-		analytics: <FaChartBar className="text-secondary" size={30} />,
-		generator: <RiAiGenerate className="text-primary" size={30} />,
-		plan: <FcPlanner className="text-success" size={30} />,
-	};
+	return (
+		<>
+			<div data-menu-open={mobileMenuOpen} className="h-16"></div>
+			<nav
+				data-menu-open={mobileMenuOpen}
+				className="flex h-fit flex-col min-h-[4rem] z-40 w-full items-center justify-center data-[menu-open=true]:h-[100dvh] data-[menu-open=true]:justify-start data-[menu-open=true]:border-none fixed top-0 inset-x-0 border-b border-divider backdrop-blur-lg data-[menu-open=true]:backdrop-blur-xl backdrop-saturate-150 bg-background/70">
+				<div
+					data-menu-open={mobileMenuOpen}
+					className={`flex items-center h-16 justify-between md:hidden w-full px-2 pl-3`}>
+					{/* Mobile hamburger menu button */}
+					<button
+						title="Menu"
+						type="button"
+						className="focus:outline-none h-full w-fit p-1"
+						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+						<div
+							data-menu-open={mobileMenuOpen}
+							className="menu-toggle before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"></div>
+					</button>
+					<div className="flex items-center justify-center md:hidden">
+						<LangToggle />
+						<ThemeSwitcher />
+					</div>
+				</div>
+				{/* Mobile menu */}
+				{mobileMenuOpen && (
+					<div className="flex flex-col justify-center md:hidden px-6 w-full">
+						{links.map((link, index) => (
+							<Link
+								key={index}
+								href={link.href}
+								className="text-black py-2 dark:text-white flex items-center space-x-2">
+								{link.icon}
+								<span>{link.text}</span>
+							</Link>
+						))}
+						<Dropdown name="social" />
+						<Dropdown name="blog" />
+						<Dropdown name="apps" />
+					</div>
+				)}
+				<header className="hidden h-16 z-40 md:flex px-6 gap-4 w-full flex-row relative flex-nowrap items-center justify-between max-w-[1024px]">
+					<div className="h-full flex flex-grow items-center justify-start">
+						<Link
+							href="/"
+							className="text-black dark:text-white flex items-center">
+							<Image
+								src="/images/profile/pfp.webp"
+								alt="profile picture"
+								width={50}
+								height={50}
+								className="w-6 h-6 rounded-lg"
+							/>
+							<p className="font-bold text-inherit ml-1 md:ml-2">
+								{t("title")}
+							</p>
+						</Link>
+					</div>
+					{/* Desktop menu */}
+					<div
+						className={`hidden h-full md:flex space-x-4 items-center justify-center`}>
+						{links.map((link, index) => (
+							<Link
+								key={index}
+								href={link.href}
+								data-active={pathname === link.href}
+								className="navbar-link h-full text-black dark:text-white flex items-center space-x-2">
+								{link.icon}
+								<span>{link.text}</span>
+							</Link>
+						))}
+						<Dropdown name="social" />
+						<Dropdown name="blog" />
+						<Dropdown name="apps" />
+					</div>
+					<div className="hidden h-full md:flex flex-grow space-x-1.5 items-center justify-end">
+						<LangToggle />
+						<ThemeSwitcher />
+					</div>
+				</header>
+			</nav>
+		</>
+	);
+};
+
+type DropdownProps = {
+	items: {
+		href: string;
+		text: string;
+		icon: JSX.Element;
+	}[];
+};
+
+const Dropdown = ({ name }: { name: string }) => {
+	const [isOpen, setIsOpen] = useState(false);
+	const pathname = usePathname();
+	const t = useTranslations("header");
 
 	const nested: NestedType = {
 		blog: [
@@ -129,99 +234,47 @@ export const Navbar = () => {
 				description: t("analytics.description"),
 			},
 		],
+		social: [
+			{
+				href: "https://twitter.com/taroj1205",
+				text: "Twitter",
+				icon: icons.twitter,
+				description: "",
+			},
+			{
+				href: "https://github.com/taroj1205",
+				text: "GitHub",
+				icon: icons.github,
+				description: "",
+			},
+			{
+				href: "https://instagram.com/taroj1205",
+				text: "Instagram",
+				icon: icons.instagram,
+				description: "",
+			},
+			{
+				href: "https://youtube.com/@taroj1205",
+				text: "YouTube",
+				icon: icons.youtube,
+				description: "",
+			},
+			{
+				href: "https://linkedin.com/in/taroj",
+				text: "LinkedIn",
+				icon: icons.linkedin,
+				description: "",
+			},
+			{
+				href: "https://facebook.com/taroj1205",
+				text: "Facebook",
+				icon: icons.facebook,
+				description: "",
+			}
+		]
 	};
 
-	return (
-		<>
-			<div data-menu-open={mobileMenuOpen} className="h-16"></div>
-			<nav
-				data-menu-open={mobileMenuOpen}
-				className="flex h-fit flex-col min-h-[4rem] z-40 w-full items-center justify-center data-[menu-open=true]:h-[100dvh] data-[menu-open=true]:justify-start data-[menu-open=true]:border-none fixed top-0 inset-x-0 border-b border-divider backdrop-blur-lg data-[menu-open=true]:backdrop-blur-xl backdrop-saturate-150 bg-background/70">
-				<div
-					data-menu-open={mobileMenuOpen}
-					className={`flex items-center h-16 justify-between md:hidden w-full px-2 pl-3`}>
-					{/* Mobile hamburger menu button */}
-					<button
-						title="Menu"
-						type="button"
-						className="focus:outline-none h-full w-fit p-1"
-						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-						<div
-							data-menu-open={mobileMenuOpen}
-							className="menu-toggle before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"></div>
-					</button>
-					<div className="flex items-center justify-center md:hidden">
-						<LangToggle />
-						<ThemeSwitcher />
-					</div>
-				</div>
-				{/* Mobile menu */}
-				{mobileMenuOpen && (
-					<div className="flex flex-col justify-center md:hidden px-6 w-full">
-						{links.map((link, index) => (
-							<Link
-								key={index}
-								href={link.href}
-								className="text-black py-2 dark:text-white flex items-center space-x-2">
-								{link.icon}
-								<span>{link.text}</span>
-							</Link>
-						))}
-						<Dropdown items={nested["blog"]} />
-						<Dropdown items={nested["apps"]} />
-					</div>
-				)}
-				<header className="hidden h-16 z-40 md:flex px-6 gap-4 w-full flex-row relative flex-nowrap items-center justify-between max-w-[1024px]">
-					<Link
-						href="/"
-						className="h-full flex flex-grow text-black dark:text-white items-center justify-start">
-						<Image
-							src="/images/profile/pfp.webp"
-							alt="profile picture"
-							width={50}
-							height={50}
-							className="w-6 h-6 rounded-lg"
-						/>
-						<p className="font-bold text-inherit ml-1 md:ml-2">{t("title")}</p>
-					</Link>
-					{/* Desktop menu */}
-					<div
-						className={`hidden h-full md:flex space-x-4 items-center justify-center`}>
-						{links.map((link, index) => (
-							<Link
-								key={index}
-								href={link.href}
-								data-active={pathname === link.href}
-								className="navbar-link h-full text-black dark:text-white flex items-center space-x-2">
-								{link.icon}
-								<span>{link.text}</span>
-							</Link>
-						))}
-						<Dropdown items={nested["blog"]} />
-						<Dropdown items={nested["apps"]} />
-					</div>
-					<div className="hidden h-full md:flex flex-grow space-x-1.5 items-center justify-end">
-						<LangToggle />
-						<ThemeSwitcher />
-					</div>
-				</header>
-			</nav>
-		</>
-	);
-};
-
-type DropdownProps = {
-	items: {
-		href: string;
-		text: string;
-		icon: JSX.Element;
-	}[];
-};
-
-const Dropdown = ({ items }: DropdownProps) => {
-	const [isOpen, setIsOpen] = useState(false);
-	const pathname = usePathname();
-	const t = useTranslations("header");
+	const items = nested[name] as DropdownProps["items"];
 
 	const ref = useRef<HTMLDivElement>(null);
 
@@ -250,15 +303,20 @@ const Dropdown = ({ items }: DropdownProps) => {
 				data-active={pathname.startsWith(items[0].href.toString())}
 				data-menu-open={isOpen}
 				className="navbar-link select-none cursor-pointer w-full my-2 transition-all h-full text-black dark:text-white flex items-center space-x-2 justify-start">
-				{items[0].href === "/posts" ? (
+				{name === "blog" ? (
 					<>
 						<FaBlog />
 						<span>{t("blog")}</span>
 					</>
-				) : (
+				) : name === "apps" ? (
 					<>
 						<FaCubes />
 						<span>{t("apps")}</span>
+					</>
+				) : (
+					<>
+						<SlSocialDropbox />
+						<span>{t("social")}</span>
 					</>
 				)}
 				<div
@@ -269,18 +327,21 @@ const Dropdown = ({ items }: DropdownProps) => {
 			{isOpen && (
 				<div className="absolute w-fit z-10 top-10 md:top-14 left-0 min-w-[10rem] rounded-md shadow-lg bg-white dark:bg-zinc-800 ring-1 ring-black ring-opacity-5">
 					<div className="py-1">
-						{items[0].href !== "/posts" && (
-							<div className="flex flex-row w-full space-x-2 items-center px-4 py-2 text-sm font-semibold text-red-500 dark:text-red-400 cursor-default select-none">
-								{t("apps external")}
-							</div>
-						)}
+						{name === "apps" ||
+							(name === "social" && (
+								<div className="flex flex-row w-full space-x-2 items-center justify-center py-2 text-sm font-semibold text-red-500 dark:text-red-400 cursor-default select-none">
+									{t("apps external")}
+								</div>
+							))}
 						{items.map((item, index) => (
 							<Link
 								key={index}
-								className="flex flex-row w-full space-x-2 items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-zinc-700"
+								target={name === "apps" || name === "social" ? "_blank" : "_self"}
+								rel="noopener"
+								className="flex flex-row w-full space-x-2 items-center pl-2.5 pr-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-zinc-700"
 								href={item.href}>
 								{item.icon}
-								<div className="whitespace-nowrap">{item.text}</div>
+								<div className="whitespace-nowrap ml-1">{item.text}</div>
 							</Link>
 						))}
 					</div>

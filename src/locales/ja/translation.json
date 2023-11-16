@@ -253,7 +253,14 @@
       "name": "日本での旅行計画",
       "description": "日本での旅行計画を見る"
     },
-    "apps external": "※外部リンク※"
+    "apps external": "※外部リンク※",
+    "twitter": {
+      "name": "Twitter"
+    },
+    "github": {
+      "name": "GitHub"
+    },
+    "social": "SNS"
   },
   "index": {
     "about": "僕について",
