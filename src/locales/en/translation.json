@@ -253,7 +253,14 @@
       "name": "Schedule for trip in Japan",
       "description": "See my trip plan while in Japan."
     },
-    "apps external": "※External links※"
+    "apps external": "※External links※",
+    "twitter": {
+      "name": "Twitter"
+    },
+    "github": {
+      "name": "GitHub"
+    },
+    "social": "Social"
   },
   "index": {
     "about": "About me",
