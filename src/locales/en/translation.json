@@ -252,7 +252,8 @@
     "schedule": {
       "name": "Schedule for trip in Japan",
       "description": "See my trip plan while in Japan."
-    }
+    },
+    "apps external": "※External links※"
   },
   "index": {
     "about": "About me",

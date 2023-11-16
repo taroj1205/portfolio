@@ -249,7 +249,7 @@ const Dropdown = ({ items }: DropdownProps) => {
 				onClick={() => setIsOpen(!isOpen)}
 				data-active={pathname.startsWith(items[0].href.toString())}
 				data-menu-open={isOpen}
-				className="navbar-link cursor-pointer w-full my-2 transition-all h-full text-black dark:text-white flex items-center space-x-2 justify-start">
+				className="navbar-link select-none cursor-pointer w-full my-2 transition-all h-full text-black dark:text-white flex items-center space-x-2 justify-start">
 				{items[0].href === "/posts" ? (
 					<>
 						<FaBlog />
@@ -269,6 +269,11 @@ const Dropdown = ({ items }: DropdownProps) => {
 			{isOpen && (
 				<div className="absolute w-fit z-10 top-10 md:top-14 left-0 min-w-[10rem] rounded-md shadow-lg bg-white dark:bg-zinc-800 ring-1 ring-black ring-opacity-5">
 					<div className="py-1">
+						{items[0].href !== "/posts" && (
+							<div className="flex flex-row w-full space-x-2 items-center px-4 py-2 text-sm font-semibold text-red-500 dark:text-red-400 cursor-default select-none">
+								{t("apps external")}
+							</div>
+						)}
 						{items.map((item, index) => (
 							<Link
 								key={index}
