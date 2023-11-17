@@ -43,7 +43,7 @@ const Footer = () => {
 		<footer
 			className={`${inter.className} w-full mt-auto font-sans backdrop-blur-lg backdrop-saturate-150 bg-background/70 border-t border-divider`}>
 			<div className="mx-auto p-4 py-2 lg:py-4 max-w-4xl flex flex-col md:flex-row justify-start md:justify-between items-start md:items-center w-full">
-				<div className="flex flex-row flex-wrap items-center justify-center">
+				<div className="flex flex-row flex-wrap items-center justify-start md:justify-center">
 					<ul className="flex flex-row flex-wrap text-sm">
 						<li>
 							<Link
@@ -194,7 +194,8 @@ const Dropup = () => {
 
 	return (
 		<div className="relative flex items-center md:h-full w-full ml-2" ref={ref}>
-			<div
+			<button
+				type="button"
 				onClick={() => setIsOpen(!isOpen)}
 				data-active={pathname.startsWith(items[0].href.toString())}
 				data-menu-open={isOpen}
@@ -204,9 +205,9 @@ const Dropup = () => {
 					className="dropup before:bg-gray-600 after:bg-gray-600 dark:before:bg-gray-400 dark:after:bg-gray-400 group-hover:before:bg-black group-hover:after:bg-black dark:group-hover:before:bg-gray-200 dark:group-hover:after:bg-gray-200 transition-all"
 					data-menu-open={isOpen}
 				/>
-			</div>
+			</button>
 			{isOpen && (
-				<div className="absolute w-fit z-10 bottom-7 right-0 min-w-[10rem] rounded-md shadow-lg bg-white dark:bg-zinc-800 ring-1 ring-black ring-opacity-5">
+				<div className="absolute w-fit z-10 bottom-8 right-0 min-w-[10rem] rounded-md shadow-lg bg-white dark:bg-zinc-800 ring-1 ring-black ring-opacity-5">
 					<div className="py-1">
 						{items.map((item, index) => (
 							<Link
