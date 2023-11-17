@@ -47,14 +47,14 @@ const Footer = () => {
 					<li>
 						<Link
 							href={`/${locale === "en" ? "ja" : "en"}${pathname}`}
-							className="group py-1 px-2 flex flex-row space-x-1 text-sm text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300 ease-in-out">
+							className="group py-1 px-2 flex flex-row items-center justify-center space-x-1 text-sm text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300 ease-in-out">
 							{locale === "en" ? (
 								<Image
 									src="/svg/flag/jp.svg"
 									alt="Theme"
 									width={24}
 									height={24}
-									className="w-5 h-5 brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
+									className="w-4 h-4 brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
 								/>
 							) : (
 								<Image
@@ -62,7 +62,7 @@ const Footer = () => {
 									alt="Theme"
 									width={24}
 									height={24}
-									className="w-5 h-5 brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
+									className="w-4 h-4 brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
 								/>
 							)}
 							<p>{locale === "en" ? "日本語" : "English"}</p>
