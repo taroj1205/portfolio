@@ -276,3 +276,39 @@ a {
 .navbar-dropdown:hover::after {
   transform: translateY(3px) rotate(-45deg);
 }
+
+/* dropup (reverse dropdown) */
+.dropup {
+  position: relative;
+  display: inline-block;
+  padding: 5px;
+  transform: rotate(-90deg) scale(0.7);
+}
+
+.dropup::before,
+.dropup::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 10px;
+  height: 2px;
+  transition: all 0.3s ease-in-out;
+}
+
+.dropup[data-menu-open='true']::before {
+  transform: translateY(-3px) rotate(-45deg);
+}
+
+.dropup[data-menu-open='true']::after {
+  transform: translateY(3px) rotate(45deg);
+}
+
+.dropup[data-menu-open='false']::before,
+.dropup:hover::before {
+  transform: translateY(3px) rotate(-45deg);
+}
+
+.dropup[data-menu-open='false']::after,
+.dropup:hover::after {
+  transform: translateY(-3px) rotate(45deg);
+}
