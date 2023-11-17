@@ -55,7 +55,7 @@ const Footer = () => {
 										alt="Theme"
 										width={24}
 										height={24}
-										className="w-4 h-4 brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
+										className="w-4 h-4 brightness-90 dark:brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
 									/>
 								) : (
 									<Image
@@ -63,7 +63,7 @@ const Footer = () => {
 										alt="Theme"
 										width={24}
 										height={24}
-										className="w-4 h-4 brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
+										className="w-4 h-4 brightness-90 dark:brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
 									/>
 								)}
 								<p>{locale === "en" ? "日本語" : "English"}</p>
