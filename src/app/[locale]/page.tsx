@@ -1,10 +1,19 @@
-'use client'
-import { useTranslations } from 'next-intl';
-import { FaBlog, FaCog, FaCubes, FaGithub, FaMedium, FaSearch, FaUser, FaYoutube } from 'react-icons/fa';
-import Image from 'next/image';
-import { TbMessageChatbot } from 'react-icons/tb';
-import { Link } from '@/lib/next-intl';
-import { PiNotePencilBold } from 'react-icons/pi';
+"use client";
+import { useTranslations } from "next-intl";
+import {
+	FaBlog,
+	FaCog,
+	FaCubes,
+	FaGithub,
+	FaMedium,
+	FaSearch,
+	FaUser,
+	FaYoutube,
+} from "react-icons/fa";
+import Image from "next/image";
+import { TbMessageChatbot } from "react-icons/tb";
+import { Link } from "@/lib/next-intl";
+import { PiNotePencilBold } from "react-icons/pi";
 
 const apps = [
 	// {
@@ -71,41 +80,52 @@ const apps = [
 	// }
 ];
 
-
 export default function Home() {
-  const t = useTranslations('index');
-  return (
-    <div className='flex flex-col items-center justify-center'>
-      <div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
-        <div className="flex flex-col items-center justify-center pb-12">
-          <div className='text-9xl'><Image src="/images/profile/pfp.webp" alt="Logo" width={100} height={100} /></div>
-          <h1 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">
-            {t('welcome')}
-          </h1>
-          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-            {t('welcomeMessage')}
-          </p>
-        </div>
-        <div className="flex flex-wrap justify-center gap-6 pb-6 max-w-3xl">
-          {apps.map((app) => (
-            <Link key={app.link} target='_blank' rel='noopener' href={app.link} className={`flex flex-col items-center w-48 justify-center transition-colors duration-300 ${app.backgroundColor} rounded-lg shadow-md`}>
-              <div className='h-full'>
-                <div className="h-32 flex items-center justify-center text-6xl text-white">
-                  {app.icon}
-                </div>
-                <div className="px-4 py-2 text-center">
-                  <h2 className="text-lg font-medium text-white">
-                    {t(`apps.${app.name.toString().toLowerCase()}.name`)}
-                  </h2>
-                  <p className="mt-2 text-sm text-gray-100 whitespace-break-spaces">
-                    {t(`apps.${app.name.toString().toLowerCase()}.description`)}
-                  </p>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+	const t = useTranslations("index");
+	return (
+		<div className="flex flex-col items-center justify-center">
+			<div className="max-w-5xl w-full px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
+				<div className="flex flex-col items-center justify-center pb-6">
+					<div className="text-9xl">
+						<Image
+							src="/images/profile/pfp.webp"
+							alt="Logo"
+							width={100}
+							height={100}
+						/>
+					</div>
+					<h1 className="mt-4 text-3xl font-extrabold text-gray-900 dark:text-white">
+						{t("welcome")}
+					</h1>
+					<p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+						{t("welcomeMessage")}
+					</p>
+				</div>
+				<div className="flex flex-wrap justify-center gap-6 pb-6 max-w-3xl">
+					{apps.map((app) => (
+						<Link
+							key={app.link}
+							target="_blank"
+							rel="noopener"
+							href={app.link}
+							className={`flex flex-col items-center w-48 justify-center transition-colors duration-300 ${app.backgroundColor} rounded-lg shadow-md`}>
+							<div className="h-full">
+								<div className="h-32 flex items-center justify-center text-6xl text-white">
+									{app.icon}
+								</div>
+								<div className="px-4 py-2 text-center">
+									<h2 className="text-lg font-medium text-white">
+										{t(`apps.${app.name.toString().toLowerCase()}.name`)}
+									</h2>
+									<p className="mt-2 text-sm text-gray-100 whitespace-break-spaces">
+										{t(`apps.${app.name.toString().toLowerCase()}.description`)}
+									</p>
+								</div>
+							</div>
+						</Link>
+					))}
+				</div>
+			</div>
+		</div>
+	);
 }
