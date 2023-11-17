@@ -298,7 +298,8 @@ const Dropdown = ({ name }: { name: string }) => {
 
 	return (
 		<div className="relative flex items-center md:h-full w-full" ref={ref}>
-			<div
+			<button
+				type="button"
 				onClick={() => setIsOpen(!isOpen)}
 				data-active={pathname.startsWith(items[0].href.toString())}
 				data-menu-open={isOpen}
@@ -323,7 +324,7 @@ const Dropdown = ({ name }: { name: string }) => {
 					className="navbar-dropdown before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"
 					data-menu-open={isOpen}
 				/>
-			</div>
+			</button>
 			{isOpen && (
 				<div className="absolute w-fit z-10 top-10 md:top-14 left-0 min-w-[10rem] rounded-md shadow-lg bg-white dark:bg-zinc-800 ring-1 ring-black ring-opacity-5">
 					<div className="py-1">
