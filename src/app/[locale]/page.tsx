@@ -7,67 +7,68 @@ import { Link } from '@/lib/next-intl';
 import { PiNotePencilBold } from 'react-icons/pi';
 
 const apps = [
-  // {
-  //   icon: <AiFillHome />,
-  //   link: '/',
-  //   name: 'Home',
-  //   description: 'Visit my home page to learn more about me and my work.',
-  //   backgroundColor: 'bg-blue-400 dark:bg-blue-800'
-  // },
-  // {
-  //   icon: <FaUser />,
-  //   link: '/posts/about',
-  //   name: 'About',
-  //   backgroundColor: 'bg-green-400 dark:bg-green-800'
-  // },
-  // {
-  //   icon: <FaCubes />,
-  //   link: '/apps',
-  //   name: 'Apps',
-  //   backgroundColor: 'bg-red-400 dark:bg-red-800'
-  // },
-  {
-    icon: <PiNotePencilBold />,
-    link: 'https://note.com/taroj1205',
-    name: 'Note',
-    backgroundColor: 'bg-purple-800 hover:bg-purple-900'
-  },
-  {
-    icon: <FaBlog />,
-    link: 'https://taroj1205.hatenablog.com',
-    name: 'Hatena Blog',
-    backgroundColor: 'bg-yellow-800 hover:bg-yellow-900'
-  },
-  {
-    icon: <FaGithub />,
-    link: 'https://github.com/taroj1205',
-    name: 'GitHub',
-    backgroundColor: 'bg-gray-800 hover:bg-black'
-  },
-  {
-    icon: <FaYoutube />,
-    link: 'https://www.youtube.com/@taroj-ic8zi',
-    name: 'YouTube',
-    backgroundColor: 'bg-red-800 hover:bg-red-900'
-  },
-  {
-    icon: <FaMedium />,
-    link: 'https://taroj1205.medium.com/',
-    name: 'Medium',
-    backgroundColor: 'bg-teal-700 hover:bg-teal-800'
-  },
-  {
-    icon: <TbMessageChatbot />,
-    link: 'https://chat-taroj.vercel.app/',
-    name: 'Chat',
-    backgroundColor: 'bg-blue-800 hover:bg-blue-900'
-  }
-  // {
-  //   icon: <FaSearch />,
-  //   link: '/apps/search',
-  //   name: 'Search',
-  //   backgroundColor: 'bg-orange-400 dark:bg-orange-800'
-  // }
+	// {
+	//   icon: <AiFillHome />,
+	//   link: '/',
+	//   name: 'Home',
+	//   description: 'Visit my home page to learn more about me and my work.',
+	//   backgroundColor: 'bg-blue-400 dark:bg-blue-800'
+	// },
+	// {
+	//   icon: <FaUser />,
+	//   link: '/posts/about',
+	//   name: 'About',
+	//   backgroundColor: 'bg-green-400 dark:bg-green-800'
+	// },
+	// {
+	//   icon: <FaCubes />,
+	//   link: '/apps',
+	//   name: 'Apps',
+	//   backgroundColor: 'bg-red-400 dark:bg-red-800'
+	// },
+	{
+		icon: <PiNotePencilBold />,
+		link: "https://note.com/taroj1205",
+		name: "Note",
+		backgroundColor: "bg-purple-800 hover:bg-purple-900",
+	},
+	{
+		icon: <FaBlog />,
+		link: "https://taroj1205.hatenablog.com",
+		name: "Hatena Blog",
+		backgroundColor:
+			"bg-amber-700 dark:bg-yellow-800 hover:bg-yellow-700 dark:hover:bg-yellow-900",
+	},
+	{
+		icon: <FaGithub />,
+		link: "https://github.com/taroj1205",
+		name: "GitHub",
+		backgroundColor: "bg-gray-800 hover:bg-black",
+	},
+	{
+		icon: <FaYoutube />,
+		link: "https://www.youtube.com/@taroj-ic8zi",
+		name: "YouTube",
+		backgroundColor: "bg-red-800 hover:bg-red-900",
+	},
+	{
+		icon: <FaMedium />,
+		link: "https://taroj1205.medium.com/",
+		name: "Medium",
+		backgroundColor: "bg-teal-700 hover:bg-teal-800",
+	},
+	{
+		icon: <TbMessageChatbot />,
+		link: "https://chat-taroj.vercel.app/",
+		name: "Chat",
+		backgroundColor: "bg-blue-800 hover:bg-blue-900",
+	},
+	// {
+	//   icon: <FaSearch />,
+	//   link: '/apps/search',
+	//   name: 'Search',
+	//   backgroundColor: 'bg-orange-400 dark:bg-orange-800'
+	// }
 ];
 
 
@@ -96,7 +97,7 @@ export default function Home() {
                   <h2 className="text-lg font-medium text-white">
                     {t(`apps.${app.name.toString().toLowerCase()}.name`)}
                   </h2>
-                  <p className="mt-2 text-sm text-gray-200 whitespace-break-spaces">
+                  <p className="mt-2 text-sm text-gray-100 whitespace-break-spaces">
                     {t(`apps.${app.name.toString().toLowerCase()}.description`)}
                   </p>
                 </div>
