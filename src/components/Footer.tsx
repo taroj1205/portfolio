@@ -44,11 +44,11 @@ const Footer = () => {
 			className={`${inter.className} w-full mt-auto font-sans backdrop-blur-lg backdrop-saturate-150 bg-background/70 border-t border-divider`}>
 			<div className="mx-auto p-4 py-2 lg:py-4 max-w-4xl flex flex-col md:flex-row justify-start md:justify-between items-start md:items-center w-full">
 				<div className="flex flex-row flex-wrap items-center justify-start md:justify-center">
-					<ul className="flex flex-row flex-wrap text-sm">
+					<ul className="flex flex-row flex-wrap text-md md:text-sm">
 						<li>
 							<Link
 								href={`/${locale === "en" ? "ja" : "en"}${pathname}`}
-								className="group py-1 pl-2 pr-4 flex flex-row items-center justify-center space-x-1 text-sm text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300 ease-in-out">
+								className="group py-1 pl-2 pr-4 md:pr-2 flex flex-row items-center justify-center space-x-1 text-md md:text-sm text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300 ease-in-out">
 								{locale === "en" ? (
 									<Image
 										src="/svg/flag/jp.svg"
@@ -76,7 +76,7 @@ const Footer = () => {
 								<li className="flex items-center justify-center">
 									<IntlLink
 										href={link.href}
-										className="px-2 py-1 text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300">
+										className="px-2 py-1 text-gray-600 text-md md:text-sm hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300">
 										{link.text}
 									</IntlLink>
 									{index < footerLinks.length - 1 && (
@@ -87,13 +87,13 @@ const Footer = () => {
 						))}
 					</ul>
 				</div>
-				<ul className="flex flex-row text-sm">
+				<ul className="flex flex-row text-md md:text-sm">
 					<li className="py-1 flex items-center justify-center">
 						<Link
 							href="https://github.com/taroj1205"
 							target="_blank"
 							rel="noopener"
-							className="px-2 py-1 space-x-1 flex flex-row items-center justify-center text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300">
+							className="py-1 pl-2 pr-4 md:pr-2 space-x-1 flex flex-row items-center justify-center text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300">
 							<FaGithub />
 							<p>GitHub</p>
 						</Link>
@@ -193,13 +193,13 @@ const Dropup = () => {
 	}, [pathname]);
 
 	return (
-		<div className="relative flex items-center md:h-full w-full ml-2" ref={ref}>
+		<div className="relative flex items-center md:h-full w-full" ref={ref}>
 			<button
 				type="button"
 				onClick={() => setIsOpen(!isOpen)}
 				data-active={pathname.startsWith(items[0].href.toString())}
 				data-menu-open={isOpen}
-				className="select-none group cursor-pointer w-full transition-all h-full text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 flex items-center space-x-2 justify-start data-[menu-open=true]:scale-[0.97]">
+				className="select-none px-2 group cursor-pointer w-full transition-all h-full text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 flex items-center space-x-2 justify-start data-[menu-open=true]:scale-[0.97]">
 				<span>{t("name")}</span>
 				<div
 					className="dropup before:bg-gray-600 after:bg-gray-600 dark:before:bg-gray-400 dark:after:bg-gray-400 group-hover:before:bg-black group-hover:after:bg-black dark:group-hover:before:bg-gray-200 dark:group-hover:after:bg-gray-200 transition-all"
@@ -214,7 +214,7 @@ const Dropup = () => {
 								key={index}
 								target="_blank"
 								rel="noopener"
-								className="flex flex-row w-full space-x-2 items-center pl-2.5 pr-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-zinc-700"
+								className="flex flex-row w-full space-x-2 items-center pl-2.5 pr-4 py-2 text-md md:text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-zinc-700"
 								href={item.href}>
 								{item.icon}
 								<div className="whitespace-nowrap ml-1">{item.text}</div>
