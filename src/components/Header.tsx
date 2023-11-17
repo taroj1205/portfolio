@@ -20,6 +20,8 @@ import { RiAiGenerate, RiHome2Line, RiUserLine } from "react-icons/ri";
 import { FaChartBar, FaComments, FaSearch } from "react-icons/fa";
 import { TbSchool } from "react-icons/tb";
 import { FcPlanner } from "react-icons/fc";
+import { Inter } from "next/font/google";
+const inter = Inter({ subsets: ["latin"] });
 
 interface ChevronDownProps extends React.SVGProps<SVGSVGElement> {
 	size?: number;
@@ -295,7 +297,8 @@ export default function Header() {
 				<div
 					className="absolute top-0 z-10 progress bg-blue-500"
 					style={{ width: scrollProgress + "%" }}></div>
-				<div className="flex flex-col px-4 py-3 lg:flex-row items-center justify-between">
+				<div
+					className={`${inter.className} flex flex-col px-4 py-3 lg:flex-row items-center justify-between`}>
 					<div className="flex items-center">
 						<div className="mr-2 lg:hidden">
 							<LanguageSwitcher isHeader />

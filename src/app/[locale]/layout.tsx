@@ -115,7 +115,8 @@ export default async function RootLayout({
 
 	return (
 		<html lang={locale} className="dark" style={{ colorScheme: "dark" }}>
-			<body className={`bg-white dark:bg-gray-900 scroll-smooth`}>
+			<body
+				className={`bg-white dark:bg-gray-900 scroll-smooth`}>
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="system"
