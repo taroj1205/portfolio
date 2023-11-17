@@ -48,7 +48,7 @@ const Footer = () => {
 						<li>
 							<Link
 								href={`/${locale === "en" ? "ja" : "en"}${pathname}`}
-								className="group py-1 pl-2 pr-4 md:pr-2 flex flex-row items-center justify-center space-x-1 text-md md:text-sm text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300 ease-in-out">
+								className="group py-1 pl-2 pr-4 md:pr-2 w-24 flex flex-row items-center justify-start space-x-1 text-md md:text-sm text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300 ease-in-out">
 								{locale === "en" ? (
 									<Image
 										src="/svg/flag/jp.svg"
@@ -93,7 +93,7 @@ const Footer = () => {
 							href="https://github.com/taroj1205"
 							target="_blank"
 							rel="noopener"
-							className="py-1 pl-2 pr-4 md:pr-2 space-x-1 flex flex-row items-center justify-center text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300">
+							className="py-1 pl-2 pr-4 md:pr-2 w-24 space-x-1 flex flex-row items-center justify-start text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300">
 							<FaGithub />
 							<p>GitHub</p>
 						</Link>
