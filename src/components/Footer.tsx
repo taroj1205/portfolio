@@ -36,7 +36,7 @@ const Footer = () => {
 		{ href: "/", text: t("home") },
 		{ href: "/about", text: t("about") },
 		{ href: "/posts", text: t("blog") },
-		{ href: "/apps", text: t("apps") },
+		// { href: "/apps", text: t("apps") },
 	];
 
 	return (
