@@ -14,6 +14,7 @@ import {
 	FaTwitter,
 	FaYoutube,
 } from "react-icons/fa";
+import { BsGithub } from "react-icons/bs";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -48,11 +49,11 @@ const Footer = () => {
 						<li>
 							<Link
 								href={`/${locale === "en" ? "ja" : "en"}${pathname}`}
-								className="group py-1 pl-2 pr-4 md:pr-2 w-24 md:w-auto flex flex-row items-center justify-start space-x-1 text-md md:text-sm text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300 ease-in-out">
+								className="group py-1 pl-2 pr-4 md:pr-2 w-[6rem] md:w-auto space-x-1 flex flex-row items-center justify-start text-md md:text-sm text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300 ease-in-out">
 								{locale === "en" ? (
 									<Image
 										src="/svg/flag/jp.svg"
-										alt="Theme"
+										alt="日本語"
 										width={24}
 										height={24}
 										className="w-4 h-4 brightness-90 dark:brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
@@ -60,7 +61,7 @@ const Footer = () => {
 								) : (
 									<Image
 										src="/svg/flag/nz.svg"
-										alt="Theme"
+										alt="English"
 										width={24}
 										height={24}
 										className="w-4 h-4 brightness-90 dark:brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
@@ -93,8 +94,8 @@ const Footer = () => {
 							href="https://github.com/taroj1205"
 							target="_blank"
 							rel="noopener"
-							className="py-1 pl-2 pr-4 md:pr-2 w-24 md:w-auto space-x-1 flex flex-row items-center justify-start text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300">
-							<FaGithub />
+							className="py-1 pl-2 pr-4 md:pr-2 w-[6rem] md:w-auto space-x-1 flex flex-row items-center justify-start text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-300">
+							<FaGithub size={16} />
 							<p>GitHub</p>
 						</Link>
 						<Dropup />
