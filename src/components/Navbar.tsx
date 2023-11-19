@@ -209,12 +209,12 @@ const Dropdown = ({ name }: { name: string }) => {
 				icon: icons.chat,
 				description: t("chat.description"),
 			},
-			{
-				href: "https://taroj.poyo.jp/apps/ncea",
-				text: "NCEA",
-				icon: icons.ncea,
-				description: t("ncea.description"),
-			},
+			// {
+			// 	href: "https://taroj.poyo.jp/apps/ncea",
+			// 	text: "NCEA",
+			// 	icon: icons.ncea,
+			// 	description: t("ncea.description"),
+			// },
 			{
 				href: "/apps/search",
 				text: t("search.name"),
