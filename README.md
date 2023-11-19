@@ -1,6 +1,6 @@
-# taroj.vercel.app
+# taroj.poyo.jp
 
-This is the repository for my personal website, available at [taroj.vercel.app](https://taroj.vercel.app "taroj.vercel.app").
+This is the repository for my personal website, available at [taroj1205.poyo.jp](https://taroj1205.poyo.jp/).
 
 ## Development
 
