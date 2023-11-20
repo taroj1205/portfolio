@@ -115,19 +115,16 @@ export default async function RootLayout({
 
 	return (
 		<html lang={locale} className="dark" style={{ colorScheme: "dark" }}>
-			<body
-				className={`bg-white dark:bg-gray-900 scroll-smooth`}>
+			<body className={`bg-white dark:bg-gray-900 scroll-smooth`}>
 				<ThemeProvider
 					attribute="class"
 					defaultTheme="system"
 					enableSystem
 					disableTransitionOnChange>
 					<NextIntlClientProvider locale={locale} messages={messages}>
-						<div className="min-h-screen flex flex-col">
+						<div className="min-h-[100dvh] flex flex-col bg-background/40">
 							<Navbar />
-							<main className="content relative pt-8 pb-6 bg-white dark:bg-gray-900">
-								{children}
-							</main>
+							<main className="content relative pt-8 pb-6">{children}</main>
 							<ScrollToTopButton />
 							<Footer />
 						</div>
