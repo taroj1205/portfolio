@@ -88,10 +88,10 @@ export const Navbar = () => {
 			<div data-menu-open={mobileMenuOpen} className="h-16"></div>
 			<nav
 				data-menu-open={mobileMenuOpen}
-				className="flex h-fit flex-col min-h-[4rem] z-40 w-full items-center justify-center data-[menu-open=true]:h-[100dvh] data-[menu-open=true]:justify-start data-[menu-open=true]:border-none fixed top-0 inset-x-0 border-b border-divider backdrop-blur-lg data-[menu-open=true]:backdrop-blur-xl backdrop-saturate-150 bg-background/70">
+				className="flex h-fit flex-col min-h-[4rem] z-40 w-full items-center justify-center data-[menu-open=true]:h-[100dvh] data-[menu-open=true]:justify-start data-[menu-open=true]:border-none fixed top-0 inset-x-0 backdrop-blur-lg data-[menu-open=true]:backdrop-blur-xl backdrop-saturate-150 bg-background/70">
 				<div
 					data-menu-open={mobileMenuOpen}
-					className={`flex items-center h-16 justify-between md:hidden w-full px-2 pl-3`}>
+					className={`flex items-center h-16 min-h-[4rem] justify-between md:hidden w-full px-2 pl-3`}>
 					{/* Mobile hamburger menu button */}
 					<button
 						title="Menu"
@@ -109,7 +109,7 @@ export const Navbar = () => {
 				</div>
 				{/* Mobile menu */}
 				{mobileMenuOpen && (
-					<div className="flex flex-col justify-center md:hidden px-6 w-full">
+					<div className="flex flex-col justify-start h-full md:hidden px-6 w-full">
 						{links.map((link, index) => (
 							<Link
 								key={index}
@@ -163,6 +163,7 @@ export const Navbar = () => {
 						<ThemeSwitcher />
 					</div>
 				</header>
+				<div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
 			</nav>
 		</>
 	);
@@ -209,12 +210,12 @@ const Dropdown = ({ name }: { name: string }) => {
 				icon: icons.chat,
 				description: t("chat.description"),
 			},
-			{
-				href: "https://taroj.poyo.jp/apps/ncea",
-				text: "NCEA",
-				icon: icons.ncea,
-				description: t("ncea.description"),
-			},
+			// {
+			// 	href: "https://taroj.poyo.jp/apps/ncea",
+			// 	text: "NCEA",
+			// 	icon: icons.ncea,
+			// 	description: t("ncea.description"),
+			// },
 			{
 				href: "/apps/search",
 				text: t("search.name"),
@@ -337,7 +338,9 @@ const Dropdown = ({ name }: { name: string }) => {
 						{items.map((item, index) => (
 							<Link
 								key={index}
-								target={name === "apps" || name === "social" ? "_blank" : "_self"}
+								target={
+									name === "apps" || name === "social" ? "_blank" : "_self"
+								}
 								rel="noopener"
 								className="flex flex-row w-full space-x-2 items-center pl-2.5 pr-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-zinc-700"
 								href={item.href}>

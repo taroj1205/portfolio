@@ -42,7 +42,8 @@ const Footer = () => {
 
 	return (
 		<footer
-			className={`${inter.className} w-full mt-auto font-sans backdrop-blur-lg backdrop-saturate-150 bg-background/70 border-t border-divider`}>
+			className={`${inter.className} w-full mt-auto font-sans backdrop-blur-lg backdrop-saturate-150 bg-background/70`}>
+			<div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent" />
 			<div className="mx-auto p-4 py-2 lg:py-4 max-w-4xl flex flex-col md:flex-row justify-start md:justify-between items-start md:items-center w-full">
 				<div className="flex flex-row flex-wrap items-center justify-start md:justify-center">
 					<ul className="flex flex-row flex-wrap text-md md:text-sm">
