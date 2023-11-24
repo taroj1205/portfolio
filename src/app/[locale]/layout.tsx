@@ -122,7 +122,7 @@ export default async function RootLayout({
 					enableSystem
 					disableTransitionOnChange>
 					<NextIntlClientProvider locale={locale} messages={messages}>
-						<div className="min-h-[100dvh] flex flex-col bg-background/40">
+						<div className="min-h-[100svh] flex flex-col bg-background/40">
 							<Navbar />
 							<main className="content relative pt-8 pb-6">{children}</main>
 							<ScrollToTopButton />
