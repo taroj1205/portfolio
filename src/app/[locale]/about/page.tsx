@@ -49,7 +49,7 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
         notFound()
     };
 
-    let pageMetadata = (metadata as Record<string, any>)['blog-post'];
+    let pageMetadata = (metadata as Record<string, any>)['about'];
 
     // Replace placeholders with actual values
     let title = post.title;
