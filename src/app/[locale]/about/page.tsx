@@ -56,6 +56,8 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
     let description = post.description;
     let imageUrl = post.image;
 
+	console.log(imageUrl)
+
     return {
         metadataBase: new URL(pageMetadata.metadataBase),
         title: pageMetadata.title[locale].replace('{title}', title),
