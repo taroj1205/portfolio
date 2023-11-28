@@ -1,5 +1,16 @@
 "use client";
-import { FaArchive, FaBlog, FaCubes, FaFacebook, FaGithub, FaInstagram, FaLinkedin, FaListAlt, FaTwitter, FaYoutube } from "react-icons/fa";
+import {
+	FaArchive,
+	FaBlog,
+	FaCubes,
+	FaFacebook,
+	FaGithub,
+	FaInstagram,
+	FaLinkedin,
+	FaListAlt,
+	FaTwitter,
+	FaYoutube,
+} from "react-icons/fa";
 import { RiAiGenerate, RiHome2Line, RiUserLine } from "react-icons/ri";
 import { FaChartBar, FaComments, FaSearch } from "react-icons/fa";
 import { TbSchool } from "react-icons/tb";
@@ -11,6 +22,7 @@ import { Link, usePathname } from "@/lib/next-intl";
 import { LangToggle } from "./LangToggle";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { ImPointUp } from "react-icons/im";
 
 interface ChevronDownProps extends React.SVGProps<SVGSVGElement> {
 	size?: number;
@@ -66,7 +78,9 @@ const icons = {
 	facebook: <FaFacebook className="text-primary" size={30} />,
 	youtube: <FaYoutube className="text-red-600" size={30} />,
 	github: <FaGithub className="text-gray-900 dark:text-white" size={30} />,
-	linkedin: <FaLinkedin className="text-blue-700 dark:text-blue-500" size={30} />,
+	linkedin: (
+		<FaLinkedin className="text-blue-700 dark:text-blue-500" size={30} />
+	),
 	instagram: <FaInstagram className="text-pink-600" size={30} />,
 };
 
@@ -93,15 +107,42 @@ export const Navbar = () => {
 					data-menu-open={mobileMenuOpen}
 					className={`flex items-center h-16 min-h-[4rem] justify-between md:hidden w-full px-2 pl-3`}>
 					{/* Mobile hamburger menu button */}
-					<button
-						title="Menu"
-						type="button"
-						className="focus:outline-none h-full w-fit p-1"
-						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+					<div className="relative group">
+						<button
+							title="Menu"
+							type="button"
+							className="focus:outline-none h-full w-fit p-1"
+							onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+							<div
+								data-menu-open={mobileMenuOpen}
+								className="menu-toggle before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"></div>
+						</button>
 						<div
-							data-menu-open={mobileMenuOpen}
-							className="menu-toggle before:bg-black after:bg-black dark:before:bg-white dark:after:bg-white"></div>
-					</button>
+							data-show={!mobileMenuOpen && pathname === "/"}
+							className="absolute top-12 left-0 data-[show=false]:hidden md:hidden animate-bounce">
+							{/* <svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="50"
+								height="70"
+								viewBox="0 0 50 70"
+							className="animate-disappear-arrow">
+								<path
+									d="M15,40 Q15,25 15,10"
+									stroke="currentColor"
+									strokeWidth="2"
+									fill="none"
+								/>
+								<polyline
+									points="10,15 15,10 20,15"
+									stroke="currentColor"
+									strokeWidth="2"
+									fill="none"
+								/>
+							</svg> */}
+							<ImPointUp size={30} />
+						</div>
+					</div>
+					<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
 					<div className="flex items-center justify-center md:hidden">
 						<LangToggle />
 						<ThemeSwitcher />
@@ -271,8 +312,8 @@ const Dropdown = ({ name }: { name: string }) => {
 				text: "Facebook",
 				icon: icons.facebook,
 				description: "",
-			}
-		]
+			},
+		],
 	};
 
 	const items = nested[name] as DropdownProps["items"];

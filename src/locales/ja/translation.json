@@ -260,7 +260,8 @@
     "github": {
       "name": "GitHub"
     },
-    "social": "SNS"
+    "social": "SNS",
+    "try clicking": "クリックしてみて！"
   },
   "index": {
     "about": "僕について",
@@ -316,7 +317,8 @@
     "student": "僕は学生です。",
     "title": "ホーム",
     "welcome": "僕のサイトへようこそ！",
-    "welcomeMessage": "ぜひ見て回って、何か質問があればお知らせください。"
+    "welcomeMessage": "ぜひ見て回って、何か質問があればお知らせください。",
+    "try clicking": "クリックしてみて！"
   },
   "language switcher": {
     "language": "言語",

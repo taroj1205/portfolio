@@ -311,3 +311,29 @@ a {
 .dropup:hover::after {
   transform: translateY(-3px) rotate(45deg);
 }
+
+.animate-disappear-arrow {
+  animation: disappear-arrow 2s infinite;
+}
+
+@keyframes disappear-arrow {
+  0%, 50% {
+    display: block;
+  }
+  50.01%, 100% {
+    display: none;
+  }
+}
+
+.animate-disappear-hand {
+  animation: disappear-hand 2s infinite;
+}
+
+@keyframes disappear-hand {
+  0%, 50% {
+    display: none;
+  }
+  50.01%, 100% {
+    display: block;
+  }
+}
