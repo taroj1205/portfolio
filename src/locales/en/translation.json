@@ -260,7 +260,8 @@
     "github": {
       "name": "GitHub"
     },
-    "social": "Social"
+    "social": "Social",
+    "try clicking": "Try clicking here!"
   },
   "index": {
     "about": "About me",
@@ -316,7 +317,8 @@
     "student": "I'm a student.",
     "title": "Home",
     "welcome": "Welcome to my website!",
-    "welcomeMessage": "Please take a look around and let me know if you have any questions."
+    "welcomeMessage": "Please take a look around and let me know if you have any questions.",
+    "try clicking": "Try clicking here!"
   },
   "language switcher": {
     "language": "Language",
