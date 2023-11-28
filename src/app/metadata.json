@@ -159,8 +159,8 @@
 			"en": "About me"
 		},
 		"description": {
-			"ja": "上鍵心太朗について",
-			"en": "About Shintaro Jokagi"
+			"ja": "{description}",
+			"en": "{description}"
 		},
 		"icons": {
 			"icon": "/favicon.ico"
@@ -168,7 +168,7 @@
 		"openGraph": {
 			"images": [
 				{
-					"url": "/images/thumbnail/thumbnail.png",
+					"url": "/images/thumbnail/thumbnail.jpg",
 					"alt": {
 						"ja": "上鍵心太朗の紹介ページのサムネ",
 						"en": "Shintaro Jokagi About Page Thumbnail"
@@ -183,14 +183,14 @@
 				"en": "About me"
 			},
 			"description": {
-				"ja": "上鍵心太朗について",
-				"en": "About Shintaro Jokagi"
+				"ja": "{description}",
+				"en": "{description}"
 			},
 			"site": "@taroj1205",
 			"creator": "@taroj1205",
 			"images": [
 				{
-					"url": "/images/thumbnail/thumbnail.png",
+					"url": "/images/thumbnail/thumbnail.jpg",
 					"alt": {
 						"ja": "上鍵心太朗の紹介ページのサムネ",
 						"en": "Shintaro Jokagi About Page Thumbnail"
@@ -558,57 +558,6 @@
 		"viewport": {
 			"width": "device-width",
 			"initialScale": 1
-		},
-		"blog-post": {
-			"metadataBase": "https://taroj.vercel.app",
-			"title": {
-				"ja": "{title}",
-				"en": "{title}"
-			},
-			"description": {
-				"ja": "{description}",
-				"en": "{description}"
-			},
-			"icons": {
-				"icon": "/favicon.ico"
-			},
-			"openGraph": {
-				"images": [
-					{
-						"url": "{image}",
-						"alt": {
-							"ja": "上鍵心太朗についてのページサムネ",
-							"en": "About Shintaro Jokagi Page Thumbnail"
-						}
-					}
-				]
-			},
-			"twitter": {
-				"card": "summary_large_image",
-				"title": {
-					"ja": "{title}",
-					"en": "{title}"
-				},
-				"description": {
-					"ja": "{description}",
-					"en": "{description}"
-				},
-				"site": "@taroj1205",
-				"creator": "@taroj1205",
-				"images": [
-					{
-						"url": "{image}",
-						"alt": {
-							"ja": "上鍵心太朗についてのページサムネ",
-							"en": "About Shintaro Jokagi Page Thumbnail"
-						}
-					}
-				]
-			},
-			"viewport": {
-				"width": "device-width",
-				"initialScale": 1
-			}
 		}
 	}
 }
