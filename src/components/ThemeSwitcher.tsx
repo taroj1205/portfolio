@@ -35,6 +35,7 @@ export const ThemeSwitcher = () => {
 			<div>
 				<button
 					type="button"
+					title="Switch theme"
 					className={`flex items-center justify-center w-fit p-1 mr-1 md:mr-0 rounded-md active:scale-95 duration-200 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50`}
 					onClick={() => setIsOpen(!isOpen)}>
 					{mounted ? (
@@ -77,7 +78,6 @@ export const ThemeSwitcher = () => {
 						aria-labelledby="options-menu">
 						<button
 							type="button"
-							title="Switch theme"
 							className={`block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:dark:bg-[#0d101b] hover:text-gray-900 dark:hover:text-gray-100 w-full text-left ${
 								theme === "light" ? "bg-gray-100 dark:dark:bg-[#0d101b]" : ""
 							}`}
