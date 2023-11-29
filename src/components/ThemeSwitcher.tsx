@@ -78,6 +78,7 @@ export const ThemeSwitcher = () => {
 						aria-labelledby="options-menu">
 						<button
 							type="button"
+							title="Switch to light theme"
 							className={`block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:dark:bg-[#0d101b] hover:text-gray-900 dark:hover:text-gray-100 w-full text-left ${
 								theme === "light" ? "bg-gray-100 dark:dark:bg-[#0d101b]" : ""
 							}`}
@@ -101,6 +102,7 @@ export const ThemeSwitcher = () => {
 								theme === "dark" ? "bg-gray-100 dark:dark:bg-[#0d101b]" : ""
 							}`}
 							role="menuitem"
+							title="Switch to dark theme"
 							onClick={() => {
 								setTheme("dark");
 								setIsOpen(false);
@@ -120,6 +122,7 @@ export const ThemeSwitcher = () => {
 								theme === "system" ? "bg-gray-100 dark:dark:bg-[#0d101b]" : ""
 							}`}
 							role="menuitem"
+							title="Switch to system theme"
 							onClick={() => {
 								setTheme("system");
 								setIsOpen(false);
