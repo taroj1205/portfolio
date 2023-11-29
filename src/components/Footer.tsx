@@ -54,7 +54,7 @@ const Footer = () => {
 								{locale === "en" ? (
 									<Image
 										src="/svg/flag/jp.svg"
-										alt="日本語"
+										alt="日本語 Icon"
 										width={24}
 										height={24}
 										className="w-4 h-4 brightness-90 dark:brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
@@ -62,7 +62,7 @@ const Footer = () => {
 								) : (
 									<Image
 										src="/svg/flag/nz.svg"
-										alt="English"
+										alt="English Icon"
 										width={24}
 										height={24}
 										className="w-4 h-4 brightness-90 dark:brightness-75 group-hover:brightness-100 transition-all duration-300 ease-in-out"
