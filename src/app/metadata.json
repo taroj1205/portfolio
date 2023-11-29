@@ -168,7 +168,7 @@
 		"openGraph": {
 			"images": [
 				{
-					"url": "{image}",
+					"url": "/blog/thumbnail/about/thumbnail.jpg",
 					"alt": {
 						"ja": "上鍵心太朗の紹介ページのサムネ",
 						"en": "Shintaro Jokagi About Page Thumbnail"
@@ -190,7 +190,7 @@
 			"creator": "@taroj1205",
 			"images": [
 				{
-					"url": "{image}",
+					"url": "/blog/thumbnail/about/thumbnail.jpg",
 					"alt": {
 						"ja": "上鍵心太朗の紹介ページのサムネ",
 						"en": "Shintaro Jokagi About Page Thumbnail"

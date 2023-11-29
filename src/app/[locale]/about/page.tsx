@@ -65,7 +65,7 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
         icons: pageMetadata.icons,
         openGraph: {
             images: pageMetadata.openGraph.images.map((image: { url: string, alt: { [key: string]: string } }) => ({
-                url: image.url.replace('{image}', imageUrl),
+                url: "/blog/thumbnail/about/thumbnail.jpg",
                 alt: image.alt[locale],
             })),
         },
@@ -76,7 +76,7 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
             site: pageMetadata.twitter.site,
             creator: pageMetadata.twitter.creator,
             images: pageMetadata.twitter.images.map((image: { url: string, alt: { [key: string]: string } }) => ({
-                url: image.url.replace('{image}', imageUrl),
+                url: "/blog/thumbnail/about/thumbnail.jpg",
                 alt: image.alt[locale],
             })),
         },
