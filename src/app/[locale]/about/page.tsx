@@ -59,29 +59,39 @@ export const generateMetadata = ({ params }: { params: { slug: string; locale: s
 	console.log(imageUrl)
 
     return {
-        metadataBase: new URL(pageMetadata.metadataBase),
-        title: pageMetadata.title[locale].replace('{title}', title),
-        description: pageMetadata.description[locale].replace('{description}', description),
-        icons: pageMetadata.icons,
-        openGraph: {
-            images: pageMetadata.openGraph.images.map((image: { url: string, alt: { [key: string]: string } }) => ({
-                url: image.url.replace('{image}', imageUrl),
-                alt: image.alt[locale],
-            })),
-        },
-        twitter: {
-            card: pageMetadata.twitter.card,
-            title: pageMetadata.twitter.title[locale].replace('{title}', title),
-            description: pageMetadata.twitter.description[locale].replace('{description}', description),
-            site: pageMetadata.twitter.site,
-            creator: pageMetadata.twitter.creator,
-            images: pageMetadata.twitter.images.map((image: { url: string, alt: { [key: string]: string } }) => ({
-                url: image.url.replace('{image}', imageUrl),
-                alt: image.alt[locale],
-            })),
-        },
-        viewport: pageMetadata.viewport
-    }
+			metadataBase: new URL(pageMetadata.metadataBase),
+			title: pageMetadata.title[locale].replace("{title}", title),
+			description: pageMetadata.description[locale].replace(
+				"{description}",
+				description
+			),
+			icons: pageMetadata.icons,
+			openGraph: {
+				images: pageMetadata.openGraph.images.map(
+					(image: { url: string; alt: { [key: string]: string } }) => ({
+						url: imageUrl,
+						alt: image.alt[locale],
+					})
+				),
+			},
+			twitter: {
+				card: pageMetadata.twitter.card,
+				title: pageMetadata.twitter.title[locale].replace("{title}", title),
+				description: pageMetadata.twitter.description[locale].replace(
+					"{description}",
+					description
+				),
+				site: pageMetadata.twitter.site,
+				creator: pageMetadata.twitter.creator,
+				images: pageMetadata.twitter.images.map(
+					(image: { url: string; alt: { [key: string]: string } }) => ({
+						url: imageUrl,
+						alt: image.alt[locale],
+					})
+				),
+			},
+			viewport: pageMetadata.viewport,
+		};
 }
 
 const PostLayout = ({ params }: { params: { slug: string; locale: string; } }) => {
