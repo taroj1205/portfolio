@@ -1,6 +1,6 @@
 {
 	"default": {
-		"metadataBase": "https://taroj.vercel.app",
+		"metadataBase": "https://taroj1205.poyo.jp",
 		"title": {
 			"ja": "ホーム",
 			"en": "Home"
@@ -51,7 +51,7 @@
 		}
 	},
 	"404": {
-		"metadataBase": "https://taroj.vercel.app",
+		"metadataBase": "https://taroj1205.poyo.jp",
 		"title": {
 			"ja": "ページが見つかりません",
 			"en": "Page Not Found"
@@ -102,7 +102,7 @@
 		}
 	},
 	"home": {
-		"metadataBase": "https://taroj.vercel.app",
+		"metadataBase": "https://taroj1205.poyo.jp",
 		"title": {
 			"ja": "ホーム",
 			"en": "Home"
@@ -153,7 +153,7 @@
 		}
 	},
 	"about": {
-		"metadataBase": "https://taroj.vercel.app",
+		"metadataBase": "https://taroj1205.poyo.jp",
 		"title": {
 			"ja": "自己紹介",
 			"en": "About me"
@@ -168,7 +168,7 @@
 		"openGraph": {
 			"images": [
 				{
-					"url": "/images/thumbnail/thumbnail.jpg",
+					"url": "{image}",
 					"alt": {
 						"ja": "上鍵心太朗の紹介ページのサムネ",
 						"en": "Shintaro Jokagi About Page Thumbnail"
@@ -190,7 +190,7 @@
 			"creator": "@taroj1205",
 			"images": [
 				{
-					"url": "/images/thumbnail/thumbnail.jpg",
+					"url": "{image}",
 					"alt": {
 						"ja": "上鍵心太朗の紹介ページのサムネ",
 						"en": "Shintaro Jokagi About Page Thumbnail"
@@ -204,7 +204,7 @@
 		}
 	},
 	"schedule": {
-		"metadataBase": "https://taroj.vercel.app",
+		"metadataBase": "https://taroj1205.poyo.jp",
 		"title": {
 			"ja": "僕の日本旅行",
 			"en": "My Japan Trip"
@@ -255,7 +255,7 @@
 		}
 	},
 	"apps": {
-		"metadataBase": "https://taroj.vercel.app",
+		"metadataBase": "https://taroj1205.poyo.jp",
 		"title": {
 			"ja": "アプリ",
 			"en": "Apps"
@@ -306,7 +306,7 @@
 		}
 	},
 	"search": {
-		"metadataBase": "https://taroj.vercel.app",
+		"metadataBase": "https://taroj1205.poyo.jp",
 		"title": {
 			"ja": "検索エンジン",
 			"en": "Search Engine"
@@ -357,7 +357,7 @@
 		}
 	},
 	"image": {
-		"metadataBase": "https://taroj.vercel.app",
+		"metadataBase": "https://taroj1205.poyo.jp",
 		"title": {
 			"ja": "画像ジェネレーター",
 			"en": "Image Generator"
@@ -408,7 +408,7 @@
 		}
 	},
 	"posts": {
-		"metadataBase": "https://taroj.vercel.app",
+		"metadataBase": "https://taroj1205.poyo.jp",
 		"title": {
 			"ja": "ブログ",
 			"en": "Blog"
@@ -459,7 +459,7 @@
 		}
 	},
 	"category": {
-		"metadataBase": "https://taroj.vercel.app",
+		"metadataBase": "https://taroj1205.poyo.jp",
 		"title": {
 			"ja": "すべての投稿#{category}",
 			"en": "All Posts#{category}"
@@ -510,7 +510,7 @@
 		}
 	},
 	"blog-post": {
-		"metadataBase": "https://taroj.vercel.app",
+		"metadataBase": "https://taroj1205.poyo.jp",
 		"title": {
 			"ja": "{title} - ブログ",
 			"en": "{title} -  Blog"
