@@ -56,7 +56,7 @@ const apps = [
 	},
 	{
 		icon: <FaYoutube />,
-		link: "https://www.youtube.com/@taroj-ic8zi",
+		link: "https://www.youtube.com/@taroj1205",
 		name: "YouTube",
 		backgroundColor: "bg-red-800 hover:bg-red-900",
 	},
