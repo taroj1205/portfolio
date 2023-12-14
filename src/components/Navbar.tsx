@@ -383,10 +383,10 @@ const Dropdown = ({ name }: { name: string }) => {
 									name === "apps" || name === "social" ? "_blank" : "_self"
 								}
 								rel="noopener"
-								className="flex flex-row w-full space-x-2 items-center pl-2.5 pr-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-zinc-700"
+								className="group flex flex-row w-full space-x-2 items-center pl-2.5 pr-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-zinc-700"
 								href={item.href}>
 								{item.icon}
-								<div className="whitespace-nowrap ml-1">{item.text}</div>
+								<div className="whitespace-nowrap group-hover:text-black dark:group-hover:text-white ml-1">{item.text}</div>
 							</Link>
 						))}
 					</div>
