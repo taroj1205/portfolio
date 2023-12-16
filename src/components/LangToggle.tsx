@@ -69,7 +69,7 @@ export const LangToggle = () => {
 				</button>
 			</div>
 			{isOpen && (
-				<div className="popup origin-top-right absolute right-0 mt-2 w-32 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
+				<div className="popup origin-top-right absolute right-0 mt-2 w-32 rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none">
 					<div
 						className="py-1"
 						role="menu"
