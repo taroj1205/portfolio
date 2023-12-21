@@ -69,15 +69,15 @@ export const LangToggle = () => {
 				</button>
 			</div>
 			{isOpen && (
-				<div className="popup origin-top-right absolute right-0 mt-2 w-32 rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none">
+				<div className="popup origin-top-right absolute right-0 mt-2 w-32 rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5 focus:outline-none transition-colors duration-200 ease-in-out">
 					<div
 						className="py-1"
 						role="menu"
 						aria-orientation="vertical"
 						aria-labelledby="options-menu">
 						<button
-							className={`block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 w-full text-left ${
-								locale === "ja" ? "bg-gray-100 dark:bg-gray-700" : ""
+							className={`block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:dark:bg-[#0d101b] transition-colors duration-200 ease-in-out hover:text-gray-900 dark:hover:text-gray-100 w-full text-left ${
+								locale === "ja" ? "bg-gray-100 dark:dark:bg-[#0d101b]" : ""
 							}`}
 							role="menuitem"
 							onClick={() => {
@@ -101,8 +101,8 @@ export const LangToggle = () => {
 							</div>
 						</button>
 						<button
-							className={`block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 w-full text-left ${
-								locale === "en" ? "bg-gray-100 dark:bg-gray-700" : ""
+							className={`block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#0d101b] hover:text-gray-900 dark:hover:text-gray-100 w-full text-left ${
+								locale === "en" ? "bg-gray-100 dark:bg-[#0d101b]" : ""
 							}`}
 							role="menuitem"
 							onClick={() => {

@@ -4,8 +4,10 @@ import {
 	FaBlog,
 	FaCubes,
 	FaFacebook,
+	FaGamepad,
 	FaGithub,
 	FaInstagram,
+	FaKeyboard,
 	FaLinkedin,
 	FaListAlt,
 	FaTwitter,
@@ -82,6 +84,8 @@ const icons = {
 		<FaLinkedin className="text-blue-700 dark:text-blue-500" size={30} />
 	),
 	instagram: <FaInstagram className="text-pink-600" size={30} />,
+	connect4: <FaGamepad className="text-blue-600" size={30} />,
+	typing: <FaKeyboard className="text-green-600" size={30} />,
 };
 
 export const Navbar = () => {
@@ -96,6 +100,19 @@ export const Navbar = () => {
 	useEffect(() => {
 		setMobileMenuOpen(false);
 	}, [pathname]);
+
+	useEffect(() => {
+		if (mobileMenuOpen) {
+			document.body.style.overflow = "hidden";
+		} else {
+			document.body.style.overflow = "auto";
+		}
+
+		// Clean up function
+		return () => {
+			document.body.style.overflow = "auto";
+		};
+	}, [mobileMenuOpen]);
 
 	return (
 		<>
@@ -215,6 +232,7 @@ type DropdownProps = {
 		href: string;
 		text: string;
 		icon: JSX.Element;
+		description: string;
 	}[];
 };
 
@@ -250,6 +268,18 @@ const Dropdown = ({ name }: { name: string }) => {
 				text: t("chat.name"),
 				icon: icons.chat,
 				description: t("chat.description"),
+			},
+			{
+				href: "https://connect4-taroj.vercel.app/",
+				text: t("connect4.name"),
+				icon: icons.connect4,
+				description: t("connect4.description"),
+			},
+			{
+				href: "https://typing-game-nextjs.vercel.app/",
+				text: t("typing.name"),
+				icon: icons.typing,
+				description: t("typing.description"),
 			},
 			// {
 			// 	href: "https://taroj.poyo.jp/apps/ncea",
@@ -368,7 +398,7 @@ const Dropdown = ({ name }: { name: string }) => {
 				/>
 			</button>
 			{isOpen && (
-				<div className="absolute w-fit z-10 top-10 md:top-14 left-0 min-w-[10rem] rounded-md shadow-lg bg-white dark:bg-zinc-800 ring-1 ring-black ring-opacity-5">
+				<div className="absolute w-fit z-10 top-10 md:top-14 left-0 min-w-[10rem] rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5">
 					<div className="py-1">
 						{name === "apps" ||
 							(name === "social" && (
@@ -383,10 +413,17 @@ const Dropdown = ({ name }: { name: string }) => {
 									name === "apps" || name === "social" ? "_blank" : "_self"
 								}
 								rel="noopener"
-								className="group flex flex-row w-full space-x-2 items-center pl-2.5 pr-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-zinc-700"
+								className="group flex flex-row w-full space-x-2 items-center pl-2.5 pr-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-[#0d101b] transition-colors duration-300 ease-in-out"
 								href={item.href}>
 								{item.icon}
-								<div className="whitespace-nowrap group-hover:text-black dark:group-hover:text-white ml-1">{item.text}</div>
+								<div className="whitespace-nowrap ml-1">
+									{item.text}
+									{/* {name === "apps" && (
+										<div className="mt-1 text-sm text-gray-500">
+											{item.description}
+										</div>
+									)} */}
+								</div>
 							</Link>
 						))}
 					</div>
