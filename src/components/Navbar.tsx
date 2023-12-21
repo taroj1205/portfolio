@@ -101,6 +101,19 @@ export const Navbar = () => {
 		setMobileMenuOpen(false);
 	}, [pathname]);
 
+	useEffect(() => {
+		if (mobileMenuOpen) {
+			document.body.style.overflow = "hidden";
+		} else {
+			document.body.style.overflow = "auto";
+		}
+
+		// Clean up function
+		return () => {
+			document.body.style.overflow = "auto";
+		};
+	}, [mobileMenuOpen]);
+
 	return (
 		<>
 			<div data-menu-open={mobileMenuOpen} className="h-16"></div>
@@ -385,7 +398,7 @@ const Dropdown = ({ name }: { name: string }) => {
 				/>
 			</button>
 			{isOpen && (
-				<div className="absolute w-fit z-10 top-10 md:top-14 left-0 min-w-[10rem] rounded-md shadow-lg bg-white dark:bg-zinc-800 ring-1 ring-black ring-opacity-5">
+				<div className="absolute w-fit z-10 top-10 md:top-14 left-0 min-w-[10rem] rounded-md shadow-lg bg-white dark:bg-gray-900 ring-1 ring-black ring-opacity-5">
 					<div className="py-1">
 						{name === "apps" ||
 							(name === "social" && (
@@ -400,16 +413,16 @@ const Dropdown = ({ name }: { name: string }) => {
 									name === "apps" || name === "social" ? "_blank" : "_self"
 								}
 								rel="noopener"
-								className="group flex flex-row w-full space-x-2 items-center pl-2.5 pr-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-zinc-700 transition-colors duration-300 ease-in-out"
+								className="group flex flex-row w-full space-x-2 items-center pl-2.5 pr-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-[#0d101b] transition-colors duration-300 ease-in-out"
 								href={item.href}>
 								{item.icon}
-								<div className="whitespace-nowrap  ml-1">
+								<div className="whitespace-nowrap ml-1">
 									{item.text}
-									{name === "apps" && (
+									{/* {name === "apps" && (
 										<div className="mt-1 text-sm text-gray-500">
 											{item.description}
 										</div>
-									)}
+									)} */}
 								</div>
 							</Link>
 						))}

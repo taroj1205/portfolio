@@ -39,14 +39,14 @@ const apps = [
 		icon: <PiNotePencilBold />,
 		link: "https://note.com/taroj1205",
 		name: "Note",
-		backgroundColor: "bg-purple-800 hover:bg-purple-900",
+		backgroundColor: "bg-purple-800 hover:bg-purple-950",
 	},
 	{
 		icon: <FaBlog />,
 		link: "https://taroj1205.hatenablog.com",
 		name: "Hatena Blog",
 		backgroundColor:
-			"bg-amber-700 dark:bg-yellow-800 hover:bg-yellow-700 dark:hover:bg-yellow-900",
+			"bg-amber-700 dark:bg-yellow-800 hover:bg-yellow-950 dark:hover:bg-yellow-950",
 	},
 	{
 		icon: <FaGithub />,
@@ -58,19 +58,19 @@ const apps = [
 		icon: <FaYoutube />,
 		link: "https://www.youtube.com/@taroj1205",
 		name: "YouTube",
-		backgroundColor: "bg-red-800 hover:bg-red-900",
+		backgroundColor: "bg-red-800 hover:bg-red-950",
 	},
 	{
 		icon: <FaMedium />,
 		link: "https://taroj1205.medium.com/",
 		name: "Medium",
-		backgroundColor: "bg-teal-700 hover:bg-teal-800",
+		backgroundColor: "bg-teal-700 hover:bg-teal-950",
 	},
 	{
 		icon: <TbMessageChatbot />,
 		link: "https://chat-taroj.vercel.app/",
 		name: "Chat",
-		backgroundColor: "bg-blue-800 hover:bg-blue-900",
+		backgroundColor: "bg-blue-800 hover:bg-blue-950",
 	},
 	// {
 	//   icon: <FaSearch />,
