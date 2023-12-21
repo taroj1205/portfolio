@@ -4,8 +4,10 @@ import {
 	FaBlog,
 	FaCubes,
 	FaFacebook,
+	FaGamepad,
 	FaGithub,
 	FaInstagram,
+	FaKeyboard,
 	FaLinkedin,
 	FaListAlt,
 	FaTwitter,
@@ -82,6 +84,8 @@ const icons = {
 		<FaLinkedin className="text-blue-700 dark:text-blue-500" size={30} />
 	),
 	instagram: <FaInstagram className="text-pink-600" size={30} />,
+	connect4: <FaGamepad className="text-blue-600" size={30} />,
+	typing: <FaKeyboard className="text-green-600" size={30} />
 };
 
 export const Navbar = () => {
@@ -215,6 +219,7 @@ type DropdownProps = {
 		href: string;
 		text: string;
 		icon: JSX.Element;
+		description: string;
 	}[];
 };
 
@@ -250,6 +255,18 @@ const Dropdown = ({ name }: { name: string }) => {
 				text: t("chat.name"),
 				icon: icons.chat,
 				description: t("chat.description"),
+			},
+			{
+				href: "https://connect4-taroj.vercel.app/",
+				text: t("connect4.name"),
+				icon: icons.connect4,
+				description: t("connect4.description"),
+			},
+			{
+				href: "https://typing-game-nextjs.vercel.app/",
+				text: t("typing.name"),
+				icon: icons.typing,
+				description: t("typing.description"),
 			},
 			// {
 			// 	href: "https://taroj.poyo.jp/apps/ncea",
@@ -386,7 +403,10 @@ const Dropdown = ({ name }: { name: string }) => {
 								className="group flex flex-row w-full space-x-2 items-center pl-2.5 pr-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:text-gray-900 hover:dark:bg-zinc-700"
 								href={item.href}>
 								{item.icon}
-								<div className="whitespace-nowrap group-hover:text-black dark:group-hover:text-white ml-1">{item.text}</div>
+								<div className="whitespace-nowrap group-hover:text-black dark:group-hover:text-white ml-1">
+									{item.text}
+									{name === "apps" && <div className="mt-1 text-sm text-gray-500">{item.description}</div>}
+								</div>
 							</Link>
 						))}
 					</div>

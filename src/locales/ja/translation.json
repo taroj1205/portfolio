@@ -232,7 +232,7 @@
     },
     "chat": {
       "name": "チャット",
-      "description": "チャットアプリ"
+      "description": "他の人々とチャットしましょう"
     },
     "ncea": {
       "description": "NCEAの管理"
@@ -261,7 +261,15 @@
       "name": "GitHub"
     },
     "social": "SNS",
-    "try clicking": "クリックしてみて！"
+    "try clicking": "クリックしてみて！",
+    "connect4": {
+      "name": "Connect 4",
+      "description": "友達と一緒にConnect 4をプレイしましょう"
+    },
+    "typing": {
+      "description": "タイピングゲームで英語を学びましょう",
+      "name": "タイピングゲーム"
+    }
   },
   "index": {
     "about": "僕について",

@@ -232,7 +232,7 @@
     },
     "chat": {
       "name": "Chat",
-      "description": "Chat App"
+      "description": "Chat with other people on the internet!"
     },
     "ncea": {
       "description": "Manage NCEA"
@@ -261,7 +261,15 @@
       "name": "GitHub"
     },
     "social": "Social",
-    "try clicking": "Try clicking here!"
+    "try clicking": "Try clicking here!",
+    "connect4": {
+      "name": "Connect 4",
+      "description": "Play Connect 4 with your friends!"
+    },
+    "typing": {
+      "name": "Typing Game",
+      "description": "Learn English with typing game!"
+    }
   },
   "index": {
     "about": "About me",
