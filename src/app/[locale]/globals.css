@@ -38,6 +38,14 @@ main {
   flex: 1;
 }
 
+:lang(en).toENG {
+  display: none;
+}
+
+:lang(ja).toJPN {
+  display: none;
+}
+
 .popup {
   z-index: 9999;
 }

@@ -38,35 +38,8 @@ export const ThemeSwitcher = () => {
 					title="Switch theme"
 					className={`flex items-center justify-center w-fit p-1 mr-1 md:mr-0 rounded-md active:scale-95 duration-200 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50`}
 					onClick={() => setIsOpen(!isOpen)}>
-					{mounted ? (
-						resolvedTheme === "dark" ? (
-							<FiMoon className="text-indigo-500 w-6 h-6" />
-						) : resolvedTheme === "light" ? (
-							<FiSun className="text-yellow-500 w-6 h-6" />
-						) : (
-							<div className="text-gray-500 w-6 h-6">
-								<svg
-									viewBox="0 0 24 24"
-									fill="none"
-									xmlns="http://www.w3.org/2000/svg">
-									<path
-										d="M12 2C6.486 2 2 6.486 2 12C2 17.514 6.486 22 12 22C17.514 22 22 17.514 22 12C22 6.486 17.514 2 12 2ZM12 20C7.582 20 4 16.418 4 12C4 7.582 7.582 4 12 4C16.418 4 20 7.582 20 12C20 16.418 16.418 20 12 20Z"
-										fill="currentColor"
-									/>
-									<path
-										d="M12 6C10.897 6 10 6.897 10 8V12H14V8C14 6.897 13.103 6 12 6Z"
-										fill="currentColor"
-									/>
-									<path
-										d="M12 18C13.103 18 14 17.103 14 16V12H10V16C10 17.103 10.897 18 12 18Z"
-										fill="currentColor"
-									/>
-								</svg>
-							</div>
-						)
-					) : (
-						<FaSpinner className="animate-spin text-gray-500 w-6 h-6" />
-					)}
+					<FiMoon className="text-indigo-500 w-6 h-6 hidden dark:block" />
+					<FiSun className="text-yellow-500 w-6 h-6 dark:hidden" />
 				</button>
 			</div>
 			{isOpen && (
