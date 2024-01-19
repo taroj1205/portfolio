@@ -14,7 +14,26 @@ const nextConfig = {
                 hostname: 'img.shields.io',
             },
         ],
-    }
+    },
+    async redirects() {
+        return [
+            {
+                source: '/en/about',
+                destination: 'https://taroj1205.netlify.app',
+                permanent: true,
+            },
+            {
+                source: '/ja/about',
+                destination: 'https://taroj1205.netlify.app',
+                permanent: true,
+            },
+            {
+                source: '/about',
+                destination: 'https://taroj1205.netlify.app',
+                permanent: true,
+            },
+        ]
+    },
 }
 
 module.exports = withMDX(nextConfig)
