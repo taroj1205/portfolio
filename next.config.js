@@ -19,17 +19,17 @@ const nextConfig = {
         return [
             {
                 source: '/en/about',
-                destination: 'https://taroj1205.netlify.app',
+                destination: 'https://taroj1205.vercel.app/en',
                 permanent: true,
             },
             {
                 source: '/ja/about',
-                destination: 'https://taroj1205.netlify.app',
+                destination: 'https://taroj1205.vercel.app/ja',
                 permanent: true,
             },
             {
                 source: '/about',
-                destination: 'https://taroj1205.netlify.app',
+                destination: 'https://taroj1205.vercel.app',
                 permanent: true,
             },
         ]
