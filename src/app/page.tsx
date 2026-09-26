@@ -20,6 +20,7 @@ import windyRock from "@/assets/photos/windy-rock.jpg";
 import noteShot from "@/assets/shots/note.jpg";
 import reversiShot from "@/assets/shots/reversi.jpg";
 import typingShot from "@/assets/shots/typing.jpg";
+import { Clock } from "@/components/clock";
 import { Arrow } from "@/components/icons";
 import { JourneyMap } from "@/components/journey-map";
 import { Lately } from "@/components/lately";
@@ -105,14 +106,17 @@ const awards = [
   },
 ];
 
+// The postcard lands on the page, and then the postmark is inked on.
+const arrive = stylex.keyframes({
+  from: { opacity: 0, rotate: "-4deg", translate: "0 96px" },
+});
+const thunk = stylex.keyframes({
+  from: { opacity: 0, scale: 1.8 },
+});
+
 // The hero softens and drifts back as it scrolls away.
 const recede = stylex.keyframes({
   to: { filter: "blur(6px)", opacity: 0, scale: 0.97, translate: "0 -4%" },
-});
-
-// The last few hundred pixels of the page pour colour into the links.
-const pour = stylex.keyframes({
-  from: { backgroundSize: "0% 100%, 100% 100%" },
 });
 
 const styles = stylex.create({
@@ -123,8 +127,11 @@ const styles = stylex.create({
     gridTemplateColumns: "repeat(12, 1fr)",
     paddingTop: "clamp(5rem, 11vw, 8.5rem)",
   },
+  // Stays beside the text while you read, until it leaves for the island.
   aboutPhoto: {
     gridColumn: { default: "1 / span 4", [media.tablet]: "1 / -1" },
+    position: { default: "sticky", [media.tablet]: "static" },
+    top: "6rem",
     marginBottom: { default: null, [media.tablet]: "3rem" },
     marginInline: { default: null, [media.tablet]: "auto" },
     maxWidth: { default: null, [media.tablet]: "20rem" },
@@ -224,45 +231,149 @@ const styles = stylex.create({
     },
   },
   contact: {
-    paddingBlock: "clamp(5rem, 11vw, 8.5rem)",
+    paddingBlock: "clamp(6rem, 14vw, 11rem) clamp(4rem, 8vw, 6rem)",
   },
-  contactText: {
-    color: color.muted,
-    marginTop: "1rem",
-    maxWidth: "30rem",
-  },
-  social: {
+  // A postcard: the message on the left, where to send it on the right.
+  postcard: {
     animationFillMode: "both",
     animationName: {
       default: null,
-      "@supports (animation-timeline: scroll())": pour,
+      [media.motion]: {
+        default: null,
+        "@supports (animation-timeline: view())": arrive,
+      },
     },
-    animationRange: "calc(100% - 320px) 100%",
-    animationTimeline: "scroll()",
-    animationTimingFunction: "linear",
-    backgroundClip: "text",
-    backgroundImage: `linear-gradient(90deg, ${color.cobalt}, ${color.tangerine}), linear-gradient(${color.ink}, ${color.ink})`,
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "100% 100%, 100% 100%",
-    color: "transparent",
-    display: "inline-block",
-    fontSize: "clamp(1.75rem, 7vw, 5.5rem)",
-    letterSpacing: "-0.045em",
-    lineHeight: 1.05,
-    overflowWrap: "anywhere",
-    textDecorationThickness: {
-      default: "2px",
-      [media.hover]: { default: null, ":hover": "5px" },
-    },
-    textDecorationColor: color.cobalt,
-    transitionDuration: "200ms",
-    transitionProperty: "text-decoration-thickness",
+    animationRange: "entry 0% cover 40%",
+    animationTimeline: "view()",
+    animationTimingFunction: ease.out,
+    backgroundColor: color.surface,
+    borderRadius: 20,
+    boxShadow: `${shadow.lift}, 0 2px 6px rgb(18 16 14 / 0.05)`,
+    display: "grid",
+    gridTemplateColumns: { default: "1.1fr 1fr", [media.tablet]: "1fr" },
+    overflow: "clip",
   },
-  socials: {
-    columnGap: "0.4em",
+  message: {
     display: "flex",
-    flexWrap: "wrap",
-    marginTop: "clamp(1.5rem, 4vw, 2.5rem)",
+    flexDirection: "column",
+    gap: "1.25rem",
+    padding: "clamp(1.75rem, 4.5vw, 3.5rem)",
+  },
+  contactTitle: {
+    fontSize: "clamp(3.5rem, 8vw, 6.5rem)",
+    fontWeight: 750,
+    letterSpacing: "-0.05em",
+    lineHeight: 0.9,
+  },
+  contactText: {
+    color: color.muted,
+    fontSize: "clamp(1.0625rem, 1.4vw, 1.2rem)",
+    maxWidth: "24rem",
+  },
+  signoff: {
+    fontSize: "1.5rem",
+    marginTop: "auto",
+    rotate: "-3deg",
+    transformOrigin: "0 50%",
+  },
+  address: {
+    borderColor: color.line,
+    borderStyle: "solid",
+    borderWidth: {
+      default: "0 0 0 1px",
+      [media.tablet]: "1px 0 0",
+    },
+    padding: "clamp(1.75rem, 4.5vw, 3.5rem)",
+    position: "relative",
+  },
+  // Sized in whole perforations (10px), so the holes land on every edge.
+  stamp: {
+    filter: "drop-shadow(0 4px 10px rgb(18 16 14 / 0.15))",
+    position: "absolute",
+    right: "clamp(1.25rem, 3vw, 2rem)",
+    rotate: "4deg",
+    top: "clamp(1.25rem, 3vw, 2rem)",
+  },
+  stampPaper: {
+    backgroundColor: color.surface,
+    display: "block",
+    height: 110,
+    mask: "linear-gradient(#000 0 0) center / calc(100% - 10px) calc(100% - 10px) no-repeat, radial-gradient(circle, transparent 3.5px, #000 4px) -5px -5px / 10px 10px",
+    padding: 8,
+    width: 90,
+  },
+  stampImage: {
+    height: "100%",
+    objectFit: "cover",
+  },
+  // Inked on as it scrolls in.
+  postmark: {
+    animationFillMode: "both",
+    animationName: {
+      default: null,
+      [media.motion]: {
+        default: null,
+        "@supports (animation-timeline: view())": thunk,
+      },
+    },
+    animationRange: "entry 80% cover 50%",
+    animationTimeline: "view()",
+    animationTimingFunction: ease.out,
+    alignItems: "center",
+    borderColor: "rgb(30 54 201 / 0.55)",
+    borderRadius: "50%",
+    borderStyle: "solid",
+    borderWidth: 2,
+    color: "rgb(30 54 201 / 0.7)",
+    display: "grid",
+    fontSize: "0.62rem",
+    fontWeight: 700,
+    height: 92,
+    justifyItems: "center",
+    letterSpacing: "0.12em",
+    lineHeight: 1.3,
+    mixBlendMode: "multiply",
+    paddingBlock: "1rem",
+    position: "absolute",
+    right: "clamp(4.5rem, 9vw, 6rem)",
+    rotate: "-14deg",
+    textTransform: "uppercase",
+    top: "clamp(2.75rem, 6vw, 3.75rem)",
+    width: 92,
+  },
+  postmarkTime: {
+    fontSize: "0.85rem",
+    letterSpacing: "0.02em",
+  },
+  // The address lines start below the stamp.
+  lines: {
+    marginTop: "clamp(8rem, 12vw, 9.5rem)",
+  },
+  line: {
+    alignItems: "baseline",
+    borderBottomColor: color.line,
+    borderBottomStyle: "solid",
+    borderBottomWidth: 1,
+    color: {
+      default: color.ink,
+      [media.hover]: { default: null, ":hover": color.cobalt },
+    },
+    columnGap: "0.75rem",
+    display: "grid",
+    gridTemplateColumns: "1fr auto auto",
+    paddingBlock: "0.85rem 0.6rem",
+    textDecoration: "none",
+    transitionDuration: "160ms, 150ms",
+    transitionProperty: "transform, color",
+  },
+  lineName: {
+    fontSize: "clamp(1.5rem, 2.6vw, 2rem)",
+    letterSpacing: "-0.03em",
+    lineHeight: 1.1,
+  },
+  lineHandle: {
+    color: color.muted,
+    fontSize: "0.9rem",
   },
   fact: {
     borderBottomColor: color.line,
@@ -295,7 +406,7 @@ const styles = stylex.create({
     animationTimeline: "view()",
     animationTimingFunction: "linear",
     transformOrigin: "0 100%",
-    paddingBlock: "clamp(2.5rem, 7vw, 5.5rem) clamp(2rem, 4vw, 3rem)",
+    paddingBlock: "clamp(4rem, 9vw, 7rem) clamp(2rem, 4vw, 3rem)",
   },
   heroTitle: {
     fontSize: "clamp(3.25rem, 11vw, 9.5rem)",
@@ -402,7 +513,9 @@ const Home = async () => {
       <Photos eager={3} photos={band} variant="band" />
 
       <section {...stylex.props(shared.wrap, styles.about)} id="about">
+        {/* The island is made from this photo; see Island. */}
         <figure
+          id="me"
           {...stylex.props(
             styles.aboutPhoto,
             shared.reveal,
@@ -533,7 +646,7 @@ const Home = async () => {
                   placeholder="blur"
                   sizes="(max-width: 800px) 100vw, 50vw"
                   src={award.photo}
-                  {...stylex.props(styles.awardImage)}
+                  {...stylex.props(styles.awardImage, shared.unveil)}
                 />
                 <Image
                   alt={`The ${award.prize} certificate`}
@@ -565,22 +678,55 @@ const Home = async () => {
       </Section>
 
       <section {...stylex.props(shared.wrap, styles.contact)} id="contact">
-        <h2 {...stylex.props(shared.title, shared.reveal)}>Say hi</h2>
-        <p {...stylex.props(styles.contactText, shared.reveal)}>
-          Send me a message on any of these, whether it&apos;s about a project,
-          uni, or just to chat.
-        </p>
-        <p {...stylex.props(styles.socials)}>
-          {socials.map(([label, href]) => (
-            <a
-              href={href}
-              key={label}
-              {...stylex.props(shared.display, styles.social)}
-            >
-              {label}
-            </a>
-          ))}
-        </p>
+        <article {...stylex.props(styles.postcard)}>
+          <div {...stylex.props(styles.message)}>
+            <h2 {...stylex.props(styles.contactTitle)}>Say hi.</h2>
+            <p {...stylex.props(styles.contactText)}>
+              Send me a message on any of these, whether it&apos;s about a
+              project, uni, or just to chat.
+            </p>
+            <p {...stylex.props(shared.display, styles.signoff)}>— Shintaro</p>
+          </div>
+          <div {...stylex.props(styles.address)}>
+            <span aria-hidden="true" {...stylex.props(styles.stamp)}>
+              <span {...stylex.props(styles.stampPaper)}>
+                <Image
+                  alt=""
+                  sizes="80px"
+                  src={skyTower}
+                  {...stylex.props(styles.stampImage)}
+                />
+              </span>
+            </span>
+            <p {...stylex.props(styles.postmark)}>
+              <span>Auckland</span>
+              <span {...stylex.props(styles.postmarkTime)}>
+                <Clock />
+              </span>
+              <span>NZ</span>
+            </p>
+            <ul {...stylex.props(styles.lines)}>
+              {socials.map(([label, href, handle]) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    {...stylex.props(
+                      styles.line,
+                      shared.pressable,
+                      stylex.defaultMarker()
+                    )}
+                  >
+                    <span {...stylex.props(shared.display, styles.lineName)}>
+                      {label}
+                    </span>
+                    <span {...stylex.props(styles.lineHandle)}>@{handle}</span>
+                    <Arrow />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </article>
       </section>
     </>
   );

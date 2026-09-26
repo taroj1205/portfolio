@@ -18,11 +18,9 @@ const styles = stylex.create({
     color: color.muted,
     lineHeight: 1.7,
   },
-  // Named after the id, so the nav can tell when you're reading it.
-  section: (id: string) => ({
+  section: {
     paddingTop: "clamp(5rem, 11vw, 8.5rem)",
-    viewTimelineName: `--${id}`,
-  }),
+  },
 });
 
 export const Section = ({
@@ -36,7 +34,7 @@ export const Section = ({
   intro?: ReactNode;
   children: ReactNode;
 }) => (
-  <section {...stylex.props(shared.wrap, styles.section(id))} id={id}>
+  <section {...stylex.props(shared.wrap, styles.section)} id={id}>
     <div {...stylex.props(styles.head, shared.reveal)}>
       <h2 {...stylex.props(shared.title)}>{title}</h2>
       {intro !== undefined && <p {...stylex.props(styles.intro)}>{intro}</p>}

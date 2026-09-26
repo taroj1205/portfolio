@@ -68,6 +68,9 @@ jobs:
       - name: Run vp check
         run: bunx vp check
 
+      - name: Run tests
+        run: bunx vp test run
+
   spell_check:
     name: Spell Check
     runs-on: ubuntu-latest

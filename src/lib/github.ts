@@ -2,6 +2,7 @@
 // home page revalidates hourly (ISR), so new merges show up without a deploy.
 // GITHUB_TOKEN needs read access to Hazumi's private repos for the totals and
 // the contribution graph to include work there.
+import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
 const USER = "taroj1205";
@@ -43,8 +44,9 @@ const pullRequest = z
     stars: repository.stargazerCount,
   }));
 
-const search = z.object({
-  issueCount: z.number(),
+const count = z.object({ issueCount: z.number() });
+
+const search = count.extend({
   // Results the token can't read come back as null.
   nodes: z
     .array(pullRequest.nullable())
@@ -53,9 +55,9 @@ const search = z.object({
 
 const response = z.object({
   data: z.object({
-    hazumi: search,
+    hazumi: count,
     recent: search,
-    total: search,
+    total: count,
     upstream: search,
     user: z.object({
       contributionsCollection: z.object({
@@ -70,9 +72,9 @@ const response = z.object({
         }),
       }),
     }),
-    yamada: search,
-    yamadaIssues: search,
-    zen: search,
+    yamada: count,
+    yamadaIssues: count,
+    zen: count,
   }),
 });
 
@@ -81,7 +83,7 @@ type PullRequest = z.infer<typeof pullRequest>;
 const byMergedAt = (a: PullRequest, b: PullRequest) =>
   b.mergedAt.localeCompare(a.mergedAt);
 
-export const getGitHub = async () => {
+const fetchGitHub = async () => {
   const token = process.env.GITHUB_TOKEN ?? "";
   if (token === "") {
     throw new Error(
@@ -99,7 +101,7 @@ export const getGitHub = async () => {
         ([key, [q, first]]) =>
           `${key}: search(type: ISSUE, first: ${first}, query: ${JSON.stringify(q)}) {
             issueCount
-            nodes { ... on PullRequest { number title url mergedAt repository { nameWithOwner stargazerCount } } }
+            ${first > 0 ? "nodes { ... on PullRequest { number title url mergedAt repository { nameWithOwner stargazerCount } } }" : ""}
           }`
       )
       .join("\n")}
@@ -165,5 +167,13 @@ export const getGitHub = async () => {
     upstream: [...upstream].map(([repo, prs]) => ({ prs, repo })),
   };
 };
+
+// Cache only validated results. Keeping the clock inside the callback gives
+// every caller the same hourly snapshot without a new timestamped request.
+export const getGitHub = unstable_cache(
+  fetchGitHub,
+  [USER, JSON.stringify(searches), String(UPSTREAM_MIN_STARS)],
+  { revalidate: 3600 }
+);
 
 export type GitHub = Awaited<ReturnType<typeof getGitHub>>;

@@ -3,6 +3,8 @@ import type { StyleXStyles } from "@stylexjs/stylex";
 import Image from "next/image";
 import type { StaticImageData } from "next/image";
 
+import { shared } from "@/styles/shared";
+
 import { color, ease } from "../styles/tokens.stylex";
 
 const styles = stylex.create({
@@ -72,7 +74,7 @@ export const Shot = ({
       placeholder="blur"
       sizes="(max-width: 900px) 90vw, 520px"
       src={shot}
-      {...stylex.props(styles.image)}
+      {...stylex.props(styles.image, shared.unveil)}
     />
   </span>
 );

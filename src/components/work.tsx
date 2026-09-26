@@ -323,13 +323,15 @@ export const Work = ({
       ],
     },
     {
-      body: "A kit of ready-made pieces, like buttons, menus and pop-ups, that people use to build websites with React. I started helping in 2024 and I'm now one of its maintainers, so I review other people's changes as well as writing my own.",
+      body: "A kit of ready-made pieces, like buttons, menus and pop-ups, that people use to build websites with React. I started helping in 2024 and I'm now one of its maintainers. I've built some of the pieces myself, and I review other people's changes too.",
       href: "https://yamada-ui.com",
       name: "Yamada UI",
+      // Biggest features first, then the CI and testing work.
       points: [
-        "Docs navigation, language menu and scroll fixes",
-        "Menu accessibility fixes",
-        "Security checks in CI with zizmor",
+        "Notice rebuilt on Sonner, after adding multi-toaster support to Sonner itself",
+        "New components: NativeAccordion, NativePopover, FormatNumber and FormatByte",
+        "Faster CI: Turborepo caching, sharded browser tests, no runs on draft PRs",
+        "Tests moved to real browsers with Vitest Browser Mode, plus a11y checks in Storybook",
       ],
       role: "Maintainer since Feb 2024",
       shot: yamadaShot,

@@ -12,6 +12,12 @@ const reveal = stylex.keyframes({
   from: { filter: "blur(4px)", opacity: 0, translate: "0 24px" },
 });
 
+// Both ends spelled out: inset() can't interpolate to `none`.
+const wipe = stylex.keyframes({
+  from: { clipPath: "inset(0 0 100% 0)" },
+  to: { clipPath: "inset(0 0 0 0)" },
+});
+
 export const shared = stylex.create({
   // Load-in for the hero. Reduced motion keeps the fade, drops the movement.
   enter: (delay: string) => ({
@@ -60,6 +66,20 @@ export const shared = stylex.create({
       },
     },
     animationRange: "entry 0% entry 60%",
+    animationTimeline: "view()",
+    animationTimingFunction: ease.out,
+  },
+  // Images wipe in from the top as they scroll into view, like a page loading.
+  unveil: {
+    animationFillMode: "both",
+    animationName: {
+      default: null,
+      [media.motion]: {
+        default: null,
+        "@supports (animation-timeline: view())": wipe,
+      },
+    },
+    animationRange: "entry 10% cover 45%",
     animationTimeline: "view()",
     animationTimingFunction: ease.out,
   },
