@@ -12,8 +12,13 @@ const reveal = stylex.keyframes({
   from: { filter: "blur(4px)", opacity: 0, translate: "0 24px" },
 });
 
+// Both ends spelled out: inset() can't interpolate to `none`.
+const wipe = stylex.keyframes({
+  from: { clipPath: "inset(0 0 100% 0)" },
+  to: { clipPath: "inset(0 0 0 0)" },
+});
+
 export const shared = stylex.create({
-  // Load-in for the hero. Reduced motion keeps the fade, drops the movement.
   enter: (delay: string) => ({
     animationDelay: delay,
     animationDuration: "900ms",
@@ -42,14 +47,12 @@ export const shared = stylex.create({
     fontWeight: 700,
     letterSpacing: "-0.03em",
   },
-  // Anything you can press gives way a little under your finger.
   pressable: {
     transform: { default: null, ":active": "scale(0.97)" },
     transitionDuration: "160ms",
     transitionProperty: "transform",
     transitionTimingFunction: ease.out,
   },
-  // Sections fade up as they scroll in. Scroll-driven, so no JS at all.
   reveal: {
     animationFillMode: "both",
     animationName: {
@@ -60,6 +63,19 @@ export const shared = stylex.create({
       },
     },
     animationRange: "entry 0% entry 60%",
+    animationTimeline: "view()",
+    animationTimingFunction: ease.out,
+  },
+  unveil: {
+    animationFillMode: "both",
+    animationName: {
+      default: null,
+      [media.motion]: {
+        default: null,
+        "@supports (animation-timeline: view())": wipe,
+      },
+    },
+    animationRange: "entry 10% cover 45%",
     animationTimeline: "view()",
     animationTimingFunction: ease.out,
   },

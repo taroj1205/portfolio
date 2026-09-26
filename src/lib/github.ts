@@ -1,7 +1,6 @@
-// Everything on the page that would otherwise go stale comes from here. The
-// home page revalidates hourly (ISR), so new merges show up without a deploy.
 // GITHUB_TOKEN needs read access to Hazumi's private repos for the totals and
 // the contribution graph to include work there.
+import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
 const USER = "taroj1205";
@@ -9,12 +8,10 @@ const MERGED = `author:${USER} is:pr is:merged`;
 const PUBLIC_OTHERS = `${MERGED} is:public -user:${USER}`;
 // Where I'm a member or maintainer. Anything else counts as upstream.
 const HOME_ORGS = ["zen-browser", "yamada-ui", "Hazumi-Inc", "UoaWDCC"];
-// Enough stars that a merged change reaches people other than the owner.
 const UPSTREAM_MIN_STARS = 500;
 
 const searches = {
   hazumi: [`${MERGED} org:Hazumi-Inc`, 0],
-  // Wide net: a fine-grained token gets null for orgs that block those tokens.
   recent: [`${PUBLIC_OTHERS} sort:updated-desc`, 100],
   total: [MERGED, 0],
   upstream: [
@@ -43,8 +40,9 @@ const pullRequest = z
     stars: repository.stargazerCount,
   }));
 
-const search = z.object({
-  issueCount: z.number(),
+const count = z.object({ issueCount: z.number() });
+
+const search = count.extend({
   // Results the token can't read come back as null.
   nodes: z
     .array(pullRequest.nullable())
@@ -53,9 +51,9 @@ const search = z.object({
 
 const response = z.object({
   data: z.object({
-    hazumi: search,
+    hazumi: count,
     recent: search,
-    total: search,
+    total: count,
     upstream: search,
     user: z.object({
       contributionsCollection: z.object({
@@ -70,9 +68,9 @@ const response = z.object({
         }),
       }),
     }),
-    yamada: search,
-    yamadaIssues: search,
-    zen: search,
+    yamada: count,
+    yamadaIssues: count,
+    zen: count,
   }),
 });
 
@@ -81,7 +79,7 @@ type PullRequest = z.infer<typeof pullRequest>;
 const byMergedAt = (a: PullRequest, b: PullRequest) =>
   b.mergedAt.localeCompare(a.mergedAt);
 
-export const getGitHub = async () => {
+const fetchGitHub = async () => {
   const token = process.env.GITHUB_TOKEN ?? "";
   if (token === "") {
     throw new Error(
@@ -99,7 +97,7 @@ export const getGitHub = async () => {
         ([key, [q, first]]) =>
           `${key}: search(type: ISSUE, first: ${first}, query: ${JSON.stringify(q)}) {
             issueCount
-            nodes { ... on PullRequest { number title url mergedAt repository { nameWithOwner stargazerCount } } }
+            ${first > 0 ? "nodes { ... on PullRequest { number title url mergedAt repository { nameWithOwner stargazerCount } } }" : ""}
           }`
       )
       .join("\n")}
@@ -118,9 +116,14 @@ export const getGitHub = async () => {
   if (!res.ok) {
     throw new Error(`GitHub query failed: ${res.status} ${res.statusText}`);
   }
-  // Throwing (here or above) keeps the last good page cached instead of
-  // rendering zeros. GraphQL errors arrive as a 200 without `data`.
-  const { data } = response.parse(await res.json());
+  const payload: unknown = await res.json();
+  const { errors } = z
+    .object({ errors: z.array(z.unknown()).optional() })
+    .parse(payload);
+  if ((errors?.length ?? 0) > 0) {
+    throw new Error("GitHub query failed: GraphQL errors");
+  }
+  const { data } = response.parse(payload);
 
   const monthly = new Map<string, number>();
   for (let i = 0; i < 12; i += 1) {
@@ -140,7 +143,6 @@ export const getGitHub = async () => {
     }
   }
 
-  // One entry per popular repo, newest merge first.
   const upstream = new Map<string, PullRequest[]>();
   for (const pr of data.upstream.nodes.toSorted(byMergedAt)) {
     if (pr.stars >= UPSTREAM_MIN_STARS) {
@@ -165,5 +167,13 @@ export const getGitHub = async () => {
     upstream: [...upstream].map(([repo, prs]) => ({ prs, repo })),
   };
 };
+
+// Cache only validated results. Keeping the clock inside the callback gives
+// every caller the same hourly snapshot without a new timestamped request.
+export const getGitHub = unstable_cache(
+  fetchGitHub,
+  [USER, JSON.stringify(searches), String(UPSTREAM_MIN_STARS)],
+  { revalidate: 3600 }
+);
 
 export type GitHub = Awaited<ReturnType<typeof getGitHub>>;

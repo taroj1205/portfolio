@@ -11,3 +11,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 You are the most incredible designer, and this is a place for you to showcase how incredible you are, go all out.
 
 Users should not require interaction for content to be revealed for a perfect UX site.
+
+Do not leave comments in code unless explicitly stated.

@@ -18,7 +18,6 @@ const styles = stylex.create({
   },
 });
 
-// Nudges up and right when the nearest stylex.defaultMarker() is hovered.
 export const Arrow = () => (
   <svg
     aria-hidden="true"

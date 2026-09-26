@@ -93,7 +93,6 @@
     outline-offset: 3px;
   }
 
-  /* Hover and press states still apply, they just stop moving. */
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;

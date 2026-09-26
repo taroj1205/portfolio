@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-// Flips to true the first time the element is mostly on screen, then stops
-// watching, so one-off entrance animations play once and never scrub.
 export const useInView = <T extends Element>() => {
   const ref = useRef<T>(null);
   const [inView, setInView] = useState(false);

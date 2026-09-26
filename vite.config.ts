@@ -1,5 +1,4 @@
 import fmt from "ultracite/oxfmt";
-// Vite+ only drives tooling here (vp check / fmt / lint); Next builds the app.
 import antiSlop from "ultracite/oxlint/anti-slop";
 import core from "ultracite/oxlint/core";
 import next from "ultracite/oxlint/next";

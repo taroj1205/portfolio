@@ -12,7 +12,6 @@ import { shared } from "@/styles/shared";
 
 import { color, ease, font, media, shadow } from "../styles/tokens.stylex";
 
-// Written by hand for repos I know; anything new falls back to its PR title.
 const upstreamNotes = new Map([
   [
     "anomalyco/opencode",
@@ -47,7 +46,6 @@ const styles = stylex.create({
     fontSize: "clamp(1.75rem, 3.2vw, 2.5rem)",
     letterSpacing: "-0.04em",
   },
-  // Text on one side, the real thing on the other, swapping each row.
   list: {
     borderBottomColor: color.line,
     borderBottomStyle: "solid",
@@ -117,7 +115,6 @@ const styles = stylex.create({
   sideFlip: {
     gridColumn: { default: "1 / span 6", [media.tablet]: "1 / -1" },
   },
-  // Live numbers set large, like the figures in an annual report.
   stat: {
     borderLeftColor: { default: color.line, ":first-child": "transparent" },
     borderLeftStyle: "solid",
@@ -147,7 +144,6 @@ const styles = stylex.create({
   textFlip: {
     gridColumn: { default: "8 / -1", [media.tablet]: "1 / -1" },
   },
-  // Merged PRs as stickers that straighten when you reach for one.
   ticket: {
     backgroundColor: "rgb(255 255 255 / 0.95)",
     borderColor: "rgb(18 16 14 / 0.06)",
@@ -323,13 +319,14 @@ export const Work = ({
       ],
     },
     {
-      body: "A kit of ready-made pieces, like buttons, menus and pop-ups, that people use to build websites with React. I started helping in 2024 and I'm now one of its maintainers, so I review other people's changes as well as writing my own.",
+      body: "A kit of ready-made pieces, like buttons, menus and pop-ups, that people use to build websites with React. I started helping in 2024 and I'm now one of its maintainers. I've built some of the pieces myself, and I review other people's changes too.",
       href: "https://yamada-ui.com",
       name: "Yamada UI",
       points: [
-        "Docs navigation, language menu and scroll fixes",
-        "Menu accessibility fixes",
-        "Security checks in CI with zizmor",
+        "Notice rebuilt on Sonner, after adding multi-toaster support to Sonner itself",
+        "New components: NativeAccordion, NativePopover, FormatNumber and FormatByte",
+        "Faster CI: Turborepo caching, sharded browser tests, no runs on draft PRs",
+        "Tests moved to real browsers with Vitest Browser Mode, plus a11y checks in Storybook",
       ],
       role: "Maintainer since Feb 2024",
       shot: yamadaShot,
@@ -339,7 +336,7 @@ export const Work = ({
       ],
     },
     {
-      body: "My job. Hazumi is a software company in Tokyo, and I build and look after their websites and web apps remotely from Auckland.",
+      body: "My job. Hazumi is a software company in Tokyo, and I build web apps for them remotely from Auckland.",
       href: "https://hazumi.co.jp",
       name: "Hazumi",
       points: [],
@@ -352,7 +349,6 @@ export const Work = ({
           : [],
     },
   ];
-  // Biggest audience first: stars stand in for how many people it reaches.
   const byReach = upstream.toSorted(
     (a, b) => (b.prs[0]?.stars ?? 0) - (a.prs[0]?.stars ?? 0)
   );

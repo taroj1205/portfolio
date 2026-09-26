@@ -1,6 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
 
-// Warm paper, cobalt and tangerine. Light only.
 export const color = stylex.defineVars({
   cobalt: "#2b4cff",
   cobaltDeep: "#1e36c9",
@@ -18,7 +17,6 @@ export const color = stylex.defineVars({
   tangerineSoft: "#ffede4",
 });
 
-// Strong curves: UI stays under 300ms, one-off reveals can linger.
 export const ease = stylex.defineConsts({
   drawer: "cubic-bezier(0.32, 0.72, 0, 1)",
   out: "cubic-bezier(0.23, 1, 0.32, 1)",
