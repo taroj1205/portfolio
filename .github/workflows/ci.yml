@@ -71,6 +71,58 @@ jobs:
       - name: Run tests
         run: bunx vp test run
 
+  knip:
+    name: Knip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun ci
+
+      - name: Run Knip
+        run: bun run knip
+
+  workflow_checks:
+    name: ${{ matrix.tool }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tool: actionlint
+            version: 1.7.12
+            command: actionlint
+          - tool: zizmor
+            version: 1.25.2
+            command: zizmor --no-progress .github/workflows
+          - tool: pinact
+            version: 4.0.0-1
+            command: pinact run --fix=false --verify
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup workflow checker
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
+        with:
+          version: 2026.9.14
+          tool_versions: ${{ matrix.tool }} ${{ matrix.version }}
+          cache: false
+
+      - name: Check workflows
+        run: ${{ matrix.command }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   spell_check:
     name: Spell Check
     runs-on: ubuntu-latest
@@ -86,7 +138,7 @@ jobs:
 
   verify:
     name: Verify
-    needs: [build, check, spell_check]
+    needs: [build, check, knip, workflow_checks, spell_check]
     runs-on: ubuntu-latest
     if: always()
     steps:

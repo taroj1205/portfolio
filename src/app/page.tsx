@@ -261,12 +261,6 @@ const styles = stylex.create({
     fontSize: "clamp(1.0625rem, 1.4vw, 1.2rem)",
     maxWidth: "24rem",
   },
-  signoff: {
-    fontSize: "1.5rem",
-    marginTop: "auto",
-    rotate: "-3deg",
-    transformOrigin: "0 50%",
-  },
   address: {
     borderColor: color.line,
     borderStyle: "solid",
@@ -492,10 +486,10 @@ const Home = async () => {
           </span>
         </h1>
         <p {...stylex.props(styles.intro, shared.enter("240ms"))}>
-          I study computer science at the University of Auckland, build software
-          for a company in Tokyo, and help look after a couple of open-source
-          projects. When I&apos;m away from a screen, I&apos;m usually out
-          taking photos, like these.
+          I study Computer Science and IT Management at the University of
+          Auckland, build software at Hazumi, and help look after a couple of
+          open-source projects. When I&apos;m away from a screen, I&apos;m
+          usually out taking photos, like these.
         </p>
       </section>
 
@@ -523,10 +517,9 @@ const Home = async () => {
             A bit about me
           </h2>
           <p>
-            I was born in Tokyo in 2005. After the 2011 earthquake my family
-            moved to Ehime, and since then I&apos;ve lived in Auckland, spent a
-            year at school in the Philippines, and came back to New Zealand for
-            good in 2019.
+            I was born in Tokyo in 2005. After the 2011 earthquake, my family
+            moved to Ehime. I later lived in Auckland, spent a year at school in
+            the Philippines, and came back to New Zealand for good in 2019.
           </p>
           <p {...stylex.props(styles.paragraph)}>
             I taught myself to code in 2022 by making small games, and I still
@@ -555,7 +548,7 @@ const Home = async () => {
 
       <Section
         id="lately"
-        intro="This part keeps itself up to date. The site re-reads my GitHub about once an hour, so what you see here is never much older than that."
+        intro="Recent activity from my GitHub, with the latest update time shown below."
         title="Still shipping, most weeks."
       >
         <Lately
@@ -673,7 +666,6 @@ const Home = async () => {
               Send me a message on any of these, whether it&apos;s about a
               project, uni, or just to chat.
             </p>
-            <p {...stylex.props(shared.display, styles.signoff)}>— Shintaro</p>
           </div>
           <div {...stylex.props(styles.address)}>
             <span aria-hidden="true" {...stylex.props(styles.stamp)}>

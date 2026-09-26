@@ -13,6 +13,7 @@ export default defineConfig({
   lint: {
     extends: [core, react, next, shadcn, tanstack, vitest, antiSlop],
     ignorePatterns: core.ignorePatterns,
+    jsPlugins: [{ name: "shadcn", specifier: "@shadcn/lint" }],
     options: { typeAware: true, typeCheck: true },
   },
 });
