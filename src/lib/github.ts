@@ -42,6 +42,15 @@ const pullRequest = z
 
 const count = z.object({ issueCount: z.number() });
 
+const inaccessiblePullRequest = z.object({
+  type: z.literal("FORBIDDEN"),
+  path: z.tuple([
+    z.enum(["recent", "upstream"]),
+    z.literal("nodes"),
+    z.number().int().nonnegative(),
+  ]),
+});
+
 const search = count.extend({
   // Results the token can't read come back as null.
   nodes: z
@@ -118,10 +127,26 @@ const fetchGitHub = async () => {
   }
   const payload: unknown = await res.json();
   const { errors } = z
-    .object({ errors: z.array(z.unknown()).optional() })
+    .object({
+      errors: z
+        .array(
+          z.object({
+            message: z.string(),
+            type: z.string().optional(),
+            path: z.array(z.union([z.string(), z.number()])).optional(),
+          })
+        )
+        .optional(),
+    })
     .parse(payload);
-  if ((errors?.length ?? 0) > 0) {
-    throw new Error("GitHub query failed: GraphQL errors");
+  const failures =
+    errors?.filter(
+      (error) => !inaccessiblePullRequest.safeParse(error).success
+    ) ?? [];
+  if (failures.length > 0) {
+    throw new Error(
+      `GitHub query failed: ${failures.map(({ message }) => message).join("; ")}`
+    );
   }
   const { data } = response.parse(payload);
 
