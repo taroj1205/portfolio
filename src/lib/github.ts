@@ -116,8 +116,11 @@ const fetchGitHub = async () => {
   if (!res.ok) {
     throw new Error(`GitHub query failed: ${res.status} ${res.statusText}`);
   }
-  const payload = await res.json();
-  if (Array.isArray(payload?.errors) && payload.errors.length > 0) {
+  const payload: unknown = await res.json();
+  const { errors } = z
+    .object({ errors: z.array(z.unknown()).optional() })
+    .parse(payload);
+  if ((errors?.length ?? 0) > 0) {
     throw new Error("GitHub query failed: GraphQL errors");
   }
   const { data } = response.parse(payload);
