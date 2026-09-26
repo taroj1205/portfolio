@@ -341,7 +341,7 @@ export const Work = ({
       ],
     },
     {
-      body: "My job. Hazumi is a software company in Tokyo, and I build and look after their websites and web apps remotely from Auckland.",
+      body: "My job. Hazumi is a software company in Tokyo, and I build web apps for them remotely from Auckland.",
       href: "https://hazumi.co.jp",
       name: "Hazumi",
       points: [],
