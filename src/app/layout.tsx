@@ -1,4 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 
@@ -62,6 +63,7 @@ const RootLayout = ({ children }: LayoutProps<"/">) => (
       <footer {...stylex.props(shared.wrap, styles.footer)}>
         <p>© {new Date().getFullYear()} Shintaro Jokagi</p>
       </footer>
+      <Analytics />
     </body>
   </html>
 );
