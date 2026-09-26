@@ -36,7 +36,7 @@ const roles = [
   {
     org: "Hazumi",
     paid: true,
-    role: "Software engineer, remote for a Tokyo team",
+    role: "Software engineer, remote from Auckland",
     start: "2025-11",
   },
   {

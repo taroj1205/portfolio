@@ -21,8 +21,12 @@ The token only counts what it can read, so the totals, the contribution chart an
 
 ```sh
 bunx vp check    # oxfmt, oxlint (Ultracite presets) and TypeScript
+bunx vp test run
+bun run knip     # unused files, exports and dependencies
 bun run spell    # cspell
 bun run build
 ```
 
-CI runs the same three on every pull request (`.github/workflows/ci.yml`).
+CI runs these checks on every pull request (`.github/workflows/ci.yml`).
+
+CI also runs actionlint, zizmor, and pinact in parallel to check workflow syntax, security, and pinned actions.

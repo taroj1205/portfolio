@@ -3,10 +3,10 @@ import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 
-import { Island } from "@/components/island";
+import { ContactLinks } from "@/components/contact-links";
 import { shared } from "@/styles/shared";
 
-import { color } from "../styles/tokens.stylex";
+import { color, media } from "../styles/tokens.stylex";
 
 import "./globals.css";
 
@@ -18,7 +18,7 @@ const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 
 export const metadata: Metadata = {
   description:
-    "Shintaro Jokagi studies computer science at the University of Auckland, works as a software engineer at Hazumi, helps maintain Yamada UI and the Zen Browser website, and takes a lot of photos of the coast.",
+    "Shintaro Jokagi studies Computer Science and IT Management at the University of Auckland, works as a software engineer at Hazumi, helps maintain Yamada UI and the Zen Browser website, and takes a lot of photos of the coast.",
   title: "Shintaro Jokagi",
 };
 
@@ -28,6 +28,12 @@ export const viewport: Viewport = {
 };
 
 const styles = stylex.create({
+  body: {
+    paddingBottom: {
+      default: 0,
+      [media.tablet]: "calc(85px + env(safe-area-inset-bottom))",
+    },
+  },
   footer: {
     borderTopColor: color.line,
     borderTopStyle: "solid",
@@ -52,13 +58,11 @@ const styles = stylex.create({
 
 const RootLayout = ({ children }: LayoutProps<"/">) => (
   <html className={`${display.variable} ${body.variable}`} lang="en">
-    <body>
+    <body {...stylex.props(styles.body)}>
       <a href="#main" {...stylex.props(styles.skip)}>
         Skip to content
       </a>
-      <header>
-        <Island />
-      </header>
+      <ContactLinks />
       <main id="main">{children}</main>
       <footer {...stylex.props(shared.wrap, styles.footer)}>
         <p>© {new Date().getFullYear()} Shintaro Jokagi</p>

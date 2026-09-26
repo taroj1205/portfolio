@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { AsyncLocalStorage } from "node:async_hooks";
 
-import { describe, test, vi } from "vitest";
+import { describe, test, vi } from "vite-plus/test";
 import { z } from "zod";
 
 Reflect.set(globalThis, "AsyncLocalStorage", AsyncLocalStorage);
