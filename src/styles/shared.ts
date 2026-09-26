@@ -19,7 +19,6 @@ const wipe = stylex.keyframes({
 });
 
 export const shared = stylex.create({
-  // Load-in for the hero. Reduced motion keeps the fade, drops the movement.
   enter: (delay: string) => ({
     animationDelay: delay,
     animationDuration: "900ms",
@@ -48,14 +47,12 @@ export const shared = stylex.create({
     fontWeight: 700,
     letterSpacing: "-0.03em",
   },
-  // Anything you can press gives way a little under your finger.
   pressable: {
     transform: { default: null, ":active": "scale(0.97)" },
     transitionDuration: "160ms",
     transitionProperty: "transform",
     transitionTimingFunction: ease.out,
   },
-  // Sections fade up as they scroll in. Scroll-driven, so no JS at all.
   reveal: {
     animationFillMode: "both",
     animationName: {
@@ -69,7 +66,6 @@ export const shared = stylex.create({
     animationTimeline: "view()",
     animationTimingFunction: ease.out,
   },
-  // Images wipe in from the top as they scroll into view, like a page loading.
   unveil: {
     animationFillMode: "both",
     animationName: {

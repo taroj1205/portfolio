@@ -10,7 +10,6 @@ export const day = (iso: string) =>
     timeZone: "Pacific/Auckland",
   });
 
-// "fix(rebuild): isolate …" → { type: "fix", text: "isolate …" }
 export const splitTitle = (title: string) => {
   const match = /^(?<type>\w+)(?:\([^)]*\))?!?:\s*(?<text>.*)$/u.exec(title);
   return {

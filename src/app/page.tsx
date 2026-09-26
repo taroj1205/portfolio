@@ -37,8 +37,6 @@ import { shared } from "@/styles/shared";
 
 import { color, ease, media, shadow } from "../styles/tokens.stylex";
 
-// ISR: rebuild this page in the background at most once an hour, so the
-// GitHub numbers stay fresh without a redeploy.
 export const revalidate = 3600;
 
 const band: Photo[] = [
@@ -50,7 +48,6 @@ const band: Photo[] = [
   { caption: "Last light over the harbour", src: sunsetWide },
 ];
 
-// Ordered so the justified rows break evenly from phone to desktop.
 const gallery: Photo[] = [
   { caption: "Cliffs on the west coast", src: westCoast },
   { caption: "Sandstone cliff and a quiet beach", src: sandstone },
@@ -106,7 +103,6 @@ const awards = [
   },
 ];
 
-// The postcard lands on the page, and then the postmark is inked on.
 const arrive = stylex.keyframes({
   from: { opacity: 0, rotate: "-4deg", translate: "0 96px" },
 });
@@ -114,7 +110,6 @@ const thunk = stylex.keyframes({
   from: { opacity: 0, scale: 1.8 },
 });
 
-// The hero softens and drifts back as it scrolls away.
 const recede = stylex.keyframes({
   to: { filter: "blur(6px)", opacity: 0, scale: 0.97, translate: "0 -4%" },
 });
@@ -127,7 +122,6 @@ const styles = stylex.create({
     gridTemplateColumns: "repeat(12, 1fr)",
     paddingTop: "clamp(5rem, 11vw, 8.5rem)",
   },
-  // Stays beside the text while you read, until it leaves for the island.
   aboutPhoto: {
     gridColumn: { default: "1 / span 4", [media.tablet]: "1 / -1" },
     position: { default: "sticky", [media.tablet]: "static" },
@@ -136,7 +130,6 @@ const styles = stylex.create({
     marginInline: { default: null, [media.tablet]: "auto" },
     maxWidth: { default: null, [media.tablet]: "20rem" },
   },
-  // Stuck on slightly crooked; it straightens when you reach for it.
   aboutImage: {
     aspectRatio: "4 / 5",
     borderColor: "#fff",
@@ -192,7 +185,6 @@ const styles = stylex.create({
     gap: { default: "1.5rem", [media.tablet]: "3rem" },
     gridTemplateColumns: { default: "1fr 1fr", [media.tablet]: "1fr" },
   },
-  // Pinned over the corner of the team photo, and straightened on hover.
   certificate: {
     borderColor: "#fff",
     borderRadius: 6,
@@ -233,7 +225,6 @@ const styles = stylex.create({
   contact: {
     paddingBlock: "clamp(6rem, 14vw, 11rem) clamp(4rem, 8vw, 6rem)",
   },
-  // A postcard: the message on the left, where to send it on the right.
   postcard: {
     animationFillMode: "both",
     animationName: {
@@ -306,7 +297,6 @@ const styles = stylex.create({
     height: "100%",
     objectFit: "cover",
   },
-  // Inked on as it scrolls in.
   postmark: {
     animationFillMode: "both",
     animationName: {
@@ -345,7 +335,6 @@ const styles = stylex.create({
     fontSize: "0.85rem",
     letterSpacing: "0.02em",
   },
-  // The address lines start below the stamp.
   lines: {
     marginTop: "clamp(8rem, 12vw, 9.5rem)",
   },
@@ -513,7 +502,6 @@ const Home = async () => {
       <Photos eager={3} photos={band} variant="band" />
 
       <section {...stylex.props(shared.wrap, styles.about)} id="about">
-        {/* The island is made from this photo; see Island. */}
         <figure
           id="me"
           {...stylex.props(

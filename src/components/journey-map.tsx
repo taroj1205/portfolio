@@ -32,7 +32,6 @@ const route = [
   `Q420,400 ${auckland.join(",")}`,
 ].join(" ");
 
-// `delay` roughly matches when the drawing route reaches each place.
 const places = [
   { at: tokyo, delay: 0, dy: 0, left: false, name: "Tokyo", stops: [0] },
   { at: ehime, delay: 250, dy: 18, left: true, name: "Ehime", stops: [1] },
@@ -178,7 +177,6 @@ const styles = stylex.create({
     position: "absolute",
     width: 0,
   },
-  // The route draws itself once, the first time the map comes into view.
   route: {
     fill: "none",
     stroke: color.tangerine,
@@ -203,7 +201,6 @@ const styles = stylex.create({
     gridTemplateColumns: "2rem 1fr",
     paddingBottom: "1.75rem",
     position: "relative",
-    // The rail joining each stop to the next.
     "::before": {
       backgroundColor: color.line,
       bottom: 0,
@@ -261,7 +258,6 @@ const styles = stylex.create({
   },
 });
 
-// Pointing at a stop in the list lights up its pin on the map.
 export const JourneyMap = () => {
   const [frame, inView] = useInView<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);

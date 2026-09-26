@@ -4,7 +4,6 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { describe, test, vi } from "vitest";
 import { z } from "zod";
 
-// Exercise Next's real cache wrapper with an in-memory storage boundary.
 Reflect.set(globalThis, "AsyncLocalStorage", AsyncLocalStorage);
 const { getGitHub } = await import("./github");
 
@@ -69,6 +68,11 @@ describe("GitHub fetching", () => {
       await assert.rejects(getGitHub());
       assert.equal(entries.size, 0, "GraphQL errors must not enter the cache");
       fail = false;
+      vi.mocked(fetch).mockResolvedValueOnce(
+        Response.json({ ...payload, errors: [{ message: "Partial results" }] })
+      );
+      await assert.rejects(getGitHub(), /GitHub query failed/u);
+      assert.equal(entries.size, 0, "Partial results must not enter the cache");
       const retried = await getGitHub();
       assert.equal(retried.total, 42);
       assert.equal(requests, 3);

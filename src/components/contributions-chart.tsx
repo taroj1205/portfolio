@@ -47,7 +47,6 @@ const styles = stylex.create({
     display: "flex",
     flexDirection: "column",
   },
-  // Bars grow from the baseline, left to right, once the card is in view.
   fill: (height: number, index: number) => ({
     alignSelf: "end",
     backgroundColor: "#cfd8ff",
@@ -123,8 +122,6 @@ const styles = stylex.create({
   },
 });
 
-// Scrub the bars: the readout follows the pointer and settles back on the
-// current month when a mouse leaves (touch keeps the last tapped bar).
 export const ContributionsChart = ({
   monthly,
   updated,
@@ -150,7 +147,6 @@ export const ContributionsChart = ({
       return;
     }
     setActive(i);
-    // A short blur bridges the old and new number so the swap reads as one.
     if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
       readout.current?.animate(
         [

@@ -16,5 +16,4 @@ const now = () =>
     timeZone: "Pacific/Auckland",
   });
 
-// My local time. Client only, so an hour-old ISR render never shows a stale one.
 export const Clock = () => useSyncExternalStore(subscribe, now, () => null);

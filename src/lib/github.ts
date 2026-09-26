@@ -1,5 +1,3 @@
-// Everything on the page that would otherwise go stale comes from here. The
-// home page revalidates hourly (ISR), so new merges show up without a deploy.
 // GITHUB_TOKEN needs read access to Hazumi's private repos for the totals and
 // the contribution graph to include work there.
 import { unstable_cache } from "next/cache";
@@ -10,12 +8,10 @@ const MERGED = `author:${USER} is:pr is:merged`;
 const PUBLIC_OTHERS = `${MERGED} is:public -user:${USER}`;
 // Where I'm a member or maintainer. Anything else counts as upstream.
 const HOME_ORGS = ["zen-browser", "yamada-ui", "Hazumi-Inc", "UoaWDCC"];
-// Enough stars that a merged change reaches people other than the owner.
 const UPSTREAM_MIN_STARS = 500;
 
 const searches = {
   hazumi: [`${MERGED} org:Hazumi-Inc`, 0],
-  // Wide net: a fine-grained token gets null for orgs that block those tokens.
   recent: [`${PUBLIC_OTHERS} sort:updated-desc`, 100],
   total: [MERGED, 0],
   upstream: [
@@ -120,9 +116,11 @@ const fetchGitHub = async () => {
   if (!res.ok) {
     throw new Error(`GitHub query failed: ${res.status} ${res.statusText}`);
   }
-  // Throwing (here or above) keeps the last good page cached instead of
-  // rendering zeros. GraphQL errors arrive as a 200 without `data`.
-  const { data } = response.parse(await res.json());
+  const payload = await res.json();
+  if (Array.isArray(payload?.errors) && payload.errors.length > 0) {
+    throw new Error("GitHub query failed: GraphQL errors");
+  }
+  const { data } = response.parse(payload);
 
   const monthly = new Map<string, number>();
   for (let i = 0; i < 12; i += 1) {
@@ -142,7 +140,6 @@ const fetchGitHub = async () => {
     }
   }
 
-  // One entry per popular repo, newest merge first.
   const upstream = new Map<string, PullRequest[]>();
   for (const pr of data.upstream.nodes.toSorted(byMergedAt)) {
     if (pr.stars >= UPSTREAM_MIN_STARS) {

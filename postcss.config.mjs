@@ -1,4 +1,3 @@
-// Replaces the @stylex directive in globals.css with the compiled CSS.
 import babel from "./babel.config.json" with { type: "json" };
 
 export default {

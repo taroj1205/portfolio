@@ -140,7 +140,6 @@ const styles = stylex.create({
     paddingBlock: "0.9rem",
     rowGap: "0.6rem",
   },
-  // Each bar grows from its start date as it scrolls into view.
   segment: (left: string, width: string) => ({
     animationFillMode: "both",
     animationName: {
@@ -179,7 +178,6 @@ const styles = stylex.create({
   },
 });
 
-// The axis ends at the current month, so it never needs editing.
 export const WorkTimeline = ({ now }: { now: Date }) => {
   const months = index(now.toISOString().slice(0, 7)) + 1;
   const years = Array.from(

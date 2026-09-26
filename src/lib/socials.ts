@@ -1,4 +1,3 @@
-// How people reach me. No email address on the site.
 export const socials = [
   ["GitHub", "https://github.com/taroj1205", "taroj1205"],
   ["LinkedIn", "https://www.linkedin.com/in/taroj/", "taroj"],

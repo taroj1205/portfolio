@@ -49,8 +49,6 @@ const styles = stylex.create({
   },
 });
 
-// One page, so no nav: the island carries the name, the time here and the
-// ways to reach me.
 const RootLayout = ({ children }: LayoutProps<"/">) => (
   <html className={`${display.variable} ${body.variable}`} lang="en">
     <body>

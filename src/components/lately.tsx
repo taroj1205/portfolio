@@ -31,8 +31,6 @@ const styles = stylex.create({
       [media.stack]: "1fr",
     },
   },
-  // Takes whatever height the chart leaves, so the card never ends early;
-  // extra rows fade out under the link instead of stretching the row.
   feed: {
     display: "flex",
     flexDirection: "column",
@@ -83,7 +81,6 @@ const styles = stylex.create({
     color: color.ink,
     display: "grid",
     gap: "0.85rem",
-    // On phones the date rides on the repo line so titles get the full width.
     gridTemplateColumns: {
       default: "32px minmax(0, 1fr) auto",
       [media.narrow]: "32px minmax(0, 1fr)",

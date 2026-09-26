@@ -52,7 +52,6 @@ const styles = stylex.create({
   },
 });
 
-// A screenshot in a small browser frame.
 export const Shot = ({
   href,
   shot,

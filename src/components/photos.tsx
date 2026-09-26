@@ -20,7 +20,6 @@ const morph = {
   new: { height: "100%", objectFit: "cover" },
   old: { height: "100%", objectFit: "cover" },
 } as const;
-// Opening glides in on a drawer curve; closing is quicker.
 const opening = stylex.viewTransitionClass({
   ...morph,
   group: { animationDuration: "420ms", animationTimingFunction: ease.drawer },
@@ -33,8 +32,6 @@ const closing = stylex.viewTransitionClass({
 const inset = "clamp(1rem, 4vw, 3rem)";
 const gap = "clamp(0.5rem, 1vw, 0.875rem)";
 
-// Phones get a pile of prints instead of a strip: scrolling deals each photo
-// onto the pile. Needs scroll-driven animations; otherwise the strip stays.
 const deckMode =
   "@media (max-width: 800px) and (prefers-reduced-motion: no-preference)";
 const scrollDriven = "@supports (animation-timeline: view())";
@@ -103,7 +100,6 @@ const styles = stylex.create({
     fontSize: "0.9375rem",
     opacity: 0.8,
   },
-  // The strip is doubled so it loops seamlessly; reduced motion shows one copy.
   echo: {
     display: { default: "flex", [media.reduce]: "none" },
   },
@@ -123,8 +119,6 @@ const styles = stylex.create({
     transitionTimingFunction: ease.out,
     width: "100%",
   },
-  // Justified rows: every photo in a row shares one height and none is
-  // cropped. Rows stop growing at a height cap (smaller on phones) and centre.
   rows: {
     alignItems: "start",
     display: "flex",
@@ -132,9 +126,6 @@ const styles = stylex.create({
     gap,
     justifyContent: "center",
   },
-  // The hero strip drifts by itself, so every photo passes without a swipe,
-  // and can be grabbed (see useTicker). Reduced motion gets a still strip you
-  // can scroll instead.
   strip: {
     cursor: {
       default: null,
@@ -170,11 +161,9 @@ const styles = stylex.create({
     },
     viewTimelineName: "--deck",
   },
-  // Tall enough to pin the pile while every photo is dealt.
   deckHeight: (count: number) => ({
     height: `calc(100svh + ${count} * 38svh)`,
   }),
-  // Pinned near the top, so the first print sits right below the intro.
   stage: {
     display: "grid",
     height: "100svh",
@@ -195,8 +184,6 @@ const styles = stylex.create({
     rotate: `${tilt}deg`,
     width: "min(74vw, 19rem)",
   }),
-  // Card i lands during the i-th slice of the pinned scroll; the last slice
-  // is a pause on the finished pile.
   dealt: (from: string, to: string) => ({
     animationFillMode: "both",
     animationName: deal,
@@ -224,10 +211,6 @@ const drift = -28;
 // How fast a flick decays back into the drift, per second.
 const settle = 2.2;
 
-// An infinite ticker you can grab. It drifts by itself, follows a drag or a
-// sideways trackpad swipe, and a flick carries on with momentum before easing
-// back into the drift. Hover or keyboard focus brings it gently to a stop.
-// Returns its cleanup.
 const startTicker = (track: HTMLElement, strip: HTMLElement) => {
   const controller = new AbortController();
   const { signal } = controller;
@@ -248,14 +231,12 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
       velocity += (target - velocity) * (1 - Math.exp(-settle * dt));
       x += velocity * dt;
     }
-    // The track holds the photos twice, so half its width is one lap.
     const lap = track.offsetWidth / 2;
     x = (((x % lap) + lap) % lap) - lap;
     track.style.transform = `translate3d(${x}px, 0, 0)`;
     frame = requestAnimationFrame(tick);
   };
 
-  // Only runs while on screen (and not swapped out for the deck).
   const observer = new IntersectionObserver(([entry]) => {
     cancelAnimationFrame(frame);
     if (entry?.isIntersecting) {
@@ -269,7 +250,6 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
     if (drag?.id !== event.pointerId) {
       return;
     }
-    // Holding still before letting go means no flick.
     velocity =
       event.timeStamp - drag.t > 80
         ? 0
@@ -284,7 +264,6 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
   strip.addEventListener(
     "pointerdown",
     (event) => {
-      // A second finger mid-drag is ignored rather than jumping the strip.
       if (drag || event.button !== 0) {
         return;
       }
@@ -325,7 +304,6 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
   strip.addEventListener("pointercancel", release, { signal });
   strip.addEventListener("pointerenter", hover, { signal });
   strip.addEventListener("pointerleave", hover, { signal });
-  // A drag that ends over a photo shouldn't also open it.
   strip.addEventListener(
     "click",
     (event) => {
@@ -337,7 +315,6 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
     },
     { capture: true, signal }
   );
-  // Sideways swipes only; the browser already adds trackpad momentum.
   strip.addEventListener(
     "wheel",
     (event) => {
@@ -349,7 +326,6 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
     },
     { passive: false, signal }
   );
-  // Tabbing to a photo brings it to the middle of the strip.
   strip.addEventListener(
     "focusin",
     (event) => {
@@ -387,8 +363,6 @@ const reduced = "(prefers-reduced-motion: reduce)";
 const canMorph = () =>
   "startViewTransition" in document && !matchMedia(reduced).matches;
 
-// The tapped thumbnail morphs into the full photo (View Transitions), and back
-// again on close. Without View Transitions the dialog simply opens.
 export const Photos = ({
   variant,
   photos,
@@ -423,7 +397,6 @@ export const Photos = ({
       setOpen(photo);
     });
     dialog.current?.showModal();
-    // Wait for the full photo so the morph doesn't land on an empty frame.
     await full.current?.decode().catch(() => null);
   };
 
@@ -551,7 +524,6 @@ export const Photos = ({
         <div {...stylex.props(styles.rows)}>{photos.map(tile)}</div>
       )}
 
-      {/* closedby="any": Escape and clicks on the backdrop both close it. */}
       <dialog
         aria-label="Photo"
         closedby="any"

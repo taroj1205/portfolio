@@ -16,12 +16,8 @@ import { color, ease, font, media } from "../styles/tokens.stylex";
 // :focus-visible, not :focus-within, so a tap on Android can still close it.
 const open = ":is([data-open], :has(:focus-visible))";
 
-// Growing springs a little past its size, like the Dynamic Island. Shrinking
-// is quicker and doesn't overshoot.
 const grow = { duration: "560ms", easing: ease.spring } as const;
 
-// Where the About portrait lands, then the pill wells out of it like a drop
-// of water: a tall droplet that overshoots wide and settles.
 const bloom = stylex.keyframes({
   from: { scale: "0.92 1.1", width: "3.25rem" },
 });
@@ -30,8 +26,6 @@ const liquid =
   "linear(0, 0.063, 0.226 5.2%, 0.446 8.2%, 0.831 13.8%, 0.974 16.8%, 1.075 19.8%, 1.13 22.6%, 1.149 25.2%, 1.136 28.2%, 1.1 31.5%, 0.998 40.1%, 0.98 44%, 0.973 48.4%, 0.985 58.2%, 1.001 70.2%, 1.004 78.7%, 1)";
 
 const styles = stylex.create({
-  // Liquid glass: a heavy blur that saturates what's behind, light caught
-  // along the top edge and a soft glow inside.
   island: {
     backdropFilter: "blur(7px) saturate(1.8) brightness(1.04)",
     backgroundColor: "rgb(255 255 255 / 0.3)",
@@ -74,7 +68,6 @@ const styles = stylex.create({
       [media.hover]: { default: null, ":hover": "min(24rem, 100vw - 1.5rem)" },
     },
     zIndex: 50,
-    // The rim: a hairline that's bright where light hits the glass.
     "::before": {
       backgroundImage:
         "linear-gradient(165deg, rgb(255 255 255 / 0.95), rgb(255 255 255 / 0.2) 35%, rgb(255 255 255 / 0.05) 65%, rgb(255 255 255 / 0.7))",
@@ -93,7 +86,6 @@ const styles = stylex.create({
     animationName: { default: null, [media.motion]: bloom },
     animationTimingFunction: liquid,
   },
-  // Until the portrait arrives: a bare circle the size of the avatar.
   undocked: {
     opacity: 0,
     pointerEvents: "none",
@@ -135,7 +127,6 @@ const styles = stylex.create({
     fontVariantNumeric: "tabular-nums",
     whiteSpace: "nowrap",
   },
-  // Rows from 0fr to 1fr: the height follows the content, no measuring.
   panel: {
     display: "grid",
     gridTemplateRows: {
@@ -165,7 +156,6 @@ const styles = stylex.create({
     minHeight: 0,
     overflow: "hidden",
   },
-  // Blurs in once the glass has started to open, and out before it closes.
   content: {
     filter: {
       default: "blur(6px)",
@@ -249,10 +239,6 @@ const styles = stylex.create({
 
 const mix = (from: number, to: number, t: number) => from + (to - from) * t;
 
-// Scroll-linked, so it scrubs both ways. As you leave the About section its
-// portrait (#me) sheds its white border, crops to a circle and flies into
-// where the island's avatar sits; `dock` hands over to the island once there.
-// Returns its cleanup.
 const follow = (
   photo: HTMLElement | null,
   avatar: HTMLElement | null | undefined,
@@ -260,7 +246,6 @@ const follow = (
 ) => {
   const controller = new AbortController();
   const { signal } = controller;
-  // Reduced motion (or no portrait): no flight, the island is simply there.
   if (
     !photo ||
     !avatar ||
@@ -292,8 +277,6 @@ const follow = (
     const target = avatar.getBoundingClientRect();
     const toX = document.documentElement.clientWidth / 2;
     const toY = target.top + target.height / 2;
-    // Starts just before you've scrolled past the section, done as its end
-    // reaches the top fifth of the screen.
     const t = Math.min(
       1,
       Math.max(0, (innerHeight * 0.55 - section.bottom) / (innerHeight * 0.35))
@@ -305,7 +288,6 @@ const follow = (
     }
     const border = 8;
     const square = box.width - 2 * border;
-    // Crop the 4:5 portrait to a square, keeping more of the top (the face).
     const extra = box.height - box.width;
     const top = border + extra * 0.3;
     const bottom = border + extra * 0.7;
@@ -313,8 +295,6 @@ const follow = (
     const radius = mix(20, square / 2, t);
     const x = box.left + box.width / 2;
     const y = box.top + box.height / 2;
-    // On phones it has long scrolled away, so it drops in from just above
-    // the screen (at its current size, so it never pops into view).
     const fromY = Math.max(y, (-box.height * scale) / 2);
     // The cropped part's centre sits off the photo's centre once scaled.
     const lift = ((top - bottom) * t * scale) / 2;
@@ -338,9 +318,6 @@ const follow = (
   };
 };
 
-// A little pill of glass that follows you down the page and opens out into
-// the places to find me: hover it, tap it, or tab into it. It's made from the
-// About portrait, so it only appears once you've scrolled past that.
 export const Island = () => {
   const [expanded, setExpanded] = useState(false);
   const [docked, setDocked] = useState(false);
@@ -356,7 +333,6 @@ export const Island = () => {
     []
   );
 
-  // Closing when already closed is a no-op, so these can always listen.
   useEffect(() => {
     const controller = new AbortController();
     const { signal } = controller;
@@ -384,7 +360,6 @@ export const Island = () => {
       },
       { signal }
     );
-    // Like the real one, it tucks itself away once you start scrolling.
     addEventListener("scroll", close, { passive: true, signal });
     return () => {
       controller.abort();
