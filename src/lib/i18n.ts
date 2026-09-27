@@ -1,4 +1,4 @@
-import { ja } from "./messages/ja";
+import ja from "./messages/ja.json";
 
 export type Locale = "en" | "ja";
 
