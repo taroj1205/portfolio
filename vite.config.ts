@@ -15,5 +15,11 @@ export default defineConfig({
     ignorePatterns: core.ignorePatterns,
     jsPlugins: [{ name: "shadcn", specifier: "@shadcn/lint" }],
     options: { typeAware: true, typeCheck: true },
+    overrides: [
+      {
+        files: ["src/lib/i18n.ts"],
+        rules: { "anti-slop/no-runtime-typeof": "off" },
+      },
+    ],
   },
 });

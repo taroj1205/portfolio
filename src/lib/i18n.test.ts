@@ -4,8 +4,22 @@ import { describe, test } from "vite-plus/test";
 
 import { day, compact } from "./format";
 import { getTranslator, isLocale } from "./i18n";
+import messages from "./messages/ja.json";
 
 describe("i18n", () => {
+  test("nested messages resolve through typed dotted keys", () => {
+    const t = getTranslator("ja");
+    assert.equal(t("contact.title", "Say hi."), messages.contact.title);
+    assert.equal(
+      t("photos.captions.gull", "A gull"),
+      messages.photos.captions.gull
+    );
+    assert.equal(
+      t("about.facts.studying.label", "Studying"),
+      messages.about.facts.studying.label
+    );
+  });
+
   test("only supported locales are accepted", () => {
     assert.equal(isLocale("en"), true);
     assert.equal(isLocale("ja"), true);
