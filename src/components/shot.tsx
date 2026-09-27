@@ -39,7 +39,7 @@ const styles = stylex.create({
     borderWidth: 1,
     boxShadow: "0 18px 40px -18px rgb(18 16 14 / 0.3)",
     display: "block",
-    overflow: "hidden",
+    overflow: "clip",
     transitionDuration: "400ms",
     transitionProperty: "transform, box-shadow",
     transitionTimingFunction: ease.out,
@@ -68,12 +68,14 @@ export const Shot = ({
       <span {...stylex.props(styles.dots)} />
       {new URL(href).host}
     </span>
-    <Image
-      alt={alt}
-      placeholder="blur"
-      sizes="(max-width: 900px) 90vw, 520px"
-      src={shot}
-      {...stylex.props(styles.image, shared.unveil)}
-    />
+    <span {...stylex.props(shared.unveil)}>
+      <Image
+        alt={alt}
+        placeholder="blur"
+        sizes="(max-width: 900px) 90vw, 520px"
+        src={shot}
+        {...stylex.props(styles.image, shared.unveiled)}
+      />
+    </span>
   </span>
 );

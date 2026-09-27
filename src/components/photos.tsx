@@ -448,18 +448,8 @@ export const Photos = ({
             {...stylex.props(styles.melt, styles.meltEnd)}
           />
           <svg aria-hidden="true" {...stylex.props(styles.defs)}>
-            <Melt
-              amount={3}
-              depth={meltDepth}
-              edge="left"
-              id="photo-melt-start"
-            />
-            <Melt
-              amount={3}
-              depth={meltDepth}
-              edge="right"
-              id="photo-melt-end"
-            />
+            <Melt depth={meltDepth} edge="left" id="photo-melt-start" />
+            <Melt depth={meltDepth} edge="right" id="photo-melt-end" />
           </svg>
         </div>
       ) : (

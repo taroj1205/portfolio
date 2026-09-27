@@ -734,13 +734,15 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
               {...stylex.props(shared.reveal, stylex.defaultMarker())}
             >
               <div {...stylex.props(styles.awardPhotos)}>
-                <Image
-                  alt={award.alt}
-                  placeholder="blur"
-                  sizes="(max-width: 800px) 100vw, 50vw"
-                  src={award.photo}
-                  {...stylex.props(styles.awardImage, shared.unveil)}
-                />
+                <div {...stylex.props(shared.unveil)}>
+                  <Image
+                    alt={award.alt}
+                    placeholder="blur"
+                    sizes="(max-width: 800px) 100vw, 50vw"
+                    src={award.photo}
+                    {...stylex.props(styles.awardImage, shared.unveiled)}
+                  />
+                </div>
                 <Image
                   alt={`${award.prize} — ${t("hackathons.certificate", "certificate")}`}
                   placeholder="blur"

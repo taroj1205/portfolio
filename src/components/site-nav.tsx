@@ -4,7 +4,7 @@ import * as stylex from "@stylexjs/stylex";
 import Link from "next/link";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import { Melt, meltScale, split } from "@/components/liquid";
+import { split } from "@/components/liquid";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { socials } from "@/lib/socials";
@@ -35,9 +35,6 @@ const drop = stylex.keyframes({
 });
 const lift = stylex.keyframes({
   from: { opacity: 0, scale: 0.9, translate: "0 calc(100% + 1rem)" },
-});
-const surface = stylex.keyframes({
-  from: { opacity: 0 },
 });
 
 const styles = stylex.create({
@@ -132,37 +129,6 @@ const styles = stylex.create({
   lens: (id: string) => ({
     backdropFilter: `url(#${id}) saturate(1.7) brightness(1.06)`,
   }),
-  wall: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      "@supports (animation-timeline: scroll())": surface,
-    },
-    animationRange: "0 10rem",
-    animationTimeline: "scroll(root)",
-    animationTimingFunction: "linear",
-    backdropFilter: {
-      default: "blur(10px)",
-      "@media (prefers-reduced-transparency: reduce)": "none",
-    },
-    backgroundImage:
-      "linear-gradient(rgb(255 255 255 / 0.55), transparent 3px), linear-gradient(rgb(245 241 234 / 0.95), rgb(245 241 234 / 0.35))",
-    height: 44,
-    left: 0,
-    maskImage: "linear-gradient(#000, transparent)",
-    pointerEvents: "none",
-    position: "fixed",
-    right: 0,
-    top: 0,
-  },
-  melt: {
-    backdropFilter: {
-      default: "url(#nav-melt)",
-      "@media (prefers-reduced-transparency: reduce)": "none",
-    },
-    backgroundImage: "none",
-    maskImage: "none",
-  },
   link: {
     alignItems: "center",
     borderRadius: 999,
@@ -251,7 +217,6 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
   const pills = useRef<(HTMLElement | null)[]>([]);
   const blob = useRef<HTMLSpanElement>(null);
   const links = useRef<(HTMLAnchorElement | null)[]>([]);
-  const wave = useRef<SVGFEDisplacementMapElement>(null);
   const previous = useRef(-1);
   const [active, setActive] = useState(-1);
   const [glass, setGlass] = useState<{
@@ -276,25 +241,9 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
             )
       );
     };
-    const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let last = scrollY;
-    let energy = 0;
-    let ripple = 0;
-    const splash = () => {
-      energy = Math.min(90, energy * 0.9 + Math.abs(scrollY - last) * 0.7);
-      last = scrollY;
-      wave.current?.setAttribute(
-        "scale",
-        String(meltScale * (2 + energy / 45))
-      );
-      ripple = energy > 0.5 ? requestAnimationFrame(splash) : 0;
-    };
     const schedule = () => {
       if (frame === 0) {
         frame = requestAnimationFrame(update);
-      }
-      if (!calm && ripple === 0) {
-        ripple = requestAnimationFrame(splash);
       }
     };
     schedule();
@@ -317,7 +266,6 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
     }
     return () => {
       cancelAnimationFrame(frame);
-      cancelAnimationFrame(ripple);
       removeEventListener("scroll", schedule);
       removeEventListener("resize", schedule);
       observer.disconnect();
@@ -344,10 +292,6 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
 
   return (
     <div {...stylex.props(styles.bar)}>
-      <div
-        aria-hidden="true"
-        {...stylex.props(styles.wall, liquid && styles.melt)}
-      />
       <nav
         aria-label="Language / 言語"
         ref={(node) => {
@@ -448,7 +392,6 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
       </nav>
       {glass && liquid && (
         <svg aria-hidden="true" {...stylex.props(styles.defs)}>
-          <Melt amount={2} depth={44} edge="top" id="nav-melt" wave={wave} />
           {glass.sizes.map((size, n) => (
             <filter
               colorInterpolationFilters="sRGB"
