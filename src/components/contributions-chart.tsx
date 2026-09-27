@@ -143,7 +143,7 @@ export const ContributionsChart = ({
   const label = (i: number) => {
     const month = monthly[i]?.month ?? "";
     return i === last
-      ? `${monthName(month, "short", locale)} ${t("so far")}`
+      ? `${monthName(month, "short", locale)} ${t("activity.soFar", "so far")}`
       : new Date(`${month}-01T00:00:00Z`).toLocaleString(intlLocale(locale), {
           month: "short",
           year: "numeric",
@@ -180,7 +180,7 @@ export const ContributionsChart = ({
       <div {...stylex.props(styles.head)}>
         <div>
           <p {...stylex.props(shared.cardLabel)}>
-            {t("Contributions · last 12 months")}
+            {t("activity.contributions", "Contributions · last 12 months")}
           </p>
           <p {...stylex.props(styles.total)}>{fmt(total, locale)}</p>
         </div>
@@ -226,13 +226,14 @@ export const ContributionsChart = ({
               </span>
             </span>
             <span {...stylex.props(shared.srOnly)}>
-              {label(i)}: {fmt(m.contributions, locale)} {t("contributions")}
+              {label(i)}: {fmt(m.contributions, locale)}{" "}
+              {t("activity.contributionCount", "contributions")}
             </span>
           </li>
         ))}
       </ol>
       <figcaption {...stylex.props(styles.caption)}>
-        {t("Updated")} {updated}
+        {t("activity.updated", "Updated")} {updated}
       </figcaption>
     </figure>
   );

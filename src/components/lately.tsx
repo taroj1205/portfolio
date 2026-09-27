@@ -143,7 +143,9 @@ export const Lately = ({
       <ContributionsChart locale={locale} monthly={monthly} updated={updated} />
 
       <div {...stylex.props(shared.card, styles.feed, shared.reveal)}>
-        <p {...stylex.props(shared.cardLabel)}>{t("Recently merged")}</p>
+        <p {...stylex.props(shared.cardLabel)}>
+          {t("activity.recentlyMerged", "Recently merged")}
+        </p>
         <ul {...stylex.props(styles.list)}>
           {recent.map((pr) => {
             const { type, text } = splitTitle(pr.title);
@@ -190,7 +192,7 @@ export const Lately = ({
           href="https://github.com/search?q=author%3Ataroj1205+is%3Apr+is%3Amerged&type=pullrequests&s=updated&o=desc"
           {...stylex.props(shared.textLink, shared.pressable, styles.more)}
         >
-          {t("Every merged PR on GitHub")}
+          {t("activity.allMerged", "Every merged PR on GitHub")}
           <Arrow />
         </a>
       </div>

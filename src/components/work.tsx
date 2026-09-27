@@ -14,25 +14,6 @@ import { shared } from "@/styles/shared";
 
 import { color, ease, font, media, shadow } from "../styles/tokens.stylex";
 
-const upstreamNotes = new Map([
-  [
-    "anomalyco/opencode",
-    "Japanese translations for the WSL integration, and a fix for cut-off labels in the language menu.",
-  ],
-  [
-    "dohooo/helmor",
-    "A new sidebar view option, plus fixes for fish shell users, GitHub links and scripts.",
-  ],
-  [
-    "emilkowalski/sonner",
-    "Support for more than one toast area on a page. It shipped in v2.0.7.",
-  ],
-  [
-    "pnpm/pnpm",
-    "Approving one project's build scripts no longer rebuilds a package other projects still share.",
-  ],
-]);
-
 const styles = stylex.create({
   body: {
     color: color.muted,
@@ -249,25 +230,16 @@ interface Project {
   stats: { label: string; value: string }[];
 }
 
-const Stats = ({
-  stats,
-  locale,
-}: {
-  stats: Project["stats"];
-  locale: Locale;
-}) => {
-  const t = getTranslator(locale);
-  return (
-    <dl {...stylex.props(styles.stats)}>
-      {stats.map((stat) => (
-        <div key={stat.label} {...stylex.props(styles.stat)}>
-          <dt>{t(stat.label)}</dt>
-          <dd {...stylex.props(styles.statValue)}>{stat.value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-};
+const Stats = ({ stats }: { stats: Project["stats"] }) => (
+  <dl {...stylex.props(styles.stats)}>
+    {stats.map((stat) => (
+      <div key={stat.label} {...stylex.props(styles.stat)}>
+        <dt>{stat.label}</dt>
+        <dd {...stylex.props(styles.statValue)}>{stat.value}</dd>
+      </div>
+    ))}
+  </dl>
+);
 
 const Row = ({
   item,
@@ -283,14 +255,14 @@ const Row = ({
     <li {...stylex.props(styles.row, shared.reveal)}>
       <div {...stylex.props(styles.text, flip && styles.textFlip)}>
         <h3 {...stylex.props(styles.heading)}>{item.name}</h3>
-        <p {...stylex.props(styles.meta)}>{t(item.role)}</p>
-        <p {...stylex.props(styles.body)}>{t(item.body)}</p>
-        {item.stats.length > 0 && <Stats locale={locale} stats={item.stats} />}
+        <p {...stylex.props(styles.meta)}>{item.role}</p>
+        <p {...stylex.props(styles.body)}>{item.body}</p>
+        {item.stats.length > 0 && <Stats stats={item.stats} />}
         {item.points.length > 0 && (
           <ul {...stylex.props(styles.points)}>
             {item.points.map((point) => (
               <li key={point} {...stylex.props(styles.point)}>
-                {t(point)}
+                {point}
               </li>
             ))}
           </ul>
@@ -303,7 +275,7 @@ const Row = ({
         </a>
       </div>
       <a
-        aria-label={`${t("Visit")} ${item.name}`}
+        aria-label={`${t("work.visit", "Visit")} ${item.name}`}
         href={item.href}
         tabIndex={-1}
         {...stylex.props(
@@ -313,7 +285,7 @@ const Row = ({
         )}
       >
         <Shot
-          alt={`${item.name} — ${t("website")}`}
+          alt={`${item.name} — ${t("work.website", "website")}`}
           href={item.href}
           shot={item.shot}
           xstyle={styles.shot}
@@ -327,52 +299,122 @@ export const Work = ({
   locale,
   projects,
   upstream,
-}: Pick<GitHub, "projects" | "upstream"> & { locale: Locale }) => {
+}: Pick<GitHub, "projects" | "upstream"> & {
+  locale: Locale;
+}) => {
   const t = getTranslator(locale);
+  const upstreamNotes = new Map([
+    [
+      "anomalyco/opencode",
+      t(
+        "work.upstream.notes.opencode",
+        "Japanese translations for the WSL integration, and a fix for cut-off labels in the language menu."
+      ),
+    ],
+    [
+      "dohooo/helmor",
+      t(
+        "work.upstream.notes.helmor",
+        "A new sidebar view option, plus fixes for fish shell users, GitHub links and scripts."
+      ),
+    ],
+    [
+      "emilkowalski/sonner",
+      t(
+        "work.upstream.notes.sonner",
+        "Support for more than one toast area on a page. It shipped in v2.0.7."
+      ),
+    ],
+    [
+      "pnpm/pnpm",
+      t(
+        "work.upstream.notes.pnpm",
+        "Approving one project's build scripts no longer rebuilds a package other projects still share."
+      ),
+    ],
+  ]);
   const work: Project[] = [
     {
-      body: "Zen is a free, calm web browser built on Firefox, with over 44,000 stars on GitHub. I redesigned the download page, made the site lighter on older laptops and phones, added a Japanese version, and set up the checks that catch things before they break.",
+      body: t(
+        "work.zen.description",
+        "Zen is a free, calm web browser built on Firefox, with over 44,000 stars on GitHub. I redesigned the download page, made the site lighter on older laptops and phones, added a Japanese version, and set up the checks that catch things before they break."
+      ),
       href: "https://zen-browser.app",
       name: "Zen Browser",
       points: [
-        "Tailwind v4 migration and Turborepo performance work",
-        "Playwright, Vitest and CI foundations",
+        t(
+          "work.zen.points.performance",
+          "Tailwind v4 migration and Turborepo performance work"
+        ),
+        t("work.zen.points.testing", "Playwright, Vitest and CI foundations"),
       ],
-      role: "Core Website Architect",
+      role: t("work.zen.role", "Core Website Architect"),
       shot: zenShot,
       stats: [
-        { label: "website PRs merged", value: fmt(projects.zen, locale) },
-        { label: "first PR", value: "2024" },
+        {
+          label: t("work.stats.websitePrs", "website PRs merged"),
+          value: fmt(projects.zen, locale),
+        },
+        { label: t("work.stats.firstPr", "first PR"), value: "2024" },
       ],
     },
     {
-      body: "A kit of ready-made pieces, like buttons, menus and pop-ups, that people use to build websites with React. I started helping in 2024 and I'm now one of its maintainers. I've built some of the pieces myself, and I review other people's changes too.",
+      body: t(
+        "work.yamada.description",
+        "A kit of ready-made pieces, like buttons, menus and pop-ups, that people use to build websites with React. I started helping in 2024 and I'm now one of its maintainers. I've built some of the pieces myself, and I review other people's changes too."
+      ),
       href: "https://yamada-ui.com",
       name: "Yamada UI",
       points: [
-        "Notice rebuilt on Sonner, after adding multi-toaster support to Sonner itself",
-        "New components: NativeAccordion, NativePopover, FormatNumber and FormatByte",
-        "Faster CI: Turborepo caching, sharded browser tests, no runs on draft PRs",
-        "Tests moved to real browsers with Vitest Browser Mode, plus a11y checks in Storybook",
+        t(
+          "work.yamada.points.notice",
+          "Notice rebuilt on Sonner, after adding multi-toaster support to Sonner itself"
+        ),
+        t(
+          "work.yamada.points.components",
+          "New components: NativeAccordion, NativePopover, FormatNumber and FormatByte"
+        ),
+        t(
+          "work.yamada.points.ci",
+          "Faster CI: Turborepo caching, sharded browser tests, no runs on draft PRs"
+        ),
+        t(
+          "work.yamada.points.testing",
+          "Tests moved to real browsers with Vitest Browser Mode, plus a11y checks in Storybook"
+        ),
       ],
-      role: "Maintainer since Feb 2024",
+      role: t("work.yamada.role", "Maintainer since Feb 2024"),
       shot: yamadaShot,
       stats: [
-        { label: "PRs merged", value: fmt(projects.yamada, locale) },
-        { label: "issues opened", value: fmt(projects.yamadaIssues, locale) },
+        {
+          label: t("work.stats.mergedPrs", "PRs merged"),
+          value: fmt(projects.yamada, locale),
+        },
+        {
+          label: t("work.stats.issues", "issues opened"),
+          value: fmt(projects.yamadaIssues, locale),
+        },
       ],
     },
     {
-      body: "My job. I build web apps at Hazumi, working remotely from Auckland.",
+      body: t(
+        "work.hazumi.description",
+        "My job. I build web apps at Hazumi, working remotely from Auckland."
+      ),
       href: "https://hazumi.co.jp",
       name: "Hazumi",
       points: [],
-      role: "Software engineer since Nov 2025",
+      role: t("work.hazumi.role", "Software engineer since Nov 2025"),
       shot: hazumiShot,
       // Zero means the token can't read Hazumi's private repos, not no work.
       stats:
         projects.hazumi > 0
-          ? [{ label: "PRs merged", value: fmt(projects.hazumi, locale) }]
+          ? [
+              {
+                label: t("work.stats.mergedPrs", "PRs merged"),
+                value: fmt(projects.hazumi, locale),
+              },
+            ]
           : [],
     },
   ];
@@ -390,27 +432,33 @@ export const Work = ({
         <li {...stylex.props(styles.row, shared.reveal)}>
           <div {...stylex.props(styles.text, styles.textFlip)}>
             <h3 {...stylex.props(styles.heading)}>
-              {t("Fixes in tools a lot of people install")}
+              {t(
+                "work.upstream.title",
+                "Fixes in tools a lot of people install"
+              )}
             </h3>
             <p {...stylex.props(styles.meta)}>
-              {t("Upstream, as I find them")}
+              {t("work.upstream.role", "Upstream, as I find them")}
             </p>
             <p {...stylex.props(styles.body)}>
               {t(
+                "work.upstream.description",
                 "I fix things where I find them, even in projects I don't help run. Everything here is merged, and new ones appear on their own."
               )}
             </p>
             <Stats
-              locale={locale}
               stats={[
                 {
-                  label: "PRs merged",
+                  label: t("work.stats.mergedPrs", "PRs merged"),
                   value: fmt(
                     byReach.reduce((n, r) => n + r.prs.length, 0),
                     locale
                   ),
                 },
-                { label: "projects", value: fmt(byReach.length, locale) },
+                {
+                  label: t("work.stats.projects", "projects"),
+                  value: fmt(byReach.length, locale),
+                },
               ]}
             />
             <ul {...stylex.props(styles.points)}>
@@ -426,10 +474,8 @@ export const Work = ({
                     <span {...stylex.props(styles.count)}> ×{prs.length}</span>
                   )}
                   :{" "}
-                  {t(
-                    upstreamNotes.get(repo) ??
-                      splitTitle(prs[0]?.title ?? "").text
-                  )}
+                  {upstreamNotes.get(repo) ??
+                    splitTitle(prs[0]?.title ?? "").text}
                 </li>
               ))}
             </ul>
@@ -444,7 +490,7 @@ export const Work = ({
                 >
                   <span {...stylex.props(styles.ticketState)}>
                     <MergedIcon />
-                    {t("Merged")}
+                    {t("work.merged", "Merged")}
                   </span>
                   <strong {...stylex.props(styles.ticketName)}>
                     {repo.split("/")[1]}{" "}
@@ -456,8 +502,8 @@ export const Work = ({
                     {splitTitle(pr.title).text}
                   </span>
                   <small {...stylex.props(styles.ticketNote)}>
-                    ★ {compact(pr.stars, locale)} · {t("merged")}{" "}
-                    {day(pr.mergedAt, locale)}
+                    ★ {compact(pr.stars, locale)} ·{" "}
+                    {t("work.mergedDate", "merged")} {day(pr.mergedAt, locale)}
                   </small>
                 </a>
               )

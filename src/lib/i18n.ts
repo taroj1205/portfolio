@@ -1,4 +1,4 @@
-import japanese from "./messages/ja.json";
+import { ja } from "./messages/ja";
 
 export type Locale = "en" | "ja";
 
@@ -8,9 +8,7 @@ export const isLocale = (value: string): value is Locale =>
 export const intlLocale = (locale: Locale) =>
   locale === "ja" ? "ja-JP" : "en-NZ";
 
-export const getTranslator = (locale: Locale) => (message: string) => {
-  const messages: Readonly<Record<string, string>> = japanese;
-  return locale === "ja" && Object.hasOwn(messages, message)
-    ? messages[message]
-    : message;
-};
+export const getTranslator =
+  (locale: Locale) =>
+  (key: keyof typeof ja, english: string): string =>
+    locale === "ja" ? ja[key] : english;

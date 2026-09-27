@@ -147,7 +147,7 @@ export const ContactLinks = ({ locale }: { locale: Locale }) => {
 
   return (
     <nav
-      aria-label={t("Social links")}
+      aria-label={t("navigation.socials", "Social links")}
       inert={contactVisible}
       {...stylex.props(styles.nav, contactVisible && styles.hidden)}
     >

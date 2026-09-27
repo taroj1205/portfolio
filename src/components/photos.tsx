@@ -443,7 +443,7 @@ export const Photos = ({
         )}
       >
         <button
-          aria-label={`${t("View larger")}: ${photo.caption}`}
+          aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
           onClick={(event) => {
             show(photo, event);
           }}
@@ -487,7 +487,7 @@ export const Photos = ({
       )}
     >
       <button
-        aria-label={`${t("View larger")}: ${photo.caption}`}
+        aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
         onClick={(event) => {
           show(photo, event);
         }}
@@ -530,7 +530,7 @@ export const Photos = ({
       )}
 
       <dialog
-        aria-label={t("Photo")}
+        aria-label={t("photos.dialogTitle", "Photo")}
         closedby="any"
         onCancel={(event) => {
           event.preventDefault();
@@ -549,7 +549,7 @@ export const Photos = ({
           type="button"
           {...stylex.props(styles.close, shared.pressable)}
         >
-          {t("Close")}
+          {t("photos.close", "Close")}
         </button>
         {open && (
           <figure {...stylex.props(styles.fullFigure)}>

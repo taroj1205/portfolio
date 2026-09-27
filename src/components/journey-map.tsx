@@ -34,41 +34,6 @@ const route = [
   `Q420,400 ${auckland.join(",")}`,
 ].join(" ");
 
-const places = [
-  { at: tokyo, delay: 0, dy: 0, left: false, name: "Tokyo", stops: [0] },
-  { at: ehime, delay: 250, dy: 18, left: true, name: "Ehime", stops: [1] },
-  {
-    at: auckland,
-    delay: 1250,
-    dy: 0,
-    left: true,
-    name: "Auckland",
-    stops: [2, 4],
-  },
-  {
-    at: philippines,
-    delay: 1900,
-    dy: 0,
-    left: false,
-    name: "Philippines",
-    stops: [3],
-  },
-];
-
-const stops = [
-  { place: "Tokyo", text: "Born here in 2005." },
-  { place: "Ehime", text: "Moved here after the 2011 earthquake." },
-  { place: "Auckland", text: "A year at an intermediate school." },
-  {
-    place: "The Philippines",
-    text: "Three months learning English in Cebu, then a year at a British school.",
-  },
-  {
-    place: "Auckland",
-    text: "Back for good in 2019. Westlake Boys, then the University of Auckland.",
-  },
-];
-
 const styles = stylex.create({
   at: (left: string, top: string) => ({ left, top }),
   chip: (dy: number, delay: number) => ({
@@ -262,6 +227,72 @@ const styles = stylex.create({
 
 export const JourneyMap = ({ locale }: { locale: Locale }) => {
   const t = getTranslator(locale);
+  const places = [
+    {
+      at: tokyo,
+      delay: 0,
+      dy: 0,
+      left: false,
+      name: t("places.tokyo", "Tokyo"),
+      stops: [0],
+    },
+    {
+      at: ehime,
+      delay: 250,
+      dy: 18,
+      left: true,
+      name: t("places.ehime", "Ehime"),
+      stops: [1],
+    },
+    {
+      at: auckland,
+      delay: 1250,
+      dy: 0,
+      left: true,
+      name: t("places.auckland", "Auckland"),
+      stops: [2, 4],
+    },
+    {
+      at: philippines,
+      delay: 1900,
+      dy: 0,
+      left: false,
+      name: t("places.philippines", "Philippines"),
+      stops: [3],
+    },
+  ];
+
+  const stops = [
+    {
+      place: t("places.tokyo", "Tokyo"),
+      text: t("journey.stops.tokyo", "Born here in 2005."),
+    },
+    {
+      place: t("places.ehime", "Ehime"),
+      text: t("journey.stops.ehime", "Moved here after the 2011 earthquake."),
+    },
+    {
+      place: t("places.auckland", "Auckland"),
+      text: t(
+        "journey.stops.aucklandSchool",
+        "A year at an intermediate school."
+      ),
+    },
+    {
+      place: t("places.thePhilippines", "The Philippines"),
+      text: t(
+        "journey.stops.philippines",
+        "Three months learning English in Cebu, then a year at a British school."
+      ),
+    },
+    {
+      place: t("places.auckland", "Auckland"),
+      text: t(
+        "journey.stops.aucklandReturn",
+        "Back for good in 2019. Westlake Boys, then the University of Auckland."
+      ),
+    },
+  ];
   const [frame, inView] = useInView<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);
 
@@ -271,6 +302,7 @@ export const JourneyMap = ({ locale }: { locale: Locale }) => {
         <svg viewBox={`0 0 ${W} ${H}`} {...stylex.props(styles.map)}>
           <title>
             {t(
+              "journey.mapDescription",
               "Map from Japan to New Zealand showing the places I've lived, in order: Tokyo, Ehime, Auckland, the Philippines, and back to Auckland."
             )}
           </title>
@@ -291,7 +323,7 @@ export const JourneyMap = ({ locale }: { locale: Locale }) => {
             {...stylex.props(styles.equator)}
           />
           <text x="16" y={EQUATOR - 10} {...stylex.props(styles.equatorLabel)}>
-            {t("EQUATOR")}
+            {t("journey.equator", "EQUATOR")}
           </text>
           {[styles.routeGlow, null].map((extra, i) => (
             <path
@@ -332,7 +364,7 @@ export const JourneyMap = ({ locale }: { locale: Locale }) => {
                     {s + 1}
                   </span>
                 ))}
-                {t(p.name)}
+                {p.name}
               </span>
             </span>
           );
@@ -342,7 +374,7 @@ export const JourneyMap = ({ locale }: { locale: Locale }) => {
       <ol {...stylex.props(styles.stops)}>
         {stops.map((stop, i) => (
           <li
-            key={`${t(stop.place)}-${i}`}
+            key={`${stop.place}-${i}`}
             onPointerEnter={() => {
               setActive(i);
             }}
@@ -364,8 +396,8 @@ export const JourneyMap = ({ locale }: { locale: Locale }) => {
             >
               {i + 1}
             </span>
-            <h3 {...stylex.props(styles.stopPlace)}>{t(stop.place)}</h3>
-            <p {...stylex.props(styles.stopText)}>{t(stop.text)}</p>
+            <h3 {...stylex.props(styles.stopPlace)}>{stop.place}</h3>
+            <p {...stylex.props(styles.stopText)}>{stop.text}</p>
           </li>
         ))}
       </ol>

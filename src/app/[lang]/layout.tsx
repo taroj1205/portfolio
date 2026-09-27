@@ -32,6 +32,7 @@ export const generateMetadata = async ({
   return {
     alternates: { languages: { en: "/", ja: "/ja", "x-default": "/" } },
     description: t(
+      "metadata.description",
       "Shintaro Jokagi studies Computer Science and IT Management at the University of Auckland, works as a software engineer at Hazumi, helps maintain Yamada UI and the Zen Browser website, and takes a lot of photos of the coast."
     ),
     title: "Shintaro Jokagi",
@@ -98,7 +99,7 @@ const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
     <html className={`${display.variable} ${body.variable}`} lang={lang}>
       <body {...stylex.props(styles.body)}>
         <a href="#main" {...stylex.props(styles.skip)}>
-          {t("Skip to content")}
+          {t("navigation.skip", "Skip to content")}
         </a>
         <nav aria-label="Language / 言語" {...stylex.props(styles.languages)}>
           <Link
