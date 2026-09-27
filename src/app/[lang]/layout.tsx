@@ -2,10 +2,9 @@ import * as stylex from "@stylexjs/stylex";
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ContactLinks } from "@/components/contact-links";
+import { SiteNav } from "@/components/site-nav";
 import { getTranslator, isLocale } from "@/lib/i18n";
 import { shared } from "@/styles/shared";
 
@@ -45,26 +44,10 @@ export const viewport: Viewport = {
 };
 
 const styles = stylex.create({
-  languages: {
-    position: "absolute",
-    top: "1rem",
-    left: "clamp(1rem, 4vw, 3rem)",
-    zIndex: 50,
-    display: "flex",
-    alignItems: "center",
-    gap: "0.5rem",
-    minHeight: 44,
-    fontSize: "0.9375rem",
-  },
-  languageLink: {
-    display: "inline-flex",
-    alignItems: "center",
-    minHeight: 44,
-  },
   body: {
     paddingBottom: {
       default: 0,
-      [media.tablet]: "calc(85px + env(safe-area-inset-bottom))",
+      [media.tablet]: "calc(5rem + env(safe-area-inset-bottom))",
     },
   },
   footer: {
@@ -101,30 +84,7 @@ const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
         <a href="#main" {...stylex.props(styles.skip)}>
           {t("navigation.skip", "Skip to content")}
         </a>
-        <nav aria-label="Language / 言語" {...stylex.props(styles.languages)}>
-          <Link
-            {...stylex.props(styles.languageLink)}
-            href="/"
-            scroll={false}
-            hrefLang="en"
-            lang="en"
-            aria-current={lang === "en" ? "page" : undefined}
-          >
-            English
-          </Link>
-          <span aria-hidden="true"> / </span>
-          <Link
-            {...stylex.props(styles.languageLink)}
-            href="/ja"
-            scroll={false}
-            hrefLang="ja"
-            lang="ja"
-            aria-current={lang === "ja" ? "page" : undefined}
-          >
-            日本語
-          </Link>
-        </nav>
-        <ContactLinks locale={lang} />
+        <SiteNav locale={lang} />
         <main id="main">{children}</main>
         <footer {...stylex.props(shared.wrap, styles.footer)}>
           <p>© {new Date().getFullYear()} Shintaro Jokagi</p>

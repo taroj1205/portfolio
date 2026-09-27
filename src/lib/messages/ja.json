@@ -17,7 +17,9 @@
     "title": "撮った写真",
     "close": "閉じる",
     "dialogTitle": "写真",
-    "viewLarger": "写真を拡大"
+    "viewLarger": "写真を拡大",
+    "previous": "前の写真",
+    "next": "次の写真"
   },
   "about": {
     "facts": {
@@ -191,7 +193,13 @@
   },
   "navigation": {
     "skip": "本文へスキップ",
-    "socials": "SNSリンク"
+    "socials": "SNSリンク",
+    "sections": "セクション",
+    "about": "自己紹介",
+    "work": "仕事",
+    "projects": "作品",
+    "photos": "写真",
+    "contact": "連絡"
   },
   "metadata": {
     "description": "Shintaro Jokagiのポートフォリオです。オークランド大学で学びながら、Hazumiで開発の仕事をしています。Yamada UIとZen BrowserのWebサイトのメンテナンスもしています。作ったものや、海辺で撮った写真をまとめました。"

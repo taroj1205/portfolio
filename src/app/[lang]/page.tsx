@@ -48,10 +48,6 @@ const thunk = stylex.keyframes({
   from: { opacity: 0, scale: 1.8 },
 });
 
-const recede = stylex.keyframes({
-  to: { filter: "blur(6px)", opacity: 0, scale: 0.97, translate: "0 -4%" },
-});
-
 const styles = stylex.create({
   about: {
     alignItems: "start",
@@ -320,19 +316,7 @@ const styles = stylex.create({
     marginTop: "2.5rem",
   },
   hero: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: {
-        default: null,
-        "@supports (animation-timeline: view())": recede,
-      },
-    },
-    animationRange: "exit 30% exit 100%",
-    animationTimeline: "view()",
-    animationTimingFunction: "linear",
-    transformOrigin: "0 100%",
-    paddingBlock: "clamp(4rem, 9vw, 7rem) clamp(2rem, 4vw, 3rem)",
+    paddingBlock: "clamp(6.5rem, 18svh, 11rem) clamp(2rem, 4vw, 3rem)",
   },
   heroTitle: {
     fontSize: "clamp(3.25rem, 11vw, 9.5rem)",
@@ -750,13 +734,15 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
               {...stylex.props(shared.reveal, stylex.defaultMarker())}
             >
               <div {...stylex.props(styles.awardPhotos)}>
-                <Image
-                  alt={award.alt}
-                  placeholder="blur"
-                  sizes="(max-width: 800px) 100vw, 50vw"
-                  src={award.photo}
-                  {...stylex.props(styles.awardImage, shared.unveil)}
-                />
+                <div {...stylex.props(shared.unveil)}>
+                  <Image
+                    alt={award.alt}
+                    placeholder="blur"
+                    sizes="(max-width: 800px) 100vw, 50vw"
+                    src={award.photo}
+                    {...stylex.props(styles.awardImage, shared.unveiled)}
+                  />
+                </div>
                 <Image
                   alt={`${award.prize} — ${t("hackathons.certificate", "certificate")}`}
                   placeholder="blur"
