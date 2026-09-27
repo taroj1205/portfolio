@@ -649,6 +649,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
         title={t("activity.title", "Still shipping, most weeks.")}
       >
         <Lately
+          contributionTotal={github.contributionTotal}
           locale={locale}
           monthly={github.monthly}
           recent={github.recent}

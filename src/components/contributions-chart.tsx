@@ -36,7 +36,8 @@ const styles = stylex.create({
     display: "grid",
     flexGrow: 1,
     gap: "clamp(4px, 1vw, 10px)",
-    gridTemplateColumns: "repeat(12, 1fr)",
+    gridAutoColumns: "minmax(0, 1fr)",
+    gridAutoFlow: "column",
     minHeight: { default: 220, [media.narrow]: 170 },
     touchAction: "pan-y",
   },
@@ -127,10 +128,12 @@ const styles = stylex.create({
 export const ContributionsChart = ({
   locale,
   monthly,
+  total,
   updated,
 }: {
   locale: Locale;
   monthly: Month[];
+  total: number;
   updated: string;
 }) => {
   const t = getTranslator(locale);
@@ -139,7 +142,6 @@ export const ContributionsChart = ({
   const [chart, inView] = useInView<HTMLElement>();
   const readout = useRef<HTMLElement>(null);
   const peak = Math.max(...monthly.map((m) => m.contributions));
-  const total = monthly.reduce((sum, m) => sum + m.contributions, 0);
   const label = (i: number) => {
     const month = monthly[i]?.month ?? "";
     return i === last

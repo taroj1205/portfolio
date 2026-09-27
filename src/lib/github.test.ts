@@ -24,6 +24,7 @@ describe("GitHub fetching", () => {
         upstream: { ...counts, nodes: [] },
         user: {
           contributionsCollection: { contributionCalendar: { weeks: [] } },
+          earlierContributions: { contributionCalendar: { weeks: [] } },
         },
         yamada: counts,
         yamadaIssues: counts,
@@ -50,6 +51,9 @@ describe("GitHub fetching", () => {
       );
     });
 
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-28T12:00:00Z"));
+
     try {
       const first = await getGitHub();
       assert.equal(first.total, 42);
@@ -57,7 +61,15 @@ describe("GitHub fetching", () => {
       assert.equal(first.projects.zenReviewed, 9);
       assert.equal("hazumi" in first.projects, false);
       assert.equal(query.includes("hazumi: search"), false);
-      assert.equal(first.monthly.length, 12);
+      assert.equal(first.monthly.length, 13);
+      assert.equal(first.monthly[0]?.month, "2025-09");
+      assert.equal(first.monthly.at(-1)?.month, "2026-09");
+      assert.ok(query.includes('from: "2025-09-29T00:00:00.000Z"'));
+      assert.ok(
+        query.includes(
+          'earlierContributions: contributionsCollection(from: "2025-09-01T00:00:00.000Z", to: "2025-09-28T23:59:59.999Z")'
+        )
+      );
       assert.deepEqual(first.recent, []);
       assert.deepEqual(await getGitHub(), first);
       assert.equal(
@@ -126,7 +138,73 @@ describe("GitHub fetching", () => {
       const retried = await getGitHub();
       assert.equal(retried.total, 42);
       assert.equal(requests, 3);
+
+      const checkRange = async (
+        today: string,
+        start: string,
+        before: string,
+        end: string
+      ) => {
+        entries.clear();
+        vi.setSystemTime(new Date(`${today}T12:00:00Z`));
+        vi.mocked(fetch).mockImplementationOnce(async (_url, init) => {
+          const body = z.string().parse(init?.body);
+          assert.ok(body.includes(`${start}T00:00:00.000Z`));
+          return await Promise.resolve(
+            Response.json({
+              ...payload,
+              data: {
+                ...payload.data,
+                user: {
+                  earlierContributions: {
+                    contributionCalendar: {
+                      weeks: [
+                        {
+                          contributionDays: [
+                            {
+                              date: `${before.slice(0, 7)}-01`,
+                              contributionCount: 7,
+                            },
+                            { date: before, contributionCount: 100 },
+                            { date: start, contributionCount: 2 },
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                  contributionsCollection: {
+                    contributionCalendar: {
+                      weeks: [
+                        {
+                          contributionDays: [
+                            { date: before, contributionCount: 100 },
+                            { date: start, contributionCount: 2 },
+                            { date: today, contributionCount: 3 },
+                            { date: end, contributionCount: 100 },
+                          ],
+                        },
+                      ],
+                    },
+                  },
+                },
+              },
+            })
+          );
+        });
+        const result = await getGitHub();
+        assert.equal(result.monthly.length, 13);
+        assert.equal(
+          result.monthly.reduce((sum, month) => sum + month.contributions, 0),
+          112
+        );
+        assert.equal(result.contributionTotal, 5);
+      };
+      await checkRange("2026-09-28", "2025-09-29", "2025-09-28", "2026-09-29");
+      await checkRange("2024-02-29", "2023-03-01", "2023-02-28", "2024-03-01");
+      await checkRange("2025-02-28", "2024-02-29", "2024-02-28", "2025-03-01");
+      await checkRange("2026-01-01", "2025-01-02", "2025-01-01", "2026-01-02");
     } finally {
+      vi.useRealTimers();
       vi.restoreAllMocks();
       vi.unstubAllEnvs();
       vi.unstubAllGlobals();
