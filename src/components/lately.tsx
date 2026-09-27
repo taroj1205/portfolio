@@ -129,18 +129,24 @@ const styles = stylex.create({
 });
 
 export const Lately = ({
+  contributionTotal,
   locale,
   monthly,
   recent,
   updated,
-}: Pick<GitHub, "monthly" | "recent"> & {
+}: Pick<GitHub, "contributionTotal" | "monthly" | "recent"> & {
   updated: string;
   locale: Locale;
 }) => {
   const t = getTranslator(locale);
   return (
     <div {...stylex.props(styles.grid)}>
-      <ContributionsChart locale={locale} monthly={monthly} updated={updated} />
+      <ContributionsChart
+        locale={locale}
+        monthly={monthly}
+        total={contributionTotal}
+        updated={updated}
+      />
 
       <div {...stylex.props(shared.card, styles.feed, shared.reveal)}>
         <p {...stylex.props(shared.cardLabel)}>

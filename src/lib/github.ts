@@ -60,23 +60,26 @@ const search = count.extend({
     .transform((nodes) => nodes.filter((pr) => pr !== null)),
 });
 
+const contributionCollection = z.object({
+  contributionCalendar: z.object({
+    weeks: z.array(
+      z.object({
+        contributionDays: z.array(
+          z.object({ contributionCount: z.number(), date: z.string() })
+        ),
+      })
+    ),
+  }),
+});
+
 const response = z.object({
   data: z.object({
     recent: search,
     total: count,
     upstream: search,
     user: z.object({
-      contributionsCollection: z.object({
-        contributionCalendar: z.object({
-          weeks: z.array(
-            z.object({
-              contributionDays: z.array(
-                z.object({ contributionCount: z.number(), date: z.string() })
-              ),
-            })
-          ),
-        }),
-      }),
+      contributionsCollection: contributionCollection,
+      earlierContributions: contributionCollection,
     }),
     yamada: count,
     yamadaIssues: count,
@@ -101,8 +104,18 @@ const fetchGitHub = async () => {
 
   const now = new Date();
   const from = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 11, 1)
+    Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), now.getUTCDate())
   );
+  if (from.getUTCMonth() !== now.getUTCMonth()) {
+    from.setUTCDate(0);
+  }
+  from.setUTCDate(from.getUTCDate() + 1);
+  const graphFrom = new Date(
+    Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), 1)
+  );
+  const earlierTo = new Date(from.getTime() - 1);
+  const firstDay = from.toISOString().slice(0, 10);
+  const lastDay = now.toISOString().slice(0, 10);
   const query = `{
     ${Object.entries(searches)
       .map(
@@ -114,6 +127,9 @@ const fetchGitHub = async () => {
       )
       .join("\n")}
     user(login: "${USER}") {
+      earlierContributions: contributionsCollection(from: "${graphFrom.toISOString()}", to: "${earlierTo.toISOString()}") {
+        contributionCalendar { weeks { contributionDays { date contributionCount } } }
+      }
       contributionsCollection(from: "${from.toISOString()}", to: "${now.toISOString()}") {
         contributionCalendar { weeks { contributionDays { date contributionCount } } }
       }
@@ -154,19 +170,34 @@ const fetchGitHub = async () => {
   const { data } = response.parse(payload);
 
   const monthly = new Map<string, number>();
-  for (let i = 0; i < 12; i += 1) {
+  for (let i = 0; i < 13; i += 1) {
     const month = new Date(
-      Date.UTC(from.getUTCFullYear(), from.getUTCMonth() + i)
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 12 + i)
     );
     monthly.set(month.toISOString().slice(0, 7), 0);
   }
-  for (const week of data.user.contributionsCollection.contributionCalendar
-    .weeks) {
-    for (const day of week.contributionDays) {
-      const key = day.date.slice(0, 7);
-      const current = monthly.get(key);
-      if (current !== undefined) {
-        monthly.set(key, current + day.contributionCount);
+  let contributionTotal = 0;
+  for (const [collection, start, end] of [
+    [
+      data.user.earlierContributions,
+      graphFrom.toISOString().slice(0, 10),
+      earlierTo.toISOString().slice(0, 10),
+    ],
+    [data.user.contributionsCollection, firstDay, lastDay],
+  ] as const) {
+    for (const week of collection.contributionCalendar.weeks) {
+      for (const day of week.contributionDays) {
+        if (day.date < start || day.date > end) {
+          continue;
+        }
+        const key = day.date.slice(0, 7);
+        const current = monthly.get(key);
+        if (current !== undefined) {
+          monthly.set(key, current + day.contributionCount);
+        }
+        if (day.date >= firstDay) {
+          contributionTotal += day.contributionCount;
+        }
       }
     }
   }
@@ -179,6 +210,7 @@ const fetchGitHub = async () => {
   }
 
   return {
+    contributionTotal,
     monthly: [...monthly].map(([month, contributions]) => ({
       contributions,
       month,
