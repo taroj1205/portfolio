@@ -116,6 +116,7 @@ const styles = stylex.create({
     letterSpacing: "-0.045em",
     lineHeight: 1.05,
     order: -1,
+    whiteSpace: "nowrap",
   },
   stats: {
     display: "flex",
@@ -356,6 +357,10 @@ export const Work = ({
           value: fmt(projects.zen, locale),
         },
         { label: t("work.stats.firstPr", "first PR"), value: "2024" },
+        {
+          label: t("work.stats.reviewedPrs", "PRs reviewed"),
+          value: fmt(projects.zenReviewed, locale),
+        },
       ],
     },
     {
@@ -394,6 +399,10 @@ export const Work = ({
           label: t("work.stats.issues", "issues opened"),
           value: fmt(projects.yamadaIssues, locale),
         },
+        {
+          label: t("work.stats.reviewedPrs", "PRs reviewed"),
+          value: fmt(projects.yamadaReviewed, locale),
+        },
       ],
     },
     {
@@ -406,16 +415,7 @@ export const Work = ({
       points: [],
       role: t("work.hazumi.role", "Software engineer since Nov 2025"),
       shot: hazumiShot,
-      // Zero means the token can't read Hazumi's private repos, not no work.
-      stats:
-        projects.hazumi > 0
-          ? [
-              {
-                label: t("work.stats.mergedPrs", "PRs merged"),
-                value: fmt(projects.hazumi, locale),
-              },
-            ]
-          : [],
+      stats: [],
     },
   ];
   const byReach = upstream.toSorted(

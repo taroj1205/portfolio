@@ -32,6 +32,7 @@ const styles = stylex.create({
   axisLabel: {
     position: "absolute",
     translate: "-50% 0",
+    whiteSpace: "nowrap",
   },
   dates: {
     color: color.muted,
