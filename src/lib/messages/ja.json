@@ -17,7 +17,9 @@
     "title": "撮った写真",
     "close": "閉じる",
     "dialogTitle": "写真",
-    "viewLarger": "写真を拡大"
+    "viewLarger": "写真を拡大",
+    "previous": "前の写真",
+    "next": "次の写真"
   },
   "about": {
     "facts": {

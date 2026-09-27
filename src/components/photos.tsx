@@ -3,13 +3,12 @@
 import * as stylex from "@stylexjs/stylex";
 import Image from "next/image";
 import type { StaticImageData } from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { flushSync } from "react-dom";
 
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
-import { horizontalWheelGesture } from "@/lib/wheel-gesture";
 import { shared } from "@/styles/shared";
 
 import { color, ease, media, size } from "../styles/tokens.stylex";
@@ -30,6 +29,15 @@ const opening = stylex.viewTransitionClass({
 const closing = stylex.viewTransitionClass({
   ...morph,
   group: { animationDuration: "260ms", animationTimingFunction: ease.out },
+});
+
+// Photos ease up to full size as they cross into the row and settle back
+// as they leave, so the row reads as having depth without moving by itself.
+const depth = stylex.keyframes({
+  "entry 0%": { scale: 0.88 },
+  "entry 100%": { scale: 1 },
+  "exit 0%": { scale: 1 },
+  "exit 100%": { scale: 0.88 },
 });
 
 const inset = "clamp(1rem, 4vw, 3rem)";
@@ -94,13 +102,24 @@ const styles = stylex.create({
     fontSize: "0.9375rem",
     opacity: 0.8,
   },
-  echo: {
-    display: { default: "flex", [media.reduce]: "none" },
+  band: {
+    position: "relative",
   },
-  group: {
-    display: "flex",
-    gap,
-    paddingInlineEnd: gap,
+  bandTile: {
+    flex: "none",
+    scrollSnapAlign: "start",
+  },
+  depth: {
+    animationFillMode: "both",
+    animationName: {
+      default: null,
+      [media.motion]: {
+        default: null,
+        "@supports (animation-timeline: view())": depth,
+      },
+    },
+    animationTimeline: "view(inline)",
+    animationTimingFunction: "linear",
   },
   image: {
     borderRadius: 16,
@@ -120,15 +139,46 @@ const styles = stylex.create({
     gap,
     justifyContent: "center",
   },
-  strip: {
-    cursor: {
-      default: null,
-      [media.motion]: { default: "grab", ":active": "grabbing" },
+  nudge: {
+    alignItems: "center",
+    backdropFilter: "blur(12px) saturate(1.6)",
+    backgroundColor: {
+      default: "rgb(250 247 242 / 0.72)",
+      ":hover": "rgb(255 255 255 / 0.92)",
     },
-    overflowX: { default: "clip", [media.reduce]: "auto" },
+    borderRadius: 999,
+    borderWidth: 0,
+    boxShadow:
+      "inset 0 1px 0 rgb(255 255 255 / 0.9), 0 0 0 1px rgb(18 16 14 / 0.06), 0 10px 28px -10px rgb(18 16 14 / 0.35)",
+    color: color.ink,
+    cursor: "pointer",
+    display: { default: "none", [media.hover]: "grid" },
+    height: 48,
+    justifyContent: "center",
+    position: "absolute",
+    top: "50%",
+    transitionDuration: "200ms",
+    transitionProperty: "background-color, transform",
+    transitionTimingFunction: ease.out,
+    translate: "0 -50%",
+    width: 48,
+  },
+  back: {
+    left: size.gutter,
+  },
+  forward: {
+    right: size.gutter,
+  },
+  strip: {
+    display: "flex",
+    gap,
+    overflowX: "auto",
+    overscrollBehaviorX: "contain",
+    paddingBlock: "0.75rem",
+    paddingInline: size.gutter,
+    scrollPaddingInline: size.gutter,
+    scrollSnapType: "x proximity",
     scrollbarWidth: "none",
-    touchAction: "pan-y",
-    userSelect: "none",
   },
   tile: (ratio: number) => ({
     flexBasis: `calc(${ratio} * clamp(11rem, 25vw, 20rem))`,
@@ -137,176 +187,7 @@ const styles = stylex.create({
     maxWidth: `calc(${ratio} * clamp(15rem, 40vw, 30rem))`,
     minWidth: 0,
   }),
-  track: {
-    display: "flex",
-    position: "relative",
-    paddingInline: { default: null, [media.reduce]: size.gutter },
-    width: "max-content",
-  },
 });
-
-// Pixels per second, leftwards.
-const drift = -28;
-// How fast a flick decays back into the drift, per second.
-const settle = 2.2;
-
-const startTicker = (track: HTMLElement, strip: HTMLElement) => {
-  const controller = new AbortController();
-  const { signal } = controller;
-  const horizontalWheel = horizontalWheelGesture();
-  let x = 0;
-  let velocity = drift;
-  let goal: HTMLElement | null = null;
-  let dragged = false;
-  let drag: { id: number; moved: number; t: number; x: number } | null = null;
-  let last = 0;
-  let frame = 0;
-  let lean = 0;
-  let scrolled = scrollY;
-
-  const tick = (now: number) => {
-    const dt = Math.min((now - last) / 1000, 0.05);
-    last = now;
-    const lap = track.offsetWidth / 2;
-    // Page scrolling flings the band along, so it answers the reader's
-    // momentum instead of drifting past it.
-    if (!drag && !goal) {
-      velocity = Math.max(
-        -3000,
-        Math.min(3000, velocity - (scrollY - scrolled) * 6)
-      );
-    }
-    scrolled = scrollY;
-    if (!drag) {
-      const target = goal ? 0 : drift;
-      velocity += (target - velocity) * (1 - Math.exp(-settle * dt));
-      x += velocity * dt;
-    }
-    if (!drag && goal) {
-      const offset =
-        strip.clientWidth / 2 - goal.offsetLeft - goal.offsetWidth / 2 - x;
-      x += (offset - lap * Math.round(offset / lap)) * (1 - Math.exp(-8 * dt));
-    }
-    x = (((x % lap) + lap) % lap) - lap;
-    // Photos lean into fast moves like a liquid dragged along, then
-    // straighten as the band settles back into its drift.
-    const tilt = Math.max(-9, Math.min(9, (velocity - drift) * 0.006));
-    lean += (tilt - lean) * (1 - Math.exp(-10 * dt));
-    track.style.transform = `translate3d(${x}px, 0, 0) skewX(${lean}deg)`;
-    frame = requestAnimationFrame(tick);
-  };
-
-  const observer = new IntersectionObserver(([entry]) => {
-    cancelAnimationFrame(frame);
-    if (entry?.isIntersecting) {
-      last = performance.now();
-      scrolled = scrollY;
-      frame = requestAnimationFrame(tick);
-    }
-  });
-  observer.observe(strip);
-
-  const release = (event: PointerEvent) => {
-    if (drag?.id !== event.pointerId) {
-      return;
-    }
-    velocity =
-      event.timeStamp - drag.t > 80
-        ? 0
-        : Math.max(-4000, Math.min(4000, velocity));
-    dragged = drag.moved > 6;
-    drag = null;
-  };
-
-  strip.addEventListener(
-    "pointerdown",
-    (event) => {
-      if (drag || event.button !== 0) {
-        return;
-      }
-      drag = {
-        id: event.pointerId,
-        moved: 0,
-        t: event.timeStamp,
-        x: event.clientX,
-      };
-      dragged = false;
-      velocity = 0;
-    },
-    { signal }
-  );
-  strip.addEventListener(
-    "pointermove",
-    (event) => {
-      if (drag?.id !== event.pointerId) {
-        return;
-      }
-      const dx = event.clientX - drag.x;
-      const dt = Math.max(event.timeStamp - drag.t, 1) / 1000;
-      x += dx;
-      velocity = velocity * 0.2 + (dx / dt) * 0.8;
-      drag = {
-        ...drag,
-        moved: drag.moved + Math.abs(dx),
-        t: event.timeStamp,
-        x: event.clientX,
-      };
-      if (drag.moved > 6 && !strip.hasPointerCapture(event.pointerId)) {
-        strip.setPointerCapture(event.pointerId);
-      }
-    },
-    { signal }
-  );
-  strip.addEventListener("pointerup", release, { signal });
-  strip.addEventListener("pointercancel", release, { signal });
-  strip.addEventListener(
-    "click",
-    (event) => {
-      if (dragged) {
-        event.preventDefault();
-        event.stopPropagation();
-        dragged = false;
-      }
-    },
-    { capture: true, signal }
-  );
-  strip.addEventListener(
-    "wheel",
-    (event) => {
-      if (horizontalWheel(event)) {
-        event.preventDefault();
-        x -= event.deltaX;
-        velocity = 0;
-      }
-    },
-    { passive: false, signal }
-  );
-  strip.addEventListener(
-    "focusin",
-    (event) => {
-      goal =
-        event.target instanceof HTMLElement &&
-        event.target.matches(":focus-visible")
-          ? event.target.closest("figure")
-          : null;
-    },
-    { signal }
-  );
-  strip.addEventListener(
-    "focusout",
-    () => {
-      goal = null;
-    },
-    { signal }
-  );
-
-  return () => {
-    controller.abort();
-    observer.disconnect();
-    cancelAnimationFrame(frame);
-    track.style.transform = "";
-  };
-};
 
 const reduced = "(prefers-reduced-motion: reduce)";
 
@@ -327,16 +208,17 @@ export const Photos = ({
   const dialog = useRef<HTMLDialogElement>(null);
   const full = useRef<HTMLImageElement>(null);
   const thumb = useRef<HTMLImageElement | null>(null);
-  const track = useRef<HTMLDivElement>(null);
+  const strip = useRef<HTMLDivElement>(null);
   const t = getTranslator(locale);
   const [open, setOpen] = useState<Photo | null>(null);
   const band = variant === "band";
-  useEffect(() => {
-    const strip = track.current?.parentElement;
-    return track.current && strip && !matchMedia(reduced).matches
-      ? startTicker(track.current, strip)
-      : undefined;
-  }, []);
+
+  const nudge = (direction: number) => {
+    strip.current?.scrollBy({
+      behavior: matchMedia(reduced).matches ? "auto" : "smooth",
+      left: direction * strip.current.clientWidth * 0.8,
+    });
+  };
 
   const nameThumb = (name: string) => {
     if (thumb.current) {
@@ -350,7 +232,14 @@ export const Photos = ({
       setOpen(photo);
     });
     dialog.current?.showModal();
-    await full.current?.decode().catch(() => null);
+    // Never hold the page frozen on a slow download: after a moment the
+    // morph runs on the blurred placeholder and the sharp photo fades in.
+    const timeout = Promise.withResolvers<undefined>();
+    setTimeout(timeout.resolve, 150);
+    await Promise.race([
+      full.current?.decode().catch(() => null),
+      timeout.promise,
+    ]);
   };
 
   const show = (photo: Photo, event: MouseEvent<HTMLButtonElement>) => {
@@ -386,7 +275,7 @@ export const Photos = ({
         key={photo.caption}
         {...stylex.props(
           band
-            ? shared.enter(`${250 + i * 70}ms`)
+            ? [shared.enter(`${250 + i * 70}ms`), styles.bandTile]
             : [styles.tile(ratio), shared.reveal]
         )}
       >
@@ -399,13 +288,12 @@ export const Photos = ({
           {...stylex.props(
             styles.button,
             shared.pressable,
+            band && styles.depth,
             stylex.defaultMarker()
           )}
         >
           <Image
             alt={photo.caption}
-            // Native image dragging would steal the ticker's drag.
-            draggable={false}
             loading={i < eager ? "eager" : "lazy"}
             placeholder="blur"
             sizes={
@@ -424,13 +312,50 @@ export const Photos = ({
   return (
     <>
       {band ? (
-        <div {...stylex.props(styles.strip)}>
-          <div ref={track} {...stylex.props(styles.track)}>
-            <div {...stylex.props(styles.group)}>{photos.map(tile)}</div>
-            <div inert {...stylex.props(styles.group, styles.echo)}>
-              {photos.map(tile)}
-            </div>
+        <div {...stylex.props(styles.band)}>
+          <div ref={strip} {...stylex.props(styles.strip)}>
+            {photos.map(tile)}
           </div>
+          {(
+            [
+              [
+                -1,
+                styles.back,
+                t("photos.previous", "Previous photos"),
+                "m15 5-7 7 7 7",
+              ],
+              [
+                1,
+                styles.forward,
+                t("photos.next", "Next photos"),
+                "m9 5 7 7-7 7",
+              ],
+            ] as const
+          ).map(([direction, side, label, path]) => (
+            <button
+              aria-label={label}
+              key={direction}
+              onClick={() => {
+                nudge(direction);
+              }}
+              type="button"
+              {...stylex.props(styles.nudge, side, shared.pressable)}
+            >
+              <svg
+                aria-hidden="true"
+                fill="none"
+                height="20"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                width="20"
+              >
+                <path d={path} />
+              </svg>
+            </button>
+          ))}
         </div>
       ) : (
         <div {...stylex.props(styles.rows)}>{photos.map(tile)}</div>
