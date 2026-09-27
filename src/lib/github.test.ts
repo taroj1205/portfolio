@@ -19,7 +19,6 @@ describe("GitHub fetching", () => {
     const counts = { issueCount: 42 };
     const payload = {
       data: {
-        hazumi: counts,
         recent: { ...counts, nodes: [] },
         total: counts,
         upstream: { ...counts, nodes: [] },
@@ -28,7 +27,9 @@ describe("GitHub fetching", () => {
         },
         yamada: counts,
         yamadaIssues: counts,
+        yamadaReviewed: { issueCount: 17 },
         zen: counts,
+        zenReviewed: { issueCount: 9 },
       },
     };
     vi.stubGlobal("__incrementalCache", {
@@ -52,6 +53,10 @@ describe("GitHub fetching", () => {
     try {
       const first = await getGitHub();
       assert.equal(first.total, 42);
+      assert.equal(first.projects.yamadaReviewed, 17);
+      assert.equal(first.projects.zenReviewed, 9);
+      assert.equal("hazumi" in first.projects, false);
+      assert.equal(query.includes("hazumi: search"), false);
       assert.equal(first.monthly.length, 12);
       assert.deepEqual(first.recent, []);
       assert.deepEqual(await getGitHub(), first);
@@ -60,7 +65,14 @@ describe("GitHub fetching", () => {
         1,
         "Repeated calls should reuse the GitHub result"
       );
-      assert.equal(query.match(/search\(type: ISSUE/gu)?.length, 7);
+      assert.equal(query.match(/search\(type: ISSUE/gu)?.length, 8);
+      for (const org of ["yamada-ui", "zen-browser"]) {
+        assert.ok(
+          query.includes(
+            `is:pr is:public reviewed-by:taroj1205 -author:taroj1205 org:${org}`
+          )
+        );
+      }
       assert.equal(query.match(/nodes\s*\{/gu)?.length, 2);
 
       entries.clear();

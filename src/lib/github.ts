@@ -6,12 +6,12 @@ import { z } from "zod";
 const USER = "taroj1205";
 const MERGED = `author:${USER} is:pr is:merged`;
 const PUBLIC_OTHERS = `${MERGED} is:public -user:${USER}`;
+const REVIEWED = `is:pr is:public reviewed-by:${USER} -author:${USER}`;
 // Where I'm a member or maintainer. Anything else counts as upstream.
 const HOME_ORGS = ["zen-browser", "yamada-ui", "Hazumi-Inc", "UoaWDCC"];
 const UPSTREAM_MIN_STARS = 500;
 
 const searches = {
-  hazumi: [`${MERGED} org:Hazumi-Inc`, 0],
   recent: [`${PUBLIC_OTHERS} sort:updated-desc`, 100],
   total: [MERGED, 0],
   upstream: [
@@ -20,7 +20,9 @@ const searches = {
   ],
   yamada: [`${MERGED} org:yamada-ui`, 0],
   yamadaIssues: [`author:${USER} is:issue org:yamada-ui`, 0],
+  yamadaReviewed: [`${REVIEWED} org:yamada-ui`, 0],
   zen: [`${MERGED} org:zen-browser`, 0],
+  zenReviewed: [`${REVIEWED} org:zen-browser`, 0],
 } as const;
 
 const pullRequest = z
@@ -60,7 +62,6 @@ const search = count.extend({
 
 const response = z.object({
   data: z.object({
-    hazumi: count,
     recent: search,
     total: count,
     upstream: search,
@@ -79,7 +80,9 @@ const response = z.object({
     }),
     yamada: count,
     yamadaIssues: count,
+    yamadaReviewed: count,
     zen: count,
+    zenReviewed: count,
   }),
 });
 
@@ -181,10 +184,11 @@ const fetchGitHub = async () => {
       month,
     })),
     projects: {
-      hazumi: data.hazumi.issueCount,
       yamada: data.yamada.issueCount,
       yamadaIssues: data.yamadaIssues.issueCount,
+      yamadaReviewed: data.yamadaReviewed.issueCount,
       zen: data.zen.issueCount,
+      zenReviewed: data.zenReviewed.issueCount,
     },
     recent: data.recent.nodes.toSorted(byMergedAt).slice(0, 12),
     total: data.total.issueCount,

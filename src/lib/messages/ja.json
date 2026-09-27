@@ -121,6 +121,7 @@
       "websitePrs": "WebサイトでマージされたPR",
       "firstPr": "最初のPR",
       "mergedPrs": "マージされたPR",
+      "reviewedPrs": "レビューしたPR",
       "issues": "作成したIssue",
       "projects": "プロジェクト"
     },
