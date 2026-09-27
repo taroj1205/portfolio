@@ -48,10 +48,6 @@ const thunk = stylex.keyframes({
   from: { opacity: 0, scale: 1.8 },
 });
 
-const recede = stylex.keyframes({
-  to: { filter: "blur(6px)", opacity: 0, scale: 0.97, translate: "0 -4%" },
-});
-
 const styles = stylex.create({
   about: {
     alignItems: "start",
@@ -320,18 +316,6 @@ const styles = stylex.create({
     marginTop: "2.5rem",
   },
   hero: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: {
-        default: null,
-        "@supports (animation-timeline: view())": recede,
-      },
-    },
-    animationRange: "exit 30% exit 100%",
-    animationTimeline: "view()",
-    animationTimingFunction: "linear",
-    transformOrigin: "0 100%",
     paddingBlock: "clamp(4rem, 9vw, 7rem) clamp(2rem, 4vw, 3rem)",
   },
   heroTitle: {

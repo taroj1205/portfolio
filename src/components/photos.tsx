@@ -7,8 +7,10 @@ import { useEffect, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { flushSync } from "react-dom";
 
+import { Melt } from "@/components/liquid";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
+import { horizontalWheelGesture } from "@/lib/wheel-gesture";
 import { shared } from "@/styles/shared";
 
 import { color, ease, media, size } from "../styles/tokens.stylex";
@@ -33,19 +35,11 @@ const closing = stylex.viewTransitionClass({
 
 const inset = "clamp(1rem, 4vw, 3rem)";
 const gap = "clamp(0.5rem, 1vw, 0.875rem)";
-
-const deckMode =
-  "@media (max-width: 800px) and (prefers-reduced-motion: no-preference)";
-const scrollDriven = "@supports (animation-timeline: view())";
-const tilts = [-3, 4, -5, 2, -2, 5];
-
-const deal = stylex.keyframes({
-  from: { transform: "translateY(115svh) rotate(14deg)" },
-});
+const meltDepth = 140;
 
 const styles = stylex.create({
   bandImage: {
-    height: "clamp(11rem, 30vw, 22rem)",
+    height: "clamp(15rem, 30vw, 22rem)",
     maxWidth: "none",
     width: "auto",
   },
@@ -133,15 +127,32 @@ const styles = stylex.create({
       default: null,
       [media.motion]: { default: "grab", ":active": "grabbing" },
     },
-    display: {
-      default: "block",
-      [deckMode]: { default: null, [scrollDriven]: "none" },
-    },
-    maskImage: `linear-gradient(90deg, transparent, #000 ${size.gutter}, #000 calc(100% - ${size.gutter}), transparent)`,
     overflowX: { default: "clip", [media.reduce]: "auto" },
     scrollbarWidth: "none",
+    position: "relative",
     touchAction: "pan-y",
     userSelect: "none",
+  },
+  melt: {
+    bottom: 0,
+    display: { default: null, [media.reduce]: "none" },
+    pointerEvents: "none",
+    position: "absolute",
+    top: 0,
+    width: meltDepth,
+  },
+  meltStart: {
+    backdropFilter: "url(#photo-melt-start)",
+    left: 0,
+  },
+  meltEnd: {
+    backdropFilter: "url(#photo-melt-end)",
+    right: 0,
+  },
+  defs: {
+    height: 0,
+    position: "absolute",
+    width: 0,
   },
   tile: (ratio: number) => ({
     flexBasis: `calc(${ratio} * clamp(11rem, 25vw, 20rem))`,
@@ -156,56 +167,6 @@ const styles = stylex.create({
     paddingInline: { default: null, [media.reduce]: size.gutter },
     width: "max-content",
   },
-  deck: {
-    display: {
-      default: "none",
-      [deckMode]: { default: null, [scrollDriven]: "block" },
-    },
-    viewTimelineName: "--deck",
-  },
-  deckHeight: (count: number) => ({
-    height: `calc(100svh + ${count} * 38svh)`,
-  }),
-  stage: {
-    display: "grid",
-    height: "100svh",
-    overflow: "clip",
-    paddingTop: "clamp(1.5rem, 6svh, 3rem)",
-    placeItems: "start center",
-    position: "sticky",
-    top: 0,
-  },
-  print: (tilt: number) => ({
-    backgroundColor: color.surface,
-    borderRadius: 10,
-    boxShadow:
-      "0 22px 50px rgb(18 16 14 / 0.18), 0 2px 6px rgb(18 16 14 / 0.08)",
-    gridArea: "1 / 1",
-    paddingBlock: "0.55rem 0",
-    paddingInline: "0.55rem",
-    rotate: `${tilt}deg`,
-    width: "min(74vw, 19rem)",
-  }),
-  dealt: (from: string, to: string) => ({
-    animationFillMode: "both",
-    animationName: deal,
-    animationRange: `contain ${from} contain ${to}`,
-    animationTimeline: "--deck",
-    animationTimingFunction: ease.out,
-  }),
-  printButton: {
-    borderRadius: 5,
-  },
-  printImage: {
-    maxHeight: "58svh",
-    objectFit: "cover",
-  },
-  printCaption: {
-    color: color.muted,
-    fontSize: "0.8rem",
-    paddingBlock: "0.55rem 0.7rem",
-    textAlign: "center",
-  },
 });
 
 // Pixels per second, leftwards.
@@ -216,10 +177,10 @@ const settle = 2.2;
 const startTicker = (track: HTMLElement, strip: HTMLElement) => {
   const controller = new AbortController();
   const { signal } = controller;
+  const horizontalWheel = horizontalWheelGesture();
   let x = 0;
   let velocity = drift;
-  let hovered = false;
-  let focused = false;
+  let goal: HTMLElement | null = null;
   let dragged = false;
   let drag: { id: number; moved: number; t: number; x: number } | null = null;
   let last = 0;
@@ -228,12 +189,17 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
   const tick = (now: number) => {
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
+    const lap = track.offsetWidth / 2;
     if (!drag) {
-      const target = hovered || focused ? 0 : drift;
+      const target = goal ? 0 : drift;
       velocity += (target - velocity) * (1 - Math.exp(-settle * dt));
       x += velocity * dt;
     }
-    const lap = track.offsetWidth / 2;
+    if (!drag && goal) {
+      const offset =
+        strip.clientWidth / 2 - goal.offsetLeft - goal.offsetWidth / 2 - x;
+      x += (offset - lap * Math.round(offset / lap)) * (1 - Math.exp(-8 * dt));
+    }
     x = (((x % lap) + lap) % lap) - lap;
     track.style.transform = `translate3d(${x}px, 0, 0)`;
     frame = requestAnimationFrame(tick);
@@ -258,9 +224,6 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
         : Math.max(-4000, Math.min(4000, velocity));
     dragged = drag.moved > 6;
     drag = null;
-  };
-  const hover = (event: PointerEvent) => {
-    hovered = event.type === "pointerenter" && event.pointerType === "mouse";
   };
 
   strip.addEventListener(
@@ -304,8 +267,6 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
   );
   strip.addEventListener("pointerup", release, { signal });
   strip.addEventListener("pointercancel", release, { signal });
-  strip.addEventListener("pointerenter", hover, { signal });
-  strip.addEventListener("pointerleave", hover, { signal });
   strip.addEventListener(
     "click",
     (event) => {
@@ -320,7 +281,7 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
   strip.addEventListener(
     "wheel",
     (event) => {
-      if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+      if (horizontalWheel(event)) {
         event.preventDefault();
         x -= event.deltaX;
         velocity = 0;
@@ -331,23 +292,18 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
   strip.addEventListener(
     "focusin",
     (event) => {
-      focused = true;
-      const figure =
+      goal =
         event.target instanceof HTMLElement &&
         event.target.matches(":focus-visible")
           ? event.target.closest("figure")
           : null;
-      if (figure) {
-        x = strip.clientWidth / 2 - figure.offsetLeft - figure.offsetWidth / 2;
-        velocity = 0;
-      }
     },
     { signal }
   );
   strip.addEventListener(
     "focusout",
     () => {
-      focused = false;
+      goal = null;
     },
     { signal }
   );
@@ -473,58 +429,39 @@ export const Photos = ({
     );
   };
 
-  const print = (photo: Photo, i: number) => (
-    <figure
-      key={photo.caption}
-      {...stylex.props(
-        styles.print(tilts[i % tilts.length] ?? 0),
-        i === 0
-          ? shared.enter("250ms")
-          : styles.dealt(
-              `${((i - 1) / photos.length) * 100}%`,
-              `${(i / photos.length) * 100}%`
-            )
-      )}
-    >
-      <button
-        aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
-        onClick={(event) => {
-          show(photo, event);
-        }}
-        type="button"
-        {...stylex.props(styles.button, styles.printButton, shared.pressable)}
-      >
-        <Image
-          alt={photo.caption}
-          loading={i === 0 ? "eager" : "lazy"}
-          placeholder="blur"
-          sizes="19rem"
-          src={photo.src}
-          {...stylex.props(styles.image, styles.printImage)}
-        />
-      </button>
-      <figcaption {...stylex.props(styles.printCaption)}>
-        {photo.caption}
-      </figcaption>
-    </figure>
-  );
-
   return (
     <>
       {band ? (
-        <>
-          <div {...stylex.props(styles.strip)}>
-            <div ref={track} {...stylex.props(styles.track)}>
-              <div {...stylex.props(styles.group)}>{photos.map(tile)}</div>
-              <div inert {...stylex.props(styles.group, styles.echo)}>
-                {photos.map(tile)}
-              </div>
+        <div {...stylex.props(styles.strip)}>
+          <div ref={track} {...stylex.props(styles.track)}>
+            <div {...stylex.props(styles.group)}>{photos.map(tile)}</div>
+            <div inert {...stylex.props(styles.group, styles.echo)}>
+              {photos.map(tile)}
             </div>
           </div>
-          <div {...stylex.props(styles.deck, styles.deckHeight(photos.length))}>
-            <div {...stylex.props(styles.stage)}>{photos.map(print)}</div>
-          </div>
-        </>
+          <div
+            aria-hidden="true"
+            {...stylex.props(styles.melt, styles.meltStart)}
+          />
+          <div
+            aria-hidden="true"
+            {...stylex.props(styles.melt, styles.meltEnd)}
+          />
+          <svg aria-hidden="true" {...stylex.props(styles.defs)}>
+            <Melt
+              amount={3}
+              depth={meltDepth}
+              edge="left"
+              id="photo-melt-start"
+            />
+            <Melt
+              amount={3}
+              depth={meltDepth}
+              edge="right"
+              id="photo-melt-end"
+            />
+          </svg>
+        </div>
       ) : (
         <div {...stylex.props(styles.rows)}>{photos.map(tile)}</div>
       )}
