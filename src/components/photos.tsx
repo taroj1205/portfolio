@@ -84,7 +84,7 @@ const chevron = (path: string) => (
 
 const inset = "clamp(1rem, 4vw, 3rem)";
 const tilts = [-4, 3, -2, 5, -3, 2];
-const drops = ["0rem", "2.5rem", "0.75rem", "3.5rem", "1.25rem", "2rem"];
+const drops = ["0rem", "2.5rem", "0.75rem", "1.25rem", "3.5rem", "2rem"];
 
 const styles = stylex.create({
   open: {
@@ -104,9 +104,9 @@ const styles = stylex.create({
     },
     marginInline: "auto",
     maxWidth: 1440,
-    paddingBlock: "clamp(3rem, 7vw, 6rem)",
+    paddingBlock: "clamp(1rem, 2vw, 1.5rem) clamp(3rem, 7vw, 6rem)",
     paddingInline: size.gutter,
-    rowGap: { default: null, [media.tablet]: "2.5rem" },
+    rowGap: { default: null, [media.tablet]: "0.5rem" },
   },
   print: {
     alignSelf: "start",

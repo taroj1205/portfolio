@@ -316,7 +316,7 @@ const styles = stylex.create({
     marginTop: "2.5rem",
   },
   hero: {
-    paddingBlock: "clamp(4rem, 9vw, 7rem) clamp(2rem, 4vw, 3rem)",
+    paddingBlock: "clamp(6.5rem, 18svh, 11rem) clamp(2rem, 4vw, 3rem)",
   },
   heroTitle: {
     fontSize: "clamp(3.25rem, 11vw, 9.5rem)",
