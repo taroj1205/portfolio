@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { flushSync } from "react-dom";
 
-import { Melt } from "@/components/liquid";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { horizontalWheelGesture } from "@/lib/wheel-gesture";
@@ -35,7 +34,6 @@ const closing = stylex.viewTransitionClass({
 
 const inset = "clamp(1rem, 4vw, 3rem)";
 const gap = "clamp(0.5rem, 1vw, 0.875rem)";
-const meltDepth = 140;
 
 const styles = stylex.create({
   bandImage: {
@@ -103,6 +101,7 @@ const styles = stylex.create({
     display: "flex",
     gap,
     paddingInlineEnd: gap,
+    transformStyle: "preserve-3d",
   },
   image: {
     borderRadius: 16,
@@ -128,31 +127,14 @@ const styles = stylex.create({
       [media.motion]: { default: "grab", ":active": "grabbing" },
     },
     overflowX: { default: "clip", [media.reduce]: "auto" },
+    perspective: "175vw",
     scrollbarWidth: "none",
-    position: "relative",
     touchAction: "pan-y",
     userSelect: "none",
   },
-  melt: {
-    bottom: 0,
-    display: { default: null, [media.reduce]: "none" },
-    pointerEvents: "none",
-    position: "absolute",
-    top: 0,
-    width: meltDepth,
-  },
-  meltStart: {
-    backdropFilter: "url(#photo-melt-start)",
-    left: 0,
-  },
-  meltEnd: {
-    backdropFilter: "url(#photo-melt-end)",
-    right: 0,
-  },
-  defs: {
-    height: 0,
-    position: "absolute",
-    width: 0,
+  face: {
+    backfaceVisibility: "hidden",
+    pointerEvents: "auto",
   },
   tile: (ratio: number) => ({
     flexBasis: `calc(${ratio} * clamp(11rem, 25vw, 20rem))`,
@@ -165,6 +147,10 @@ const styles = stylex.create({
     display: "flex",
     position: "relative",
     paddingInline: { default: null, [media.reduce]: size.gutter },
+    // Photos sit behind the track's plane on the drum, so the track must
+    // not catch their clicks.
+    pointerEvents: "none",
+    transformStyle: "preserve-3d",
     width: "max-content",
   },
 });
@@ -185,6 +171,7 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
   let drag: { id: number; moved: number; t: number; x: number } | null = null;
   let last = 0;
   let frame = 0;
+  const tiles = [...track.querySelectorAll("figure")];
 
   const tick = (now: number) => {
     const dt = Math.min((now - last) / 1000, 0.05);
@@ -202,6 +189,18 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
     }
     x = (((x % lap) + lap) % lap) - lap;
     track.style.transform = `translate3d(${x}px, 0, 0)`;
+    // Photos curl away round a drum as they near either side, turning
+    // edge-on as they leave, so the band has no hard cut-off.
+    // Photos ride a drum. Its radius and the strip's 175vw perspective put
+    // the drum's silhouette on the strip's edges, so photos turn edge-on
+    // right as they leave instead of being cut off.
+    const radius = strip.clientWidth * 0.7;
+    for (const tile of tiles) {
+      const offset =
+        x + tile.offsetLeft + tile.offsetWidth / 2 - strip.clientWidth / 2;
+      const angle = offset / radius;
+      tile.style.transform = `translate3d(${radius * Math.sin(angle) - offset}px, 0, ${radius * (Math.cos(angle) - 1)}px) rotateY(${angle}rad)`;
+    }
     frame = requestAnimationFrame(tick);
   };
 
@@ -313,6 +312,9 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
     observer.disconnect();
     cancelAnimationFrame(frame);
     track.style.transform = "";
+    for (const tile of tiles) {
+      tile.style.transform = "";
+    }
   };
 };
 
@@ -394,7 +396,7 @@ export const Photos = ({
         key={photo.caption}
         {...stylex.props(
           band
-            ? shared.enter(`${250 + i * 70}ms`)
+            ? [shared.enter(`${250 + i * 70}ms`), styles.face]
             : [styles.tile(ratio), shared.reveal]
         )}
       >
@@ -439,18 +441,6 @@ export const Photos = ({
               {photos.map(tile)}
             </div>
           </div>
-          <div
-            aria-hidden="true"
-            {...stylex.props(styles.melt, styles.meltStart)}
-          />
-          <div
-            aria-hidden="true"
-            {...stylex.props(styles.melt, styles.meltEnd)}
-          />
-          <svg aria-hidden="true" {...stylex.props(styles.defs)}>
-            <Melt depth={meltDepth} edge="left" id="photo-melt-start" />
-            <Melt depth={meltDepth} edge="right" id="photo-melt-end" />
-          </svg>
         </div>
       ) : (
         <div {...stylex.props(styles.rows)}>{photos.map(tile)}</div>

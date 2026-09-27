@@ -2,9 +2,8 @@
 
 import * as stylex from "@stylexjs/stylex";
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import { split } from "@/components/liquid";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { socials } from "@/lib/socials";
@@ -29,6 +28,38 @@ const lensMap = (width: number, height: number) => {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"><defs><linearGradient id="r" x1="100%" y1="0%" x2="0%" y2="0%"><stop offset="0%" stop-color="#0000"/><stop offset="100%" stop-color="red"/></linearGradient><linearGradient id="b" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#0000"/><stop offset="100%" stop-color="blue"/></linearGradient></defs><rect width="${width}" height="${height}" fill="black"/><rect width="${width}" height="${height}" rx="${radius}" fill="url(#r)"/><rect width="${width}" height="${height}" rx="${radius}" fill="url(#b)" style="mix-blend-mode:difference"/><rect x="${edge}" y="${edge}" width="${width - edge * 2}" height="${height - edge * 2}" rx="${radius - edge}" fill="hsl(0 0% 50%)" style="filter:blur(${edge * 0.6}px)"/></svg>`;
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 };
+
+const channels = [
+  ["1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0", -26],
+  ["0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0", -24.5],
+  ["0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0", -23],
+] as const;
+
+const split = (map: string, y: "B" | "G", amount: number) => (
+  <>
+    <feGaussianBlur in="SourceGraphic" result="soft" stdDeviation="1.2" />
+    {channels.map(([matrix, scale], i) => (
+      <Fragment key={matrix}>
+        <feDisplacementMap
+          in="soft"
+          in2={map}
+          result={`shift${i}`}
+          scale={scale * amount}
+          xChannelSelector="R"
+          yChannelSelector={y}
+        />
+        <feColorMatrix
+          in={`shift${i}`}
+          result={`channel${i}`}
+          type="matrix"
+          values={matrix}
+        />
+      </Fragment>
+    ))}
+    <feBlend in="channel0" in2="channel1" mode="screen" result="rg" />
+    <feBlend in="rg" in2="channel2" mode="screen" />
+  </>
+);
 
 const drop = stylex.keyframes({
   from: { opacity: 0, scale: 0.9, translate: "0 calc(-100% - 1rem)" },
