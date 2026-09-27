@@ -19,7 +19,9 @@
     "dialogTitle": "写真",
     "viewLarger": "写真を拡大",
     "previous": "前の写真",
-    "next": "次の写真"
+    "next": "次の写真",
+    "earlier": "前の写真を表示",
+    "more": "次の写真を表示"
   },
   "about": {
     "facts": {
