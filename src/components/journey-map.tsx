@@ -3,6 +3,8 @@
 import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
 
+import { getTranslator } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import { land } from "@/lib/land";
 import { useInView } from "@/lib/use-in-view";
 import { shared } from "@/styles/shared";
@@ -258,7 +260,8 @@ const styles = stylex.create({
   },
 });
 
-export const JourneyMap = () => {
+export const JourneyMap = ({ locale }: { locale: Locale }) => {
+  const t = getTranslator(locale);
   const [frame, inView] = useInView<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);
 
@@ -267,9 +270,9 @@ export const JourneyMap = () => {
       <div ref={frame} {...stylex.props(styles.frame)}>
         <svg viewBox={`0 0 ${W} ${H}`} {...stylex.props(styles.map)}>
           <title>
-            Map from Japan to New Zealand showing the places I&apos;ve lived, in
-            order: Tokyo, Ehime, Auckland, the Philippines, and back to
-            Auckland.
+            {t(
+              "Map from Japan to New Zealand showing the places I've lived, in order: Tokyo, Ehime, Auckland, the Philippines, and back to Auckland."
+            )}
           </title>
           <g {...stylex.props(styles.grid)}>
             {meridians.map((mx) => (
@@ -288,7 +291,7 @@ export const JourneyMap = () => {
             {...stylex.props(styles.equator)}
           />
           <text x="16" y={EQUATOR - 10} {...stylex.props(styles.equatorLabel)}>
-            EQUATOR
+            {t("EQUATOR")}
           </text>
           {[styles.routeGlow, null].map((extra, i) => (
             <path
@@ -329,7 +332,7 @@ export const JourneyMap = () => {
                     {s + 1}
                   </span>
                 ))}
-                {p.name}
+                {t(p.name)}
               </span>
             </span>
           );
@@ -339,7 +342,7 @@ export const JourneyMap = () => {
       <ol {...stylex.props(styles.stops)}>
         {stops.map((stop, i) => (
           <li
-            key={`${stop.place}-${i}`}
+            key={`${t(stop.place)}-${i}`}
             onPointerEnter={() => {
               setActive(i);
             }}
@@ -361,8 +364,8 @@ export const JourneyMap = () => {
             >
               {i + 1}
             </span>
-            <h3 {...stylex.props(styles.stopPlace)}>{stop.place}</h3>
-            <p {...stylex.props(styles.stopText)}>{stop.text}</p>
+            <h3 {...stylex.props(styles.stopPlace)}>{t(stop.place)}</h3>
+            <p {...stylex.props(styles.stopText)}>{t(stop.text)}</p>
           </li>
         ))}
       </ol>

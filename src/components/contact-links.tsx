@@ -3,6 +3,8 @@
 import * as stylex from "@stylexjs/stylex";
 import { useEffect, useState } from "react";
 
+import { getTranslator } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import { socials } from "@/lib/socials";
 
 import { color, font, media, shadow, size } from "../styles/tokens.stylex";
@@ -126,7 +128,8 @@ const styles = stylex.create({
   },
 });
 
-export const ContactLinks = () => {
+export const ContactLinks = ({ locale }: { locale: Locale }) => {
+  const t = getTranslator(locale);
   const [contactVisible, setContactVisible] = useState(false);
 
   useEffect(() => {
@@ -144,7 +147,7 @@ export const ContactLinks = () => {
 
   return (
     <nav
-      aria-label="Social links"
+      aria-label={t("Social links")}
       inert={contactVisible}
       {...stylex.props(styles.nav, contactVisible && styles.hidden)}
     >

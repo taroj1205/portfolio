@@ -11,6 +11,14 @@ GITHUB_TOKEN=$(gh auth token) bun dev
 
 The home page reads GitHub when it renders, so it needs `GITHUB_TOKEN`. Put it in `.env` or pass it for one command as above.
 
+## Languages
+
+`/` serves English and `/ja` serves Japanese. `/en` also serves English without a redirect. A rewrite serves the English route internally while keeping `/` in the address bar. The language links work without JavaScript, and the URL keeps the selected language on refresh or when shared.
+
+English copy lives beside the content; `src/lib/messages/ja.json` maps each English message to Japanese. Use `getTranslator(locale)` for copy and pass the locale to date and number formatters. Add the matching Japanese entry whenever English copy changes. Names, repository names, and live GitHub PR titles stay in their original language.
+
+Both routes are pre-rendered with localized metadata and document language, then refreshed hourly.
+
 ## How the numbers stay current
 
 `src/lib/github.ts` makes one GraphQL request for merged PR counts, the last 12 months of contributions, recent merges, and merged PRs in popular repos I don't help run. The home page sets `revalidate = 3600`. Next serves the cached page and rebuilds it in the background at most once an hour (ISR), so nothing needs a redeploy. If GitHub fails, the error keeps the last good page instead of showing zeros.

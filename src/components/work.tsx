@@ -8,6 +8,8 @@ import { Arrow, MergedIcon } from "@/components/icons";
 import { Shot } from "@/components/shot";
 import { compact, day, fmt, splitTitle } from "@/lib/format";
 import type { GitHub } from "@/lib/github";
+import { getTranslator } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import { shared } from "@/styles/shared";
 
 import { color, ease, font, media, shadow } from "../styles/tokens.stylex";
@@ -247,61 +249,86 @@ interface Project {
   stats: { label: string; value: string }[];
 }
 
-const Stats = ({ stats }: { stats: Project["stats"] }) => (
-  <dl {...stylex.props(styles.stats)}>
-    {stats.map((stat) => (
-      <div key={stat.label} {...stylex.props(styles.stat)}>
-        <dt>{stat.label}</dt>
-        <dd {...stylex.props(styles.statValue)}>{stat.value}</dd>
-      </div>
-    ))}
-  </dl>
-);
+const Stats = ({
+  stats,
+  locale,
+}: {
+  stats: Project["stats"];
+  locale: Locale;
+}) => {
+  const t = getTranslator(locale);
+  return (
+    <dl {...stylex.props(styles.stats)}>
+      {stats.map((stat) => (
+        <div key={stat.label} {...stylex.props(styles.stat)}>
+          <dt>{t(stat.label)}</dt>
+          <dd {...stylex.props(styles.statValue)}>{stat.value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+};
 
-const Row = ({ item, flip }: { item: Project; flip: boolean }) => (
-  <li {...stylex.props(styles.row, shared.reveal)}>
-    <div {...stylex.props(styles.text, flip && styles.textFlip)}>
-      <h3 {...stylex.props(styles.heading)}>{item.name}</h3>
-      <p {...stylex.props(styles.meta)}>{item.role}</p>
-      <p {...stylex.props(styles.body)}>{item.body}</p>
-      {item.stats.length > 0 && <Stats stats={item.stats} />}
-      {item.points.length > 0 && (
-        <ul {...stylex.props(styles.points)}>
-          {item.points.map((point) => (
-            <li key={point} {...stylex.props(styles.point)}>
-              {point}
-            </li>
-          ))}
-        </ul>
-      )}
-      <a href={item.href} {...stylex.props(shared.textLink, shared.pressable)}>
-        {new URL(item.href).host} <Arrow />
-      </a>
-    </div>
-    <a
-      aria-label={`Visit ${item.name}`}
-      href={item.href}
-      tabIndex={-1}
-      {...stylex.props(
-        styles.side,
-        flip && styles.sideFlip,
-        stylex.defaultMarker()
-      )}
-    >
-      <Shot
-        alt={`The ${item.name} website`}
+const Row = ({
+  item,
+  flip,
+  locale,
+}: {
+  item: Project;
+  flip: boolean;
+  locale: Locale;
+}) => {
+  const t = getTranslator(locale);
+  return (
+    <li {...stylex.props(styles.row, shared.reveal)}>
+      <div {...stylex.props(styles.text, flip && styles.textFlip)}>
+        <h3 {...stylex.props(styles.heading)}>{item.name}</h3>
+        <p {...stylex.props(styles.meta)}>{t(item.role)}</p>
+        <p {...stylex.props(styles.body)}>{t(item.body)}</p>
+        {item.stats.length > 0 && <Stats locale={locale} stats={item.stats} />}
+        {item.points.length > 0 && (
+          <ul {...stylex.props(styles.points)}>
+            {item.points.map((point) => (
+              <li key={point} {...stylex.props(styles.point)}>
+                {t(point)}
+              </li>
+            ))}
+          </ul>
+        )}
+        <a
+          href={item.href}
+          {...stylex.props(shared.textLink, shared.pressable)}
+        >
+          {new URL(item.href).host} <Arrow />
+        </a>
+      </div>
+      <a
+        aria-label={`${t("Visit")} ${item.name}`}
         href={item.href}
-        shot={item.shot}
-        xstyle={styles.shot}
-      />
-    </a>
-  </li>
-);
+        tabIndex={-1}
+        {...stylex.props(
+          styles.side,
+          flip && styles.sideFlip,
+          stylex.defaultMarker()
+        )}
+      >
+        <Shot
+          alt={`${item.name} — ${t("website")}`}
+          href={item.href}
+          shot={item.shot}
+          xstyle={styles.shot}
+        />
+      </a>
+    </li>
+  );
+};
 
 export const Work = ({
+  locale,
   projects,
   upstream,
-}: Pick<GitHub, "projects" | "upstream">) => {
+}: Pick<GitHub, "projects" | "upstream"> & { locale: Locale }) => {
+  const t = getTranslator(locale);
   const work: Project[] = [
     {
       body: "Zen is a free, calm web browser built on Firefox, with over 44,000 stars on GitHub. I redesigned the download page, made the site lighter on older laptops and phones, added a Japanese version, and set up the checks that catch things before they break.",
@@ -314,7 +341,7 @@ export const Work = ({
       role: "Core Website Architect",
       shot: zenShot,
       stats: [
-        { label: "website PRs merged", value: fmt(projects.zen) },
+        { label: "website PRs merged", value: fmt(projects.zen, locale) },
         { label: "first PR", value: "2024" },
       ],
     },
@@ -331,8 +358,8 @@ export const Work = ({
       role: "Maintainer since Feb 2024",
       shot: yamadaShot,
       stats: [
-        { label: "PRs merged", value: fmt(projects.yamada) },
-        { label: "issues opened", value: fmt(projects.yamadaIssues) },
+        { label: "PRs merged", value: fmt(projects.yamada, locale) },
+        { label: "issues opened", value: fmt(projects.yamadaIssues, locale) },
       ],
     },
     {
@@ -345,7 +372,7 @@ export const Work = ({
       // Zero means the token can't read Hazumi's private repos, not no work.
       stats:
         projects.hazumi > 0
-          ? [{ label: "PRs merged", value: fmt(projects.hazumi) }]
+          ? [{ label: "PRs merged", value: fmt(projects.hazumi, locale) }]
           : [],
     },
   ];
@@ -356,27 +383,34 @@ export const Work = ({
   return (
     <ul {...stylex.props(styles.list)}>
       {work.map((item, i) => (
-        <Row flip={i % 2 === 1} item={item} key={item.name} />
+        <Row locale={locale} flip={i % 2 === 1} item={item} key={item.name} />
       ))}
 
       {byReach.length > 0 && (
         <li {...stylex.props(styles.row, shared.reveal)}>
           <div {...stylex.props(styles.text, styles.textFlip)}>
             <h3 {...stylex.props(styles.heading)}>
-              Fixes in tools a lot of people install
+              {t("Fixes in tools a lot of people install")}
             </h3>
-            <p {...stylex.props(styles.meta)}>Upstream, as I find them</p>
+            <p {...stylex.props(styles.meta)}>
+              {t("Upstream, as I find them")}
+            </p>
             <p {...stylex.props(styles.body)}>
-              I fix things where I find them, even in projects I don&apos;t help
-              run. Everything here is merged, and new ones appear on their own.
+              {t(
+                "I fix things where I find them, even in projects I don't help run. Everything here is merged, and new ones appear on their own."
+              )}
             </p>
             <Stats
+              locale={locale}
               stats={[
                 {
                   label: "PRs merged",
-                  value: fmt(byReach.reduce((n, r) => n + r.prs.length, 0)),
+                  value: fmt(
+                    byReach.reduce((n, r) => n + r.prs.length, 0),
+                    locale
+                  ),
                 },
-                { label: "projects", value: fmt(byReach.length) },
+                { label: "projects", value: fmt(byReach.length, locale) },
               ]}
             />
             <ul {...stylex.props(styles.points)}>
@@ -392,8 +426,10 @@ export const Work = ({
                     <span {...stylex.props(styles.count)}> ×{prs.length}</span>
                   )}
                   :{" "}
-                  {upstreamNotes.get(repo) ??
-                    splitTitle(prs[0]?.title ?? "").text}
+                  {t(
+                    upstreamNotes.get(repo) ??
+                      splitTitle(prs[0]?.title ?? "").text
+                  )}
                 </li>
               ))}
             </ul>
@@ -408,7 +444,7 @@ export const Work = ({
                 >
                   <span {...stylex.props(styles.ticketState)}>
                     <MergedIcon />
-                    Merged
+                    {t("Merged")}
                   </span>
                   <strong {...stylex.props(styles.ticketName)}>
                     {repo.split("/")[1]}{" "}
@@ -420,7 +456,8 @@ export const Work = ({
                     {splitTitle(pr.title).text}
                   </span>
                   <small {...stylex.props(styles.ticketNote)}>
-                    ★ {compact(pr.stars)} · merged {day(pr.mergedAt)}
+                    ★ {compact(pr.stars, locale)} · {t("merged")}{" "}
+                    {day(pr.mergedAt, locale)}
                   </small>
                 </a>
               )

@@ -47,6 +47,24 @@
     text-wrap: balance;
   }
 
+  :lang(ja) {
+    line-break: strict;
+    overflow-wrap: anywhere;
+  }
+
+  h1:lang(ja),
+  h2:lang(ja),
+  h3:lang(ja) {
+    line-height: 1.3;
+    letter-spacing: -0.02em;
+  }
+
+  a[aria-current="page"] {
+    color: #12100e;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
   p,
   figure,
   dl,

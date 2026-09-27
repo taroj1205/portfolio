@@ -1,5 +1,6 @@
 import * as stylex from "@stylexjs/stylex";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 
 import partlyCertificate from "@/assets/hackathon/partly-certificate.jpg";
 import partlyTeam from "@/assets/hackathon/partly.jpg";
@@ -32,10 +33,11 @@ import { Work } from "@/components/work";
 import { WorkTimeline } from "@/components/work-timeline";
 import { fmt } from "@/lib/format";
 import { getGitHub } from "@/lib/github";
+import { getTranslator, intlLocale, isLocale } from "@/lib/i18n";
 import { socials } from "@/lib/socials";
 import { shared } from "@/styles/shared";
 
-import { color, ease, media, shadow } from "../styles/tokens.stylex";
+import { color, ease, media, shadow } from "../../styles/tokens.stylex";
 
 export const revalidate = 3600;
 
@@ -256,6 +258,11 @@ const styles = stylex.create({
     letterSpacing: "-0.05em",
     lineHeight: 0.9,
   },
+  japaneseContactTitle: {
+    fontSize: "clamp(1.75rem, 5vw, 3.5rem)",
+    lineHeight: 1.25,
+    whiteSpace: "nowrap",
+  },
   contactText: {
     color: color.muted,
     fontSize: "clamp(1.0625rem, 1.4vw, 1.2rem)",
@@ -397,6 +404,11 @@ const styles = stylex.create({
     letterSpacing: "-0.05em",
     lineHeight: 0.92,
   },
+  japaneseTitle: {
+    fontSize: "clamp(2rem, 8.5vw, 7.5rem)",
+    lineHeight: 1.25,
+    letterSpacing: "-0.02em",
+  },
   heroWord: {
     display: "inline-block",
   },
@@ -463,10 +475,15 @@ const styles = stylex.create({
   },
 });
 
-const Home = async () => {
+const Home = async ({ params }: PageProps<"/[lang]">) => {
+  const { lang: locale } = await params;
+  if (!isLocale(locale)) {
+    notFound();
+  }
+  const t = getTranslator(locale);
   const github = await getGitHub();
   const now = new Date(github.updatedAt);
-  const updated = now.toLocaleString("en-NZ", {
+  const updated = now.toLocaleString(intlLocale(locale), {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
@@ -477,23 +494,32 @@ const Home = async () => {
   return (
     <>
       <section {...stylex.props(shared.wrap, styles.hero)}>
-        <h1 {...stylex.props(styles.heroTitle)}>
+        <h1
+          {...stylex.props(
+            styles.heroTitle,
+            locale === "ja" && styles.japaneseTitle
+          )}
+        >
           <span {...stylex.props(styles.heroWord, shared.enter("60ms"))}>
-            Kia ora,
+            {t("Kia ora,")}
           </span>{" "}
           <span {...stylex.props(styles.heroWord, shared.enter("150ms"))}>
-            I&apos;m Shintaro.
+            {t("I'm Shintaro.")}
           </span>
         </h1>
         <p {...stylex.props(styles.intro, shared.enter("240ms"))}>
-          I study Computer Science and IT Management at the University of
-          Auckland, build software at Hazumi, and help look after a couple of
-          open-source projects. When I&apos;m away from a screen, I&apos;m
-          usually out taking photos, like these.
+          {t(
+            "I study Computer Science and IT Management at the University of Auckland, build software at Hazumi, and help look after a couple of open-source projects. When I'm away from a screen, I'm usually out taking photos, like these."
+          )}
         </p>
       </section>
 
-      <Photos eager={3} photos={band} variant="band" />
+      <Photos
+        locale={locale}
+        eager={3}
+        photos={band.map((photo) => ({ ...photo, caption: t(photo.caption) }))}
+        variant="band"
+      />
 
       <section {...stylex.props(shared.wrap, styles.about)} id="about">
         <figure
@@ -505,7 +531,7 @@ const Home = async () => {
           )}
         >
           <Image
-            alt="Me under a cherry blossom tree"
+            alt={t("Me under a cherry blossom tree")}
             placeholder="blur"
             sizes="(max-width: 800px) 20rem, 30vw"
             src={selfie}
@@ -514,24 +540,23 @@ const Home = async () => {
         </figure>
         <div {...stylex.props(styles.aboutText, shared.reveal)}>
           <h2 {...stylex.props(shared.title, styles.aboutTitle)}>
-            A bit about me
+            {t("A bit about me")}
           </h2>
           <p>
-            I was born in Tokyo in 2005. After the 2011 earthquake, my family
-            moved to Ehime. I later lived in Auckland, spent a year at school in
-            the Philippines, and came back to New Zealand for good in 2019.
+            {t(
+              "I was born in Tokyo in 2005. After the 2011 earthquake, my family moved to Ehime. I later lived in Auckland, spent a year at school in the Philippines, and came back to New Zealand for good in 2019."
+            )}
           </p>
           <p {...stylex.props(styles.paragraph)}>
-            I taught myself to code in 2022 by making small games, and I still
-            mostly build things because someone I know needs them. Outside of
-            screens it&apos;s kendama, juggling, table tennis, badminton and
-            football, even after three knee injuries.
+            {t(
+              "I taught myself to code in 2022 by making small games, and I still mostly build things because someone I know needs them. Outside of screens it's kendama, juggling, table tennis, badminton and football, even after three knee injuries."
+            )}
           </p>
           <dl {...stylex.props(styles.facts)}>
             {facts.map(([label, value]) => (
               <div key={label} {...stylex.props(styles.fact)}>
-                <dt {...stylex.props(styles.factLabel)}>{label}</dt>
-                <dd>{value}</dd>
+                <dt {...stylex.props(styles.factLabel)}>{t(label)}</dt>
+                <dd>{t(value)}</dd>
               </div>
             ))}
           </dl>
@@ -540,18 +565,29 @@ const Home = async () => {
 
       <Section
         id="work"
-        intro={`Most of my coding happens on GitHub, where ${fmt(github.total)} of my pull requests have been merged across work, open source and my own projects. The numbers on these cards update themselves.`}
-        title="Things I've worked on"
+        intro={
+          locale === "ja"
+            ? `仕事や個人開発、OSSで出したPRは、これまでに${fmt(github.total, locale)}件マージされました。数字はGitHubから自動で更新しています。`
+            : `Most of my coding happens on GitHub, where ${fmt(github.total, locale)} of my pull requests have been merged across work, open source and my own projects. The numbers on these cards update themselves.`
+        }
+        title={t("Things I've worked on")}
       >
-        <Work projects={github.projects} upstream={github.upstream} />
+        <Work
+          locale={locale}
+          projects={github.projects}
+          upstream={github.upstream}
+        />
       </Section>
 
       <Section
         id="lately"
-        intro="Recent activity from my GitHub, with the latest update time shown below."
-        title="Still shipping, most weeks."
+        intro={t(
+          "Recent activity from my GitHub, with the latest update time shown below."
+        )}
+        title={t("Still shipping, most weeks.")}
       >
         <Lately
+          locale={locale}
           monthly={github.monthly}
           recent={github.recent}
           updated={updated}
@@ -560,21 +596,28 @@ const Home = async () => {
 
       <Section
         id="jobs"
-        intro="Everything since 2024, including the times I was juggling a few things at once alongside uni."
-        title="Jobs and volunteering"
+        intro={t(
+          "Everything since 2024, including the times I was juggling a few things at once alongside uni."
+        )}
+        title={t("Jobs and volunteering")}
       >
-        <WorkTimeline now={now} />
+        <WorkTimeline locale={locale} now={now} />
       </Section>
 
       <Section
         id="journey"
-        intro="Japan and New Zealand, with a detour to the Philippines for school."
-        title="Where I've lived"
+        intro={t(
+          "Japan and New Zealand, with a detour to the Philippines for school."
+        )}
+        title={t("Where I've lived")}
       >
-        <JourneyMap />
+        <JourneyMap locale={locale} />
       </Section>
 
-      <Section id="projects" title="Things I made for myself, or for family">
+      <Section
+        id="projects"
+        title={t("Things I made for myself, or for family")}
+      >
         <ul {...stylex.props(styles.projects)}>
           {sideProjects.map((project) => (
             <li key={project.name} {...stylex.props(shared.reveal)}>
@@ -587,33 +630,36 @@ const Home = async () => {
                 )}
               >
                 <Shot
-                  alt={`Screenshot of ${project.name}`}
+                  alt={`${t(project.name)} — ${t("Screenshot")}`}
                   href={project.href}
                   shot={project.shot}
                   xstyle={styles.projectShot}
                 />
                 <h3 {...stylex.props(styles.projectName)}>
-                  {project.name} <Arrow />
+                  {t(project.name)} <Arrow />
                 </h3>
               </a>
-              <p {...stylex.props(styles.projectText)}>{project.text}</p>
+              <p {...stylex.props(styles.projectText)}>{t(project.text)}</p>
             </li>
           ))}
         </ul>
         <p {...stylex.props(styles.also, shared.reveal)}>
-          Also: a{" "}
+          {t("Also: a")}{" "}
           <a href="https://github.com/taroj1205/tauri-clipboard-manager">
-            clipboard manager for Windows
+            {t("clipboard manager for Windows")}
           </a>{" "}
-          that can search through everything you&apos;ve copied, including
-          images.
+          {t(
+            "that can search through everything you've copied, including images."
+          )}
         </p>
       </Section>
 
       <Section
         id="hackathons"
-        intro="Both were weekend hackathons run by WDCC, the web development club at uni."
-        title="Two hackathons, two awards"
+        intro={t(
+          "Both were weekend hackathons run by WDCC, the web development club at uni."
+        )}
+        title={t("Two hackathons, two awards")}
       >
         <div {...stylex.props(styles.awards)}>
           {awards.map((award, i) => (
@@ -623,14 +669,14 @@ const Home = async () => {
             >
               <div {...stylex.props(styles.awardPhotos)}>
                 <Image
-                  alt={award.alt}
+                  alt={t(award.alt)}
                   placeholder="blur"
                   sizes="(max-width: 800px) 100vw, 50vw"
                   src={award.photo}
                   {...stylex.props(styles.awardImage, shared.unveil)}
                 />
                 <Image
-                  alt={`The ${award.prize} certificate`}
+                  alt={`${t(award.prize)} — ${t("certificate")}`}
                   placeholder="blur"
                   sizes="(max-width: 800px) 45vw, 20vw"
                   src={award.certificate}
@@ -641,9 +687,9 @@ const Home = async () => {
                 />
               </div>
               <figcaption {...stylex.props(styles.awardText)}>
-                <span {...stylex.props(styles.prize)}>{award.prize}</span>
-                <h3 {...stylex.props(styles.awardEvent)}>{award.event}</h3>
-                <p {...stylex.props(styles.award)}>{award.text}</p>
+                <span {...stylex.props(styles.prize)}>{t(award.prize)}</span>
+                <h3 {...stylex.props(styles.awardEvent)}>{t(award.event)}</h3>
+                <p {...stylex.props(styles.award)}>{t(award.text)}</p>
               </figcaption>
             </figure>
           ))}
@@ -652,19 +698,34 @@ const Home = async () => {
 
       <Section
         id="photos"
-        intro="Mostly around Auckland. Tap one to see it bigger."
-        title="More photos"
+        intro={t("Mostly around Auckland. Tap one to see it bigger.")}
+        title={t("More photos")}
       >
-        <Photos photos={gallery} variant="gallery" />
+        <Photos
+          locale={locale}
+          photos={gallery.map((photo) => ({
+            ...photo,
+            caption: t(photo.caption),
+          }))}
+          variant="gallery"
+        />
       </Section>
 
       <section {...stylex.props(shared.wrap, styles.contact)} id="contact">
         <article {...stylex.props(styles.postcard)}>
           <div {...stylex.props(styles.message)}>
-            <h2 {...stylex.props(styles.contactTitle)}>Say hi.</h2>
+            <h2
+              {...stylex.props(
+                styles.contactTitle,
+                locale === "ja" && styles.japaneseContactTitle
+              )}
+            >
+              {t("Say hi.")}
+            </h2>
             <p {...stylex.props(styles.contactText)}>
-              Send me a message on any of these, whether it&apos;s about a
-              project, uni, or just to chat.
+              {t(
+                "Send me a message on any of these, whether it's about a project, uni, or just to chat."
+              )}
             </p>
           </div>
           <div {...stylex.props(styles.address)}>
@@ -679,9 +740,9 @@ const Home = async () => {
               </span>
             </span>
             <p {...stylex.props(styles.postmark)}>
-              <span>Auckland</span>
+              <span>{t("Auckland")}</span>
               <span {...stylex.props(styles.postmarkTime)}>
-                <Clock />
+                <Clock locale={locale} />
               </span>
               <span>NZ</span>
             </p>

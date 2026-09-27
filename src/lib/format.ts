@@ -1,10 +1,17 @@
-export const fmt = (n: number) => n.toLocaleString("en-NZ");
+import { intlLocale } from "./i18n";
+import type { Locale } from "./i18n";
 
-export const compact = (n: number) =>
-  n.toLocaleString("en-NZ", { maximumFractionDigits: 1, notation: "compact" });
+export const fmt = (n: number, locale: Locale = "en") =>
+  n.toLocaleString(intlLocale(locale));
 
-export const day = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-NZ", {
+export const compact = (n: number, locale: Locale = "en") =>
+  n.toLocaleString(intlLocale(locale), {
+    maximumFractionDigits: 1,
+    notation: "compact",
+  });
+
+export const day = (iso: string, locale: Locale = "en") =>
+  new Date(iso).toLocaleDateString(intlLocale(locale), {
     day: "numeric",
     month: "short",
     timeZone: "Pacific/Auckland",
