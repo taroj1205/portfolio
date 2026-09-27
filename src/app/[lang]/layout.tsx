@@ -105,6 +105,7 @@ const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
           <Link
             {...stylex.props(styles.languageLink)}
             href="/"
+            scroll={false}
             hrefLang="en"
             lang="en"
             aria-current={lang === "en" ? "page" : undefined}
@@ -115,6 +116,7 @@ const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
           <Link
             {...stylex.props(styles.languageLink)}
             href="/ja"
+            scroll={false}
             hrefLang="ja"
             lang="ja"
             aria-current={lang === "ja" ? "page" : undefined}
