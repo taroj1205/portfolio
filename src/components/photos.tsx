@@ -7,6 +7,8 @@ import { useEffect, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { flushSync } from "react-dom";
 
+import { getTranslator } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import { shared } from "@/styles/shared";
 
 import { color, ease, media, size } from "../styles/tokens.stylex";
@@ -367,15 +369,18 @@ export const Photos = ({
   variant,
   photos,
   eager = 0,
+  locale,
 }: {
   variant: "band" | "gallery";
   photos: Photo[];
   eager?: number;
+  locale: Locale;
 }) => {
   const dialog = useRef<HTMLDialogElement>(null);
   const full = useRef<HTMLImageElement>(null);
   const thumb = useRef<HTMLImageElement | null>(null);
   const track = useRef<HTMLDivElement>(null);
+  const t = getTranslator(locale);
   const [open, setOpen] = useState<Photo | null>(null);
   const band = variant === "band";
   useEffect(() => {
@@ -438,7 +443,7 @@ export const Photos = ({
         )}
       >
         <button
-          aria-label={`View larger: ${photo.caption}`}
+          aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
           onClick={(event) => {
             show(photo, event);
           }}
@@ -482,7 +487,7 @@ export const Photos = ({
       )}
     >
       <button
-        aria-label={`View larger: ${photo.caption}`}
+        aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
         onClick={(event) => {
           show(photo, event);
         }}
@@ -525,7 +530,7 @@ export const Photos = ({
       )}
 
       <dialog
-        aria-label="Photo"
+        aria-label={t("photos.dialogTitle", "Photo")}
         closedby="any"
         onCancel={(event) => {
           event.preventDefault();
@@ -544,7 +549,7 @@ export const Photos = ({
           type="button"
           {...stylex.props(styles.close, shared.pressable)}
         >
-          Close
+          {t("photos.close", "Close")}
         </button>
         {open && (
           <figure {...stylex.props(styles.fullFigure)}>

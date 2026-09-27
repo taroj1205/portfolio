@@ -1,0 +1,198 @@
+{
+  "photos": {
+    "captions": {
+      "gull": "ランギトト島を背景に、アカハシギンカモメ",
+      "nagoya": "日暮れ前の名古屋城",
+      "muriwai": "ムリワイのカツオドリの群れ",
+      "lionRock": "ピハのライオンロック",
+      "skyTower": "晴れた午後のスカイタワー",
+      "sunsetWide": "港に沈む夕日",
+      "westCoast": "西海岸の崖",
+      "sandstone": "砂岩の崖と静かなビーチ",
+      "sunsetBark": "古い木のそばで見た夕日",
+      "lowTide": "干潮の西海岸",
+      "windyRock": "風の強い午後"
+    },
+    "intro": "オークランド周辺で撮った写真です。タップで拡大できます。",
+    "title": "撮った写真",
+    "close": "閉じる",
+    "dialogTitle": "写真",
+    "viewLarger": "写真を拡大"
+  },
+  "about": {
+    "facts": {
+      "studying": {
+        "label": "学んでいること",
+        "value": "オークランド大学でコンピューターサイエンスとITマネジメントを専攻"
+      },
+      "working": {
+        "label": "仕事",
+        "value": "Hazumiのソフトウェアエンジニア。オークランドからリモートで働いています"
+      },
+      "previous": {
+        "label": "以前の仕事",
+        "value": "2024〜2025年、Zoomで子どもたちにMinecraftを使ってプログラミングを教えていました"
+      },
+      "languages": {
+        "label": "話せる言語",
+        "value": "英語と日本語"
+      }
+    },
+    "photoAlt": "桜の木の下にいる僕",
+    "title": "自己紹介",
+    "background": "2005年に東京で生まれました。2011年の震災後に家族で愛媛へ引っ越し、その後はオークランドへ。フィリピンの学校にも1年間通い、2019年からはニュージーランドに住んでいます。",
+    "interests": "2022年に独学でプログラミングを始めました。最初は小さなゲームを作っていて、今も自分や身近な人が使いたいものを作ることが多いです。ほかには、けん玉、ジャグリング、卓球、バドミントン、サッカーが好きです。膝を3回けがしましたが、まだ続けています。"
+  },
+  "projects": {
+    "note": {
+      "name": "弟用に作ったnoteの読書リスト",
+      "description": "弟がよくnoteを読むので、好きな記事をまとめて読めるページを作りました。"
+    },
+    "typing": {
+      "name": "タイピングゲーム",
+      "description": "英単語のタイピングゲームです。プログラミングを始めた頃に作りました。"
+    },
+    "reversi": {
+      "name": "リバーシ",
+      "description": "ブラウザで遊べるリバーシ（オセロ）です。"
+    },
+    "title": "自分や家族用に作ったもの",
+    "clipboard": {
+      "before": "ほかにも、",
+      "name": "Windows向けクリップボードマネージャー",
+      "after": "も作りました。コピーしたテキストや画像を検索できます。"
+    },
+    "screenshot": "スクリーンショット"
+  },
+  "hackathons": {
+    "partly": {
+      "alt": "Most Production Readyの賞状を手にステージに立つチーム",
+      "event": "Partly × WDCC、2025年7月",
+      "prize": "Most Production Ready賞",
+      "description": "4人で、自動車部品を扱うPartlyの検索ツールを作りました。そのままリリースできそうな完成度が評価されて、賞をもらいました。"
+    },
+    "sesa": {
+      "alt": "Most Overengineeredのスライドを背景に並ぶ受賞チーム",
+      "event": "SESA × WDCC、2025年8月",
+      "prize": "Most Overengineered賞",
+      "description": "「Exception Handlers」というチームで、RSSを使って昔の思い出を振り返るアプリ「Nostalgia」を作りました。ちょっと作り込みすぎたかもしれません。"
+    },
+    "intro": "大学のWeb開発サークル、WDCCのハッカソンに参加しました。どちらも週末の開催でした。",
+    "title": "ハッカソンで作ったもの",
+    "certificate": "賞状"
+  },
+  "hero": {
+    "greeting": "こんにちは、",
+    "name": "しんたろうです。",
+    "intro": "オークランド大学でコンピューターサイエンスとITマネジメントを学んでいます。Hazumiで開発の仕事をしながら、オープンソースのメンテナンスもしています。写真を撮るのも好きです。"
+  },
+  "work": {
+    "title": "関わっているプロジェクト",
+    "yamada": {
+      "role": "2024年2月からメンテナー",
+      "description": "Reactで使えるUIコンポーネント集です。ボタンやメニュー、ポップアップなどが揃っています。2024年から参加していて、今はメンテナーとしてコンポーネントを作ったり、ほかの人のPRをレビューしたりしています。",
+      "points": {
+        "notice": "Sonnerに複数のトースターを置ける機能を追加し、それを使ってNoticeを作り直し",
+        "components": "NativeAccordion、NativePopover、FormatNumber、FormatByteを新規開発",
+        "ci": "Turborepoのキャッシュ、ブラウザテストの分割、ドラフトPRの実行スキップでCIを高速化",
+        "testing": "Vitest Browser Modeで実ブラウザテストに移行し、Storybookにアクセシビリティチェックを追加"
+      }
+    },
+    "upstream": {
+      "notes": {
+        "opencode": "WSL連携の日本語翻訳と、言語メニューのラベルが途切れる問題を修正しました。",
+        "helmor": "サイドバーの表示方法を追加しました。fishシェルやGitHubリンク、スクリプトの不具合も修正しています。",
+        "sonner": "1ページに複数のトースト表示エリアを置けるようにしました。v2.0.7に入っています。",
+        "pnpm": "ビルドスクリプトを承認したときに、ほかのプロジェクトと共有しているパッケージまで再ビルドされる問題を直しました。"
+      },
+      "title": "ほかのOSSへのPR",
+      "role": "使っていて気づいたところを修正",
+      "description": "普段使っているツールで不具合を見つけたら、メンテナーをしていないプロジェクトにもPRを出しています。ここにはマージされたものを載せていて、新しいPRも自動で追加されます。"
+    },
+    "zen": {
+      "description": "Firefoxベースの無料ブラウザです。落ち着いた使い心地が特徴で、GitHubのスターは44,000以上あります。僕はWebサイトの開発に関わっています。ダウンロードページを作り直したり、古いPCやスマホでも軽く動くようにしたり、日本語対応やテストの整備をしました。",
+      "points": {
+        "performance": "Tailwind v4への移行とTurborepoによるパフォーマンス改善",
+        "testing": "Playwright、Vitest、CIの基盤整備"
+      },
+      "role": "Webサイトの設計・開発"
+    },
+    "stats": {
+      "websitePrs": "WebサイトでマージされたPR",
+      "firstPr": "最初のPR",
+      "mergedPrs": "マージされたPR",
+      "issues": "作成したIssue",
+      "projects": "プロジェクト"
+    },
+    "hazumi": {
+      "description": "HazumiでWebアプリを開発しています。オークランドからリモートで働いています。",
+      "role": "2025年11月からソフトウェアエンジニア"
+    },
+    "merged": "マージ済み",
+    "mergedDate": "マージ：",
+    "visit": "サイトを見る：",
+    "website": "Webサイト",
+    "intro": "仕事や個人開発、OSSで出したPRは、これまでに{total}件マージされました。数字はGitHubから自動で更新しています。"
+  },
+  "activity": {
+    "intro": "GitHubでの最近の活動です。下に最終更新日時を載せています。",
+    "title": "最近の活動",
+    "contributions": "過去12か月のコントリビューション",
+    "contributionCount": "件のコントリビューション",
+    "updated": "更新：",
+    "recentlyMerged": "最近マージされたPR",
+    "allMerged": "マージされたPRをGitHubで見る",
+    "soFar": "現在まで"
+  },
+  "timeline": {
+    "intro": "2024年からの仕事や活動をまとめました。大学と並行して、いくつか掛け持ちしていた時期もあります。",
+    "title": "仕事とボランティア",
+    "roles": {
+      "westlake": "留学生の学習サポート",
+      "yamada": "メンテナー",
+      "yago": "Zoomで子どもたちにMinecraftを使ったプログラミングを教える仕事",
+      "zen": "Webサイトの設計・開発",
+      "wdcc": "大学のWeb開発サークルで開発を担当",
+      "hazumi": "オークランドからリモートでソフトウェア開発",
+      "crie": "愛媛で派遣の仕事"
+    },
+    "volunteer": "オープンソース・ボランティア",
+    "nowLabel": "現在",
+    "now": "現在",
+    "to": "〜",
+    "workSuffix": "（仕事）",
+    "volunteerSuffix": "（オープンソース・ボランティア）",
+    "work": "仕事"
+  },
+  "journey": {
+    "intro": "日本とニュージーランドで暮らしてきました。留学でフィリピンに住んでいたこともあります。",
+    "title": "住んできた場所",
+    "stops": {
+      "tokyo": "2005年、ここで生まれました。",
+      "ehime": "2011年の震災後に引っ越しました。",
+      "aucklandSchool": "中学校に1年間通いました。",
+      "philippines": "セブで3か月英語を学び、その後イギリス式の学校に1年間通いました。",
+      "aucklandReturn": "2019年に戻ってきました。Westlake Boys高校に通い、その後オークランド大学へ。"
+    },
+    "mapDescription": "日本からニュージーランドまで、暮らした場所を順に示した地図。東京、愛媛、オークランド、フィリピン、そして再びオークランド。",
+    "equator": "赤道"
+  },
+  "contact": {
+    "title": "連絡はこちら",
+    "description": "開発や大学の話でも、雑談でも。気軽にメッセージを送ってください。"
+  },
+  "places": {
+    "auckland": "オークランド",
+    "thePhilippines": "フィリピン",
+    "philippines": "フィリピン",
+    "tokyo": "東京",
+    "ehime": "愛媛"
+  },
+  "navigation": {
+    "skip": "本文へスキップ",
+    "socials": "SNSリンク"
+  },
+  "metadata": {
+    "description": "Shintaro Jokagiのポートフォリオです。オークランド大学で学びながら、Hazumiで開発の仕事をしています。Yamada UIとZen BrowserのWebサイトのメンテナンスもしています。作ったものや、海辺で撮った写真をまとめました。"
+  }
+}

@@ -9,7 +9,17 @@ bun install
 GITHUB_TOKEN=$(gh auth token) bun dev
 ```
 
+Both `bun dev` and `bun start` use http://localhost:1205.
+
 The home page reads GitHub when it renders, so it needs `GITHUB_TOKEN`. Put it in `.env` or pass it for one command as above.
+
+## Languages
+
+`/` serves English and `/ja` serves Japanese. `/en` also serves English without a redirect. A rewrite serves the English route internally while keeping `/` in the address bar. The language links work without JavaScript, and the URL keeps the selected language on refresh or when shared.
+
+English stays inline: `t("contact.title", "Say hi.")`. Japanese copy lives in `src/lib/messages/ja.json` nested by section, for example `{ "contact": { "title": "連絡はこちら" } }`. Calls still use matching dotted keys. Call `getTranslator(locale)` to get `t`; its key type comes from the Japanese dictionary, so missing or misspelled keys fail type checking. Editing the English text does not change the key or break its translation. For dynamic values, keep the complete sentence in each language and use native string replacement, such as `.replace("{total}", fmt(total, locale))`. Pass the locale to date and number formatters. Names, repository names, and live GitHub PR titles stay in their original language.
+
+Both routes are pre-rendered with localized metadata and document language, then refreshed hourly.
 
 ## How the numbers stay current
 

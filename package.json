@@ -2,9 +2,9 @@
   "name": "portfolio",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 1205",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 1205",
     "knip": "knip",
     "spell": "cspell . --gitignore --cache --no-progress"
   },

@@ -3,6 +3,8 @@
 import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
 
+import { getTranslator } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import { land } from "@/lib/land";
 import { useInView } from "@/lib/use-in-view";
 import { shared } from "@/styles/shared";
@@ -31,41 +33,6 @@ const route = [
   `Q250,600 ${philippines.join(",")}`,
   `Q420,400 ${auckland.join(",")}`,
 ].join(" ");
-
-const places = [
-  { at: tokyo, delay: 0, dy: 0, left: false, name: "Tokyo", stops: [0] },
-  { at: ehime, delay: 250, dy: 18, left: true, name: "Ehime", stops: [1] },
-  {
-    at: auckland,
-    delay: 1250,
-    dy: 0,
-    left: true,
-    name: "Auckland",
-    stops: [2, 4],
-  },
-  {
-    at: philippines,
-    delay: 1900,
-    dy: 0,
-    left: false,
-    name: "Philippines",
-    stops: [3],
-  },
-];
-
-const stops = [
-  { place: "Tokyo", text: "Born here in 2005." },
-  { place: "Ehime", text: "Moved here after the 2011 earthquake." },
-  { place: "Auckland", text: "A year at an intermediate school." },
-  {
-    place: "The Philippines",
-    text: "Three months learning English in Cebu, then a year at a British school.",
-  },
-  {
-    place: "Auckland",
-    text: "Back for good in 2019. Westlake Boys, then the University of Auckland.",
-  },
-];
 
 const styles = stylex.create({
   at: (left: string, top: string) => ({ left, top }),
@@ -258,7 +225,74 @@ const styles = stylex.create({
   },
 });
 
-export const JourneyMap = () => {
+export const JourneyMap = ({ locale }: { locale: Locale }) => {
+  const t = getTranslator(locale);
+  const places = [
+    {
+      at: tokyo,
+      delay: 0,
+      dy: 0,
+      left: false,
+      name: t("places.tokyo", "Tokyo"),
+      stops: [0],
+    },
+    {
+      at: ehime,
+      delay: 250,
+      dy: 18,
+      left: true,
+      name: t("places.ehime", "Ehime"),
+      stops: [1],
+    },
+    {
+      at: auckland,
+      delay: 1250,
+      dy: 0,
+      left: true,
+      name: t("places.auckland", "Auckland"),
+      stops: [2, 4],
+    },
+    {
+      at: philippines,
+      delay: 1900,
+      dy: 0,
+      left: false,
+      name: t("places.philippines", "Philippines"),
+      stops: [3],
+    },
+  ];
+
+  const stops = [
+    {
+      place: t("places.tokyo", "Tokyo"),
+      text: t("journey.stops.tokyo", "Born here in 2005."),
+    },
+    {
+      place: t("places.ehime", "Ehime"),
+      text: t("journey.stops.ehime", "Moved here after the 2011 earthquake."),
+    },
+    {
+      place: t("places.auckland", "Auckland"),
+      text: t(
+        "journey.stops.aucklandSchool",
+        "A year at an intermediate school."
+      ),
+    },
+    {
+      place: t("places.thePhilippines", "The Philippines"),
+      text: t(
+        "journey.stops.philippines",
+        "Three months learning English in Cebu, then a year at a British school."
+      ),
+    },
+    {
+      place: t("places.auckland", "Auckland"),
+      text: t(
+        "journey.stops.aucklandReturn",
+        "Back for good in 2019. Westlake Boys, then the University of Auckland."
+      ),
+    },
+  ];
   const [frame, inView] = useInView<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);
 
@@ -267,9 +301,10 @@ export const JourneyMap = () => {
       <div ref={frame} {...stylex.props(styles.frame)}>
         <svg viewBox={`0 0 ${W} ${H}`} {...stylex.props(styles.map)}>
           <title>
-            Map from Japan to New Zealand showing the places I&apos;ve lived, in
-            order: Tokyo, Ehime, Auckland, the Philippines, and back to
-            Auckland.
+            {t(
+              "journey.mapDescription",
+              "Map from Japan to New Zealand showing the places I've lived, in order: Tokyo, Ehime, Auckland, the Philippines, and back to Auckland."
+            )}
           </title>
           <g {...stylex.props(styles.grid)}>
             {meridians.map((mx) => (
@@ -288,7 +323,7 @@ export const JourneyMap = () => {
             {...stylex.props(styles.equator)}
           />
           <text x="16" y={EQUATOR - 10} {...stylex.props(styles.equatorLabel)}>
-            EQUATOR
+            {t("journey.equator", "EQUATOR")}
           </text>
           {[styles.routeGlow, null].map((extra, i) => (
             <path

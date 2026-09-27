@@ -1,5 +1,6 @@
 import * as stylex from "@stylexjs/stylex";
 import Image from "next/image";
+import { notFound } from "next/navigation";
 
 import partlyCertificate from "@/assets/hackathon/partly-certificate.jpg";
 import partlyTeam from "@/assets/hackathon/partly.jpg";
@@ -32,76 +33,13 @@ import { Work } from "@/components/work";
 import { WorkTimeline } from "@/components/work-timeline";
 import { fmt } from "@/lib/format";
 import { getGitHub } from "@/lib/github";
+import { getTranslator, intlLocale, isLocale } from "@/lib/i18n";
 import { socials } from "@/lib/socials";
 import { shared } from "@/styles/shared";
 
-import { color, ease, media, shadow } from "../styles/tokens.stylex";
+import { color, ease, media, shadow } from "../../styles/tokens.stylex";
 
 export const revalidate = 3600;
-
-const band: Photo[] = [
-  { caption: "A red-billed gull, with Rangitoto behind", src: gull },
-  { caption: "Nagoya Castle, just before sunset", src: nagoya },
-  { caption: "The gannet colony at Muriwai", src: muriwai },
-  { caption: "Lion Rock at Piha", src: lionRock },
-  { caption: "Sky Tower on a clear afternoon", src: skyTower },
-  { caption: "Last light over the harbour", src: sunsetWide },
-];
-
-const gallery: Photo[] = [
-  { caption: "Cliffs on the west coast", src: westCoast },
-  { caption: "Sandstone cliff and a quiet beach", src: sandstone },
-  { caption: "Sunset beside an old tree", src: sunsetBark },
-  { caption: "Low tide, west coast", src: lowTide },
-  { caption: "A very windy afternoon", src: windyRock },
-];
-
-const facts = [
-  ["Studying", "Computer Science and IT Management, University of Auckland"],
-  ["Working", "Software engineer at Hazumi, remote from Auckland"],
-  ["Before that", "Teaching kids to code in Minecraft over Zoom, 2024 to 2025"],
-  ["Speaks", "English and Japanese"],
-] as const;
-
-const sideProjects = [
-  {
-    href: "https://nextjs-note-rss.vercel.app/",
-    name: "A reading list for my brother",
-    shot: noteShot,
-    text: "My younger brother reads a lot on note.com, so I made him a simple page that puts the articles he likes in one list.",
-  },
-  {
-    href: "https://typing-game-nextjs.vercel.app/",
-    name: "Typing game",
-    shot: typingShot,
-    text: "A typing game for practising English words. One of the first things I ever built.",
-  },
-  {
-    href: "https://nextjs-reversi.vercel.app/",
-    name: "Reversi",
-    shot: reversiShot,
-    text: "The board game, also called Othello, that you can play in the browser.",
-  },
-];
-
-const awards = [
-  {
-    alt: "Our team on stage holding the Most Production Ready certificate",
-    certificate: partlyCertificate,
-    event: "Partly × WDCC, July 2025",
-    photo: partlyTeam,
-    prize: "Most production ready",
-    text: "Four of us built a search tool for Partly, a car parts company. The award went to the project closest to something you could actually launch.",
-  },
-  {
-    alt: "All the winning teams in front of the Most Overengineered slide",
-    certificate: sesaCertificate,
-    event: "SESA × WDCC, August 2025",
-    photo: sesaTeam,
-    prize: "Most overengineered",
-    text: "Our team, the Exception Handlers, made Nostalgia: an app for looking back on old memories through RSS feeds. We may have gone a little overboard.",
-  },
-];
 
 const arrive = stylex.keyframes({
   from: { opacity: 0, rotate: "-4deg", translate: "0 96px" },
@@ -256,6 +194,11 @@ const styles = stylex.create({
     letterSpacing: "-0.05em",
     lineHeight: 0.9,
   },
+  japaneseContactTitle: {
+    fontSize: "clamp(1.75rem, 5vw, 3.5rem)",
+    lineHeight: 1.25,
+    whiteSpace: "nowrap",
+  },
   contactText: {
     color: color.muted,
     fontSize: "clamp(1.0625rem, 1.4vw, 1.2rem)",
@@ -397,6 +340,11 @@ const styles = stylex.create({
     letterSpacing: "-0.05em",
     lineHeight: 0.92,
   },
+  japaneseTitle: {
+    fontSize: "clamp(2rem, 8.5vw, 7.5rem)",
+    lineHeight: 1.25,
+    letterSpacing: "-0.02em",
+  },
   heroWord: {
     display: "inline-block",
   },
@@ -463,10 +411,159 @@ const styles = stylex.create({
   },
 });
 
-const Home = async () => {
+const Home = async ({ params }: PageProps<"/[lang]">) => {
+  const { lang: locale } = await params;
+  if (!isLocale(locale)) {
+    notFound();
+  }
+  const t = getTranslator(locale);
+  const band: Photo[] = [
+    {
+      caption: t(
+        "photos.captions.gull",
+        "A red-billed gull, with Rangitoto behind"
+      ),
+      src: gull,
+    },
+    {
+      caption: t("photos.captions.nagoya", "Nagoya Castle, just before sunset"),
+      src: nagoya,
+    },
+    {
+      caption: t("photos.captions.muriwai", "The gannet colony at Muriwai"),
+      src: muriwai,
+    },
+    {
+      caption: t("photos.captions.lionRock", "Lion Rock at Piha"),
+      src: lionRock,
+    },
+    {
+      caption: t("photos.captions.skyTower", "Sky Tower on a clear afternoon"),
+      src: skyTower,
+    },
+    {
+      caption: t("photos.captions.sunsetWide", "Last light over the harbour"),
+      src: sunsetWide,
+    },
+  ];
+
+  const gallery: Photo[] = [
+    {
+      caption: t("photos.captions.westCoast", "Cliffs on the west coast"),
+      src: westCoast,
+    },
+    {
+      caption: t(
+        "photos.captions.sandstone",
+        "Sandstone cliff and a quiet beach"
+      ),
+      src: sandstone,
+    },
+    {
+      caption: t("photos.captions.sunsetBark", "Sunset beside an old tree"),
+      src: sunsetBark,
+    },
+    {
+      caption: t("photos.captions.lowTide", "Low tide, west coast"),
+      src: lowTide,
+    },
+    {
+      caption: t("photos.captions.windyRock", "A very windy afternoon"),
+      src: windyRock,
+    },
+  ];
+
+  const facts = [
+    [
+      t("about.facts.studying.label", "Studying"),
+      t(
+        "about.facts.studying.value",
+        "Computer Science and IT Management, University of Auckland"
+      ),
+    ],
+    [
+      t("about.facts.working.label", "Working"),
+      t(
+        "about.facts.working.value",
+        "Software engineer at Hazumi, remote from Auckland"
+      ),
+    ],
+    [
+      t("about.facts.previous.label", "Before that"),
+      t(
+        "about.facts.previous.value",
+        "Teaching kids to code in Minecraft over Zoom, 2024 to 2025"
+      ),
+    ],
+    [
+      t("about.facts.languages.label", "Speaks"),
+      t("about.facts.languages.value", "English and Japanese"),
+    ],
+  ] as const;
+
+  const sideProjects = [
+    {
+      href: "https://nextjs-note-rss.vercel.app/",
+      name: t("projects.note.name", "A reading list for my brother"),
+      shot: noteShot,
+      text: t(
+        "projects.note.description",
+        "My younger brother reads a lot on note.com, so I made him a simple page that puts the articles he likes in one list."
+      ),
+    },
+    {
+      href: "https://typing-game-nextjs.vercel.app/",
+      name: t("projects.typing.name", "Typing game"),
+      shot: typingShot,
+      text: t(
+        "projects.typing.description",
+        "A typing game for practising English words. One of the first things I ever built."
+      ),
+    },
+    {
+      href: "https://nextjs-reversi.vercel.app/",
+      name: t("projects.reversi.name", "Reversi"),
+      shot: reversiShot,
+      text: t(
+        "projects.reversi.description",
+        "The board game, also called Othello, that you can play in the browser."
+      ),
+    },
+  ];
+
+  const awards = [
+    {
+      alt: t(
+        "hackathons.partly.alt",
+        "Our team on stage holding the Most Production Ready certificate"
+      ),
+      certificate: partlyCertificate,
+      event: t("hackathons.partly.event", "Partly × WDCC, July 2025"),
+      photo: partlyTeam,
+      prize: t("hackathons.partly.prize", "Most production ready"),
+      text: t(
+        "hackathons.partly.description",
+        "Four of us built a search tool for Partly, a car parts company. The award went to the project closest to something you could actually launch."
+      ),
+    },
+    {
+      alt: t(
+        "hackathons.sesa.alt",
+        "All the winning teams in front of the Most Overengineered slide"
+      ),
+      certificate: sesaCertificate,
+      event: t("hackathons.sesa.event", "SESA × WDCC, August 2025"),
+      photo: sesaTeam,
+      prize: t("hackathons.sesa.prize", "Most overengineered"),
+      text: t(
+        "hackathons.sesa.description",
+        "Our team, the Exception Handlers, made Nostalgia: an app for looking back on old memories through RSS feeds. We may have gone a little overboard."
+      ),
+    },
+  ];
   const github = await getGitHub();
   const now = new Date(github.updatedAt);
-  const updated = now.toLocaleString("en-NZ", {
+  const updated = now.toLocaleString(intlLocale(locale), {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
@@ -477,23 +574,28 @@ const Home = async () => {
   return (
     <>
       <section {...stylex.props(shared.wrap, styles.hero)}>
-        <h1 {...stylex.props(styles.heroTitle)}>
+        <h1
+          {...stylex.props(
+            styles.heroTitle,
+            locale === "ja" && styles.japaneseTitle
+          )}
+        >
           <span {...stylex.props(styles.heroWord, shared.enter("60ms"))}>
-            Kia ora,
+            {t("hero.greeting", "Kia ora,")}
           </span>{" "}
           <span {...stylex.props(styles.heroWord, shared.enter("150ms"))}>
-            I&apos;m Shintaro.
+            {t("hero.name", "I'm Shintaro.")}
           </span>
         </h1>
         <p {...stylex.props(styles.intro, shared.enter("240ms"))}>
-          I study Computer Science and IT Management at the University of
-          Auckland, build software at Hazumi, and help look after a couple of
-          open-source projects. When I&apos;m away from a screen, I&apos;m
-          usually out taking photos, like these.
+          {t(
+            "hero.intro",
+            "I study Computer Science and IT Management at the University of Auckland, build software at Hazumi, and help look after a couple of open-source projects. When I'm away from a screen, I'm usually out taking photos, like these."
+          )}
         </p>
       </section>
 
-      <Photos eager={3} photos={band} variant="band" />
+      <Photos locale={locale} eager={3} photos={band} variant="band" />
 
       <section {...stylex.props(shared.wrap, styles.about)} id="about">
         <figure
@@ -505,7 +607,7 @@ const Home = async () => {
           )}
         >
           <Image
-            alt="Me under a cherry blossom tree"
+            alt={t("about.photoAlt", "Me under a cherry blossom tree")}
             placeholder="blur"
             sizes="(max-width: 800px) 20rem, 30vw"
             src={selfie}
@@ -514,18 +616,19 @@ const Home = async () => {
         </figure>
         <div {...stylex.props(styles.aboutText, shared.reveal)}>
           <h2 {...stylex.props(shared.title, styles.aboutTitle)}>
-            A bit about me
+            {t("about.title", "A bit about me")}
           </h2>
           <p>
-            I was born in Tokyo in 2005. After the 2011 earthquake, my family
-            moved to Ehime. I later lived in Auckland, spent a year at school in
-            the Philippines, and came back to New Zealand for good in 2019.
+            {t(
+              "about.background",
+              "I was born in Tokyo in 2005. After the 2011 earthquake, my family moved to Ehime. I later lived in Auckland, spent a year at school in the Philippines, and came back to New Zealand for good in 2019."
+            )}
           </p>
           <p {...stylex.props(styles.paragraph)}>
-            I taught myself to code in 2022 by making small games, and I still
-            mostly build things because someone I know needs them. Outside of
-            screens it&apos;s kendama, juggling, table tennis, badminton and
-            football, even after three knee injuries.
+            {t(
+              "about.interests",
+              "I taught myself to code in 2022 by making small games, and I still mostly build things because someone I know needs them. Outside of screens it's kendama, juggling, table tennis, badminton and football, even after three knee injuries."
+            )}
           </p>
           <dl {...stylex.props(styles.facts)}>
             {facts.map(([label, value]) => (
@@ -540,18 +643,29 @@ const Home = async () => {
 
       <Section
         id="work"
-        intro={`Most of my coding happens on GitHub, where ${fmt(github.total)} of my pull requests have been merged across work, open source and my own projects. The numbers on these cards update themselves.`}
-        title="Things I've worked on"
+        intro={t(
+          "work.intro",
+          "Most of my coding happens on GitHub, where {total} of my pull requests have been merged across work, open source and my own projects. The numbers on these cards update themselves."
+        ).replace("{total}", fmt(github.total, locale))}
+        title={t("work.title", "Things I've worked on")}
       >
-        <Work projects={github.projects} upstream={github.upstream} />
+        <Work
+          locale={locale}
+          projects={github.projects}
+          upstream={github.upstream}
+        />
       </Section>
 
       <Section
         id="lately"
-        intro="Recent activity from my GitHub, with the latest update time shown below."
-        title="Still shipping, most weeks."
+        intro={t(
+          "activity.intro",
+          "Recent activity from my GitHub, with the latest update time shown below."
+        )}
+        title={t("activity.title", "Still shipping, most weeks.")}
       >
         <Lately
+          locale={locale}
           monthly={github.monthly}
           recent={github.recent}
           updated={updated}
@@ -560,21 +674,30 @@ const Home = async () => {
 
       <Section
         id="jobs"
-        intro="Everything since 2024, including the times I was juggling a few things at once alongside uni."
-        title="Jobs and volunteering"
+        intro={t(
+          "timeline.intro",
+          "Everything since 2024, including the times I was juggling a few things at once alongside uni."
+        )}
+        title={t("timeline.title", "Jobs and volunteering")}
       >
-        <WorkTimeline now={now} />
+        <WorkTimeline locale={locale} now={now} />
       </Section>
 
       <Section
         id="journey"
-        intro="Japan and New Zealand, with a detour to the Philippines for school."
-        title="Where I've lived"
+        intro={t(
+          "journey.intro",
+          "Japan and New Zealand, with a detour to the Philippines for school."
+        )}
+        title={t("journey.title", "Where I've lived")}
       >
-        <JourneyMap />
+        <JourneyMap locale={locale} />
       </Section>
 
-      <Section id="projects" title="Things I made for myself, or for family">
+      <Section
+        id="projects"
+        title={t("projects.title", "Things I made for myself, or for family")}
+      >
         <ul {...stylex.props(styles.projects)}>
           {sideProjects.map((project) => (
             <li key={project.name} {...stylex.props(shared.reveal)}>
@@ -587,7 +710,7 @@ const Home = async () => {
                 )}
               >
                 <Shot
-                  alt={`Screenshot of ${project.name}`}
+                  alt={`${project.name} — ${t("projects.screenshot", "Screenshot")}`}
                   href={project.href}
                   shot={project.shot}
                   xstyle={styles.projectShot}
@@ -601,19 +724,24 @@ const Home = async () => {
           ))}
         </ul>
         <p {...stylex.props(styles.also, shared.reveal)}>
-          Also: a{" "}
+          {t("projects.clipboard.before", "Also: a")}{" "}
           <a href="https://github.com/taroj1205/tauri-clipboard-manager">
-            clipboard manager for Windows
+            {t("projects.clipboard.name", "clipboard manager for Windows")}
           </a>{" "}
-          that can search through everything you&apos;ve copied, including
-          images.
+          {t(
+            "projects.clipboard.after",
+            "that can search through everything you've copied, including images."
+          )}
         </p>
       </Section>
 
       <Section
         id="hackathons"
-        intro="Both were weekend hackathons run by WDCC, the web development club at uni."
-        title="Two hackathons, two awards"
+        intro={t(
+          "hackathons.intro",
+          "Both were weekend hackathons run by WDCC, the web development club at uni."
+        )}
+        title={t("hackathons.title", "Two hackathons, two awards")}
       >
         <div {...stylex.props(styles.awards)}>
           {awards.map((award, i) => (
@@ -630,7 +758,7 @@ const Home = async () => {
                   {...stylex.props(styles.awardImage, shared.unveil)}
                 />
                 <Image
-                  alt={`The ${award.prize} certificate`}
+                  alt={`${award.prize} — ${t("hackathons.certificate", "certificate")}`}
                   placeholder="blur"
                   sizes="(max-width: 800px) 45vw, 20vw"
                   src={award.certificate}
@@ -652,19 +780,31 @@ const Home = async () => {
 
       <Section
         id="photos"
-        intro="Mostly around Auckland. Tap one to see it bigger."
-        title="More photos"
+        intro={t(
+          "photos.intro",
+          "Mostly around Auckland. Tap one to see it bigger."
+        )}
+        title={t("photos.title", "More photos")}
       >
-        <Photos photos={gallery} variant="gallery" />
+        <Photos locale={locale} photos={gallery} variant="gallery" />
       </Section>
 
       <section {...stylex.props(shared.wrap, styles.contact)} id="contact">
         <article {...stylex.props(styles.postcard)}>
           <div {...stylex.props(styles.message)}>
-            <h2 {...stylex.props(styles.contactTitle)}>Say hi.</h2>
+            <h2
+              {...stylex.props(
+                styles.contactTitle,
+                locale === "ja" && styles.japaneseContactTitle
+              )}
+            >
+              {t("contact.title", "Say hi.")}
+            </h2>
             <p {...stylex.props(styles.contactText)}>
-              Send me a message on any of these, whether it&apos;s about a
-              project, uni, or just to chat.
+              {t(
+                "contact.description",
+                "Send me a message on any of these, whether it's about a project, uni, or just to chat."
+              )}
             </p>
           </div>
           <div {...stylex.props(styles.address)}>
@@ -679,9 +819,9 @@ const Home = async () => {
               </span>
             </span>
             <p {...stylex.props(styles.postmark)}>
-              <span>Auckland</span>
+              <span>{t("places.auckland", "Auckland")}</span>
               <span {...stylex.props(styles.postmarkTime)}>
-                <Clock />
+                <Clock locale={locale} />
               </span>
               <span>NZ</span>
             </p>

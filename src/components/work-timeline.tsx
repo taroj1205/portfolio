@@ -1,60 +1,18 @@
 import * as stylex from "@stylexjs/stylex";
 
+import { getTranslator, intlLocale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import { shared } from "@/styles/shared";
 
 import { color, ease, media } from "../styles/tokens.stylex";
-
-const roles = [
-  {
-    end: "2024-02",
-    org: "Westlake Boys High School",
-    paid: true,
-    role: "Teacher aide for international students",
-    start: "2024-01",
-  },
-  { org: "Yamada UI", paid: false, role: "Maintainer", start: "2024-02" },
-  {
-    end: "2025-12",
-    org: "YAGO",
-    paid: true,
-    role: "Teaching kids to code in Minecraft, over Zoom",
-    start: "2024-07",
-  },
-  {
-    org: "Zen Browser",
-    paid: false,
-    role: "Core website architect",
-    start: "2024-10",
-  },
-  {
-    end: "2025-10",
-    org: "WDCC",
-    paid: true,
-    role: "Web developer in the uni web development club",
-    start: "2025-04",
-  },
-  {
-    org: "Hazumi",
-    paid: true,
-    role: "Software engineer, remote from Auckland",
-    start: "2025-11",
-  },
-  {
-    end: "2026-02",
-    org: "Crie Anabuki",
-    paid: true,
-    role: "Temporary staff, on site in Ehime",
-    start: "2025-12",
-  },
-];
 
 const FIRST_YEAR = 2024;
 const index = (ym: string) => {
   const [y = FIRST_YEAR, m = 1] = ym.split("-").map(Number);
   return (y - FIRST_YEAR) * 12 + m - 1;
 };
-const format = (ym: string) =>
-  new Date(`${ym}-01T00:00:00Z`).toLocaleString("en-NZ", {
+const format = (ym: string, locale: Locale) =>
+  new Date(`${ym}-01T00:00:00Z`).toLocaleString(intlLocale(locale), {
     month: "short",
     timeZone: "UTC",
     year: "numeric",
@@ -178,7 +136,74 @@ const styles = stylex.create({
   },
 });
 
-export const WorkTimeline = ({ now }: { now: Date }) => {
+export const WorkTimeline = ({
+  now,
+  locale,
+}: {
+  now: Date;
+  locale: Locale;
+}) => {
+  const t = getTranslator(locale);
+  const roles = [
+    {
+      end: "2024-02",
+      org: "Westlake Boys High School",
+      paid: true,
+      role: t(
+        "timeline.roles.westlake",
+        "Teacher aide for international students"
+      ),
+      start: "2024-01",
+    },
+    {
+      org: "Yamada UI",
+      paid: false,
+      role: t("timeline.roles.yamada", "Maintainer"),
+      start: "2024-02",
+    },
+    {
+      end: "2025-12",
+      org: "YAGO",
+      paid: true,
+      role: t(
+        "timeline.roles.yago",
+        "Teaching kids to code in Minecraft, over Zoom"
+      ),
+      start: "2024-07",
+    },
+    {
+      org: "Zen Browser",
+      paid: false,
+      role: t("timeline.roles.zen", "Core website architect"),
+      start: "2024-10",
+    },
+    {
+      end: "2025-10",
+      org: "WDCC",
+      paid: true,
+      role: t(
+        "timeline.roles.wdcc",
+        "Web developer in the uni web development club"
+      ),
+      start: "2025-04",
+    },
+    {
+      org: "Hazumi",
+      paid: true,
+      role: t(
+        "timeline.roles.hazumi",
+        "Software engineer, remote from Auckland"
+      ),
+      start: "2025-11",
+    },
+    {
+      end: "2026-02",
+      org: "Crie Anabuki",
+      paid: true,
+      role: t("timeline.roles.crie", "Temporary staff, on site in Ehime"),
+      start: "2025-12",
+    },
+  ];
   const months = index(now.toISOString().slice(0, 7)) + 1;
   const years = Array.from(
     { length: now.getUTCFullYear() - FIRST_YEAR + 1 },
@@ -190,11 +215,11 @@ export const WorkTimeline = ({ now }: { now: Date }) => {
       <p aria-hidden="true" {...stylex.props(styles.legend)}>
         <span {...stylex.props(styles.legendItem)}>
           <span {...stylex.props(styles.key, styles.paid)} />
-          Work
+          {t("timeline.work", "Work")}
         </span>
         <span {...stylex.props(styles.legendItem)}>
           <span {...stylex.props(styles.key, styles.volunteer)} />
-          Open source, volunteer
+          {t("timeline.volunteer", "Open source, volunteer")}
         </span>
       </p>
       <div aria-hidden="true" {...stylex.props(styles.axis)}>
@@ -209,7 +234,7 @@ export const WorkTimeline = ({ now }: { now: Date }) => {
         <span
           {...stylex.props(styles.axisLabel, styles.now, styles.at("100%"))}
         >
-          Now
+          {t("timeline.nowLabel", "Now")}
         </span>
       </div>
       <ul {...stylex.props(styles.list)}>
@@ -245,10 +270,17 @@ export const WorkTimeline = ({ now }: { now: Date }) => {
                     left > 55 ? styles.datesEnd : styles.at(`${left}%`)
                   )}
                 >
-                  {format(r.start)} to{" "}
-                  {r.end === undefined ? "now" : format(r.end)}
+                  {format(r.start, locale)} {t("timeline.to", "to")}{" "}
+                  {r.end === undefined
+                    ? t("timeline.now", "now")
+                    : format(r.end, locale)}
                   <span {...stylex.props(shared.srOnly)}>
-                    {r.paid ? " (work)" : " (open source, volunteer)"}
+                    {r.paid
+                      ? t("timeline.workSuffix", " (work)")
+                      : t(
+                          "timeline.volunteerSuffix",
+                          " (open source, volunteer)"
+                        )}
                   </span>
                 </span>
               </div>

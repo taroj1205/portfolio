@@ -5,6 +5,8 @@ import { useRef, useState } from "react";
 import type { PointerEvent } from "react";
 
 import { fmt } from "@/lib/format";
+import { getTranslator, intlLocale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import { useInView } from "@/lib/use-in-view";
 import { shared } from "@/styles/shared";
 
@@ -15,8 +17,8 @@ interface Month {
   contributions: number;
 }
 
-const monthName = (month: string, style: "short" | "narrow") =>
-  new Date(`${month}-01T00:00:00Z`).toLocaleString("en-NZ", {
+const monthName = (month: string, style: "short" | "narrow", locale: Locale) =>
+  new Date(`${month}-01T00:00:00Z`).toLocaleString(intlLocale(locale), {
     month: style,
     timeZone: "UTC",
   });
@@ -123,12 +125,15 @@ const styles = stylex.create({
 });
 
 export const ContributionsChart = ({
+  locale,
   monthly,
   updated,
 }: {
+  locale: Locale;
   monthly: Month[];
   updated: string;
 }) => {
+  const t = getTranslator(locale);
   const last = monthly.length - 1;
   const [active, setActive] = useState(last);
   const [chart, inView] = useInView<HTMLElement>();
@@ -138,8 +143,12 @@ export const ContributionsChart = ({
   const label = (i: number) => {
     const month = monthly[i]?.month ?? "";
     return i === last
-      ? `${monthName(month, "short")} so far`
-      : `${monthName(month, "short")} ${month.slice(0, 4)}`;
+      ? `${monthName(month, "short", locale)} ${t("activity.soFar", "so far")}`
+      : new Date(`${month}-01T00:00:00Z`).toLocaleString(intlLocale(locale), {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC",
+        });
   };
 
   const select = (i: number) => {
@@ -171,13 +180,13 @@ export const ContributionsChart = ({
       <div {...stylex.props(styles.head)}>
         <div>
           <p {...stylex.props(shared.cardLabel)}>
-            Contributions · last 12 months
+            {t("activity.contributions", "Contributions · last 12 months")}
           </p>
-          <p {...stylex.props(styles.total)}>{fmt(total)}</p>
+          <p {...stylex.props(styles.total)}>{fmt(total, locale)}</p>
         </div>
         <p aria-hidden="true" {...stylex.props(styles.readout)}>
           <strong ref={readout} {...stylex.props(styles.readoutValue)}>
-            {fmt(monthly[active]?.contributions ?? 0)}
+            {fmt(monthly[active]?.contributions ?? 0, locale)}
           </strong>
           <span {...stylex.props(styles.readoutMonth)}>{label(active)}</span>
         </p>
@@ -210,20 +219,21 @@ export const ContributionsChart = ({
               )}
             >
               <span {...stylex.props(styles.narrow)}>
-                {monthName(m.month, "narrow")}
+                {monthName(m.month, "narrow", locale)}
               </span>
               <span {...stylex.props(styles.wide)}>
-                {monthName(m.month, "short")}
+                {monthName(m.month, "short", locale)}
               </span>
             </span>
             <span {...stylex.props(shared.srOnly)}>
-              {label(i)}: {fmt(m.contributions)} contributions
+              {label(i)}: {fmt(m.contributions, locale)}{" "}
+              {t("activity.contributionCount", "contributions")}
             </span>
           </li>
         ))}
       </ol>
       <figcaption {...stylex.props(styles.caption)}>
-        Updated {updated}
+        {t("activity.updated", "Updated")} {updated}
       </figcaption>
     </figure>
   );

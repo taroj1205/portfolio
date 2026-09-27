@@ -5,6 +5,8 @@ import { ContributionsChart } from "@/components/contributions-chart";
 import { Arrow } from "@/components/icons";
 import { day, splitTitle } from "@/lib/format";
 import type { GitHub } from "@/lib/github";
+import { getTranslator } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 import { shared } from "@/styles/shared";
 
 import { color, ease, font, media } from "../styles/tokens.stylex";
@@ -127,63 +129,73 @@ const styles = stylex.create({
 });
 
 export const Lately = ({
+  locale,
   monthly,
   recent,
   updated,
-}: Pick<GitHub, "monthly" | "recent"> & { updated: string }) => (
-  <div {...stylex.props(styles.grid)}>
-    <ContributionsChart monthly={monthly} updated={updated} />
+}: Pick<GitHub, "monthly" | "recent"> & {
+  updated: string;
+  locale: Locale;
+}) => {
+  const t = getTranslator(locale);
+  return (
+    <div {...stylex.props(styles.grid)}>
+      <ContributionsChart locale={locale} monthly={monthly} updated={updated} />
 
-    <div {...stylex.props(shared.card, styles.feed, shared.reveal)}>
-      <p {...stylex.props(shared.cardLabel)}>Recently merged</p>
-      <ul {...stylex.props(styles.list)}>
-        {recent.map((pr) => {
-          const { type, text } = splitTitle(pr.title);
-          const [owner = ""] = pr.repo.split("/");
-          return (
-            <li key={pr.url} {...stylex.props(styles.item)}>
-              <a href={pr.url} {...stylex.props(styles.row)}>
-                <Image
-                  alt=""
-                  height={32}
-                  src={`https://avatars.githubusercontent.com/${owner}?s=64`}
-                  width={32}
-                  {...stylex.props(styles.avatar)}
-                />
-                <span {...stylex.props(styles.meta)}>
-                  <span {...stylex.props(styles.repo)}>
-                    {pr.repo}{" "}
-                    <span {...stylex.props(styles.number)}>#{pr.number}</span>
+      <div {...stylex.props(shared.card, styles.feed, shared.reveal)}>
+        <p {...stylex.props(shared.cardLabel)}>
+          {t("activity.recentlyMerged", "Recently merged")}
+        </p>
+        <ul {...stylex.props(styles.list)}>
+          {recent.map((pr) => {
+            const { type, text } = splitTitle(pr.title);
+            const [owner = ""] = pr.repo.split("/");
+            return (
+              <li key={pr.url} {...stylex.props(styles.item)}>
+                <a href={pr.url} {...stylex.props(styles.row)}>
+                  <Image
+                    alt=""
+                    height={32}
+                    src={`https://avatars.githubusercontent.com/${owner}?s=64`}
+                    width={32}
+                    {...stylex.props(styles.avatar)}
+                  />
+                  <span {...stylex.props(styles.meta)}>
+                    <span {...stylex.props(styles.repo)}>
+                      {pr.repo}{" "}
+                      <span {...stylex.props(styles.number)}>#{pr.number}</span>
+                    </span>
+                    <span {...stylex.props(styles.title)}>
+                      {type !== "" && (
+                        <span
+                          {...stylex.props(
+                            styles.type,
+                            type === "feat" && styles.typeFeat,
+                            type === "fix" && styles.typeFix
+                          )}
+                        >
+                          {type}
+                        </span>
+                      )}
+                      {text}
+                    </span>
                   </span>
-                  <span {...stylex.props(styles.title)}>
-                    {type !== "" && (
-                      <span
-                        {...stylex.props(
-                          styles.type,
-                          type === "feat" && styles.typeFeat,
-                          type === "fix" && styles.typeFix
-                        )}
-                      >
-                        {type}
-                      </span>
-                    )}
-                    {text}
-                  </span>
-                </span>
-                <time dateTime={pr.mergedAt} {...stylex.props(styles.date)}>
-                  {day(pr.mergedAt)}
-                </time>
-              </a>
-            </li>
-          );
-        })}
-      </ul>
-      <a
-        href="https://github.com/search?q=author%3Ataroj1205+is%3Apr+is%3Amerged&type=pullrequests&s=updated&o=desc"
-        {...stylex.props(shared.textLink, shared.pressable, styles.more)}
-      >
-        Every merged PR on GitHub <Arrow />
-      </a>
+                  <time dateTime={pr.mergedAt} {...stylex.props(styles.date)}>
+                    {day(pr.mergedAt, locale)}
+                  </time>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+        <a
+          href="https://github.com/search?q=author%3Ataroj1205+is%3Apr+is%3Amerged&type=pullrequests&s=updated&o=desc"
+          {...stylex.props(shared.textLink, shared.pressable, styles.more)}
+        >
+          {t("activity.allMerged", "Every merged PR on GitHub")}
+          <Arrow />
+        </a>
+      </div>
     </div>
-  </div>
-);
+  );
+};
