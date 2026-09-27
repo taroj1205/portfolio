@@ -101,7 +101,6 @@ const styles = stylex.create({
     display: "flex",
     gap,
     paddingInlineEnd: gap,
-    transformStyle: "preserve-3d",
   },
   image: {
     borderRadius: 16,
@@ -127,14 +126,9 @@ const styles = stylex.create({
       [media.motion]: { default: "grab", ":active": "grabbing" },
     },
     overflowX: { default: "clip", [media.reduce]: "auto" },
-    perspective: "175vw",
     scrollbarWidth: "none",
     touchAction: "pan-y",
     userSelect: "none",
-  },
-  face: {
-    backfaceVisibility: "hidden",
-    pointerEvents: "auto",
   },
   tile: (ratio: number) => ({
     flexBasis: `calc(${ratio} * clamp(11rem, 25vw, 20rem))`,
@@ -147,10 +141,6 @@ const styles = stylex.create({
     display: "flex",
     position: "relative",
     paddingInline: { default: null, [media.reduce]: size.gutter },
-    // Photos sit behind the track's plane on the drum, so the track must
-    // not catch their clicks.
-    pointerEvents: "none",
-    transformStyle: "preserve-3d",
     width: "max-content",
   },
 });
@@ -171,12 +161,22 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
   let drag: { id: number; moved: number; t: number; x: number } | null = null;
   let last = 0;
   let frame = 0;
-  const tiles = [...track.querySelectorAll("figure")];
+  let lean = 0;
+  let scrolled = scrollY;
 
   const tick = (now: number) => {
     const dt = Math.min((now - last) / 1000, 0.05);
     last = now;
     const lap = track.offsetWidth / 2;
+    // Page scrolling flings the band along, so it answers the reader's
+    // momentum instead of drifting past it.
+    if (!drag && !goal) {
+      velocity = Math.max(
+        -3000,
+        Math.min(3000, velocity - (scrollY - scrolled) * 6)
+      );
+    }
+    scrolled = scrollY;
     if (!drag) {
       const target = goal ? 0 : drift;
       velocity += (target - velocity) * (1 - Math.exp(-settle * dt));
@@ -188,19 +188,11 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
       x += (offset - lap * Math.round(offset / lap)) * (1 - Math.exp(-8 * dt));
     }
     x = (((x % lap) + lap) % lap) - lap;
-    track.style.transform = `translate3d(${x}px, 0, 0)`;
-    // Photos curl away round a drum as they near either side, turning
-    // edge-on as they leave, so the band has no hard cut-off.
-    // Photos ride a drum. Its radius and the strip's 175vw perspective put
-    // the drum's silhouette on the strip's edges, so photos turn edge-on
-    // right as they leave instead of being cut off.
-    const radius = strip.clientWidth * 0.7;
-    for (const tile of tiles) {
-      const offset =
-        x + tile.offsetLeft + tile.offsetWidth / 2 - strip.clientWidth / 2;
-      const angle = offset / radius;
-      tile.style.transform = `translate3d(${radius * Math.sin(angle) - offset}px, 0, ${radius * (Math.cos(angle) - 1)}px) rotateY(${angle}rad)`;
-    }
+    // Photos lean into fast moves like a liquid dragged along, then
+    // straighten as the band settles back into its drift.
+    const tilt = Math.max(-9, Math.min(9, (velocity - drift) * 0.006));
+    lean += (tilt - lean) * (1 - Math.exp(-10 * dt));
+    track.style.transform = `translate3d(${x}px, 0, 0) skewX(${lean}deg)`;
     frame = requestAnimationFrame(tick);
   };
 
@@ -208,6 +200,7 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
     cancelAnimationFrame(frame);
     if (entry?.isIntersecting) {
       last = performance.now();
+      scrolled = scrollY;
       frame = requestAnimationFrame(tick);
     }
   });
@@ -312,9 +305,6 @@ const startTicker = (track: HTMLElement, strip: HTMLElement) => {
     observer.disconnect();
     cancelAnimationFrame(frame);
     track.style.transform = "";
-    for (const tile of tiles) {
-      tile.style.transform = "";
-    }
   };
 };
 
@@ -396,7 +386,7 @@ export const Photos = ({
         key={photo.caption}
         {...stylex.props(
           band
-            ? [shared.enter(`${250 + i * 70}ms`), styles.face]
+            ? shared.enter(`${250 + i * 70}ms`)
             : [styles.tile(ratio), shared.reveal]
         )}
       >
