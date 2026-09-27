@@ -3,7 +3,7 @@
 import * as stylex from "@stylexjs/stylex";
 import Image from "next/image";
 import type { StaticImageData } from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { flushSync } from "react-dom";
 
@@ -11,7 +11,14 @@ import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { shared } from "@/styles/shared";
 
-import { color, ease, media, size } from "../styles/tokens.stylex";
+import {
+  color,
+  ease,
+  font,
+  media,
+  shadow,
+  size,
+} from "../styles/tokens.stylex";
 
 export interface Photo {
   src: StaticImageData;
@@ -31,13 +38,27 @@ const closing = stylex.viewTransitionClass({
   group: { animationDuration: "260ms", animationTimingFunction: ease.out },
 });
 
-// Photos turn to face the middle as they cross the row's edges, like
-// pages turning, and only move when the reader scrolls the row.
-const depth = stylex.keyframes({
-  "entry 0%": { rotate: "y 34deg", scale: 0.86 },
-  "entry 100%": { rotate: "y 0deg", scale: 1 },
-  "exit 0%": { rotate: "y 0deg", scale: 1 },
-  "exit 100%": { rotate: "y -34deg", scale: 0.86 },
+// Every effect below is scroll-driven, so it only moves while the reader
+// scrolls, never takes the scroll over, and runs on the compositor.
+const scrollDriven = "@supports (animation-timeline: view())";
+
+// Prints drift upward at three speeds as they pass, like layered paper.
+const slow = stylex.keyframes({
+  from: { translate: "0 2rem" },
+  to: { translate: "0 -2rem" },
+});
+const brisk = stylex.keyframes({
+  from: { translate: "0 4.5rem" },
+  to: { translate: "0 -4.5rem" },
+});
+const quick = stylex.keyframes({
+  from: { translate: "0 7rem" },
+  to: { translate: "0 -7rem" },
+});
+// A photo slides inside its frame against the page, like a window.
+const through = stylex.keyframes({
+  from: { translate: "0 -7%" },
+  to: { translate: "0 7%" },
 });
 
 const chevrons = [
@@ -62,23 +83,178 @@ const chevron = (path: string) => (
 );
 
 const inset = "clamp(1rem, 4vw, 3rem)";
-const gap = "clamp(0.5rem, 1vw, 0.875rem)";
+const tilts = [-4, 3, -2, 5, -3, 2];
+const drops = ["0rem", "2.5rem", "0.75rem", "3.5rem", "1.25rem", "2rem"];
 
 const styles = stylex.create({
-  bandImage: {
-    height: "clamp(15rem, 30vw, 22rem)",
-    maxWidth: "none",
-    width: "auto",
-  },
-  button: {
+  open: {
     backgroundColor: color.paperDeep,
-    borderRadius: 16,
     borderWidth: 0,
     cursor: "zoom-in",
     display: "block",
-    overflow: "hidden",
+    overflow: "clip",
     padding: 0,
+  },
+  prints: {
+    display: "grid",
+    gap: "clamp(0.75rem, 2vw, 1.75rem)",
+    gridTemplateColumns: {
+      default: "repeat(6, 1fr)",
+      [media.tablet]: "repeat(3, 1fr)",
+    },
+    marginInline: "auto",
+    maxWidth: 1440,
+    paddingBlock: "clamp(3rem, 7vw, 6rem)",
+    paddingInline: size.gutter,
+    rowGap: { default: null, [media.tablet]: "2.5rem" },
+  },
+  print: {
+    alignSelf: "start",
+    animationFillMode: "both",
+    animationTimeline: "view()",
+    animationTimingFunction: "linear",
+    backgroundColor: "#fff",
+    borderRadius: 6,
+    boxShadow:
+      "0 1px 2px rgb(18 16 14 / 0.12), 0 22px 44px -22px rgb(18 16 14 / 0.5)",
+    paddingBlock: "clamp(0.3rem, 0.6vw, 0.5rem) clamp(1rem, 2.2vw, 1.75rem)",
+    paddingInline: "clamp(0.3rem, 0.6vw, 0.5rem)",
+  },
+  // Speeds follow the column (index mod 3) at both 6 and 3 columns, so
+  // prints stacked in one column always move together and never collide.
+  slow: {
+    animationName: {
+      default: null,
+      [media.motion]: { default: null, [scrollDriven]: slow },
+    },
+  },
+  brisk: {
+    animationName: {
+      default: null,
+      [media.motion]: { default: null, [scrollDriven]: brisk },
+    },
+  },
+  quick: {
+    animationName: {
+      default: null,
+      [media.motion]: { default: null, [scrollDriven]: quick },
+    },
+  },
+  printAt: (angle: number, drop: string) => ({
+    marginTop: drop,
+    rotate: `${angle}deg`,
+  }),
+  printButton: {
+    borderRadius: 2,
+    boxShadow: {
+      default: null,
+      ":hover": { default: null, [media.hover]: shadow.lift },
+    },
+    scale: {
+      default: null,
+      ":hover": { default: null, [media.hover]: 1.05 },
+    },
+    transitionDuration: "450ms",
+    transitionProperty: "scale, translate, box-shadow",
+    transitionTimingFunction: ease.spring,
+    translate: {
+      default: null,
+      ":hover": { default: null, [media.hover]: "0 -0.5rem" },
+    },
     width: "100%",
+  },
+  printImage: {
+    aspectRatio: "4 / 5",
+    objectFit: "cover",
+    width: "100%",
+  },
+  spread: {
+    columnGap: "1.5rem",
+    display: "grid",
+    gridTemplateColumns: { default: "repeat(12, 1fr)", [media.tablet]: "1fr" },
+    rowGap: "clamp(4rem, 10vw, 8rem)",
+  },
+  piece: {
+    position: "relative",
+  },
+  left: {
+    gridColumn: { default: "1 / span 5", [media.tablet]: "1 / -1" },
+  },
+  right: {
+    gridColumn: { default: "8 / span 5", [media.tablet]: "1 / -1" },
+    marginTop: { default: "10rem", [media.tablet]: 0 },
+  },
+  leftIn: {
+    gridColumn: { default: "2 / span 5", [media.tablet]: "1 / -1" },
+  },
+  rightIn: {
+    gridColumn: { default: "7 / span 5", [media.tablet]: "1 / -1" },
+    marginTop: { default: "6rem", [media.tablet]: 0 },
+  },
+  wide: {
+    gridColumn: "1 / -1",
+  },
+  numeral: {
+    animationFillMode: "both",
+    animationName: {
+      default: null,
+      [media.motion]: { default: null, [scrollDriven]: quick },
+    },
+    animationTimeline: "view()",
+    animationTimingFunction: "linear",
+    color: color.line,
+    fontFamily: font.display,
+    fontSize: "clamp(5rem, 13vw, 11rem)",
+    fontVariantNumeric: "tabular-nums",
+    fontWeight: 750,
+    letterSpacing: "-0.06em",
+    lineHeight: 0.8,
+    pointerEvents: "none",
+    position: "absolute",
+    top: { default: "12%", [media.tablet]: "-0.45em" },
+    userSelect: "none",
+  },
+  // Beside the photo in the empty columns; above it on one column.
+  numeralAfter: {
+    left: { default: "calc(100% + 1.5rem)", [media.tablet]: "0" },
+  },
+  numeralBefore: {
+    left: { default: null, [media.tablet]: "0" },
+    right: { default: "calc(100% + 1.5rem)", [media.tablet]: "auto" },
+  },
+  numeralOver: {
+    left: 0,
+    top: "-0.45em",
+  },
+  window: {
+    borderRadius: 20,
+    position: "relative",
+    width: "100%",
+    zIndex: 1,
+  },
+  windowImage: {
+    animationFillMode: "both",
+    animationName: {
+      default: null,
+      [media.motion]: { default: null, [scrollDriven]: through },
+    },
+    animationTimeline: "view()",
+    animationTimingFunction: "linear",
+    objectFit: "cover",
+    // Room for the drift, so the frame never shows an edge.
+    scale: 1.16,
+    width: "100%",
+  },
+  tall: {
+    aspectRatio: "4 / 5",
+  },
+  broad: {
+    aspectRatio: "16 / 9",
+  },
+  caption: {
+    color: color.muted,
+    fontSize: "0.9375rem",
+    marginTop: "0.9rem",
   },
   close: {
     backgroundColor: "rgb(255 255 255 / 0.14)",
@@ -132,6 +308,10 @@ const styles = stylex.create({
     fontVariantNumeric: "tabular-nums",
     opacity: 0.6,
   },
+  // The global reset makes every img a block, which beats `hidden`.
+  preload: {
+    display: "none",
+  },
   turn: {
     alignItems: "center",
     backgroundColor: {
@@ -161,119 +341,7 @@ const styles = stylex.create({
   turnForward: {
     right: { default: "1rem", [media.tablet]: "calc(50% - 60px)" },
   },
-  band: {
-    position: "relative",
-  },
-  bandTile: {
-    flex: "none",
-    perspective: 900,
-    scrollSnapAlign: "center",
-  },
-  depth: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: {
-        default: null,
-        "@supports (animation-timeline: view())": depth,
-      },
-    },
-    animationTimeline: "view(inline)",
-    animationTimingFunction: "linear",
-  },
-  image: {
-    borderRadius: 16,
-    scale: {
-      default: null,
-      [stylex.when.ancestor(":hover")]: { default: null, [media.hover]: 1.03 },
-    },
-    transitionDuration: "600ms",
-    transitionProperty: "scale",
-    transitionTimingFunction: ease.out,
-    width: "100%",
-  },
-  rows: {
-    alignItems: "start",
-    display: "flex",
-    flexWrap: "wrap",
-    gap,
-    justifyContent: "center",
-  },
-  nudge: {
-    alignItems: "center",
-    backdropFilter: "blur(12px) saturate(1.6)",
-    backgroundColor: {
-      default: "rgb(250 247 242 / 0.72)",
-      ":hover": "rgb(255 255 255 / 0.92)",
-    },
-    borderRadius: 999,
-    borderWidth: 0,
-    boxShadow:
-      "inset 0 1px 0 rgb(255 255 255 / 0.9), 0 0 0 1px rgb(18 16 14 / 0.06), 0 10px 28px -10px rgb(18 16 14 / 0.35)",
-    color: color.ink,
-    cursor: "pointer",
-    display: { default: "none", [media.hover]: "grid" },
-    height: 48,
-    justifyContent: "center",
-    position: "absolute",
-    top: "50%",
-    transitionDuration: "200ms",
-    transitionProperty: "background-color, transform",
-    transitionTimingFunction: ease.out,
-    translate: "0 -50%",
-    width: 48,
-  },
-  back: {
-    left: size.gutter,
-  },
-  forward: {
-    right: size.gutter,
-  },
-  strip: {
-    display: "flex",
-    gap,
-    overflowX: "auto",
-    overscrollBehaviorX: "contain",
-    paddingBlock: "0.75rem",
-    scrollSnapType: "x proximity",
-    scrollbarWidth: "none",
-  },
-  tile: (ratio: number) => ({
-    flexBasis: `calc(${ratio} * clamp(11rem, 25vw, 20rem))`,
-    // Scaled up: a row whose grow values sum below 1 leaves space unused.
-    flexGrow: ratio * 100,
-    maxWidth: `calc(${ratio} * clamp(15rem, 40vw, 30rem))`,
-    minWidth: 0,
-  }),
 });
-
-// The row holds three copies and starts on the middle one. Once scrolling
-// settles in an outer copy it jumps back by one copy's width: the photos
-// there are identical, so the row scrolls forever without a visible seam.
-const loop = (row: HTMLElement, count: number) => {
-  const period = () =>
-    (row.children[count]?.getBoundingClientRect().left ?? 0) -
-    (row.children[0]?.getBoundingClientRect().left ?? 0);
-  row.scrollLeft = period();
-  let idle = 0;
-  const recentre = () => {
-    const lap = period();
-    if (row.scrollLeft < lap * 0.5) {
-      row.scrollLeft += lap;
-    } else if (row.scrollLeft > lap * 1.5) {
-      row.scrollLeft -= lap;
-    }
-  };
-  const settle = () => {
-    clearTimeout(idle);
-    idle = window.setTimeout(recentre, 120);
-  };
-  row.addEventListener("scroll", settle, { passive: true });
-  return () => {
-    clearTimeout(idle);
-    row.removeEventListener("scroll", settle);
-  };
-};
 
 const reduced = "(prefers-reduced-motion: reduce)";
 
@@ -294,24 +362,10 @@ export const Photos = ({
   const dialog = useRef<HTMLDialogElement>(null);
   const full = useRef<HTMLImageElement>(null);
   const thumb = useRef<HTMLImageElement | null>(null);
-  const strip = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLDivElement>(null);
+  const swipe = useRef(0);
   const t = getTranslator(locale);
   const [open, setOpen] = useState<Photo | null>(null);
-  const band = variant === "band";
-  const swipe = useRef(0);
-
-  useEffect(
-    () =>
-      band && strip.current ? loop(strip.current, photos.length) : undefined,
-    [band, photos.length]
-  );
-
-  const nudge = (direction: number) => {
-    strip.current?.scrollBy({
-      behavior: matchMedia(reduced).matches ? "auto" : "smooth",
-      left: direction * strip.current.clientWidth * 0.8,
-    });
-  };
 
   const nameThumb = (name: string) => {
     if (thumb.current) {
@@ -350,9 +404,9 @@ export const Photos = ({
     if (next === undefined) {
       return;
     }
-    // Closing morphs back into whichever copy of this photo is on screen.
+    // Closing morphs back into this photo only if it is on screen.
     thumb.current =
-      [...(strip.current?.querySelectorAll("img") ?? [])].find((img) => {
+      [...(list.current?.querySelectorAll("img") ?? [])].find((img) => {
         const box = img.getBoundingClientRect();
         return (
           img.alt === next.caption &&
@@ -401,84 +455,118 @@ export const Photos = ({
     nameThumb("");
   };
 
-  const tile = (photo: Photo, i: number, set = 1) => {
-    const ratio = photo.src.width / photo.src.height;
-    const copy = set !== 1;
-    return (
-      <figure
-        aria-hidden={copy || undefined}
-        key={`${set}-${photo.caption}`}
-        {...stylex.props(
-          band
-            ? [shared.enter(`${250 + i * 70}ms`), styles.bandTile]
-            : [styles.tile(ratio), shared.reveal]
-        )}
-      >
-        <button
-          aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
-          onClick={(event) => {
-            show(photo, event);
-          }}
-          tabIndex={copy ? -1 : undefined}
-          type="button"
-          {...stylex.props(
-            styles.button,
-            shared.pressable,
-            band && styles.depth,
-            stylex.defaultMarker()
-          )}
-        >
-          <Image
-            alt={photo.caption}
-            loading={i < eager ? "eager" : "lazy"}
-            placeholder="blur"
-            sizes={
-              band
-                ? `${Math.ceil(ratio * 352)}px`
-                : `(max-width: 800px) ${ratio > 1 ? 100 : 50}vw, ${Math.ceil(ratio * 480)}px`
-            }
-            src={photo.src}
-            {...stylex.props(styles.image, band && styles.bandImage)}
-          />
-        </button>
-      </figure>
-    );
-  };
+  const opener = (
+    photo: Photo,
+    i: number,
+    frame: stylex.StyleXStyles,
+    image: stylex.StyleXStyles,
+    sizes: string
+  ) => (
+    <button
+      aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
+      onClick={(event) => {
+        show(photo, event);
+      }}
+      type="button"
+      {...stylex.props(styles.open, frame)}
+    >
+      <Image
+        alt={photo.caption}
+        loading={i < eager ? "eager" : "lazy"}
+        placeholder="blur"
+        sizes={sizes}
+        src={photo.src}
+        {...stylex.props(image)}
+      />
+    </button>
+  );
+
+  const speeds = [styles.slow, styles.quick, styles.brisk];
+  const sides = [
+    [styles.left, styles.numeralAfter],
+    [styles.right, styles.numeralBefore],
+    [styles.leftIn, styles.numeralAfter],
+    [styles.rightIn, styles.numeralBefore],
+  ] as const;
+  const isBroad = (photo: Photo) => photo.src.width > photo.src.height * 1.2;
 
   return (
     <>
-      {band ? (
-        <div {...stylex.props(styles.band)}>
-          <div ref={strip} {...stylex.props(styles.strip)}>
-            {[0, 1, 2].flatMap((set) =>
-              photos.map((photo, i) => tile(photo, i, set))
-            )}
-          </div>
-          {chevrons.map(([direction, path]) => (
-            <button
-              aria-label={
-                direction < 0
-                  ? t("photos.earlier", "Show earlier photos")
-                  : t("photos.more", "Show more photos")
-              }
-              key={direction}
-              onClick={() => {
-                nudge(direction);
-              }}
-              type="button"
+      {variant === "band" ? (
+        <div ref={list} {...stylex.props(styles.prints)}>
+          {photos.map((photo, i) => (
+            <figure
+              key={photo.caption}
               {...stylex.props(
-                styles.nudge,
-                direction < 0 ? styles.back : styles.forward,
-                shared.pressable
+                styles.print,
+                speeds[i % speeds.length],
+                styles.printAt(
+                  tilts[i % tilts.length] ?? 0,
+                  drops[i % drops.length] ?? "0rem"
+                )
               )}
             >
-              {chevron(path)}
-            </button>
+              {opener(
+                photo,
+                i,
+                styles.printButton,
+                styles.printImage,
+                "(max-width: 800px) 30vw, 16vw"
+              )}
+            </figure>
           ))}
         </div>
       ) : (
-        <div ref={strip} {...stylex.props(styles.rows)}>
-          {photos.map((photo, i) => tile(photo, i))}
+        <div ref={list} {...stylex.props(styles.spread)}>
+          {photos.map((photo, i) => {
+            const broad = isBroad(photo);
+            const [side, numeral] = broad
+              ? [styles.wide, styles.numeralOver]
+              : (sides[
+                  photos.slice(0, i).filter((other) => !isBroad(other)).length %
+                    sides.length
+                ] ?? [styles.left, styles.numeralAfter]);
+            return (
+              <figure key={photo.caption} {...stylex.props(styles.piece, side)}>
+                <span
+                  aria-hidden="true"
+                  {...stylex.props(styles.numeral, numeral)}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <button
+                  aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
+                  onClick={(event) => {
+                    show(photo, event);
+                  }}
+                  type="button"
+                  {...stylex.props(styles.open, styles.window)}
+                >
+                  <span {...stylex.props(shared.unveil)}>
+                    <span {...stylex.props(shared.unveiled)}>
+                      <Image
+                        alt={photo.caption}
+                        placeholder="blur"
+                        sizes={
+                          broad
+                            ? "(max-width: 800px) 100vw, 1180px"
+                            : "(max-width: 800px) 100vw, 480px"
+                        }
+                        src={photo.src}
+                        {...stylex.props(
+                          styles.windowImage,
+                          broad ? styles.broad : styles.tall
+                        )}
+                      />
+                    </span>
+                  </span>
+                </button>
+                <figcaption {...stylex.props(styles.caption)}>
+                  {photo.caption}
+                </figcaption>
+              </figure>
+            );
+          })}
         </div>
       )}
 
@@ -565,11 +653,11 @@ export const Photos = ({
               return near === undefined ? null : (
                 <Image
                   alt=""
-                  hidden
                   key={direction}
                   loading="eager"
                   sizes="100vw"
                   src={near.src}
+                  {...stylex.props(styles.preload)}
                 />
               );
             })}
