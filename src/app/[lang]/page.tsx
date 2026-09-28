@@ -168,16 +168,7 @@ const styles = stylex.create({
     paddingBlock: "clamp(6rem, 14vw, 11rem) clamp(4rem, 8vw, 6rem)",
   },
   postcard: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: {
-        default: null,
-        "@supports (animation-timeline: view())": arrive,
-      },
-    },
-    animationRange: "entry 0% cover 40%",
-    animationTimeline: "view()",
+    animationName: { default: null, [media.motion]: arrive },
     animationTimingFunction: ease.out,
     backgroundColor: color.surface,
     borderRadius: 20,
@@ -239,16 +230,7 @@ const styles = stylex.create({
     objectFit: "cover",
   },
   postmark: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: {
-        default: null,
-        "@supports (animation-timeline: view())": thunk,
-      },
-    },
-    animationRange: "entry 80% cover 50%",
-    animationTimeline: "view()",
+    animationName: { default: null, [media.motion]: thunk },
     animationTimingFunction: ease.out,
     alignItems: "center",
     borderColor: "rgb(30 54 201 / 0.55)",
@@ -327,17 +309,7 @@ const styles = stylex.create({
     paddingBlock: "clamp(6.5rem, 18svh, 11rem) clamp(2rem, 4vw, 3rem)",
   },
   heroTitle: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: {
-        default: null,
-        "@supports (animation-timeline: view())": recede,
-      },
-    },
-    animationRange: "exit 0% exit 100%",
-    animationTimeline: "view()",
-    animationTimingFunction: "linear",
+    animationName: { default: null, [media.motion]: recede },
     fontSize: "clamp(3.25rem, 11vw, 9.5rem)",
     fontWeight: 750,
     letterSpacing: "-0.05em",
@@ -359,6 +331,7 @@ const styles = stylex.create({
     position: "relative",
   }),
   letter: {
+    fontKerning: "none",
     fontWeight: `max(200, calc(${motion.heft} - var(--near) * 540))`,
     transitionDuration: "500ms",
     transitionProperty: "--near",
@@ -614,7 +587,9 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
         <h1
           aria-label={heroWords.join(" ")}
           data-near={locale === "en" || undefined}
+          data-scroll="exit 0% exit 100%"
           {...stylex.props(
+            shared.scrub,
             styles.heroTitle,
             locale === "ja" && styles.japaneseTitle
           )}
@@ -869,7 +844,10 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
       </Section>
 
       <section {...stylex.props(shared.wrap, styles.contact)} id="contact">
-        <article {...stylex.props(styles.postcard)}>
+        <article
+          data-scroll="entry 0% cover 40%"
+          {...stylex.props(shared.scrub, styles.postcard)}
+        >
           <div {...stylex.props(styles.message)}>
             <h2
               {...stylex.props(
@@ -897,7 +875,10 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
                 />
               </span>
             </span>
-            <p {...stylex.props(styles.postmark)}>
+            <p
+              data-scroll="entry 80% cover 50%"
+              {...stylex.props(shared.scrub, styles.postmark)}
+            >
               <span>{t("places.auckland", "Auckland")}</span>
               <span {...stylex.props(styles.postmarkTime)}>
                 <Clock locale={locale} />

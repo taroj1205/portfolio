@@ -8,7 +8,7 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { socials } from "@/lib/socials";
-import { night } from "@/styles/shared";
+import { night, shared } from "@/styles/shared";
 
 import { color, ease, font, media, motion } from "../styles/tokens.stylex";
 
@@ -92,14 +92,9 @@ const styles = stylex.create({
   },
   dusk: {
     "--dusk": `calc(${motion.duskIn} * (1 - ${motion.duskOut}))`,
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      "@supports (animation-timeline: view())": `${dusk}, ${dawn}`,
-    },
-    animationRange:
-      "entry calc(100% - 4rem) entry 100%, exit calc(100% - 4rem) exit 100%",
-    animationTimeline: "--gallery",
+    animationDelay:
+      "calc(var(--scroll-0, 0) * -1s), calc(var(--scroll-1, 0) * -1s)",
+    animationName: `${dusk}, ${dawn}`,
     animationTimingFunction: "steps(2, jump-none)",
   },
   pill: {
@@ -349,7 +344,11 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
   const liquid = glass?.liquid === true;
 
   return (
-    <div {...stylex.props(night, styles.dusk, styles.bar)}>
+    <div
+      data-scroll="entry 95% entry 100%, exit 95% exit 100%"
+      data-scroll-from="photos"
+      {...stylex.props(night, shared.scrub, styles.dusk, styles.bar)}
+    >
       <nav
         aria-label="Language / 言語"
         ref={(node) => {

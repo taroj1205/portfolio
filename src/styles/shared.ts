@@ -91,6 +91,13 @@ export const shared = stylex.create({
     display: "block",
     overflow: "clip",
   },
+  scrub: {
+    animationDelay: "calc(var(--scroll-0, 0) * -1s)",
+    animationDuration: "1s",
+    animationFillMode: "both",
+    animationPlayState: "paused",
+    animationTimingFunction: "linear",
+  },
   srOnly: {
     clipPath: "inset(50%)",
     height: 1,
