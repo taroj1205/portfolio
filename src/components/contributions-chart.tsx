@@ -4,6 +4,7 @@ import * as stylex from "@stylexjs/stylex";
 import { useRef, useState } from "react";
 import type { PointerEvent } from "react";
 
+import { Count } from "@/components/count";
 import { fmt } from "@/lib/format";
 import { getTranslator, intlLocale } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
@@ -184,7 +185,9 @@ export const ContributionsChart = ({
           <p {...stylex.props(shared.cardLabel)}>
             {t("activity.contributions", "Contributions · last 12 months")}
           </p>
-          <p {...stylex.props(styles.total)}>{fmt(total, locale)}</p>
+          <p {...stylex.props(styles.total)}>
+            <Count locale={locale} value={total} />
+          </p>
         </div>
         <p aria-hidden="true" {...stylex.props(styles.readout)}>
           <strong ref={readout} {...stylex.props(styles.readoutValue)}>

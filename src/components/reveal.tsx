@@ -6,6 +6,17 @@ const settle = "cubic-bezier(0.23, 1, 0.32, 1)";
 const drawer = "cubic-bezier(0.32, 0.72, 0, 1)";
 
 const prepare = (el: HTMLElement) => {
+  if (el.dataset.reveal === "words") {
+    return [...el.querySelectorAll(":scope > span > span")].map((word, i) =>
+      word.animate(
+        [
+          { rotate: "7deg", translate: "0 118%" },
+          { rotate: "0deg", translate: "0 0" },
+        ],
+        { delay: i * 70, duration: 1000, easing: settle, fill: "backwards" }
+      )
+    );
+  }
   if (el.dataset.reveal !== "wipe") {
     return [
       el.animate(
@@ -44,7 +55,10 @@ export const Reveal = () => {
           observer.unobserve(entry.target);
           pending.delete(entry.target);
           for (const animation of animations) {
-            animation.effect?.updateTiming({ delay: order * 90 });
+            const { effect } = animation;
+            effect?.updateTiming({
+              delay: order * 90 + (effect.getTiming().delay ?? 0),
+            });
             animation.play();
           }
           order += 1;

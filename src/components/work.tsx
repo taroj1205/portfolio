@@ -1,12 +1,14 @@
 import * as stylex from "@stylexjs/stylex";
 import type { StaticImageData } from "next/image";
+import type { ReactNode } from "react";
 
 import hazumiShot from "@/assets/shots/hazumi.jpg";
 import yamadaShot from "@/assets/shots/yamada.jpg";
 import zenShot from "@/assets/shots/zen.jpg";
+import { Count } from "@/components/count";
 import { Arrow, MergedIcon } from "@/components/icons";
 import { Shot } from "@/components/shot";
-import { compact, day, fmt, splitTitle } from "@/lib/format";
+import { compact, day, splitTitle } from "@/lib/format";
 import type { GitHub } from "@/lib/github";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
@@ -81,11 +83,11 @@ const styles = stylex.create({
         [media.hover]: shadow.lift,
       },
     },
-    transform: {
+    translate: {
       default: null,
       [stylex.when.ancestor(":hover")]: {
         default: null,
-        [media.hover]: "translateY(-6px)",
+        [media.hover]: "0 -6px",
       },
     },
   },
@@ -228,7 +230,7 @@ interface Project {
   points: string[];
   role: string;
   shot: StaticImageData;
-  stats: { label: string; value: string }[];
+  stats: { label: string; value: ReactNode }[];
 }
 
 const Stats = ({ stats }: { stats: Project["stats"] }) => (
@@ -354,12 +356,12 @@ export const Work = ({
       stats: [
         {
           label: t("work.stats.websitePrs", "website PRs merged"),
-          value: fmt(projects.zen, locale),
+          value: <Count locale={locale} value={projects.zen} />,
         },
         { label: t("work.stats.firstPr", "first PR"), value: "2024" },
         {
           label: t("work.stats.reviewedPrs", "PRs reviewed"),
-          value: fmt(projects.zenReviewed, locale),
+          value: <Count locale={locale} value={projects.zenReviewed} />,
         },
       ],
     },
@@ -393,15 +395,15 @@ export const Work = ({
       stats: [
         {
           label: t("work.stats.mergedPrs", "PRs merged"),
-          value: fmt(projects.yamada, locale),
+          value: <Count locale={locale} value={projects.yamada} />,
         },
         {
           label: t("work.stats.issues", "issues opened"),
-          value: fmt(projects.yamadaIssues, locale),
+          value: <Count locale={locale} value={projects.yamadaIssues} />,
         },
         {
           label: t("work.stats.reviewedPrs", "PRs reviewed"),
-          value: fmt(projects.yamadaReviewed, locale),
+          value: <Count locale={locale} value={projects.yamadaReviewed} />,
         },
       ],
     },
@@ -450,14 +452,16 @@ export const Work = ({
               stats={[
                 {
                   label: t("work.stats.mergedPrs", "PRs merged"),
-                  value: fmt(
-                    byReach.reduce((n, r) => n + r.prs.length, 0),
-                    locale
+                  value: (
+                    <Count
+                      locale={locale}
+                      value={byReach.reduce((n, r) => n + r.prs.length, 0)}
+                    />
                   ),
                 },
                 {
                   label: t("work.stats.projects", "projects"),
-                  value: fmt(byReach.length, locale),
+                  value: <Count locale={locale} value={byReach.length} />,
                 },
               ]}
             />

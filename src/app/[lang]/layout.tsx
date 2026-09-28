@@ -4,7 +4,9 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 
+import { Pointer } from "@/components/pointer";
 import { Reveal } from "@/components/reveal";
+import { Scroll } from "@/components/scroll";
 import { SiteNav } from "@/components/site-nav";
 import { getTranslator, isLocale } from "@/lib/i18n";
 import { shared } from "@/styles/shared";
@@ -14,6 +16,7 @@ import { color, media } from "../../styles/tokens.stylex";
 import "../globals.css";
 
 const display = Bricolage_Grotesque({
+  axes: ["opsz"],
   subsets: ["latin"],
   variable: "--font-display",
 });
@@ -88,6 +91,8 @@ const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
         <SiteNav locale={lang} />
         <main id="main">{children}</main>
         <Reveal />
+        <Pointer />
+        <Scroll />
         <footer {...stylex.props(shared.wrap, styles.footer)}>
           <p>© {new Date().getFullYear()} Shintaro Jokagi</p>
         </footer>

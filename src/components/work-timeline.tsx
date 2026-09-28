@@ -100,16 +100,7 @@ const styles = stylex.create({
     rowGap: "0.6rem",
   },
   segment: (left: string, width: string) => ({
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: {
-        default: null,
-        "@supports (animation-timeline: view())": grow,
-      },
-    },
-    animationRange: "entry 40% cover 40%",
-    animationTimeline: "view()",
+    animationName: { default: null, [media.motion]: grow },
     animationTimingFunction: ease.out,
     borderRadius: 4,
     height: "0.875rem",
@@ -257,7 +248,9 @@ export const WorkTimeline = ({
                   />
                 ))}
                 <span
+                  data-scroll="entry 40% cover 40%"
                   {...stylex.props(
+                    shared.scrub,
                     styles.segment(
                       `${left}%`,
                       `${((to - from) / months) * 100}%`

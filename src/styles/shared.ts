@@ -8,6 +8,15 @@ const rise = stylex.keyframes({
 
 const fade = stylex.keyframes({ from: { opacity: 0 } });
 
+export const night = stylex.createTheme(color, {
+  ink: "color-mix(in oklab, #12100e, #f5f1ea calc(var(--dusk) * 100%))",
+  line: "color-mix(in oklab, #e4dcd1, #2e2a26 calc(var(--dusk) * 100%))",
+  muted: "color-mix(in oklab, #6b655e, #a39b91 calc(var(--dusk) * 100%))",
+  paper: "color-mix(in oklab, #f5f1ea, #1c1a17 calc(var(--dusk) * 100%))",
+  paperDeep: "color-mix(in oklab, #ebe4d8, #221f1b calc(var(--dusk) * 100%))",
+  surface: "color-mix(in oklab, #fff, #2a2723 calc(var(--dusk) * 100%))",
+});
+
 export const shared = stylex.create({
   enter: (delay: string) => ({
     animationDelay: delay,
@@ -43,9 +52,51 @@ export const shared = stylex.create({
     transitionProperty: "transform",
     transitionTimingFunction: ease.out,
   },
+  mask: {
+    display: "inline-block",
+    marginBlock: "-0.08em -0.2em",
+    overflowX: "visible",
+    overflowY: "clip",
+    paddingBlock: "0.08em 0.2em",
+    verticalAlign: "top",
+  },
+  word: {
+    display: "inline-block",
+    transformOrigin: "0 100%",
+  },
+  tilt: {
+    position: "relative",
+    transform: {
+      default: null,
+      [media.hover]: {
+        default: null,
+        [media.motion]:
+          "perspective(1000px) rotateX(calc((0.5 - var(--tilt-y, 0.5)) * 8deg)) rotateY(calc((var(--tilt-x, 0.5) - 0.5) * 10deg))",
+      },
+    },
+    "::after": {
+      backgroundImage:
+        "radial-gradient(circle at calc(var(--tilt-x, 0.5) * 100%) calc(var(--tilt-y, 0.5) * 100%), rgb(255 255 255 / 0.22), transparent 55%)",
+      borderRadius: "inherit",
+      content: '""',
+      inset: 0,
+      opacity: "var(--glare, 0)",
+      pointerEvents: "none",
+      position: "absolute",
+      transitionDuration: "400ms",
+      transitionProperty: "opacity",
+    },
+  },
   unveil: {
     display: "block",
     overflow: "clip",
+  },
+  scrub: {
+    animationDelay: "calc(var(--scroll-0, 0) * -1s)",
+    animationDuration: "1s",
+    animationFillMode: "both",
+    animationPlayState: "paused",
+    animationTimingFunction: "linear",
   },
   srOnly: {
     clipPath: "inset(50%)",

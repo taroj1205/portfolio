@@ -38,10 +38,6 @@ const closing = stylex.viewTransitionClass({
   group: { animationDuration: "260ms", animationTimingFunction: ease.out },
 });
 
-// Every effect below is scroll-driven, so it only moves while the reader
-// scrolls, never takes the scroll over, and runs on the compositor.
-const scrollDriven = "@supports (animation-timeline: view())";
-
 // Prints drift upward at three speeds as they pass, like layered paper.
 const slow = stylex.keyframes({
   from: { translate: "0 2rem" },
@@ -123,9 +119,6 @@ const styles = stylex.create({
     animationTimingFunction: ease.spring,
   }),
   print: {
-    animationFillMode: "both",
-    animationTimeline: "view()",
-    animationTimingFunction: "linear",
     backgroundColor: "#fff",
     borderRadius: 6,
     boxShadow:
@@ -136,22 +129,13 @@ const styles = stylex.create({
   // Speeds follow the column (index mod 3) at both 6 and 3 columns, so
   // prints stacked in one column always move together and never collide.
   slow: {
-    animationName: {
-      default: null,
-      [media.motion]: { default: null, [scrollDriven]: slow },
-    },
+    animationName: { default: null, [media.motion]: slow },
   },
   brisk: {
-    animationName: {
-      default: null,
-      [media.motion]: { default: null, [scrollDriven]: brisk },
-    },
+    animationName: { default: null, [media.motion]: brisk },
   },
   quick: {
-    animationName: {
-      default: null,
-      [media.motion]: { default: null, [scrollDriven]: quick },
-    },
+    animationName: { default: null, [media.motion]: quick },
   },
   printAt: (angle: number, drop: string) => ({
     marginTop: drop,
@@ -168,7 +152,7 @@ const styles = stylex.create({
       ":hover": { default: null, [media.hover]: 1.05 },
     },
     transitionDuration: "450ms",
-    transitionProperty: "scale, translate, box-shadow",
+    transitionProperty: "scale, translate, box-shadow, transform",
     transitionTimingFunction: ease.spring,
     translate: {
       default: null,
@@ -208,13 +192,7 @@ const styles = stylex.create({
     gridColumn: "1 / -1",
   },
   numeral: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: { default: null, [scrollDriven]: quick },
-    },
-    animationTimeline: "view()",
-    animationTimingFunction: "linear",
+    animationName: { default: null, [media.motion]: quick },
     color: color.line,
     fontFamily: font.display,
     fontSize: "clamp(5rem, 13vw, 11rem)",
@@ -232,8 +210,10 @@ const styles = stylex.create({
     left: { default: "calc(100% + 1.5rem)", [media.tablet]: "0" },
   },
   numeralBefore: {
+    bottom: { default: "12%", [media.tablet]: "auto" },
     left: { default: null, [media.tablet]: "0" },
     right: { default: "calc(100% + 1.5rem)", [media.tablet]: "auto" },
+    top: { default: "auto", [media.tablet]: "-0.45em" },
   },
   numeralOver: {
     left: 0,
@@ -241,18 +221,14 @@ const styles = stylex.create({
   },
   window: {
     borderRadius: 20,
-    position: "relative",
+    transitionDuration: "500ms",
+    transitionProperty: "transform",
+    transitionTimingFunction: ease.out,
     width: "100%",
     zIndex: 1,
   },
   windowImage: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: { default: null, [scrollDriven]: through },
-    },
-    animationTimeline: "view()",
-    animationTimingFunction: "linear",
+    animationName: { default: null, [media.motion]: through },
     objectFit: "cover",
     // Room for the drift, so the frame never shows an edge.
     scale: 1.16,
@@ -480,8 +456,9 @@ export const Photos = ({
       onClick={(event) => {
         show(photo, event);
       }}
+      data-tilt
       type="button"
-      {...stylex.props(styles.open, frame)}
+      {...stylex.props(styles.open, shared.tilt, frame)}
     >
       <Image
         alt={photo.caption}
@@ -498,8 +475,8 @@ export const Photos = ({
   const sides = [
     [styles.left, styles.numeralAfter],
     [styles.right, styles.numeralBefore],
-    [styles.leftIn, styles.numeralAfter],
-    [styles.rightIn, styles.numeralBefore],
+    [styles.leftIn, styles.numeralOver],
+    [styles.rightIn, styles.numeralOver],
   ] as const;
   const isBroad = (photo: Photo) => photo.src.width > photo.src.height * 1.2;
 
@@ -513,7 +490,9 @@ export const Photos = ({
               {...stylex.props(styles.dealt(`${650 + i * 90}ms`))}
             >
               <figure
+                data-scroll="cover 0% cover 100%"
                 {...stylex.props(
+                  shared.scrub,
                   styles.print,
                   speeds[i % speeds.length],
                   styles.printAt(
@@ -547,7 +526,8 @@ export const Photos = ({
               <figure key={photo.caption} {...stylex.props(styles.piece, side)}>
                 <span
                   aria-hidden="true"
-                  {...stylex.props(styles.numeral, numeral)}
+                  data-scroll="cover 0% cover 100%"
+                  {...stylex.props(shared.scrub, styles.numeral, numeral)}
                 >
                   {String(i + 1).padStart(2, "0")}
                 </span>
@@ -556,13 +536,15 @@ export const Photos = ({
                   onClick={(event) => {
                     show(photo, event);
                   }}
+                  data-tilt
                   type="button"
-                  {...stylex.props(styles.open, styles.window)}
+                  {...stylex.props(styles.open, shared.tilt, styles.window)}
                 >
                   <span data-reveal="wipe" {...stylex.props(shared.unveil)}>
                     <span>
                       <Image
                         alt={photo.caption}
+                        data-scroll="cover 0% cover 100%"
                         placeholder="blur"
                         sizes={
                           broad
@@ -571,6 +553,7 @@ export const Photos = ({
                         }
                         src={photo.src}
                         {...stylex.props(
+                          shared.scrub,
                           styles.windowImage,
                           broad ? styles.broad : styles.tall
                         )}
