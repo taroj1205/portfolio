@@ -244,7 +244,7 @@ export const WorkTimeline = ({
           const to = r.end === undefined ? months : index(r.end) + 1;
           const left = (from / months) * 100;
           return (
-            <li key={r.org} {...stylex.props(styles.row, shared.reveal)}>
+            <li data-reveal key={r.org} {...stylex.props(styles.row)}>
               <div>
                 <h3 {...stylex.props(styles.org)}>{r.org}</h3>
                 <p {...stylex.props(styles.role)}>{r.role}</p>

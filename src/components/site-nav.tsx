@@ -95,9 +95,13 @@ const styles = stylex.create({
       [media.motion]: { default: drop, [media.tablet]: lift },
     },
     animationTimingFunction: ease.drawer,
-    backdropFilter: "blur(14px) saturate(1.8)",
+    backdropFilter: {
+      default: null,
+      [media.hover]: "blur(14px) saturate(1.8)",
+    },
     backgroundColor: {
-      default: "rgb(250 247 242 / 0.62)",
+      default: "rgb(250 247 242 / 0.94)",
+      [media.hover]: "rgb(250 247 242 / 0.62)",
       "@media (prefers-reduced-transparency: reduce)": color.paper,
     },
     borderRadius: 999,
@@ -283,7 +287,9 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
 
     const observer = new ResizeObserver(() => {
       setGlass({
-        liquid: "userAgentData" in navigator,
+        liquid:
+          "userAgentData" in navigator &&
+          matchMedia("(hover: hover) and (pointer: fine)").matches,
         sizes: pills.current.map((el) => ({
           height: el?.offsetHeight ?? 0,
           width: el?.offsetWidth ?? 0,

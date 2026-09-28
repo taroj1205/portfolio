@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 
+import { Reveal } from "@/components/reveal";
 import { SiteNav } from "@/components/site-nav";
 import { getTranslator, isLocale } from "@/lib/i18n";
 import { shared } from "@/styles/shared";
@@ -86,6 +87,7 @@ const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
         </a>
         <SiteNav locale={lang} />
         <main id="main">{children}</main>
+        <Reveal />
         <footer {...stylex.props(shared.wrap, styles.footer)}>
           <p>© {new Date().getFullYear()} Shintaro Jokagi</p>
         </footer>

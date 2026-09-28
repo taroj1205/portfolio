@@ -35,7 +35,7 @@ export const Section = ({
   children: ReactNode;
 }) => (
   <section {...stylex.props(shared.wrap, styles.section)} id={id}>
-    <div {...stylex.props(styles.head, shared.reveal)}>
+    <div data-reveal {...stylex.props(styles.head)}>
       <h2 {...stylex.props(shared.title)}>{title}</h2>
       {intro !== undefined && <p {...stylex.props(styles.intro)}>{intro}</p>}
     </div>
