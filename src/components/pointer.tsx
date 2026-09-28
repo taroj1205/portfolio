@@ -33,6 +33,7 @@ export const Pointer = () => {
     };
 
     const swell = (x: number, y: number) => {
+      const nears: [HTMLElement, number][] = [];
       for (const title of document.querySelectorAll<HTMLElement>(
         "[data-near]"
       )) {
@@ -53,8 +54,11 @@ export const Pointer = () => {
                 reach
               )
             : 0;
-          letter.style.setProperty("--near", near.toFixed(2));
+          nears.push([letter, near]);
         }
+      }
+      for (const [letter, near] of nears) {
+        letter.style.setProperty("--near", near.toFixed(2));
       }
     };
 
@@ -85,15 +89,31 @@ export const Pointer = () => {
       }
     };
 
-    if (
-      matchMedia(
-        "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)"
-      ).matches
-    ) {
-      addEventListener("pointermove", move, { passive: true });
-      document.addEventListener("pointerout", leave);
-    }
+    const query = matchMedia(
+      "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)"
+    );
+    const sync = () => {
+      if (query.matches) {
+        addEventListener("pointermove", move, { passive: true });
+        document.addEventListener("pointerout", leave);
+        return;
+      }
+      removeEventListener("pointermove", move);
+      document.removeEventListener("pointerout", leave);
+      cancelAnimationFrame(frame);
+      frame = 0;
+      tilt(null, 0, 0);
+      for (const letter of document.querySelectorAll<HTMLElement>(
+        "[data-near] > span > span > span"
+      )) {
+        letter.style.removeProperty("--near");
+      }
+    };
+
+    sync();
+    query.addEventListener("change", sync);
     return () => {
+      query.removeEventListener("change", sync);
       cancelAnimationFrame(frame);
       removeEventListener("pointermove", move);
       document.removeEventListener("pointerout", leave);

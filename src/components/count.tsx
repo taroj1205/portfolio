@@ -57,9 +57,6 @@ export const Count = ({ value, locale }: { value: number; locale: Locale }) => {
     return () => {
       observer.disconnect();
       cancelAnimationFrame(frame);
-      if (el) {
-        el.textContent = fmt(value, locale);
-      }
     };
   }, [value, locale]);
 

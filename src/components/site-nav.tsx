@@ -92,8 +92,11 @@ const styles = stylex.create({
   },
   dusk: {
     "--dusk": `calc(${motion.duskIn} * (1 - ${motion.duskOut}))`,
-    animationDelay:
-      "calc(var(--scroll-0, 0) * -1s), calc(var(--scroll-1, 0) * -1s)",
+    animationDelay: {
+      default: "calc(var(--scroll-0, 0) * -1s), calc(var(--scroll-1, 0) * -1s)",
+      [media.tablet]:
+        "calc(var(--scroll-2, 0) * -1s), calc(var(--scroll-3, 0) * -1s)",
+    },
     animationName: `${dusk}, ${dawn}`,
     animationTimingFunction: "steps(2, jump-none)",
   },
@@ -345,7 +348,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
 
   return (
     <div
-      data-scroll="entry 95% entry 100%, exit 95% exit 100%"
+      data-scroll="entry 95% entry 100%, exit 95% exit 100%, entry 0% entry 5%, exit 0% exit 5%"
       data-scroll-from="photos"
       {...stylex.props(night, shared.scrub, styles.dusk, styles.bar)}
     >
@@ -373,7 +376,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
             hrefLang={code}
             key={code}
             lang={code}
-            onClick={(event) => {
+            onNavigate={(event) => {
               if (
                 locale === code ||
                 !("startViewTransition" in document) ||
@@ -389,13 +392,15 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
                   const swapped = Promise.withResolvers<string>();
                   const observer = new MutationObserver(() => {
                     if (root.lang === code) {
-                      observer.disconnect();
                       swapped.resolve(root.lang);
                     }
                   });
                   observer.observe(root, { attributeFilter: ["lang"] });
+                  const timeout = setTimeout(swapped.resolve, 3000);
                   router.push(href, { scroll: false });
                   await swapped.promise;
+                  clearTimeout(timeout);
+                  observer.disconnect();
                 },
               });
             }}
