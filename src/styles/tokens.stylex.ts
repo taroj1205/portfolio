@@ -38,6 +38,12 @@ export const media = stylex.defineConsts({
   tablet: "@media (max-width: 800px)",
 });
 
+export const motion = stylex.defineVars({
+  duskIn: stylex.types.number(0),
+  duskOut: stylex.types.number(0),
+  heft: stylex.types.number(750),
+});
+
 export const shadow = stylex.defineConsts({
   lift: "0 28px 70px rgb(18 16 14 / 0.12)",
   soft: "0 12px 32px rgb(18 16 14 / 0.05)",

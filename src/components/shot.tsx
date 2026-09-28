@@ -41,7 +41,7 @@ const styles = stylex.create({
     display: "block",
     overflow: "clip",
     transitionDuration: "400ms",
-    transitionProperty: "transform, box-shadow",
+    transitionProperty: "transform, translate, box-shadow",
     transitionTimingFunction: ease.out,
   },
   image: {
@@ -63,7 +63,7 @@ export const Shot = ({
   alt: string;
   xstyle?: StyleXStyles;
 }) => (
-  <span {...stylex.props(styles.frame, xstyle)}>
+  <span data-tilt {...stylex.props(styles.frame, shared.tilt, xstyle)}>
     <span aria-hidden="true" {...stylex.props(styles.bar)}>
       <span {...stylex.props(styles.dots)} />
       {new URL(href).host}

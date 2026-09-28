@@ -2,13 +2,15 @@
 
 import * as stylex from "@stylexjs/stylex";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { socials } from "@/lib/socials";
+import { night } from "@/styles/shared";
 
-import { color, ease, font, media } from "../styles/tokens.stylex";
+import { color, ease, font, media, motion } from "../styles/tokens.stylex";
 
 const sections = ["about", "work", "projects", "photos", "contact"] as const;
 
@@ -68,6 +70,9 @@ const lift = stylex.keyframes({
   from: { opacity: 0, scale: 0.9, translate: "0 calc(100% + 1rem)" },
 });
 
+const dusk = stylex.keyframes({ to: { [motion.duskIn]: 1 } });
+const dawn = stylex.keyframes({ to: { [motion.duskOut]: 1 } });
+
 const styles = stylex.create({
   bar: {
     bottom: {
@@ -85,6 +90,18 @@ const styles = stylex.create({
     top: { default: "1rem", [media.tablet]: "auto" },
     zIndex: 40,
   },
+  dusk: {
+    "--dusk": `calc(${motion.duskIn} * (1 - ${motion.duskOut}))`,
+    animationFillMode: "both",
+    animationName: {
+      default: null,
+      "@supports (animation-timeline: view())": `${dusk}, ${dawn}`,
+    },
+    animationRange:
+      "entry calc(100% - 4rem) entry 100%, exit calc(100% - 4rem) exit 100%",
+    animationTimeline: "--gallery",
+    animationTimingFunction: "steps(2, jump-none)",
+  },
   pill: {
     alignItems: "center",
     animationDelay: "500ms",
@@ -100,8 +117,8 @@ const styles = stylex.create({
       [media.hover]: "blur(14px) saturate(1.8)",
     },
     backgroundColor: {
-      default: "rgb(250 247 242 / 0.94)",
-      [media.hover]: "rgb(250 247 242 / 0.62)",
+      default: `color-mix(in srgb, ${color.paper} 94%, transparent)`,
+      [media.hover]: `color-mix(in srgb, ${color.paper} calc(62% + var(--dusk) * 24%), transparent)`,
       "@media (prefers-reduced-transparency: reduce)": color.paper,
     },
     borderRadius: 999,
@@ -151,13 +168,13 @@ const styles = stylex.create({
     paddingInline: "0.875rem",
   },
   chip: {
-    backgroundColor: "rgb(255 255 255 / 0.7)",
+    backgroundColor: `color-mix(in srgb, ${color.surface} 70%, transparent)`,
     boxShadow:
       "inset 0 1px 0 #fff, inset 0 -1px 2px rgb(18 16 14 / 0.06), 0 1px 2px rgb(18 16 14 / 0.08), 0 6px 16px -6px rgb(43 76 255 / 0.35)",
   },
   liquid: {
     backgroundColor: {
-      default: "rgb(250 247 242 / 0.34)",
+      default: `color-mix(in srgb, ${color.paper} calc(34% + var(--dusk) * 44%), transparent)`,
       "@media (prefers-reduced-transparency: reduce)": color.paper,
     },
   },
@@ -184,7 +201,7 @@ const styles = stylex.create({
     paddingInline: { default: "1rem", [media.tablet]: "0.25rem" },
     position: "relative",
     textDecoration: "none",
-    textShadow: "0 0 10px rgb(250 247 242 / 0.9)",
+    textShadow: `0 0 10px color-mix(in srgb, ${color.paper} 90%, transparent)`,
     transitionDuration: "200ms",
     transitionProperty: "color",
     whiteSpace: "nowrap",
@@ -194,7 +211,10 @@ const styles = stylex.create({
     alignItems: "center",
     backgroundColor: {
       default: "transparent",
-      [media.hover]: { default: null, ":hover": "rgb(255 255 255 / 0.6)" },
+      [media.hover]: {
+        default: null,
+        ":hover": `color-mix(in srgb, ${color.surface} 60%, transparent)`,
+      },
     },
     borderRadius: 999,
     color: {
@@ -213,7 +233,7 @@ const styles = stylex.create({
     color: color.ink,
   },
   blob: {
-    backgroundColor: "rgb(255 255 255 / 0.7)",
+    backgroundColor: `color-mix(in srgb, ${color.surface} 70%, transparent)`,
     borderRadius: 999,
     bottom: 5,
     boxShadow:
@@ -249,6 +269,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
     projects: t("navigation.projects", "Made"),
     work: t("navigation.work", "Work"),
   };
+  const router = useRouter();
   const pills = useRef<(HTMLElement | null)[]>([]);
   const blob = useRef<HTMLSpanElement>(null);
   const links = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -328,7 +349,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
   const liquid = glass?.liquid === true;
 
   return (
-    <div {...stylex.props(styles.bar)}>
+    <div {...stylex.props(night, styles.dusk, styles.bar)}>
       <nav
         aria-label="Language / 言語"
         ref={(node) => {
@@ -353,6 +374,32 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
             hrefLang={code}
             key={code}
             lang={code}
+            onClick={(event) => {
+              if (
+                locale === code ||
+                !("startViewTransition" in document) ||
+                matchMedia("(prefers-reduced-motion: reduce)").matches
+              ) {
+                return;
+              }
+              event.preventDefault();
+              const root = document.documentElement;
+              document.startViewTransition({
+                types: ["locale"],
+                update: async () => {
+                  const swapped = Promise.withResolvers<string>();
+                  const observer = new MutationObserver(() => {
+                    if (root.lang === code) {
+                      observer.disconnect();
+                      swapped.resolve(root.lang);
+                    }
+                  });
+                  observer.observe(root, { attributeFilter: ["lang"] });
+                  router.push(href, { scroll: false });
+                  await swapped.promise;
+                },
+              });
+            }}
             scroll={false}
             {...stylex.props(
               styles.link,

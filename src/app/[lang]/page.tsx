@@ -28,7 +28,7 @@ import { JourneyMap } from "@/components/journey-map";
 import { Lately } from "@/components/lately";
 import { Photos } from "@/components/photos";
 import type { Photo } from "@/components/photos";
-import { Section } from "@/components/section";
+import { Section, Title } from "@/components/section";
 import { Shot } from "@/components/shot";
 import { Work } from "@/components/work";
 import { WorkTimeline } from "@/components/work-timeline";
@@ -38,7 +38,7 @@ import { getTranslator, intlLocale, isLocale } from "@/lib/i18n";
 import { socials } from "@/lib/socials";
 import { shared } from "@/styles/shared";
 
-import { color, ease, media, shadow } from "../../styles/tokens.stylex";
+import { color, ease, media, motion, shadow } from "../../styles/tokens.stylex";
 
 export const revalidate = 3600;
 
@@ -52,6 +52,9 @@ const surface = stylex.keyframes({
   from: { rotate: "7deg", translate: "0 118%" },
 });
 const draw = stylex.keyframes({ from: { strokeDashoffset: 1 } });
+const recede = stylex.keyframes({
+  to: { [motion.heft]: 250, opacity: 0, scale: 0.92, translate: "0 -30%" },
+});
 
 const styles = stylex.create({
   about: {
@@ -324,23 +327,27 @@ const styles = stylex.create({
     paddingBlock: "clamp(6.5rem, 18svh, 11rem) clamp(2rem, 4vw, 3rem)",
   },
   heroTitle: {
+    animationFillMode: "both",
+    animationName: {
+      default: null,
+      [media.motion]: {
+        default: null,
+        "@supports (animation-timeline: view())": recede,
+      },
+    },
+    animationRange: "exit 0% exit 100%",
+    animationTimeline: "view()",
+    animationTimingFunction: "linear",
     fontSize: "clamp(3.25rem, 11vw, 9.5rem)",
     fontWeight: 750,
     letterSpacing: "-0.05em",
     lineHeight: 0.92,
+    transformOrigin: "0 100%",
   },
   japaneseTitle: {
     fontSize: "clamp(2rem, 8.5vw, 7.5rem)",
     lineHeight: 1.25,
     letterSpacing: "-0.02em",
-  },
-  heroMask: {
-    display: "inline-block",
-    marginBlock: "-0.08em -0.2em",
-    overflowX: "visible",
-    overflowY: "clip",
-    paddingBlock: "0.08em 0.2em",
-    verticalAlign: "top",
   },
   heroWord: (delay: string) => ({
     animationDelay: delay,
@@ -348,11 +355,15 @@ const styles = stylex.create({
     animationFillMode: "both",
     animationName: { default: null, [media.motion]: surface },
     animationTimingFunction: ease.out,
-    display: "inline-block",
     isolation: "isolate",
     position: "relative",
-    transformOrigin: "0 100%",
   }),
+  letter: {
+    fontWeight: `max(200, calc(${motion.heft} - var(--near) * 540))`,
+    transitionDuration: "500ms",
+    transitionProperty: "--near",
+    transitionTimingFunction: ease.out,
+  },
   marker: {
     animationDelay: "900ms",
     animationDuration: "900ms",
@@ -400,11 +411,11 @@ const styles = stylex.create({
         [media.hover]: shadow.lift,
       },
     },
-    transform: {
+    translate: {
       default: null,
       [stylex.when.ancestor(":hover")]: {
         default: null,
-        [media.hover]: "translateY(-4px)",
+        [media.hover]: "0 -4px",
       },
     },
   },
@@ -601,6 +612,8 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
     <>
       <section {...stylex.props(shared.wrap, styles.hero)}>
         <h1
+          aria-label={heroWords.join(" ")}
+          data-near={locale === "en" || undefined}
           {...stylex.props(
             styles.heroTitle,
             locale === "ja" && styles.japaneseTitle
@@ -610,9 +623,23 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
             <Fragment key={word}>
               {i > 0 && " "}
               {i === greeting.length && <br />}
-              <span {...stylex.props(styles.heroMask)}>
-                <span {...stylex.props(styles.heroWord(`${80 + i * 110}ms`))}>
-                  {word}
+              <span aria-hidden="true" {...stylex.props(shared.mask)}>
+                <span
+                  {...stylex.props(
+                    shared.word,
+                    styles.heroWord(`${80 + i * 110}ms`)
+                  )}
+                >
+                  {locale === "en"
+                    ? Array.from(
+                        new Intl.Segmenter().segment(word),
+                        ({ segment }) => segment
+                      ).map((letter, j) => (
+                        <span key={j} {...stylex.props(styles.letter)}>
+                          {letter}
+                        </span>
+                      ))
+                    : word}
                   {i === heroWords.length - 1 && (
                     <svg
                       aria-hidden="true"
@@ -661,9 +688,10 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
           />
         </figure>
         <div data-reveal {...stylex.props(styles.aboutText)}>
-          <h2 {...stylex.props(shared.title, styles.aboutTitle)}>
-            {t("about.title", "A bit about me")}
-          </h2>
+          <Title
+            text={t("about.title", "A bit about me")}
+            xstyle={styles.aboutTitle}
+          />
           <p>
             {t(
               "about.background",
@@ -835,6 +863,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
           "Mostly around Auckland. Tap one to see it bigger."
         )}
         title={t("photos.title", "More photos")}
+        dusk
       >
         <Photos locale={locale} photos={gallery} variant="gallery" />
       </Section>

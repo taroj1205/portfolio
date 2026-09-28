@@ -168,7 +168,7 @@ const styles = stylex.create({
       ":hover": { default: null, [media.hover]: 1.05 },
     },
     transitionDuration: "450ms",
-    transitionProperty: "scale, translate, box-shadow",
+    transitionProperty: "scale, translate, box-shadow, transform",
     transitionTimingFunction: ease.spring,
     translate: {
       default: null,
@@ -232,8 +232,10 @@ const styles = stylex.create({
     left: { default: "calc(100% + 1.5rem)", [media.tablet]: "0" },
   },
   numeralBefore: {
+    bottom: { default: "12%", [media.tablet]: "auto" },
     left: { default: null, [media.tablet]: "0" },
     right: { default: "calc(100% + 1.5rem)", [media.tablet]: "auto" },
+    top: { default: "auto", [media.tablet]: "-0.45em" },
   },
   numeralOver: {
     left: 0,
@@ -241,7 +243,9 @@ const styles = stylex.create({
   },
   window: {
     borderRadius: 20,
-    position: "relative",
+    transitionDuration: "500ms",
+    transitionProperty: "transform",
+    transitionTimingFunction: ease.out,
     width: "100%",
     zIndex: 1,
   },
@@ -480,8 +484,9 @@ export const Photos = ({
       onClick={(event) => {
         show(photo, event);
       }}
+      data-tilt
       type="button"
-      {...stylex.props(styles.open, frame)}
+      {...stylex.props(styles.open, shared.tilt, frame)}
     >
       <Image
         alt={photo.caption}
@@ -498,8 +503,8 @@ export const Photos = ({
   const sides = [
     [styles.left, styles.numeralAfter],
     [styles.right, styles.numeralBefore],
-    [styles.leftIn, styles.numeralAfter],
-    [styles.rightIn, styles.numeralBefore],
+    [styles.leftIn, styles.numeralOver],
+    [styles.rightIn, styles.numeralOver],
   ] as const;
   const isBroad = (photo: Photo) => photo.src.width > photo.src.height * 1.2;
 
@@ -556,8 +561,9 @@ export const Photos = ({
                   onClick={(event) => {
                     show(photo, event);
                   }}
+                  data-tilt
                   type="button"
-                  {...stylex.props(styles.open, styles.window)}
+                  {...stylex.props(styles.open, shared.tilt, styles.window)}
                 >
                   <span data-reveal="wipe" {...stylex.props(shared.unveil)}>
                     <span>
