@@ -148,7 +148,7 @@ export const Lately = ({
         updated={updated}
       />
 
-      <div {...stylex.props(shared.card, styles.feed, shared.reveal)}>
+      <div data-reveal {...stylex.props(shared.card, styles.feed)}>
         <p {...stylex.props(shared.cardLabel)}>
           {t("activity.recentlyMerged", "Recently merged")}
         </p>

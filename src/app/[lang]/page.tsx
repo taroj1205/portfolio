@@ -1,6 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { Fragment } from "react";
 
 import partlyCertificate from "@/assets/hackathon/partly-certificate.jpg";
 import partlyTeam from "@/assets/hackathon/partly.jpg";
@@ -47,6 +48,10 @@ const arrive = stylex.keyframes({
 const thunk = stylex.keyframes({
   from: { opacity: 0, scale: 1.8 },
 });
+const surface = stylex.keyframes({
+  from: { rotate: "7deg", translate: "0 118%" },
+});
+const draw = stylex.keyframes({ from: { strokeDashoffset: 1 } });
 
 const styles = stylex.create({
   about: {
@@ -329,8 +334,40 @@ const styles = stylex.create({
     lineHeight: 1.25,
     letterSpacing: "-0.02em",
   },
-  heroWord: {
+  heroMask: {
     display: "inline-block",
+    marginBlock: "-0.08em -0.2em",
+    overflowX: "visible",
+    overflowY: "clip",
+    paddingBlock: "0.08em 0.2em",
+    verticalAlign: "top",
+  },
+  heroWord: (delay: string) => ({
+    animationDelay: delay,
+    animationDuration: "1s",
+    animationFillMode: "both",
+    animationName: { default: null, [media.motion]: surface },
+    animationTimingFunction: ease.out,
+    display: "inline-block",
+    isolation: "isolate",
+    position: "relative",
+    transformOrigin: "0 100%",
+  }),
+  marker: {
+    animationDelay: "900ms",
+    animationDuration: "900ms",
+    animationFillMode: "both",
+    animationName: { default: null, [media.motion]: draw },
+    animationTimingFunction: ease.drawer,
+    bottom: "-0.1em",
+    color: color.tangerine,
+    height: "0.2em",
+    left: "-0.02em",
+    overflow: "visible",
+    position: "absolute",
+    strokeDasharray: 1,
+    width: "calc(100% - 0.2em)",
+    zIndex: -1,
   },
   intro: {
     color: color.muted,
@@ -401,6 +438,11 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
     notFound();
   }
   const t = getTranslator(locale);
+  const greeting = t("hero.greeting", "Kia ora,").split(" ");
+  const heroWords = [
+    ...greeting,
+    ...t("hero.name", "I'm Shintaro.").split(" "),
+  ];
   const band: Photo[] = [
     {
       caption: t(
@@ -564,14 +606,37 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
             locale === "ja" && styles.japaneseTitle
           )}
         >
-          <span {...stylex.props(styles.heroWord, shared.enter("60ms"))}>
-            {t("hero.greeting", "Kia ora,")}
-          </span>{" "}
-          <span {...stylex.props(styles.heroWord, shared.enter("150ms"))}>
-            {t("hero.name", "I'm Shintaro.")}
-          </span>
+          {heroWords.map((word, i) => (
+            <Fragment key={word}>
+              {i > 0 && " "}
+              {i === greeting.length && <br />}
+              <span {...stylex.props(styles.heroMask)}>
+                <span {...stylex.props(styles.heroWord(`${80 + i * 110}ms`))}>
+                  {word}
+                  {i === heroWords.length - 1 && (
+                    <svg
+                      aria-hidden="true"
+                      preserveAspectRatio="none"
+                      viewBox="0 0 300 20"
+                      {...stylex.props(styles.marker)}
+                    >
+                      <path
+                        d="M3 13C70 6 170 3 297 9C210 8 110 11 36 17"
+                        fill="none"
+                        pathLength={1}
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeWidth="0.06em"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </svg>
+                  )}
+                </span>
+              </span>
+            </Fragment>
+          ))}
         </h1>
-        <p {...stylex.props(styles.intro, shared.enter("240ms"))}>
+        <p {...stylex.props(styles.intro, shared.enter("520ms"))}>
           {t(
             "hero.intro",
             "I study Computer Science and IT Management at the University of Auckland, build software at Hazumi, and help look after a couple of open-source projects. When I'm away from a screen, I'm usually out taking photos, like these."
@@ -583,12 +648,9 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
 
       <section {...stylex.props(shared.wrap, styles.about)} id="about">
         <figure
+          data-reveal
           id="me"
-          {...stylex.props(
-            styles.aboutPhoto,
-            shared.reveal,
-            stylex.defaultMarker()
-          )}
+          {...stylex.props(styles.aboutPhoto, stylex.defaultMarker())}
         >
           <Image
             alt={t("about.photoAlt", "Me under a cherry blossom tree")}
@@ -598,7 +660,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
             {...stylex.props(styles.aboutImage)}
           />
         </figure>
-        <div {...stylex.props(styles.aboutText, shared.reveal)}>
+        <div data-reveal {...stylex.props(styles.aboutText)}>
           <h2 {...stylex.props(shared.title, styles.aboutTitle)}>
             {t("about.title", "A bit about me")}
           </h2>
@@ -685,7 +747,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
       >
         <ul {...stylex.props(styles.projects)}>
           {sideProjects.map((project) => (
-            <li key={project.name} {...stylex.props(shared.reveal)}>
+            <li data-reveal key={project.name}>
               <a
                 href={project.href}
                 {...stylex.props(
@@ -708,7 +770,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
             </li>
           ))}
         </ul>
-        <p {...stylex.props(styles.also, shared.reveal)}>
+        <p data-reveal {...stylex.props(styles.also)}>
           {t("projects.clipboard.before", "Also: a")}{" "}
           <a href="https://github.com/taroj1205/tauri-clipboard-manager">
             {t("projects.clipboard.name", "clipboard manager for Windows")}
@@ -731,17 +793,18 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
         <div {...stylex.props(styles.awards)}>
           {awards.map((award, i) => (
             <figure
+              data-reveal
               key={award.prize}
-              {...stylex.props(shared.reveal, stylex.defaultMarker())}
+              {...stylex.props(stylex.defaultMarker())}
             >
               <div {...stylex.props(styles.awardPhotos)}>
-                <div {...stylex.props(shared.unveil)}>
+                <div data-reveal="wipe" {...stylex.props(shared.unveil)}>
                   <Image
                     alt={award.alt}
                     placeholder="blur"
                     sizes="(max-width: 800px) 100vw, 50vw"
                     src={award.photo}
-                    {...stylex.props(styles.awardImage, shared.unveiled)}
+                    {...stylex.props(styles.awardImage)}
                   />
                 </div>
                 <Image

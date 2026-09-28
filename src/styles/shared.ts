@@ -8,16 +8,6 @@ const rise = stylex.keyframes({
 
 const fade = stylex.keyframes({ from: { opacity: 0 } });
 
-const reveal = stylex.keyframes({
-  from: { filter: "blur(4px)", opacity: 0, translate: "0 24px" },
-});
-
-// A clip-path wipe repaints on the main thread every scroll frame. Sliding
-// a clipping window down while its image slides up by the same amount
-// looks the same and stays on the compositor.
-const wipe = stylex.keyframes({ from: { translate: "0 -100%" } });
-const hold = stylex.keyframes({ from: { translate: "0 100%" } });
-
 export const shared = stylex.create({
   enter: (delay: string) => ({
     animationDelay: delay,
@@ -53,46 +43,9 @@ export const shared = stylex.create({
     transitionProperty: "transform",
     transitionTimingFunction: ease.out,
   },
-  reveal: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: {
-        default: null,
-        "@supports (animation-timeline: view())": reveal,
-      },
-    },
-    animationRange: "entry 0% entry 60%",
-    animationTimeline: "view()",
-    animationTimingFunction: ease.out,
-  },
   unveil: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: {
-        default: null,
-        "@supports (animation-timeline: view())": wipe,
-      },
-    },
-    animationRange: "entry 10% cover 45%",
-    animationTimeline: "view()",
-    animationTimingFunction: ease.out,
     display: "block",
     overflow: "clip",
-  },
-  unveiled: {
-    animationFillMode: "both",
-    animationName: {
-      default: null,
-      [media.motion]: {
-        default: null,
-        "@supports (animation-timeline: view())": hold,
-      },
-    },
-    animationRange: "entry 10% cover 45%",
-    animationTimeline: "view()",
-    animationTimingFunction: ease.out,
   },
   srOnly: {
     clipPath: "inset(50%)",

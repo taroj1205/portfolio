@@ -55,6 +55,12 @@ const quick = stylex.keyframes({
   from: { translate: "0 7rem" },
   to: { translate: "0 -7rem" },
 });
+const deal = stylex.keyframes({
+  from: {
+    opacity: 0,
+    transform: "translateY(45vh) rotate(-14deg) scale(0.92)",
+  },
+});
 // A photo slides inside its frame against the page, like a window.
 const through = stylex.keyframes({
   from: { translate: "0 -7%" },
@@ -108,8 +114,15 @@ const styles = stylex.create({
     paddingInline: size.gutter,
     rowGap: { default: null, [media.tablet]: "0.5rem" },
   },
-  print: {
+  dealt: (delay: string) => ({
     alignSelf: "start",
+    animationDelay: delay,
+    animationDuration: "1.1s",
+    animationFillMode: "both",
+    animationName: { default: null, [media.motion]: deal },
+    animationTimingFunction: ease.spring,
+  }),
+  print: {
     animationFillMode: "both",
     animationTimeline: "view()",
     animationTimingFunction: "linear",
@@ -495,25 +508,29 @@ export const Photos = ({
       {variant === "band" ? (
         <div ref={list} {...stylex.props(styles.prints)}>
           {photos.map((photo, i) => (
-            <figure
+            <div
               key={photo.caption}
-              {...stylex.props(
-                styles.print,
-                speeds[i % speeds.length],
-                styles.printAt(
-                  tilts[i % tilts.length] ?? 0,
-                  drops[i % drops.length] ?? "0rem"
-                )
-              )}
+              {...stylex.props(styles.dealt(`${650 + i * 90}ms`))}
             >
-              {opener(
-                photo,
-                i,
-                styles.printButton,
-                styles.printImage,
-                "(max-width: 800px) 30vw, 16vw"
-              )}
-            </figure>
+              <figure
+                {...stylex.props(
+                  styles.print,
+                  speeds[i % speeds.length],
+                  styles.printAt(
+                    tilts[i % tilts.length] ?? 0,
+                    drops[i % drops.length] ?? "0rem"
+                  )
+                )}
+              >
+                {opener(
+                  photo,
+                  i,
+                  styles.printButton,
+                  styles.printImage,
+                  "(max-width: 800px) 30vw, 16vw"
+                )}
+              </figure>
+            </div>
           ))}
         </div>
       ) : (
@@ -542,8 +559,8 @@ export const Photos = ({
                   type="button"
                   {...stylex.props(styles.open, styles.window)}
                 >
-                  <span {...stylex.props(shared.unveil)}>
-                    <span {...stylex.props(shared.unveiled)}>
+                  <span data-reveal="wipe" {...stylex.props(shared.unveil)}>
+                    <span>
                       <Image
                         alt={photo.caption}
                         placeholder="blur"

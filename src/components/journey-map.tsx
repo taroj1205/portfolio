@@ -7,7 +7,6 @@ import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { land } from "@/lib/land";
 import { useInView } from "@/lib/use-in-view";
-import { shared } from "@/styles/shared";
 
 import { color, ease, font, media, shadow } from "../styles/tokens.stylex";
 
@@ -374,6 +373,7 @@ export const JourneyMap = ({ locale }: { locale: Locale }) => {
       <ol {...stylex.props(styles.stops)}>
         {stops.map((stop, i) => (
           <li
+            data-reveal
             key={`${stop.place}-${i}`}
             onPointerEnter={() => {
               setActive(i);
@@ -383,8 +383,7 @@ export const JourneyMap = ({ locale }: { locale: Locale }) => {
             }}
             {...stylex.props(
               styles.stop,
-              i === stops.length - 1 && styles.stopLast,
-              shared.reveal
+              i === stops.length - 1 && styles.stopLast
             )}
           >
             <span

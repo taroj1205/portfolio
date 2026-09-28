@@ -68,13 +68,13 @@ export const Shot = ({
       <span {...stylex.props(styles.dots)} />
       {new URL(href).host}
     </span>
-    <span {...stylex.props(shared.unveil)}>
+    <span data-reveal="wipe" {...stylex.props(shared.unveil)}>
       <Image
         alt={alt}
         placeholder="blur"
         sizes="(max-width: 900px) 90vw, 520px"
         src={shot}
-        {...stylex.props(styles.image, shared.unveiled)}
+        {...stylex.props(styles.image)}
       />
     </span>
   </span>

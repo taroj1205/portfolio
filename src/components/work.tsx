@@ -253,7 +253,7 @@ const Row = ({
 }) => {
   const t = getTranslator(locale);
   return (
-    <li {...stylex.props(styles.row, shared.reveal)}>
+    <li data-reveal {...stylex.props(styles.row)}>
       <div {...stylex.props(styles.text, flip && styles.textFlip)}>
         <h3 {...stylex.props(styles.heading)}>{item.name}</h3>
         <p {...stylex.props(styles.meta)}>{item.role}</p>
@@ -429,7 +429,7 @@ export const Work = ({
       ))}
 
       {byReach.length > 0 && (
-        <li {...stylex.props(styles.row, shared.reveal)}>
+        <li data-reveal {...stylex.props(styles.row)}>
           <div {...stylex.props(styles.text, styles.textFlip)}>
             <h3 {...stylex.props(styles.heading)}>
               {t(
