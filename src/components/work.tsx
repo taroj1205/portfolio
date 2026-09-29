@@ -262,7 +262,7 @@ const Row = ({
         <p {...stylex.props(styles.body)}>{item.body}</p>
         {item.stats.length > 0 && <Stats stats={item.stats} />}
         {item.points.length > 0 && (
-          <ul {...stylex.props(styles.points)}>
+          <ul data-reveal="stagger" {...stylex.props(styles.points)}>
             {item.points.map((point) => (
               <li key={point} {...stylex.props(styles.point)}>
                 {point}
@@ -465,7 +465,7 @@ export const Work = ({
                 },
               ]}
             />
-            <ul {...stylex.props(styles.points)}>
+            <ul data-reveal="stagger" {...stylex.props(styles.points)}>
               {byReach.map(({ repo, prs }) => (
                 <li key={repo} {...stylex.props(styles.point)}>
                   <a

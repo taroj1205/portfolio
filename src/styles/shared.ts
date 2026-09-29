@@ -76,7 +76,7 @@ export const shared = stylex.create({
     },
     "::after": {
       backgroundImage:
-        "radial-gradient(circle at calc(var(--tilt-x, 0.5) * 100%) calc(var(--tilt-y, 0.5) * 100%), rgb(255 255 255 / 0.22), transparent 55%)",
+        "radial-gradient(circle at var(--glare-at, 50% 50%), rgb(255 255 255 / 0.22), transparent 55%)",
       borderRadius: "inherit",
       content: '""',
       inset: 0,

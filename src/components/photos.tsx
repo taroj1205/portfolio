@@ -26,8 +26,8 @@ export interface Photo {
 }
 
 const morph = {
-  new: { height: "100%", objectFit: "cover" },
-  old: { height: "100%", objectFit: "cover" },
+  new: { height: "100%", objectFit: "cover", overflow: "clip" },
+  old: { height: "100%", objectFit: "cover", overflow: "clip" },
 } as const;
 const opening = stylex.viewTransitionClass({
   ...morph,
@@ -169,6 +169,7 @@ const styles = stylex.create({
     columnGap: "1.5rem",
     display: "grid",
     gridTemplateColumns: { default: "repeat(12, 1fr)", [media.tablet]: "1fr" },
+    paddingTop: { default: 0, [media.tablet]: "2rem" },
     rowGap: "clamp(4rem, 10vw, 8rem)",
   },
   piece: {
@@ -192,7 +193,10 @@ const styles = stylex.create({
     gridColumn: "1 / -1",
   },
   numeral: {
-    animationName: { default: null, [media.motion]: quick },
+    animationName: {
+      default: null,
+      [media.motion]: { default: quick, [media.tablet]: "none" },
+    },
     color: color.line,
     fontFamily: font.display,
     fontSize: "clamp(5rem, 13vw, 11rem)",
@@ -353,6 +357,7 @@ export const Photos = ({
   const thumb = useRef<HTMLImageElement | null>(null);
   const list = useRef<HTMLDivElement>(null);
   const swipe = useRef(0);
+  const moving = useRef<ViewTransition | null>(null);
   const t = getTranslator(locale);
   const [open, setOpen] = useState<Photo | null>(null);
 
@@ -372,6 +377,15 @@ export const Photos = ({
       full.current?.decode().catch(() => null),
       timeout.promise,
     ]);
+  };
+
+  const transit = async (options: StartViewTransitionOptions) => {
+    const transition = document.startViewTransition(options);
+    moving.current = transition;
+    await transition.finished;
+    if (moving.current === transition) {
+      moving.current = null;
+    }
   };
 
   const reveal = async (photo: Photo) => {
@@ -412,7 +426,10 @@ export const Photos = ({
       await ready();
     };
     if (canMorph()) {
-      document.startViewTransition(swap);
+      void transit({
+        types: [direction < 0 ? "back" : "forward"],
+        update: swap,
+      });
     } else {
       void swap();
     }
@@ -425,9 +442,11 @@ export const Photos = ({
       return;
     }
     nameThumb("photo");
-    document.startViewTransition(async () => {
-      nameThumb("");
-      await reveal(photo);
+    void transit({
+      update: async () => {
+        nameThumb("");
+        await reveal(photo);
+      },
     });
   };
 
@@ -436,11 +455,12 @@ export const Photos = ({
       dialog.current?.close();
       return;
     }
-    const transition = document.startViewTransition(() => {
-      dialog.current?.close();
-      nameThumb("photo");
+    await transit({
+      update: () => {
+        dialog.current?.close();
+        nameThumb("photo");
+      },
     });
-    await transition.finished;
     nameThumb("");
   };
 
@@ -575,7 +595,9 @@ export const Photos = ({
         closedby="any"
         onCancel={(event) => {
           event.preventDefault();
-          void hide();
+          if (!moving.current) {
+            void hide();
+          }
         }}
         onClose={() => {
           setOpen(null);

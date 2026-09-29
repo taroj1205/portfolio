@@ -39,8 +39,6 @@ export const media = stylex.defineConsts({
 });
 
 export const motion = stylex.defineVars({
-  duskIn: stylex.types.number(0),
-  duskOut: stylex.types.number(0),
   heft: stylex.types.number(750),
 });
 

@@ -8,9 +8,9 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { socials } from "@/lib/socials";
-import { night, shared } from "@/styles/shared";
+import { night } from "@/styles/shared";
 
-import { color, ease, font, media, motion } from "../styles/tokens.stylex";
+import { color, ease, font, media } from "../styles/tokens.stylex";
 
 const sections = ["about", "work", "projects", "photos", "contact"] as const;
 
@@ -69,9 +69,9 @@ const drop = stylex.keyframes({
 const lift = stylex.keyframes({
   from: { opacity: 0, scale: 0.9, translate: "0 calc(100% + 1rem)" },
 });
-
-const dusk = stylex.keyframes({ to: { [motion.duskIn]: 1 } });
-const dawn = stylex.keyframes({ to: { [motion.duskOut]: 1 } });
+const pop = stylex.keyframes({
+  from: { filter: "blur(4px)", opacity: 0, scale: 0.9 },
+});
 
 const styles = stylex.create({
   bar: {
@@ -91,14 +91,12 @@ const styles = stylex.create({
     zIndex: 40,
   },
   dusk: {
-    "--dusk": `calc(${motion.duskIn} * (1 - ${motion.duskOut}))`,
-    animationDelay: {
-      default: "calc(var(--scroll-0, 0) * -1s), calc(var(--scroll-1, 0) * -1s)",
+    "--dusk": {
+      default:
+        "calc(round(var(--scroll-0, 0)) * (1 - round(var(--scroll-1, 0))))",
       [media.tablet]:
-        "calc(var(--scroll-2, 0) * -1s), calc(var(--scroll-3, 0) * -1s)",
+        "calc(round(var(--scroll-2, 0)) * (1 - round(var(--scroll-3, 0))))",
     },
-    animationName: `${dusk}, ${dawn}`,
-    animationTimingFunction: "steps(2, jump-none)",
   },
   pill: {
     alignItems: "center",
@@ -230,6 +228,13 @@ const styles = stylex.create({
   current: {
     color: color.ink,
   },
+  enter: (delay: string) => ({
+    animationDelay: delay,
+    animationDuration: "500ms",
+    animationFillMode: "backwards",
+    animationName: { default: null, [media.motion]: pop },
+    animationTimingFunction: ease.out,
+  }),
   blob: {
     backgroundColor: `color-mix(in srgb, ${color.surface} 70%, transparent)`,
     borderRadius: 999,
@@ -350,7 +355,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
     <div
       data-scroll="entry 95% entry 100%, exit 95% exit 100%, entry 0% entry 5%, exit 0% exit 5%"
       data-scroll-from="photos"
-      {...stylex.props(night, shared.scrub, styles.dusk, styles.bar)}
+      {...stylex.props(night, styles.dusk, styles.bar)}
     >
       <nav
         aria-label="Language / 言語"
@@ -369,7 +374,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
             ["en", "/", "English"],
             ["ja", "/ja", "日本語"],
           ] as const
-        ).map(([code, href, label]) => (
+        ).map(([code, href, label], i) => (
           <Link
             aria-current={locale === code ? "page" : undefined}
             href={href}
@@ -408,6 +413,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
             {...stylex.props(
               styles.link,
               styles.language,
+              styles.enter(`${760 + i * 60}ms`),
               locale === code && [styles.current, styles.chip]
             )}
           >
@@ -440,7 +446,11 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
             ref={(node) => {
               links.current[i] = node;
             }}
-            {...stylex.props(styles.link, active === i && styles.current)}
+            {...stylex.props(
+              styles.link,
+              styles.enter(`${640 + i * 60}ms`),
+              active === i && styles.current
+            )}
           >
             {labels[id]}
           </a>
@@ -458,13 +468,13 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
           liquid && styles.lens("nav-lens-1")
         )}
       >
-        {socials.map(([label, href]) => (
+        {socials.map(([label, href], i) => (
           <a
             aria-label={label}
             href={href}
             key={label}
             title={label}
-            {...stylex.props(styles.icon)}
+            {...stylex.props(styles.icon, styles.enter(`${760 + i * 60}ms`))}
           >
             <svg
               aria-hidden="true"

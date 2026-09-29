@@ -135,6 +135,42 @@
   initial-value: 0;
 }
 
+:active-view-transition-type(forward) {
+  --turn: 1;
+}
+
+:active-view-transition-type(back) {
+  --turn: -1;
+}
+
+:active-view-transition-type(forward, back)::view-transition-group(photo) {
+  animation-duration: 320ms;
+}
+
+:active-view-transition-type(forward, back)::view-transition-old(photo) {
+  animation: 160ms cubic-bezier(0.4, 0, 1, 1) both photo-out;
+}
+
+:active-view-transition-type(forward, back)::view-transition-new(photo) {
+  animation: 320ms cubic-bezier(0.23, 1, 0.32, 1) both photo-in;
+}
+
+@keyframes photo-out {
+  to {
+    opacity: 0;
+    scale: 0.97;
+    translate: calc(var(--turn) * -2.5rem) 0;
+  }
+}
+
+@keyframes photo-in {
+  from {
+    opacity: 0;
+    scale: 0.97;
+    translate: calc(var(--turn) * 2.5rem) 0;
+  }
+}
+
 :active-view-transition-type(locale)::view-transition-old(root) {
   animation: 180ms ease-in both locale-out;
 }

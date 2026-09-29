@@ -152,7 +152,7 @@ export const Lately = ({
         <p {...stylex.props(shared.cardLabel)}>
           {t("activity.recentlyMerged", "Recently merged")}
         </p>
-        <ul {...stylex.props(styles.list)}>
+        <ul data-reveal="stagger" {...stylex.props(styles.list)}>
           {recent.map((pr) => {
             const { type, text } = splitTitle(pr.title);
             const [owner = ""] = pr.repo.split("/");

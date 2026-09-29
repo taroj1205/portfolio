@@ -17,6 +17,17 @@ const prepare = (el: HTMLElement) => {
       )
     );
   }
+  if (el.dataset.reveal === "stagger") {
+    return [...el.children].map((child, i) =>
+      child.animate(
+        [
+          { opacity: 0, translate: "0 0.75rem" },
+          { opacity: 1, translate: "0 0" },
+        ],
+        { delay: i * 60, duration: 700, easing: settle, fill: "backwards" }
+      )
+    );
+  }
   if (el.dataset.reveal !== "wipe") {
     return [
       el.animate(
