@@ -169,6 +169,7 @@ const styles = stylex.create({
     columnGap: "1.5rem",
     display: "grid",
     gridTemplateColumns: { default: "repeat(12, 1fr)", [media.tablet]: "1fr" },
+    paddingTop: { default: 0, [media.tablet]: "2rem" },
     rowGap: "clamp(4rem, 10vw, 8rem)",
   },
   piece: {
@@ -192,7 +193,10 @@ const styles = stylex.create({
     gridColumn: "1 / -1",
   },
   numeral: {
-    animationName: { default: null, [media.motion]: quick },
+    animationName: {
+      default: null,
+      [media.motion]: { default: quick, [media.tablet]: "none" },
+    },
     color: color.line,
     fontFamily: font.display,
     fontSize: "clamp(5rem, 13vw, 11rem)",

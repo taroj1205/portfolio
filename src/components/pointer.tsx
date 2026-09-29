@@ -1,30 +1,6 @@
 "use client";
 
-import * as stylex from "@stylexjs/stylex";
-import { useEffect, useRef } from "react";
-
-import { media } from "../styles/tokens.stylex";
-
-const styles = stylex.create({
-  glow: {
-    backgroundImage:
-      "radial-gradient(closest-side, rgb(255 122 69 / 0.24), rgb(43 76 255 / 0.1) 55%, transparent)",
-    display: {
-      default: "none",
-      [media.hover]: { default: null, [media.motion]: "block" },
-    },
-    height: "44rem",
-    left: "-22rem",
-    opacity: 0,
-    pointerEvents: "none",
-    position: "fixed",
-    top: "-22rem",
-    transitionDuration: "500ms",
-    transitionProperty: "opacity",
-    width: "44rem",
-    zIndex: 30,
-  },
-});
+import { useEffect } from "react";
 
 const tiltProps = ["--tilt-x", "--tilt-y", "--glare"];
 
@@ -34,7 +10,6 @@ const falloff = (distance: number, reach: number) => {
 };
 
 export const Pointer = () => {
-  const glow = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let frame = 0;
     let tilted: HTMLElement | null = null;
@@ -92,8 +67,6 @@ export const Pointer = () => {
       if (last) {
         tilt(last.target, last.x, last.y);
         swell(last.x, last.y);
-        glow.current?.style.setProperty("translate", `${last.x}px ${last.y}px`);
-        glow.current?.style.setProperty("opacity", last.target ? "1" : "0");
       }
     };
     const schedule = () => {
@@ -146,5 +119,5 @@ export const Pointer = () => {
       document.removeEventListener("pointerout", leave);
     };
   }, []);
-  return <div aria-hidden="true" ref={glow} {...stylex.props(styles.glow)} />;
+  return null;
 };

@@ -27,6 +27,7 @@ const styles = stylex.create({
   dusk: {
     "--dusk": "1",
     color: color.ink,
+    marginTop: "clamp(5rem, 11vw, 8.5rem)",
     paddingBottom: "clamp(5rem, 11vw, 8.5rem)",
     position: "relative",
   },

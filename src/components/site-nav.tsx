@@ -70,7 +70,7 @@ const lift = stylex.keyframes({
   from: { opacity: 0, scale: 0.9, translate: "0 calc(100% + 1rem)" },
 });
 const pop = stylex.keyframes({
-  from: { filter: "blur(4px)", opacity: 0, scale: 0.6 },
+  from: { filter: "blur(4px)", opacity: 0, scale: 0.9 },
 });
 
 const styles = stylex.create({
@@ -230,10 +230,10 @@ const styles = stylex.create({
   },
   enter: (delay: string) => ({
     animationDelay: delay,
-    animationDuration: "600ms",
+    animationDuration: "500ms",
     animationFillMode: "backwards",
     animationName: { default: null, [media.motion]: pop },
-    animationTimingFunction: ease.spring,
+    animationTimingFunction: ease.out,
   }),
   blob: {
     backgroundColor: `color-mix(in srgb, ${color.surface} 70%, transparent)`,
