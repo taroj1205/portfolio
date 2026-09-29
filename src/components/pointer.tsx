@@ -27,8 +27,14 @@ export const Pointer = () => {
         return;
       }
       const box = el.getBoundingClientRect();
-      el.style.setProperty("--tilt-x", ((x - box.left) / box.width).toFixed(3));
-      el.style.setProperty("--tilt-y", ((y - box.top) / box.height).toFixed(3));
+      const tiltX = (x - box.left) / box.width;
+      const tiltY = (y - box.top) / box.height;
+      el.style.setProperty("--tilt-x", tiltX.toFixed(3));
+      el.style.setProperty("--tilt-y", tiltY.toFixed(3));
+      el.style.setProperty(
+        "--glare-at",
+        `${(tiltX * 100).toFixed(1)}% ${(tiltY * 100).toFixed(1)}%`
+      );
       el.style.setProperty("--glare", "1");
     };
 
