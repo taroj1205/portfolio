@@ -102,7 +102,7 @@ const styles = stylex.create({
     alignItems: "center",
     animationDelay: "500ms",
     animationDuration: "800ms",
-    animationFillMode: "both",
+    animationFillMode: "backwards",
     animationName: {
       default: null,
       [media.motion]: { default: drop, [media.tablet]: lift },
@@ -139,6 +139,8 @@ const styles = stylex.create({
     width: { default: "auto", [media.tablet]: "min(100%, 26rem)" },
   },
   socials: {
+    "--tuck":
+      "calc(50% + 0.75rem - 50vw) calc(-50% - 0.75rem - env(safe-area-inset-top) / 2)",
     animationDelay: "620ms",
     animationName: { default: null, [media.motion]: drop },
     position: { default: "relative", [media.tablet]: "fixed" },
@@ -147,8 +149,13 @@ const styles = stylex.create({
       default: null,
       [media.tablet]: "calc(0.75rem + env(safe-area-inset-top))",
     },
+    transitionDuration: "600ms",
+    transitionProperty: "translate, scale, opacity, filter",
+    transitionTimingFunction: ease.spring,
   },
   languages: {
+    "--tuck":
+      "calc(50vw - 50% - 0.75rem) calc(-50% - 0.75rem - env(safe-area-inset-top) / 2)",
     animationDelay: "620ms",
     animationName: { default: null, [media.motion]: drop },
     left: { default: null, [media.tablet]: "0.75rem" },
@@ -157,6 +164,42 @@ const styles = stylex.create({
       default: null,
       [media.tablet]: "calc(0.75rem + env(safe-area-inset-top))",
     },
+    transitionDuration: "600ms",
+    transitionProperty: "translate, scale, opacity, filter",
+    transitionTimingFunction: ease.spring,
+  },
+  tucked: {
+    filter: {
+      default: null,
+      [media.tablet]: { default: "blur(6px)", ":focus-within": null },
+    },
+    opacity: {
+      default: null,
+      [media.tablet]: { default: 0, ":focus-within": null },
+    },
+    pointerEvents: {
+      default: null,
+      [media.tablet]: { default: "none", ":focus-within": null },
+    },
+    scale: {
+      default: null,
+      [media.tablet]: { default: 0.2, ":focus-within": null },
+    },
+    transitionTimingFunction: ease.drawer,
+    translate: {
+      default: null,
+      [media.tablet]: { default: "var(--tuck)", ":focus-within": null },
+    },
+  },
+  veil: {
+    backgroundColor: color.paper,
+    height: "calc(env(safe-area-inset-top) * 1.5)",
+    left: 0,
+    maskImage: "linear-gradient(#000 66%, transparent)",
+    pointerEvents: "none",
+    position: "fixed",
+    right: 0,
+    top: 0,
   },
   language: {
     flex: "0 0 auto",
@@ -278,6 +321,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
   const links = useRef<(HTMLAnchorElement | null)[]>([]);
   const previous = useRef(-1);
   const [active, setActive] = useState(-1);
+  const [tucked, setTucked] = useState(false);
   const [glass, setGlass] = useState<{
     liquid: boolean;
     sizes: { height: number; width: number }[];
@@ -286,10 +330,16 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
   useEffect(() => {
     const targets = sections.map((id) => document.querySelector(`#${id}`));
     let frame = 0;
+    let last = document.documentElement.scrollTop;
     const update = () => {
       frame = 0;
       const root = document.documentElement;
-      const atEnd = root.scrollTop + innerHeight >= root.scrollHeight - 2;
+      const y = root.scrollTop;
+      if (Math.abs(y - last) > 8) {
+        setTucked(y > last && y > innerHeight / 2);
+        last = y;
+      }
+      const atEnd = y + innerHeight >= root.scrollHeight - 2;
       setActive(
         atEnd
           ? sections.length - 1
@@ -357,6 +407,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
       data-scroll-from="photos"
       {...stylex.props(night, styles.dusk, styles.bar)}
     >
+      <span aria-hidden="true" {...stylex.props(styles.veil)} />
       <nav
         aria-label="Language / 言語"
         ref={(node) => {
@@ -365,6 +416,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
         {...stylex.props(
           styles.pill,
           styles.languages,
+          tucked && styles.tucked,
           liquid && styles.liquid,
           liquid && styles.lens("nav-lens-2")
         )}
@@ -464,6 +516,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
         {...stylex.props(
           styles.pill,
           styles.socials,
+          tucked && styles.tucked,
           liquid && styles.liquid,
           liquid && styles.lens("nav-lens-1")
         )}

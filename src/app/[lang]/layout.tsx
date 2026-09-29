@@ -45,6 +45,7 @@ export const generateMetadata = async ({
 export const viewport: Viewport = {
   colorScheme: "light",
   themeColor: "#f5f1ea",
+  viewportFit: "cover",
 };
 
 const styles = stylex.create({
@@ -66,12 +67,12 @@ const styles = stylex.create({
     backgroundColor: color.ink,
     borderRadius: 999,
     color: "#fff",
-    left: "0.75rem",
+    left: "calc(0.75rem + env(safe-area-inset-left))",
     paddingBlock: "0.5rem",
     paddingInline: "1rem",
     position: "absolute",
     top: "0.75rem",
-    translate: { default: "0 -200%", ":focus": "0" },
+    translate: { default: "0 -200%", ":focus": "0 env(safe-area-inset-top)" },
     zIndex: 100,
   },
 });

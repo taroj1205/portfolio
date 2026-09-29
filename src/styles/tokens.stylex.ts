@@ -48,6 +48,7 @@ export const shadow = stylex.defineConsts({
 });
 
 export const size = stylex.defineConsts({
-  gutter: "clamp(1.25rem, 4vw, 2.5rem)",
+  gutter:
+    "max(clamp(1.25rem, 4vw, 2.5rem), env(safe-area-inset-left), env(safe-area-inset-right))",
   wrap: "1180px",
 });
