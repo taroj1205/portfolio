@@ -119,7 +119,6 @@ export const Scroll = () => {
     const wake = () => {
       if (frame === 0) {
         last = performance.now();
-        top = scrollY;
         frame = requestAnimationFrame(tick);
       }
     };
