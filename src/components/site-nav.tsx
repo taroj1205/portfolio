@@ -198,10 +198,8 @@ const styles = stylex.create({
     position: "relative",
     textDecoration: "none",
     textShadow: `0 0 10px color-mix(in srgb, ${color.paper} 90%, transparent)`,
-    transitionDuration: "200ms, 450ms",
-    transitionProperty: "color, translate",
-    transitionTimingFunction: `ease, ${ease.spring}`,
-    translate: "var(--pull-x, 0) var(--pull-y, 0)",
+    transitionDuration: "200ms",
+    transitionProperty: "color",
     whiteSpace: "nowrap",
     zIndex: 1,
   },
@@ -223,10 +221,8 @@ const styles = stylex.create({
     height: { default: 40, [media.tablet]: 36 },
     justifyItems: "center",
     outlineOffset: -2,
-    transitionDuration: "200ms, 200ms, 450ms",
-    transitionProperty: "color, background-color, translate",
-    transitionTimingFunction: `ease, ease, ${ease.spring}`,
-    translate: "var(--pull-x, 0) var(--pull-y, 0)",
+    transitionDuration: "200ms",
+    transitionProperty: "color, background-color",
     width: { default: 40, [media.tablet]: 36 },
   },
   current: {
@@ -381,7 +377,6 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
         ).map(([code, href, label], i) => (
           <Link
             aria-current={locale === code ? "page" : undefined}
-            data-magnet
             href={href}
             hrefLang={code}
             key={code}
@@ -446,7 +441,6 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
         {sections.map((id, i) => (
           <a
             aria-current={active === i ? "location" : undefined}
-            data-magnet
             href={`#${id}`}
             key={id}
             ref={(node) => {
@@ -477,7 +471,6 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
         {socials.map(([label, href], i) => (
           <a
             aria-label={label}
-            data-magnet
             href={href}
             key={label}
             title={label}

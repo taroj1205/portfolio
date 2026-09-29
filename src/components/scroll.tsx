@@ -74,28 +74,8 @@ export const Scroll = () => {
           ]
         : [];
     });
-    const sections = document.querySelectorAll<HTMLElement>("main > *");
-    const warp = { speed: 0, value: 0 };
     let frame = 0;
     let last = 0;
-    let top = scrollY;
-
-    const spring = (track: typeof warp, target: number, dt: number) => {
-      if (!still) {
-        track.speed +=
-          (stiffness * (target - track.value) - damping * track.speed) * dt;
-        track.value += track.speed * dt;
-      }
-      if (
-        still ||
-        Math.abs(target - track.value) + Math.abs(track.speed) < 1e-4
-      ) {
-        track.value = target;
-        track.speed = 0;
-        return false;
-      }
-      return true;
-    };
 
     const tick = (now: number) => {
       const dt = Math.min(Math.max(now - last, 0) / 1000, 1 / 30);
@@ -103,15 +83,23 @@ export const Scroll = () => {
       let moving = false;
       for (const { el, tracks } of items) {
         for (const [i, track] of tracks.entries()) {
-          moving = spring(track, track.progress(), dt) || moving;
+          const target = track.progress();
+          if (!still) {
+            track.speed +=
+              (stiffness * (target - track.value) - damping * track.speed) * dt;
+            track.value += track.speed * dt;
+          }
+          if (
+            still ||
+            Math.abs(target - track.value) + Math.abs(track.speed) < 1e-4
+          ) {
+            track.value = target;
+            track.speed = 0;
+          } else {
+            moving = true;
+          }
           el.style.setProperty(`--scroll-${i}`, track.value.toFixed(4));
         }
-      }
-      const flow = dt > 0 && !still ? (scrollY - top) / dt / 4000 : 0;
-      top = scrollY;
-      moving = spring(warp, Math.min(1, Math.max(-1, flow)), dt) || moving;
-      for (const section of sections) {
-        section.style.setProperty("--warp", warp.value.toFixed(4));
       }
       frame = moving ? requestAnimationFrame(tick) : 0;
     };

@@ -4,10 +4,6 @@ import { useEffect } from "react";
 
 const settle = "cubic-bezier(0.23, 1, 0.32, 1)";
 const drawer = "cubic-bezier(0.32, 0.72, 0, 1)";
-const rise = [
-  { opacity: 0, translate: "0 2rem" },
-  { opacity: 1, translate: "0 0" },
-];
 
 const prepare = (el: HTMLElement) => {
   if (el.dataset.reveal === "words") {
@@ -23,17 +19,24 @@ const prepare = (el: HTMLElement) => {
   }
   if (el.dataset.reveal === "stagger") {
     return [...el.children].map((child, i) =>
-      child.animate(rise, {
-        delay: i * 60,
-        duration: 800,
-        easing: settle,
-        fill: "backwards",
-      })
+      child.animate(
+        [
+          { opacity: 0, translate: "0 0.75rem" },
+          { opacity: 1, translate: "0 0" },
+        ],
+        { delay: i * 60, duration: 700, easing: settle, fill: "backwards" }
+      )
     );
   }
   if (el.dataset.reveal !== "wipe") {
     return [
-      el.animate(rise, { duration: 800, easing: settle, fill: "backwards" }),
+      el.animate(
+        [
+          { opacity: 0, translate: "0 2rem" },
+          { opacity: 1, translate: "0 0" },
+        ],
+        { duration: 800, easing: settle, fill: "backwards" }
+      ),
     ];
   }
   const timing = { duration: 1100, easing: drawer, fill: "backwards" } as const;

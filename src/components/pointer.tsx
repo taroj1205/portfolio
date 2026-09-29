@@ -87,32 +87,11 @@ export const Pointer = () => {
       }
     };
 
-    const pull = (x: number, y: number) => {
-      const pulls: [HTMLElement, number, number][] = [];
-      for (const el of document.querySelectorAll<HTMLElement>(
-        "[data-magnet]"
-      )) {
-        const box = el.getBoundingClientRect();
-        const dx = x - (box.left + box.width / 2);
-        const dy = y - (box.top + box.height / 2);
-        const near = falloff(
-          Math.hypot(dx, dy),
-          Math.max(box.width, box.height) * 1.5
-        );
-        pulls.push([el, dx * near * 0.5, dy * near * 0.5]);
-      }
-      for (const [el, dx, dy] of pulls) {
-        el.style.setProperty("--pull-x", `${dx.toFixed(1)}px`);
-        el.style.setProperty("--pull-y", `${dy.toFixed(1)}px`);
-      }
-    };
-
     const update = () => {
       frame = 0;
       if (last) {
         tilt(last.target, last.x, last.y);
         swell(last.x, last.y);
-        pull(last.x, last.y);
         glow.current?.style.setProperty("translate", `${last.x}px ${last.y}px`);
         glow.current?.style.setProperty("opacity", last.target ? "1" : "0");
       }
@@ -151,12 +130,6 @@ export const Pointer = () => {
       cancelAnimationFrame(frame);
       frame = 0;
       tilt(null, 0, 0);
-      for (const el of document.querySelectorAll<HTMLElement>(
-        "[data-magnet]"
-      )) {
-        el.style.removeProperty("--pull-x");
-        el.style.removeProperty("--pull-y");
-      }
       for (const letter of document.querySelectorAll<HTMLElement>(
         "[data-near] > span > span > span"
       )) {
