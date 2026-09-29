@@ -260,8 +260,8 @@ const styles = stylex.create({
     paddingBlock: "0.5rem",
     paddingInline: "1rem",
     position: "fixed",
-    right: "calc(1rem + env(safe-area-inset-right))",
-    top: "calc(1rem + env(safe-area-inset-top))",
+    right: "1rem",
+    top: "1rem",
   },
   dialog: {
     "::backdrop": { backgroundColor: "rgb(18 16 14 / 0.94)" },
@@ -313,10 +313,7 @@ const styles = stylex.create({
     },
     borderRadius: 999,
     borderWidth: 0,
-    bottom: {
-      default: null,
-      [media.tablet]: "calc(1.25rem + env(safe-area-inset-bottom))",
-    },
+    bottom: { default: null, [media.tablet]: "1.25rem" },
     color: "#fff",
     cursor: "pointer",
     display: "grid",
@@ -332,16 +329,10 @@ const styles = stylex.create({
     width: 48,
   },
   turnBack: {
-    left: {
-      default: "calc(1rem + env(safe-area-inset-left))",
-      [media.tablet]: "calc(50% - 60px)",
-    },
+    left: { default: "1rem", [media.tablet]: "calc(50% - 60px)" },
   },
   turnForward: {
-    right: {
-      default: "calc(1rem + env(safe-area-inset-right))",
-      [media.tablet]: "calc(50% - 60px)",
-    },
+    right: { default: "1rem", [media.tablet]: "calc(50% - 60px)" },
   },
 });
 
