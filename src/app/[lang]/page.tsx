@@ -679,7 +679,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
               "I taught myself to code in 2022 by making small games, and I still mostly build things because someone I know needs them. Outside of screens it's kendama, juggling, table tennis, badminton and football, even after three knee injuries."
             )}
           </p>
-          <dl {...stylex.props(styles.facts)}>
+          <dl data-reveal="stagger" {...stylex.props(styles.facts)}>
             {facts.map(([label, value]) => (
               <div key={label} {...stylex.props(styles.fact)}>
                 <dt {...stylex.props(styles.factLabel)}>{label}</dt>
@@ -885,7 +885,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
               </span>
               <span>NZ</span>
             </p>
-            <ul {...stylex.props(styles.lines)}>
+            <ul data-reveal="stagger" {...stylex.props(styles.lines)}>
               {socials.map(([label, href, handle]) => (
                 <li key={label}>
                   <a

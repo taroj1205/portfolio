@@ -135,6 +135,16 @@
   initial-value: 0;
 }
 
+@property --warp {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+main > * {
+  transform: skewY(calc(var(--warp) * 5deg));
+}
+
 :active-view-transition-type(locale)::view-transition-old(root) {
   animation: 180ms ease-in both locale-out;
 }
