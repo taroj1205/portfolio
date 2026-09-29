@@ -153,7 +153,7 @@ const styles = stylex.create({
     overflow: "visible",
     padding: 0,
     position: "fixed",
-    right: "0.75rem",
+    right: "max(0.75rem, (100% - 26rem - 0.5rem - 56px) / 2)",
     top: "auto",
     transitionDuration: "320ms",
     transitionProperty: "visibility",
@@ -163,24 +163,33 @@ const styles = stylex.create({
     animationDelay: "620ms",
     animationName: {
       default: null,
-      [media.motion]: { default: drop, [media.tablet]: null },
+      [media.motion]: { default: drop, [media.tablet]: "none" },
     },
     clipPath: {
       default: null,
-      [media.tablet]: "inset(0 0 0 calc(100% - 56px) round 999px)",
+      [media.tablet]: {
+        default: null,
+        [media.motion]: "inset(0 0 0 calc(100% - 56px) round 999px)",
+      },
     },
     opacity: { default: null, [media.tablet]: 0 },
-    transitionDelay: "60ms, 0ms, 120ms",
-    transitionDuration: "260ms, 220ms, 160ms",
-    transitionProperty: "translate, clip-path, opacity",
-    transitionTimingFunction: `${ease.drawer}, ${ease.drawer}, ${ease.out}`,
+    scale: {
+      default: null,
+      [media.tablet]: { default: null, [media.motion]: 0.5 },
+    },
+    transformOrigin: "calc(100% - 28px) 100%",
+    transitionDelay: "0ms, 0ms, 0ms, 90ms",
+    transitionDuration: "260ms, 260ms, 240ms, 150ms",
+    transitionProperty: "translate, scale, clip-path, opacity",
+    transitionTimingFunction: `${ease.drawer}, ${ease.drawer}, ${ease.drawer}, ${ease.out}`,
   },
   opened: (delay: number) => ({
     clipPath: "inset(-3rem round 999px)",
     opacity: 1,
-    transitionDelay: `${delay}ms, ${delay + 60}ms, ${delay}ms`,
-    transitionDuration: "440ms, 420ms, 140ms",
-    transitionTimingFunction: `${ease.spring}, ${ease.drawer}, ${ease.out}`,
+    scale: 1,
+    transitionDelay: `${delay}ms, ${delay}ms, ${delay + 40}ms, ${delay}ms`,
+    transitionDuration: "520ms, 520ms, 420ms, 120ms",
+    transitionTimingFunction: `${ease.spring}, ${ease.spring}, ${ease.drawer}, ${ease.out}`,
     translate: "0 0",
   }),
   glyph: {
@@ -204,10 +213,19 @@ const styles = stylex.create({
   },
   socials: {
     order: 1,
-    translate: { default: null, [media.tablet]: "0 calc(100% + 0.5rem)" },
+    translate: {
+      default: null,
+      [media.tablet]: { default: null, [media.motion]: "0 0.75rem" },
+    },
   },
   languages: {
-    translate: { default: null, [media.tablet]: "0 calc(200% + 1rem)" },
+    translate: {
+      default: null,
+      [media.tablet]: {
+        default: null,
+        [media.motion]: "0 calc(100% + 1.25rem)",
+      },
+    },
   },
   language: {
     flex: "0 0 auto",
@@ -486,7 +504,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
             styles.pill,
             styles.tray,
             styles.languages,
-            open && styles.opened(50),
+            open && styles.opened(70),
             liquid && styles.liquid,
             liquid && styles.lens("nav-lens-2")
           )}
