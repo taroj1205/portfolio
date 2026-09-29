@@ -199,7 +199,8 @@
     "work": "仕事",
     "projects": "作品",
     "photos": "写真",
-    "contact": "連絡"
+    "contact": "連絡",
+    "more": "言語とリンク"
   },
   "metadata": {
     "description": "Shintaro Jokagiのポートフォリオです。オークランド大学で学びながら、Hazumiで開発の仕事をしています。Yamada UIとZen BrowserのWebサイトのメンテナンスもしています。作ったものや、海辺で撮った写真をまとめました。"
