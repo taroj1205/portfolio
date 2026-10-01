@@ -422,11 +422,23 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
     notFound();
   }
   const t = getTranslator(locale);
-  const greeting = t("hero.greeting", "Kia ora,").split(" ");
+  const greeting = t("hero.greeting", "Hello world,").split(" ");
   const heroWords = [
     ...greeting,
     ...t("hero.name", "I'm Shintaro.").split(" "),
   ];
+  const total = heroWords.join("").length;
+  let lineBreak = 0;
+  let diff = total;
+  let chars = 0;
+  for (const word of heroWords) {
+    chars += word.length;
+    const d = Math.abs(total - 2 * chars);
+    if (d < diff) {
+      diff = d;
+      lineBreak += 1;
+    }
+  }
   const band: Photo[] = [
     {
       caption: t(
@@ -597,7 +609,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
           {heroWords.map((word, i) => (
             <Fragment key={word}>
               {i > 0 && " "}
-              {i === greeting.length && <br />}
+              {i === lineBreak && <br />}
               <span aria-hidden="true" {...stylex.props(shared.mask)}>
                 <span
                   {...stylex.props(

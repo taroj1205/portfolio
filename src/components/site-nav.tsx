@@ -73,6 +73,9 @@ const pop = stylex.keyframes({
   from: { filter: "blur(4px)", opacity: 0, scale: 0.9 },
 });
 
+const dusk =
+  "calc(round(var(--scroll-0, 0)) * (1 - round(var(--scroll-1, 0))))";
+
 const styles = stylex.create({
   bar: {
     bottom: {
@@ -92,8 +95,7 @@ const styles = stylex.create({
   },
   dusk: {
     "--dusk": {
-      default:
-        "calc(round(var(--scroll-0, 0)) * (1 - round(var(--scroll-1, 0))))",
+      default: dusk,
       [media.tablet]:
         "calc(round(var(--scroll-2, 0)) * (1 - round(var(--scroll-3, 0))))",
     },
@@ -138,30 +140,147 @@ const styles = stylex.create({
   sections: {
     width: { default: "auto", [media.tablet]: "min(100%, 26rem)" },
   },
-  socials: {
+  menu: {
+    alignItems: "flex-end",
+    backgroundColor: "transparent",
+    borderWidth: 0,
+    bottom: "calc(1.25rem + 56px + env(safe-area-inset-bottom))",
+    display: { default: "contents", [media.tablet]: "flex" },
+    flexDirection: "column",
+    gap: "0.5rem",
+    left: "auto",
+    margin: 0,
+    overflow: "visible",
+    padding: 0,
+    position: "fixed",
+    right: "max(0.75rem, (100% - 26rem - 0.5rem - 56px) / 2)",
+    top: "auto",
+    transitionDuration: "320ms",
+    transitionProperty: "visibility",
+    visibility: { default: null, [media.tablet]: "hidden" },
+  },
+  tray: {
     animationDelay: "620ms",
-    animationName: { default: null, [media.motion]: drop },
-    position: { default: "relative", [media.tablet]: "fixed" },
-    right: { default: null, [media.tablet]: "0.75rem" },
-    top: {
+    animationName: {
       default: null,
-      [media.tablet]: "calc(0.75rem + env(safe-area-inset-top))",
+      [media.motion]: { default: drop, [media.tablet]: "none" },
+    },
+    clipPath: {
+      default: null,
+      [media.tablet]: {
+        default: null,
+        [media.motion]: "inset(0 0 0 calc(100% - 56px) round 999px)",
+      },
+    },
+    opacity: { default: null, [media.tablet]: 0 },
+    scale: {
+      default: null,
+      [media.tablet]: { default: null, [media.motion]: 0.5 },
+    },
+    transformOrigin: "calc(100% - 28px) 100%",
+    transitionDelay: "0ms, 0ms, 0ms, 90ms",
+    transitionDuration: "260ms, 260ms, 240ms, 150ms",
+    transitionProperty: "translate, scale, clip-path, opacity",
+    transitionTimingFunction: `${ease.drawer}, ${ease.drawer}, ${ease.drawer}, ${ease.out}`,
+  },
+  opened: (delay: number) => ({
+    clipPath: "inset(-3rem round 999px)",
+    opacity: 1,
+    scale: 1,
+    transitionDelay: `${delay}ms, ${delay}ms, ${delay + 40}ms, ${delay}ms`,
+    transitionDuration: "520ms, 520ms, 420ms, 120ms",
+    transitionTimingFunction: `${ease.spring}, ${ease.spring}, ${ease.drawer}, ${ease.out}`,
+    translate: "0 0",
+  }),
+  glyph: {
+    display: "inline-block",
+    filter: { default: null, [media.tablet]: "blur(4px)" },
+    opacity: { default: null, [media.tablet]: 0 },
+    transitionDuration: "100ms",
+    transitionProperty: "opacity, translate, filter",
+    transitionTimingFunction: ease.out,
+    translate: { default: null, [media.tablet]: "0.75rem 0" },
+  },
+  glyphIn: (delay: number) => ({
+    filter: "none",
+    opacity: 1,
+    transitionDelay: `${delay}ms`,
+    transitionDuration: "220ms",
+    translate: "0 0",
+  }),
+  revealed: {
+    visibility: "visible",
+  },
+  socials: {
+    order: 1,
+    translate: {
+      default: null,
+      [media.tablet]: { default: null, [media.motion]: "0 0.75rem" },
     },
   },
   languages: {
-    animationDelay: "620ms",
-    animationName: { default: null, [media.motion]: drop },
-    left: { default: null, [media.tablet]: "0.75rem" },
-    position: { default: "relative", [media.tablet]: "fixed" },
-    top: {
+    translate: {
       default: null,
-      [media.tablet]: "calc(0.75rem + env(safe-area-inset-top))",
+      [media.tablet]: {
+        default: null,
+        [media.motion]: "0 calc(100% + 1.25rem)",
+      },
     },
   },
   language: {
     flex: "0 0 auto",
-    height: { default: 40, [media.tablet]: 36 },
+    height: { default: 40, [media.tablet]: 44 },
     paddingInline: "0.875rem",
+  },
+  more: {
+    animationDelay: "560ms",
+    borderWidth: 0,
+    color: color.ink,
+    cursor: "pointer",
+    display: { default: "none", [media.tablet]: "grid" },
+    flex: "0 0 auto",
+    height: 56,
+    justifyItems: "center",
+    padding: 0,
+    transform: { default: null, ":active": "scale(0.95)" },
+    transitionDuration: "160ms, 300ms, 300ms",
+    transitionProperty: "transform, background-color, color",
+    transitionTimingFunction: ease.out,
+    WebkitTapHighlightColor: "transparent",
+    width: 56,
+  },
+  moreOpen: {
+    backgroundColor: color.ink,
+    color: color.paper,
+  },
+  stroke: {
+    backgroundColor: "currentColor",
+    borderRadius: 2,
+    gridArea: "1 / 1",
+    height: 2,
+    transitionDelay: "100ms, 0ms",
+    transitionDuration: "380ms, 160ms",
+    transitionProperty: "translate, rotate",
+    transitionTimingFunction: `${ease.spring}, ${ease.out}`,
+    width: 18,
+  },
+  up: {
+    translate: "0 -3.5px",
+  },
+  down: {
+    translate: "0 3.5px",
+  },
+  cross: {
+    transitionDelay: "0ms, 100ms",
+    transitionDuration: "160ms, 420ms",
+    transitionTimingFunction: `${ease.out}, ${ease.spring}`,
+    translate: "0 0",
+  },
+  turnUp: {
+    rotate: "45deg",
+  },
+  turnDown: {
+    rotate: "-45deg",
   },
   chip: {
     backgroundColor: `color-mix(in srgb, ${color.surface} 70%, transparent)`,
@@ -218,12 +337,12 @@ const styles = stylex.create({
       [media.hover]: { default: null, ":hover": color.ink },
     },
     display: "grid",
-    height: { default: 40, [media.tablet]: 36 },
+    height: { default: 40, [media.tablet]: 44 },
     justifyItems: "center",
     outlineOffset: -2,
     transitionDuration: "200ms",
     transitionProperty: "color, background-color",
-    width: { default: 40, [media.tablet]: 36 },
+    width: { default: 40, [media.tablet]: 44 },
   },
   current: {
     color: color.ink,
@@ -256,6 +375,16 @@ const styles = stylex.create({
     opacity: 1,
     scale: 1,
   },
+  veil: {
+    "--dusk": dusk,
+    backgroundColor: color.paper,
+    height: "0.75rem",
+    left: 0,
+    maskImage: "linear-gradient(#000 50%, transparent)",
+    position: "fixed",
+    right: 0,
+    top: 0,
+  },
   defs: {
     height: 0,
     position: "absolute",
@@ -278,6 +407,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
   const links = useRef<(HTMLAnchorElement | null)[]>([]);
   const previous = useRef(-1);
   const [active, setActive] = useState(-1);
+  const [open, setOpen] = useState(false);
   const [glass, setGlass] = useState<{
     liquid: boolean;
     sizes: { height: number; width: number }[];
@@ -357,70 +487,126 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
       data-scroll-from="photos"
       {...stylex.props(night, styles.dusk, styles.bar)}
     >
-      <nav
-        aria-label="Language / 言語"
-        ref={(node) => {
-          pills.current[2] = node;
+      <div
+        id="nav-menu"
+        onToggle={(event) => {
+          setOpen(event.newState === "open");
         }}
-        {...stylex.props(
-          styles.pill,
-          styles.languages,
-          liquid && styles.liquid,
-          liquid && styles.lens("nav-lens-2")
-        )}
+        popover="auto"
+        {...stylex.props(styles.menu, open && styles.revealed)}
       >
-        {(
-          [
-            ["en", "/", "English"],
-            ["ja", "/ja", "日本語"],
-          ] as const
-        ).map(([code, href, label], i) => (
-          <Link
-            aria-current={locale === code ? "page" : undefined}
-            href={href}
-            hrefLang={code}
-            key={code}
-            lang={code}
-            onNavigate={(event) => {
-              if (
-                locale === code ||
-                !("startViewTransition" in document) ||
-                matchMedia("(prefers-reduced-motion: reduce)").matches
-              ) {
-                return;
-              }
-              event.preventDefault();
-              const root = document.documentElement;
-              document.startViewTransition({
-                types: ["locale"],
-                update: async () => {
-                  const swapped = Promise.withResolvers<string>();
-                  const observer = new MutationObserver(() => {
-                    if (root.lang === code) {
-                      swapped.resolve(root.lang);
-                    }
-                  });
-                  observer.observe(root, { attributeFilter: ["lang"] });
-                  const timeout = setTimeout(swapped.resolve, 3000);
-                  router.push(href, { scroll: false });
-                  await swapped.promise;
-                  clearTimeout(timeout);
-                  observer.disconnect();
-                },
-              });
-            }}
-            scroll={false}
-            {...stylex.props(
-              styles.link,
-              styles.language,
-              styles.enter(`${760 + i * 60}ms`),
-              locale === code && [styles.current, styles.chip]
-            )}
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
+        <nav
+          aria-label="Language / 言語"
+          ref={(node) => {
+            pills.current[2] = node;
+          }}
+          {...stylex.props(
+            styles.pill,
+            styles.tray,
+            styles.languages,
+            open && styles.opened(70),
+            liquid && styles.liquid,
+            liquid && styles.lens("nav-lens-2")
+          )}
+        >
+          {(
+            [
+              ["en", "/", "English"],
+              ["ja", "/ja", "日本語"],
+            ] as const
+          ).map(([code, href, label], i) => (
+            <Link
+              aria-current={locale === code ? "page" : undefined}
+              href={href}
+              hrefLang={code}
+              key={code}
+              lang={code}
+              onNavigate={(event) => {
+                if (
+                  locale === code ||
+                  !("startViewTransition" in document) ||
+                  matchMedia("(prefers-reduced-motion: reduce)").matches
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                const root = document.documentElement;
+                document.startViewTransition({
+                  types: ["locale"],
+                  update: async () => {
+                    const swapped = Promise.withResolvers<string>();
+                    const observer = new MutationObserver(() => {
+                      if (root.lang === code) {
+                        swapped.resolve(root.lang);
+                      }
+                    });
+                    observer.observe(root, { attributeFilter: ["lang"] });
+                    const timeout = setTimeout(swapped.resolve, 3000);
+                    router.push(href, { scroll: false });
+                    await swapped.promise;
+                    clearTimeout(timeout);
+                    observer.disconnect();
+                  },
+                });
+              }}
+              scroll={false}
+              {...stylex.props(
+                styles.link,
+                styles.language,
+                styles.enter(`${760 + i * 60}ms`),
+                locale === code && [styles.current, styles.chip]
+              )}
+            >
+              <span
+                {...stylex.props(
+                  styles.glyph,
+                  open && styles.glyphIn(80 + (socials.length + 1 - i) * 25)
+                )}
+              >
+                {label}
+              </span>
+            </Link>
+          ))}
+        </nav>
+        <nav
+          aria-label={t("navigation.socials", "Social links")}
+          ref={(node) => {
+            pills.current[1] = node;
+          }}
+          {...stylex.props(
+            styles.pill,
+            styles.tray,
+            styles.socials,
+            open && styles.opened(0),
+            liquid && styles.liquid,
+            liquid && styles.lens("nav-lens-1")
+          )}
+        >
+          {socials.map(([label, href], i) => (
+            <a
+              aria-label={label}
+              href={href}
+              key={label}
+              title={label}
+              {...stylex.props(styles.icon, styles.enter(`${760 + i * 60}ms`))}
+            >
+              <svg
+                aria-hidden="true"
+                fill="currentColor"
+                height="18"
+                viewBox="0 0 24 24"
+                width="18"
+                {...stylex.props(
+                  styles.glyph,
+                  open && styles.glyphIn(80 + (socials.length - 1 - i) * 25)
+                )}
+              >
+                <path d={icons[label]} fillRule="evenodd" />
+              </svg>
+            </a>
+          ))}
+        </nav>
+      </div>
       <nav
         aria-label={t("navigation.sections", "Sections")}
         ref={(node) => {
@@ -456,38 +642,26 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
           </a>
         ))}
       </nav>
-      <nav
-        aria-label={t("navigation.socials", "Social links")}
-        ref={(node) => {
-          pills.current[1] = node;
-        }}
-        {...stylex.props(
-          styles.pill,
-          styles.socials,
-          liquid && styles.liquid,
-          liquid && styles.lens("nav-lens-1")
-        )}
+      <button
+        aria-label={t("navigation.more", "Language and links")}
+        popoverTarget="nav-menu"
+        type="button"
+        {...stylex.props(styles.pill, styles.more, open && styles.moreOpen)}
       >
-        {socials.map(([label, href], i) => (
-          <a
-            aria-label={label}
-            href={href}
-            key={label}
-            title={label}
-            {...stylex.props(styles.icon, styles.enter(`${760 + i * 60}ms`))}
-          >
-            <svg
-              aria-hidden="true"
-              fill="currentColor"
-              height="18"
-              viewBox="0 0 24 24"
-              width="18"
-            >
-              <path d={icons[label]} fillRule="evenodd" />
-            </svg>
-          </a>
-        ))}
-      </nav>
+        <span
+          {...stylex.props(
+            styles.stroke,
+            open ? [styles.cross, styles.turnUp] : styles.up
+          )}
+        />
+        <span
+          {...stylex.props(
+            styles.stroke,
+            open ? [styles.cross, styles.turnDown] : styles.down
+          )}
+        />
+      </button>
+      <span aria-hidden="true" {...stylex.props(night, styles.veil)} />
       {glass && liquid && (
         <svg aria-hidden="true" {...stylex.props(styles.defs)}>
           {glass.sizes.map((size, n) => (
