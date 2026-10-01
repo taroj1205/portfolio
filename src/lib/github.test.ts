@@ -57,6 +57,7 @@ describe("GitHub fetching", () => {
     try {
       const first = await getGitHub();
       assert.equal(first.total, 42);
+      assert.ok(query.includes('author:taroj1205 is:pr is:merged is:public"'));
       assert.equal(first.projects.yamadaReviewed, 17);
       assert.equal(first.projects.zenReviewed, 9);
       assert.equal("hazumi" in first.projects, false);

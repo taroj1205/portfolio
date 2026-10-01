@@ -135,7 +135,7 @@
     "mergedDate": "マージ：",
     "visit": "サイトを見る：",
     "website": "Webサイト",
-    "intro": "仕事や個人開発、OSSで出したPRは、これまでに{total}件マージされました。数字はGitHubから自動で更新しています。"
+    "intro": "OSSや個人開発で出したPRは、これまでに{total}件マージされました。数字はGitHubから自動で更新しています。"
   },
   "activity": {
     "intro": "GitHubでの最近の活動です。下に最終更新日時を載せています。",

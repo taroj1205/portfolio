@@ -1,10 +1,11 @@
-// GITHUB_TOKEN needs read access to Hazumi's private repos for the totals and
-// the contribution graph to include work there.
+// GITHUB_TOKEN needs read access to Hazumi's private repos for the
+// contribution graph to include work there.
 import { unstable_cache } from "next/cache";
 import { z } from "zod";
 
 const USER = "taroj1205";
 const MERGED = `author:${USER} is:pr is:merged`;
+const PUBLIC_MERGED = `${MERGED} is:public`;
 const PUBLIC_OTHERS = `${MERGED} is:public -user:${USER}`;
 const REVIEWED = `is:pr is:public reviewed-by:${USER} -author:${USER}`;
 // Where I'm a member or maintainer. Anything else counts as upstream.
@@ -13,7 +14,7 @@ const UPSTREAM_MIN_STARS = 500;
 
 const searches = {
   recent: [`${PUBLIC_OTHERS} sort:updated-desc`, 100],
-  total: [MERGED, 0],
+  total: [PUBLIC_MERGED, 0],
   upstream: [
     `${PUBLIC_OTHERS} ${HOME_ORGS.map((org) => `-org:${org}`).join(" ")}`,
     100,

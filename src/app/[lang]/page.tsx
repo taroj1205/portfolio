@@ -694,7 +694,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
         id="work"
         intro={t(
           "work.intro",
-          "Most of my coding happens on GitHub, where {total} of my pull requests have been merged across work, open source and my own projects. The numbers on these cards update themselves."
+          "Most of my coding happens on GitHub, where {total} of my pull requests have been merged across open source and my own public projects. The numbers on these cards update themselves."
         ).replace("{total}", fmt(github.total, locale))}
         title={t("work.title", "Things I've worked on")}
       >
