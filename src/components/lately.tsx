@@ -218,7 +218,7 @@ export const Lately = ({
           })}
         </ul>
         <a
-          href="https://github.com/search?q=author%3Ataroj1205+is%3Apr+is%3Amerged&type=pullrequests&s=updated&o=desc"
+          href="https://github.com/search?q=author%3Ataroj1205+is%3Apr+is%3Amerged+is%3Apublic&type=pullrequests&s=updated&o=desc"
           {...stylex.props(shared.textLink, shared.pressable, styles.more)}
         >
           {t("activity.allMerged", "All {total} merged PRs on GitHub").replace(
