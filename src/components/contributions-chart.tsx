@@ -2,7 +2,7 @@
 
 import * as stylex from "@stylexjs/stylex";
 import { useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, UIEvent } from "react";
 
 import { Count } from "@/components/count";
 import { fmt } from "@/lib/format";
@@ -268,6 +268,11 @@ export const ContributionsChart = ({
   const last = monthly.length - 1;
   const firstVisible = last - VISIBLE + 1;
   const [active, setActive] = useState(last);
+  const clamp = (i: number) => Math.min(last, Math.max(0, i));
+  const yearAt = (i: number) => monthly[clamp(i)]?.month.slice(0, 4);
+  const [viewYear, setViewYear] = useState(() =>
+    yearAt(last - Math.floor(VISIBLE / 2))
+  );
   const [chart, inView] = useInView<HTMLElement>();
   const readout = useRef<HTMLElement>(null);
   const bars = useRef<HTMLOListElement>(null);
@@ -320,12 +325,22 @@ export const ContributionsChart = ({
       return;
     }
     event.preventDefault();
-    reveal(Math.min(last, Math.max(0, active + move)), "nearest")?.focus({
+    reveal(clamp(active + move), "nearest")?.focus({
       preventScroll: true,
     });
   };
   const years = [...new Set(monthly.map((m) => m.month.slice(0, 4)))];
-  const activeYear = monthly[active]?.month.slice(0, 4);
+  const track = (event: UIEvent<HTMLDivElement>) => {
+    const first = bars.current?.firstElementChild?.getBoundingClientRect();
+    if (!first) {
+      return;
+    }
+    const view = event.currentTarget.getBoundingClientRect();
+    const i = Math.floor(
+      ((view.left + view.right) / 2 - first.left) / first.width
+    );
+    setViewYear(yearAt(i));
+  };
 
   return (
     <figure ref={chart} {...stylex.props(shared.card, styles.card)}>
@@ -345,7 +360,7 @@ export const ContributionsChart = ({
           <span {...stylex.props(styles.readoutMonth)}>{label(active)}</span>
         </p>
       </div>
-      <div {...stylex.props(styles.scroller)}>
+      <div onScroll={track} {...stylex.props(styles.scroller)}>
         <ol
           aria-label={t(
             "activity.history",
@@ -434,6 +449,7 @@ export const ContributionsChart = ({
         <span {...stylex.props(styles.jumps)}>
           {years.map((year) => (
             <button
+              aria-current={year === viewYear}
               key={year}
               onClick={() => {
                 const i = monthly.findIndex((m) => m.month.startsWith(year));
@@ -443,7 +459,7 @@ export const ContributionsChart = ({
               type="button"
               {...stylex.props(
                 styles.jump,
-                year === activeYear && styles.jumpActive
+                year === viewYear && styles.jumpActive
               )}
             >
               {year}
