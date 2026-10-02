@@ -25,10 +25,10 @@
     "@types/react-dom": "19.3.0",
     "autoprefixer": "10.6.1",
     "babel-plugin-react-compiler": "1.0.0",
-    "cspell": "10.3.4",
+    "cspell": "10.3.6",
     "knip": "6.38.0",
     "typescript": "5.9.3",
-    "ultracite": "7.12.0",
+    "ultracite": "7.12.2",
     "vite-plus": "1.0.0-rc.1"
   },
   "engines": {
