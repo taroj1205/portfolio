@@ -7,6 +7,10 @@ import { z } from "zod";
 Reflect.set(globalThis, "AsyncLocalStorage", AsyncLocalStorage);
 const { getGitHub } = await import("./github");
 
+const calendar = (
+  contributionDays: { contributionCount: number; date: string }[] = []
+) => ({ contributionCalendar: { weeks: [{ contributionDays }] } });
+
 describe("GitHub fetching", () => {
   test("GitHub batches searches, caches validated results, and retries failures", async () => {
     const entries = new Map<
@@ -23,8 +27,10 @@ describe("GitHub fetching", () => {
         total: counts,
         upstream: { ...counts, nodes: [] },
         user: {
-          contributionsCollection: { contributionCalendar: { weeks: [] } },
-          earlierContributions: { contributionCalendar: { weeks: [] } },
+          contributionsCollection: calendar(),
+          history2023: calendar(),
+          history2024: calendar(),
+          history2025: calendar(),
         },
         yamada: counts,
         yamadaIssues: counts,
@@ -62,15 +68,21 @@ describe("GitHub fetching", () => {
       assert.equal(first.projects.zenReviewed, 9);
       assert.equal("hazumi" in first.projects, false);
       assert.equal(query.includes("hazumi: search"), false);
-      assert.equal(first.monthly.length, 13);
-      assert.equal(first.monthly[0]?.month, "2025-09");
+      assert.equal(first.monthly.length, 45);
+      assert.equal(first.monthly[0]?.month, "2023-01");
       assert.equal(first.monthly.at(-1)?.month, "2026-09");
       assert.ok(query.includes('from: "2025-09-29T00:00:00.000Z"'));
       assert.ok(
         query.includes(
-          'earlierContributions: contributionsCollection(from: "2025-09-01T00:00:00.000Z", to: "2025-09-28T23:59:59.999Z")'
+          'history2023: contributionsCollection(from: "2023-01-01T00:00:00.000Z", to: "2023-12-31T23:59:59.999Z")'
         )
       );
+      assert.ok(
+        query.includes(
+          'history2025: contributionsCollection(from: "2025-01-01T00:00:00.000Z", to: "2025-09-28T23:59:59.999Z")'
+        )
+      );
+      assert.equal(query.includes("history2026"), false);
       assert.deepEqual(first.recent, []);
       assert.deepEqual(await getGitHub(), first);
       assert.equal(
@@ -151,49 +163,40 @@ describe("GitHub fetching", () => {
         vi.mocked(fetch).mockImplementationOnce(async (_url, init) => {
           const body = z.string().parse(init?.body);
           assert.ok(body.includes(`${start}T00:00:00.000Z`));
+          const { query: sent } = z
+            .object({ query: z.string() })
+            .parse(JSON.parse(body));
+          const days = {
+            [`history${before.slice(0, 4)}`]: [
+              { date: `${before.slice(0, 7)}-01`, contributionCount: 7 },
+              { date: before, contributionCount: 100 },
+              { date: start, contributionCount: 2 },
+            ],
+            contributionsCollection: [
+              { date: before, contributionCount: 100 },
+              { date: start, contributionCount: 2 },
+              { date: today, contributionCount: 3 },
+              { date: end, contributionCount: 100 },
+            ],
+          };
+          const user = Object.fromEntries(
+            [...sent.matchAll(/(?<alias>\w+): contributionsCollection/gu)].map(
+              ({ groups }) => {
+                const alias = groups?.alias ?? "";
+                return [alias, calendar(days[alias])];
+              }
+            )
+          );
           return await Promise.resolve(
-            Response.json({
-              ...payload,
-              data: {
-                ...payload.data,
-                user: {
-                  earlierContributions: {
-                    contributionCalendar: {
-                      weeks: [
-                        {
-                          contributionDays: [
-                            {
-                              date: `${before.slice(0, 7)}-01`,
-                              contributionCount: 7,
-                            },
-                            { date: before, contributionCount: 100 },
-                            { date: start, contributionCount: 2 },
-                          ],
-                        },
-                      ],
-                    },
-                  },
-                  contributionsCollection: {
-                    contributionCalendar: {
-                      weeks: [
-                        {
-                          contributionDays: [
-                            { date: before, contributionCount: 100 },
-                            { date: start, contributionCount: 2 },
-                            { date: today, contributionCount: 3 },
-                            { date: end, contributionCount: 100 },
-                          ],
-                        },
-                      ],
-                    },
-                  },
-                },
-              },
-            })
+            Response.json({ ...payload, data: { ...payload.data, user } })
           );
         });
         const result = await getGitHub();
-        assert.equal(result.monthly.length, 13);
+        const [todayYear = 0, todayMonth = 0] = today.split("-").map(Number);
+        assert.equal(
+          result.monthly.length,
+          (todayYear - 2023) * 12 + todayMonth
+        );
         assert.equal(
           result.monthly.reduce((sum, month) => sum + month.contributions, 0),
           112

@@ -48,10 +48,19 @@ const styles = stylex.create({
   list: {
     flexBasis: 0,
     flexGrow: 1,
-    marginTop: "0.75rem",
-    maskImage: "linear-gradient(to bottom, #000 70%, transparent)",
+    marginTop: { default: 0, [media.stack]: "0.75rem" },
+    maskImage: {
+      default:
+        "linear-gradient(to bottom, transparent, #000 0.75rem, #000 calc(100% - 4rem), transparent)",
+      [media.stack]: "linear-gradient(to bottom, #000 70%, transparent)",
+    },
     minHeight: { default: 0, [media.stack]: "26rem" },
-    overflow: "hidden",
+    overflowX: "hidden",
+    overflowY: { default: "auto", [media.stack]: "hidden" },
+    paddingBottom: { default: "3rem", [media.stack]: 0 },
+    paddingTop: { default: "0.75rem", [media.stack]: 0 },
+    scrollbarColor: `${color.line} transparent`,
+    scrollbarWidth: "thin",
   },
   more: {
     marginTop: "1rem",

@@ -145,7 +145,13 @@
     "updated": "更新：",
     "recentlyMerged": "最近マージされたPR",
     "allMerged": "マージされたPRをGitHubで見る",
-    "soFar": "現在まで"
+    "soFar": "現在まで",
+    "history": "2023年からの月ごとのコントリビューション",
+    "milestones": {
+      "yamada": "Yamada UIの手伝いを始める",
+      "zen": "Zen Browserに参加",
+      "hazumi": "Hazumiで働き始める"
+    }
   },
   "timeline": {
     "intro": "2024年からの仕事や活動をまとめました。大学と並行して、いくつか掛け持ちしていた時期もあります。",
