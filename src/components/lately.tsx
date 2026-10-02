@@ -40,12 +40,20 @@ const styles = stylex.create({
     flexDirection: "column",
   },
   item: {
-    borderTopColor: {
+    borderBottomColor: {
       default: "rgb(228 220 209 / 0.7)",
-      ":first-child": "transparent",
+      ":last-child": "transparent",
+      [media.hover]: {
+        default: "rgb(228 220 209 / 0.7)",
+        ":last-child": "transparent",
+        ":hover": "transparent",
+        ":has(+ :hover)": "transparent",
+      },
     },
-    borderTopStyle: "solid",
-    borderTopWidth: 1,
+    borderBottomStyle: "solid",
+    borderBottomWidth: 1,
+    transitionDuration: "150ms",
+    transitionProperty: "border-color",
   },
   list: {
     animationName: {
@@ -56,6 +64,7 @@ const styles = stylex.create({
     animationTimingFunction: "linear",
     flexBasis: 0,
     flexGrow: 1,
+    marginInline: "-0.65rem",
     marginTop: { default: 0, [media.stack]: "0.75rem" },
     maskImage: {
       default:
@@ -71,6 +80,7 @@ const styles = stylex.create({
     overflowX: "hidden",
     overflowY: { default: "auto", [media.stack]: "hidden" },
     paddingBottom: { default: "3rem", [media.stack]: 0, [SCROLL_FADE]: 0 },
+    paddingInline: "0.65rem",
     paddingTop: { default: "0.75rem", [media.stack]: 0 },
     scrollbarColor: `${color.line} transparent`,
     scrollbarWidth: "thin",
