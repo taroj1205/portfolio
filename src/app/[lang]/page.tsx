@@ -730,6 +730,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
           locale={locale}
           monthly={github.monthly}
           recent={github.recent}
+          total={github.total}
           updated={updated}
         />
       </Section>

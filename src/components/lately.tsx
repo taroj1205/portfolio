@@ -3,7 +3,7 @@ import Image from "next/image";
 
 import { ContributionsChart } from "@/components/contributions-chart";
 import { Arrow } from "@/components/icons";
-import { day, splitTitle } from "@/lib/format";
+import { day, fmt, splitTitle } from "@/lib/format";
 import type { GitHub } from "@/lib/github";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
@@ -155,8 +155,9 @@ export const Lately = ({
   locale,
   monthly,
   recent,
+  total,
   updated,
-}: Pick<GitHub, "contributionTotal" | "monthly" | "recent"> & {
+}: Pick<GitHub, "contributionTotal" | "monthly" | "recent" | "total"> & {
   updated: string;
   locale: Locale;
 }) => {
@@ -220,7 +221,10 @@ export const Lately = ({
           href="https://github.com/search?q=author%3Ataroj1205+is%3Apr+is%3Amerged&type=pullrequests&s=updated&o=desc"
           {...stylex.props(shared.textLink, shared.pressable, styles.more)}
         >
-          {t("activity.allMerged", "Every merged PR on GitHub")}
+          {t("activity.allMerged", "All {total} merged PRs on GitHub").replace(
+            "{total}",
+            fmt(total, locale)
+          )}
           <Arrow />
         </a>
       </div>

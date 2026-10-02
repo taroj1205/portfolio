@@ -144,7 +144,7 @@
     "contributionCount": "件のコントリビューション",
     "updated": "更新：",
     "recentlyMerged": "最近マージされたPR",
-    "allMerged": "マージされたPRをGitHubで見る",
+    "allMerged": "マージされた{total}件のPRをすべてGitHubで見る",
     "soFar": "現在まで",
     "history": "2023年からの月ごとのコントリビューション",
     "milestones": {
