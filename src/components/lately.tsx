@@ -40,18 +40,18 @@ const styles = stylex.create({
     flexDirection: "column",
   },
   item: {
-    borderBottomColor: {
+    borderTopColor: {
       default: "rgb(228 220 209 / 0.7)",
-      ":last-child": "transparent",
+      ":first-child": "transparent",
       [media.hover]: {
         default: "rgb(228 220 209 / 0.7)",
-        ":last-child": "transparent",
+        ":first-child": "transparent",
         ":hover": "transparent",
-        ":has(+ :hover)": "transparent",
+        ":is(:hover + *)": "transparent",
       },
     },
-    borderBottomStyle: "solid",
-    borderBottomWidth: 1,
+    borderTopStyle: "solid",
+    borderTopWidth: 1,
     transitionDuration: "150ms",
     transitionProperty: "border-color",
   },
