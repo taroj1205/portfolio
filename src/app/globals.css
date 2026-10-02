@@ -135,6 +135,38 @@
   initial-value: 0;
 }
 
+@property --fade-top {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --fade-bottom {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 64px;
+}
+
+@keyframes feed-edges {
+  0% {
+    --fade-bottom: 64px;
+    --fade-top: 0px;
+  }
+
+  12% {
+    --fade-top: 24px;
+  }
+
+  88% {
+    --fade-bottom: 64px;
+  }
+
+  100% {
+    --fade-bottom: 0px;
+    --fade-top: 24px;
+  }
+}
+
 :active-view-transition-type(forward) {
   --turn: 1;
 }

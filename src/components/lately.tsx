@@ -11,6 +11,8 @@ import { shared } from "@/styles/shared";
 
 import { color, ease, font, media } from "../styles/tokens.stylex";
 
+const SCROLL_FADE = "@supports (animation-timeline: scroll())";
+
 const styles = stylex.create({
   avatar: {
     backgroundColor: color.paperDeep,
@@ -46,6 +48,12 @@ const styles = stylex.create({
     borderTopWidth: 1,
   },
   list: {
+    animationName: {
+      default: null,
+      [SCROLL_FADE]: { default: "feed-edges", [media.stack]: null },
+    },
+    animationTimeline: { default: null, [SCROLL_FADE]: "scroll(self)" },
+    animationTimingFunction: "linear",
     flexBasis: 0,
     flexGrow: 1,
     marginTop: { default: 0, [media.stack]: "0.75rem" },
@@ -53,11 +61,16 @@ const styles = stylex.create({
       default:
         "linear-gradient(to bottom, transparent, #000 0.75rem, #000 calc(100% - 4rem), transparent)",
       [media.stack]: "linear-gradient(to bottom, #000 70%, transparent)",
+      [SCROLL_FADE]: {
+        default:
+          "linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent)",
+        [media.stack]: "linear-gradient(to bottom, #000 70%, transparent)",
+      },
     },
     minHeight: { default: 0, [media.stack]: "26rem" },
     overflowX: "hidden",
     overflowY: { default: "auto", [media.stack]: "hidden" },
-    paddingBottom: { default: "3rem", [media.stack]: 0 },
+    paddingBottom: { default: "3rem", [media.stack]: 0, [SCROLL_FADE]: 0 },
     paddingTop: { default: "0.75rem", [media.stack]: 0 },
     scrollbarColor: `${color.line} transparent`,
     scrollbarWidth: "thin",
