@@ -454,7 +454,7 @@ export const ContributionsChart = ({
               onClick={() => {
                 const i = monthly.findIndex((m) => m.month.startsWith(year));
                 select(i);
-                reveal(i, "start");
+                reveal(i, "start")?.focus({ preventScroll: true });
               }}
               type="button"
               {...stylex.props(
