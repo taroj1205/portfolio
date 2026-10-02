@@ -11,6 +11,7 @@ const REVIEWED = `is:pr is:public reviewed-by:${USER} -author:${USER}`;
 // Where I'm a member or maintainer. Anything else counts as upstream.
 const HOME_ORGS = ["zen-browser", "yamada-ui", "Hazumi-Inc", "UoaWDCC"];
 const UPSTREAM_MIN_STARS = 500;
+const FIRST_YEAR = 2023;
 
 const searches = {
   recent: [`${PUBLIC_OTHERS} sort:updated-desc`, 100],
@@ -78,10 +79,7 @@ const response = z.object({
     recent: search,
     total: count,
     upstream: search,
-    user: z.object({
-      contributionsCollection: contributionCollection,
-      earlierContributions: contributionCollection,
-    }),
+    user: z.record(z.string(), z.unknown()),
     yamada: count,
     yamadaIssues: count,
     yamadaReviewed: count,
@@ -111,12 +109,17 @@ const fetchGitHub = async () => {
     from.setUTCDate(0);
   }
   from.setUTCDate(from.getUTCDate() + 1);
-  const graphFrom = new Date(
-    Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), 1)
-  );
   const earlierTo = new Date(from.getTime() - 1);
   const firstDay = from.toISOString().slice(0, 10);
-  const lastDay = now.toISOString().slice(0, 10);
+  const ranges: { alias: string; from: Date; to: Date }[] = [];
+  for (let year = FIRST_YEAR; Date.UTC(year, 0) < from.getTime(); year += 1) {
+    ranges.push({
+      alias: `history${year}`,
+      from: new Date(Date.UTC(year, 0)),
+      to: new Date(Math.min(Date.UTC(year + 1, 0) - 1, earlierTo.getTime())),
+    });
+  }
+  ranges.push({ alias: "contributionsCollection", from, to: now });
   const query = `{
     ${Object.entries(searches)
       .map(
@@ -128,12 +131,14 @@ const fetchGitHub = async () => {
       )
       .join("\n")}
     user(login: "${USER}") {
-      earlierContributions: contributionsCollection(from: "${graphFrom.toISOString()}", to: "${earlierTo.toISOString()}") {
-        contributionCalendar { weeks { contributionDays { date contributionCount } } }
-      }
-      contributionsCollection(from: "${from.toISOString()}", to: "${now.toISOString()}") {
-        contributionCalendar { weeks { contributionDays { date contributionCount } } }
-      }
+      ${ranges
+        .map(
+          (range) =>
+            `${range.alias}: contributionsCollection(from: "${range.from.toISOString()}", to: "${range.to.toISOString()}") {
+              contributionCalendar { weeks { contributionDays { date contributionCount } } }
+            }`
+        )
+        .join("\n")}
     }
   }`;
 
@@ -171,21 +176,15 @@ const fetchGitHub = async () => {
   const { data } = response.parse(payload);
 
   const monthly = new Map<string, number>();
-  for (let i = 0; i < 13; i += 1) {
-    const month = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 12 + i)
-    );
-    monthly.set(month.toISOString().slice(0, 7), 0);
+  const months = (now.getUTCFullYear() - FIRST_YEAR) * 12 + now.getUTCMonth();
+  for (let i = 0; i <= months; i += 1) {
+    monthly.set(new Date(Date.UTC(FIRST_YEAR, i)).toISOString().slice(0, 7), 0);
   }
   let contributionTotal = 0;
-  for (const [collection, start, end] of [
-    [
-      data.user.earlierContributions,
-      graphFrom.toISOString().slice(0, 10),
-      earlierTo.toISOString().slice(0, 10),
-    ],
-    [data.user.contributionsCollection, firstDay, lastDay],
-  ] as const) {
+  for (const range of ranges) {
+    const collection = contributionCollection.parse(data.user[range.alias]);
+    const start = range.from.toISOString().slice(0, 10);
+    const end = range.to.toISOString().slice(0, 10);
     for (const week of collection.contributionCalendar.weeks) {
       for (const day of week.contributionDays) {
         if (day.date < start || day.date > end) {
@@ -234,7 +233,12 @@ const fetchGitHub = async () => {
 // every caller the same hourly snapshot without a new timestamped request.
 export const getGitHub = unstable_cache(
   fetchGitHub,
-  [USER, JSON.stringify(searches), String(UPSTREAM_MIN_STARS)],
+  [
+    USER,
+    JSON.stringify(searches),
+    String(UPSTREAM_MIN_STARS),
+    String(FIRST_YEAR),
+  ],
   { revalidate: 3600 }
 );
 

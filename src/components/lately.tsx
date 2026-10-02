@@ -3,13 +3,15 @@ import Image from "next/image";
 
 import { ContributionsChart } from "@/components/contributions-chart";
 import { Arrow } from "@/components/icons";
-import { day, splitTitle } from "@/lib/format";
+import { day, fmt, splitTitle } from "@/lib/format";
 import type { GitHub } from "@/lib/github";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { shared } from "@/styles/shared";
 
 import { color, ease, font, media } from "../styles/tokens.stylex";
+
+const SCROLL_FADE = "@supports (animation-timeline: scroll())";
 
 const styles = stylex.create({
   avatar: {
@@ -46,12 +48,32 @@ const styles = stylex.create({
     borderTopWidth: 1,
   },
   list: {
+    animationName: {
+      default: null,
+      [SCROLL_FADE]: { default: "feed-edges", [media.stack]: null },
+    },
+    animationTimeline: { default: null, [SCROLL_FADE]: "scroll(self)" },
+    animationTimingFunction: "linear",
     flexBasis: 0,
     flexGrow: 1,
-    marginTop: "0.75rem",
-    maskImage: "linear-gradient(to bottom, #000 70%, transparent)",
+    marginTop: { default: 0, [media.stack]: "0.75rem" },
+    maskImage: {
+      default:
+        "linear-gradient(to bottom, transparent, #000 0.75rem, #000 calc(100% - 4rem), transparent)",
+      [media.stack]: "linear-gradient(to bottom, #000 70%, transparent)",
+      [SCROLL_FADE]: {
+        default:
+          "linear-gradient(to bottom, transparent, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent)",
+        [media.stack]: "linear-gradient(to bottom, #000 70%, transparent)",
+      },
+    },
     minHeight: { default: 0, [media.stack]: "26rem" },
-    overflow: "hidden",
+    overflowX: "hidden",
+    overflowY: { default: "auto", [media.stack]: "hidden" },
+    paddingBottom: { default: "3rem", [media.stack]: 0, [SCROLL_FADE]: 0 },
+    paddingTop: { default: "0.75rem", [media.stack]: 0 },
+    scrollbarColor: `${color.line} transparent`,
+    scrollbarWidth: "thin",
   },
   more: {
     marginTop: "1rem",
@@ -133,8 +155,9 @@ export const Lately = ({
   locale,
   monthly,
   recent,
+  total,
   updated,
-}: Pick<GitHub, "contributionTotal" | "monthly" | "recent"> & {
+}: Pick<GitHub, "contributionTotal" | "monthly" | "recent" | "total"> & {
   updated: string;
   locale: Locale;
 }) => {
@@ -195,10 +218,13 @@ export const Lately = ({
           })}
         </ul>
         <a
-          href="https://github.com/search?q=author%3Ataroj1205+is%3Apr+is%3Amerged&type=pullrequests&s=updated&o=desc"
+          href="https://github.com/search?q=author%3Ataroj1205+is%3Apr+is%3Amerged+is%3Apublic&type=pullrequests&s=updated&o=desc"
           {...stylex.props(shared.textLink, shared.pressable, styles.more)}
         >
-          {t("activity.allMerged", "Every merged PR on GitHub")}
+          {t("activity.allMerged", "All {total} merged PRs on GitHub").replace(
+            "{total}",
+            fmt(total, locale)
+          )}
           <Arrow />
         </a>
       </div>
