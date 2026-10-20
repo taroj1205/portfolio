@@ -372,6 +372,7 @@ interface HudProps {
   popup: Popup | null;
   challenge: Result | null;
   tutorial: boolean;
+  onReset: () => void;
   onWorkshop: () => void;
   opener: RefObject<HTMLButtonElement | null>;
   valueRef: RefObject<HTMLSpanElement | null>;
@@ -397,12 +398,31 @@ const Challenge = ({ challenge }: { challenge: Result }) => {
   );
 };
 
+const Replay = () => (
+  <svg
+    aria-hidden="true"
+    fill="none"
+    height="20"
+    viewBox="0 0 24 24"
+    width="20"
+  >
+    <path
+      d="M4 12a8 8 0 1 0 2.6-5.9M4 4v4.5h4.5"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
 const Corner = ({
   phase,
   save,
+  onReset,
   onWorkshop,
   opener,
-}: Pick<HudProps, "phase" | "save" | "onWorkshop" | "opener">) => {
+}: Pick<HudProps, "phase" | "save" | "onReset" | "onWorkshop" | "opener">) => {
   const copy = useCopy();
   return (
     <div {...stylex.props(styles.corner)}>
@@ -435,6 +455,16 @@ const Corner = ({
           ) : null}
         </button>
       ) : null}
+      {phase === "flying" ? (
+        <button
+          aria-label={copy.reset}
+          onClick={onReset}
+          type="button"
+          {...stylex.props(glass.surface, styles.mute)}
+        >
+          <Replay />
+        </button>
+      ) : null}
     </div>
   );
 };
@@ -448,6 +478,7 @@ export const Hud = ({
   popup,
   challenge,
   tutorial,
+  onReset,
   onWorkshop,
   opener,
   valueRef,
@@ -470,6 +501,7 @@ export const Hud = ({
           </span>
         </div>
         <Corner
+          onReset={onReset}
           onWorkshop={onWorkshop}
           opener={opener}
           phase={phase}

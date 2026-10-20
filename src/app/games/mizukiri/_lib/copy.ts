@@ -8,6 +8,7 @@ export interface Copy {
   title: string;
   best: string;
   openWorkshop: string;
+  reset: string;
   skipUnit: string;
   combo: (count: number) => string;
   hints: { ready: string; aiming: string; flying: string };
@@ -102,6 +103,7 @@ export const copy: Record<Lang, Copy> = {
       plain: (quality) => `${quality}%`,
       steep: " too steep",
     },
+    reset: "Throw again",
     result: {
       again: "Again",
       levelUp: "Level up",
@@ -183,6 +185,7 @@ export const copy: Record<Lang, Copy> = {
       plain: (quality) => `${quality}%`,
       steep: " 立てすぎ",
     },
+    reset: "投げ直す",
     result: {
       again: "もう一回",
       levelUp: "レベルアップ",
