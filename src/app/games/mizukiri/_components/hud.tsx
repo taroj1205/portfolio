@@ -225,6 +225,20 @@ const styles = stylex.create({
     fontSize: "0.7em",
     marginInlineStart: "0.1em",
   },
+  pace: {
+    color: ink.soft,
+    fontFamily: font.mincho,
+    fontSize: "0.95rem",
+    fontVariantNumeric: "tabular-nums",
+    fontWeight: 700,
+    letterSpacing: "calc(0.08em * var(--track, 1))",
+    marginTop: "0.2rem",
+    textShadow: shade.small,
+  },
+  paceUnit: {
+    fontSize: "0.75em",
+    marginInlineStart: "0.3em",
+  },
   combo: {
     animationDuration: "900ms",
     animationIterationCount: "infinite",
@@ -381,6 +395,7 @@ interface HudProps {
   onReset: () => void;
   onWorkshop: () => void;
   opener: RefObject<HTMLButtonElement | null>;
+  paceRef: RefObject<HTMLSpanElement | null>;
   valueRef: RefObject<HTMLSpanElement | null>;
   unitRef: RefObject<HTMLSpanElement | null>;
 }
@@ -487,6 +502,7 @@ export const Hud = ({
   onReset,
   onWorkshop,
   opener,
+  paceRef,
   valueRef,
   unitRef,
 }: HudProps) => {
@@ -531,6 +547,10 @@ export const Hud = ({
         <span key={skips} {...stylex.props(styles.count)}>
           {skips}
           <span {...stylex.props(styles.countUnit)}>{copy.skipUnit}</span>
+        </span>
+        <span {...stylex.props(styles.pace)}>
+          <span ref={paceRef}>0</span>
+          <span {...stylex.props(styles.paceUnit)}>km/h</span>
         </span>
         {combo >= 2 ? (
           <span {...stylex.props(styles.combo)}>{copy.combo(combo)}</span>

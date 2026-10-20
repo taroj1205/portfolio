@@ -108,6 +108,7 @@ export const Game = ({
   const waterRef = useRef<HTMLCanvasElement>(null);
   const meterValue = useRef<HTMLSpanElement>(null);
   const meterUnit = useRef<HTMLSpanElement>(null);
+  const paceValue = useRef<HTMLSpanElement>(null);
   const session = useRef<ReturnType<typeof startSession> | null>(null);
   const shouts = useRef(0);
   const [phase, setPhase] = useState<Phase>("ready");
@@ -173,6 +174,13 @@ export const Game = ({
                 shout(releaseCall(release));
               },
               save: setSave,
+              speed: (metersPerSecond) => {
+                if (paceValue.current) {
+                  paceValue.current.textContent = String(
+                    Math.round(metersPerSecond * 3.6)
+                  );
+                }
+              },
               zone: (name) => {
                 shouts.current += 1;
                 setBanner({ id: shouts.current, name });
@@ -213,6 +221,7 @@ export const Game = ({
         }}
         opener={opener}
         combo={combo}
+        paceRef={paceValue}
         unitRef={meterUnit}
         valueRef={meterValue}
         phase={phase}
