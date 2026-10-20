@@ -1,0 +1,27 @@
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+  }
+
+  button {
+    font: inherit;
+  }
+}
+
+:root {
+  --track: 1;
+}
+
+:root:lang(en) {
+  --track: 0.25;
+}
+
+@stylex;
