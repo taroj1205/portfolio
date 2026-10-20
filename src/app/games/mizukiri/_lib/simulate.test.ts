@@ -2,7 +2,15 @@ import assert from "node:assert/strict";
 
 import { describe, test } from "vite-plus/test";
 
-import { firstLook } from "./cosmetics";
+import {
+  comboOf,
+  firstLook,
+  noteOf,
+  peaksOf,
+  stoneFrom,
+  traitsOf,
+} from "./cosmetics";
+import { postUrl, readResult, resultOf } from "./result";
 import { pointsLeft, progressOf, seen, settle, tune, wear } from "./save";
 import type { Save } from "./save";
 import {
@@ -159,21 +167,58 @@ describe("throw quality", () => {
   });
 });
 
-describe("forms", () => {
+const statsFor = (color: string, form: string) =>
+  statsOf(bare, traitsOf({ color, form }));
+
+const keepOf = (color: string, form: string) => traitsOf({ color, form }).keep;
+
+describe("stones", () => {
   test("each form trades strengths in its stats", () => {
-    const oval = statsOf(bare, "oval");
-    const flatForm = statsOf(bare, "flat");
-    const heart = statsOf(bare, "heart");
+    const oval = statsFor("river", "oval");
+    const flatForm = statsFor("river", "flat");
+    const heart = statsFor("river", "heart");
     assert.ok(flatForm.keep > oval.keep && flatForm.lift < oval.lift);
     assert.ok(heart.impact > oval.impact && heart.speed < oval.speed);
   });
 
   test("a flat stone keeps going longer without taps than a round one", () => {
     const river = createRiver(29);
-    assert.ok(
-      play(launch(river, flat, bare, "flat"), null).skips >
-        play(launch(river, flat, bare, "round"), null).skips
+    const skipsOf = (form: string) =>
+      play(launch(river, flat, bare, traitsOf({ color: "river", form })), null)
+        .skips;
+    assert.ok(skipsOf("flat") > skipsOf("round"));
+  });
+
+  test("a matching pair adds its combo bonus on top", () => {
+    assert.equal(comboOf({ color: "slate", form: "flat" })?.name, "碁石");
+    const flatGain = keepOf("river", "flat") - keepOf("river", "oval");
+    const goGain = keepOf("slate", "flat") - keepOf("slate", "oval");
+    assert.ok(goGain > flatGain);
+    assert.equal(noteOf({ keep: 2, lift: -1 }), "粘り↑↑ 跳ね↓");
+    assert.equal(noteOf({}), "クセなし");
+    assert.deepEqual(peaksOf({ focus: 3, keep: 1, lift: -1, speed: -2 }), {
+      focus: 3,
+      speed: -2,
+    });
+  });
+
+  test("a posted run carries its stone into the shared link", () => {
+    const flight = play(launch(createRiver(5), flat, bare), null);
+    const posted = new URL(
+      postUrl(resultOf(flight, { color: "jade", form: "bean" }), "https://x.y")
     );
+    assert.match(posted.searchParams.get("text") ?? "", /勾玉/u);
+    const shared = new URL(posted.searchParams.get("url") ?? "");
+    assert.deepEqual(
+      readResult(Object.fromEntries(shared.searchParams))?.stone,
+      { color: "jade", form: "bean" }
+    );
+  });
+
+  test("a shared build survives the link round trip", () => {
+    assert.deepEqual(stoneFrom("jade.bean"), { color: "jade", form: "bean" });
+    assert.equal(stoneFrom("jade.nope"), null);
+    assert.equal(stoneFrom("nope"), null);
   });
 });
 
@@ -182,6 +227,7 @@ describe("save", () => {
     best: 0,
     combo: 0,
     divine: false,
+    found: [],
     gear: bare,
     look: firstLook,
     runs: 0,
@@ -211,6 +257,16 @@ describe("save", () => {
     assert.ok(lowered);
     assert.equal(pointsLeft(lowered), points);
     assert.equal(tune(lowered, "power", -1), null);
+  });
+
+  test("wearing a combo pair records the discovery", () => {
+    const black = {
+      ...empty,
+      best: 1e6,
+      look: { ...firstLook, color: "slate" },
+      xp: 1e9,
+    };
+    assert.deepEqual(wear(black, "form", "flat")?.found, ["go"]);
   });
 
   test("a look can only be worn once it is unlocked", () => {

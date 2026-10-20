@@ -1,6 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import type { RefObject } from "react";
 
+import { nameOf } from "../_lib/cosmetics";
 import { describe, formatDistance } from "../_lib/result";
 import type { Result } from "../_lib/result";
 import { pointsLeft, progressOf } from "../_lib/save";
@@ -364,6 +365,19 @@ interface HudProps {
   unitRef: RefObject<HTMLSpanElement | null>;
 }
 
+const Challenge = ({ challenge }: { challenge: Result }) => (
+  <div {...stylex.props(glass.surface, styles.challenge)}>
+    <span {...stylex.props(styles.label)}>届いた記録</span>
+    <p {...stylex.props(styles.challengeTitle)}>
+      {formatDistance(challenge.distance)} · {describe(challenge).title}
+    </p>
+    {challenge.stone === null ? null : (
+      <span {...stylex.props(styles.label)}>石：{nameOf(challenge.stone)}</span>
+    )}
+    <span {...stylex.props(styles.label)}>超えられる？</span>
+  </div>
+);
+
 export const Hud = ({
   banner,
   phase,
@@ -464,15 +478,7 @@ export const Hud = ({
         </div>
       )}
 
-      {challenge && !counting ? (
-        <div {...stylex.props(glass.surface, styles.challenge)}>
-          <span {...stylex.props(styles.label)}>届いた記録</span>
-          <p {...stylex.props(styles.challengeTitle)}>
-            {formatDistance(challenge.distance)} · {describe(challenge).title}
-          </p>
-          <span {...stylex.props(styles.label)}>超えられる？</span>
-        </div>
-      ) : null}
+      {challenge && !counting ? <Challenge challenge={challenge} /> : null}
 
       {hint === undefined ? null : (
         <div {...stylex.props(styles.hint)}>

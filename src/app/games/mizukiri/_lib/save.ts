@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { firstLook, isOpen, keyOf, opened, parts } from "./cosmetics";
+import { comboOf, firstLook, isOpen, keyOf, opened, parts } from "./cosmetics";
 import type { Item, Look, Part, Progress } from "./cosmetics";
 import { zoneIndex } from "./simulate";
 import type { Flight, Gear } from "./simulate";
@@ -12,6 +12,7 @@ const schema = z.object({
   best: z.number().min(0),
   combo: z.number().int().min(0),
   divine: z.boolean(),
+  found: z.array(z.string()).default([]),
   gear: z.object({ focus: level, power: level, stone: level }),
   look: z.object({
     color: z.string(),
@@ -35,6 +36,7 @@ const fresh: Save = {
   best: 0,
   combo: 0,
   divine: false,
+  found: [],
   gear: { focus: 0, power: 0, stone: 0 },
   look: firstLook,
   runs: 0,
@@ -130,7 +132,12 @@ export const wear = (save: Save, part: Part, id: string): Save | null => {
     return null;
   }
   const look: Look = { ...save.look, [part]: id };
-  return { ...save, look };
+  const combo = comboOf(look);
+  const found =
+    combo === null || save.found.includes(combo.id)
+      ? save.found
+      : [...save.found, combo.id];
+  return { ...save, found, look };
 };
 
 export const settle = (save: Save, flight: Flight) => {

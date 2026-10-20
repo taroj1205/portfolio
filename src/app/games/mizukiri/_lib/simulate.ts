@@ -193,7 +193,7 @@ export const propsIn = (river: River, from: number, to: number) => {
   return props;
 };
 
-interface Traits {
+export interface Traits {
   speed: number;
   keep: number;
   lift: number;
@@ -201,37 +201,28 @@ interface Traits {
   impact: number;
 }
 
-const FORMS = new Map<string, Traits>([
-  ["oval", { focus: 1, impact: 1, keep: 0, lift: 1, speed: 1 }],
-  ["round", { focus: 1.2, impact: 1, keep: -0.02, lift: 1.25, speed: 0.95 }],
-  ["flat", { focus: 0.9, impact: 0.85, keep: 0.025, lift: 0.8, speed: 1.08 }],
-  ["heart", { focus: 1.1, impact: 1.6, keep: -0.01, lift: 1.05, speed: 0.92 }],
-]);
-
-const traitsOf = (form: string): Traits =>
-  FORMS.get(form) ?? { focus: 1, impact: 1, keep: 0, lift: 1, speed: 1 };
+export const plain: Traits = {
+  focus: 1,
+  impact: 1,
+  keep: 0,
+  lift: 1,
+  speed: 1,
+};
 
 const span = (value: number, low: number, high: number) =>
   Math.min(1, Math.max(0, (value - low) / (high - low)));
 
-export const statsOf = (gear: Gear, form: string) => {
-  const traits = traitsOf(form);
-  return {
-    focus: span(
-      (0.06 + 0.06 * (1 - 0.9 ** gear.focus)) * traits.focus,
-      0.04,
-      0.15
-    ),
-    impact: span(traits.impact, 0.6, 1.8),
-    keep: span(
-      0.86 + 0.06 * (1 - 0.88 ** gear.stone) + traits.keep,
-      0.82,
-      0.95
-    ),
-    lift: span(traits.lift, 0.6, 1.4),
-    speed: span((1 + 0.15 * gear.power) * traits.speed, 0.8, 3.2),
-  };
-};
+export const statsOf = (gear: Gear, traits: Traits) => ({
+  focus: span(
+    (0.06 + 0.06 * (1 - 0.9 ** gear.focus)) * traits.focus,
+    0.01,
+    0.135
+  ),
+  impact: span(traits.impact, 0.2, 2.2),
+  keep: span(0.86 + 0.06 * (1 - 0.88 ** gear.stone) + traits.keep, 0.8, 0.95),
+  lift: span(traits.lift, 0.4, 1.9),
+  speed: span((1 + 0.15 * gear.power) * traits.speed, 0.2, 2.2),
+});
 
 export const qualityOf = (input: ThrowInput) => {
   const angle = Math.exp(-(((input.tilt - 20) / 6) ** 2));
@@ -383,9 +374,8 @@ export const launch = (
   river: River,
   input: ThrowInput,
   gear: Gear,
-  form = "oval"
+  traits = plain
 ): Flight => {
-  const traits = traitsOf(form);
   const hold = grip(input.tilt);
   const quality = qualityOf(input);
   const speed =

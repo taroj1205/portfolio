@@ -1,7 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import Link from "next/link";
 
-import { keyOf, parts } from "../_lib/cosmetics";
+import { keyOf, noteOf, parts } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
 import { describe, distanceParts, postUrl } from "../_lib/result";
 import { pointsLeft, progressOf } from "../_lib/save";
@@ -391,8 +391,10 @@ export const ResultSheet = ({
                     新しい{PART_NAMES.get(part)}
                   </span>
                   <span {...stylex.props(styles.name)}>{option.name}</span>
-                  {option.note === undefined ? null : (
-                    <span {...stylex.props(styles.note)}>{option.note}</span>
+                  {option.perks === undefined ? null : (
+                    <span {...stylex.props(styles.note)}>
+                      {noteOf(option.perks)}
+                    </span>
                   )}
                 </span>
                 <span {...stylex.props(styles.wear, worn && styles.wearOn)}>

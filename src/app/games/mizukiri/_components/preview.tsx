@@ -2,6 +2,7 @@ import * as stylex from "@stylexjs/stylex";
 
 import { colorOf } from "../_lib/cosmetics";
 import type { Item } from "../_lib/cosmetics";
+import { outlineOf } from "../_lib/sprites";
 
 const styles = stylex.create({
   glyph: {
@@ -44,28 +45,18 @@ const TRAIL_PREVIEW = new Map<string, string>([
   ["spray", "linear-gradient(90deg, transparent, #9fc3dd, #ffffff)"],
 ]);
 
-const FORM_PATH = new Map<string, string>([
-  ["flat", "M4 16c0-4 10-6 22-6s22 2 22 6-10 6-22 6S4 20 4 16z"],
-  [
-    "heart",
-    "M26 28C14 20 8 15 8 10a7 7 0 0 1 18-2 7 7 0 0 1 18 2c0 5-6 10-18 18z",
-  ],
-  ["oval", "M6 16c0-6 9-10 20-10s20 4 20 10-9 10-20 10S6 22 6 16z"],
-  ["round", "M12 16a14 13 0 1 0 28 0a14 13 0 1 0-28 0z"],
-]);
-
 export const Preview = ({ part, option }: Item) => {
   if (part === "form") {
     return (
       <svg
         aria-hidden="true"
-        viewBox="0 0 52 32"
+        viewBox="0 0 256 160"
         {...stylex.props(styles.glyph)}
       >
-        <path
-          d={FORM_PATH.get(option.id) ?? ""}
+        <polygon
           fill="currentColor"
           opacity="0.85"
+          points={outlineOf(option.id).join(" ")}
         />
       </svg>
     );

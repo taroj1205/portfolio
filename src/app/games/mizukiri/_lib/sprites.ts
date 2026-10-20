@@ -40,43 +40,120 @@ const shade = (ctx: CanvasRenderingContext2D, tint: Tint) => {
   ctx.restore();
 };
 
-const radii = new Map<string, [number, number]>([
-  ["flat", [122, 48]],
-  ["oval", [118, 70]],
-  ["round", [86, 80]],
+type Curve = (t: number) => [number, number];
+
+const ellipse =
+  (rx: number, ry: number): Curve =>
+  (t) => [rx * Math.cos(t), ry * Math.sin(t)];
+
+const polar =
+  (rx: number, ry: number, radius: (t: number) => number): Curve =>
+  (t) => [rx * radius(t) * Math.cos(t), ry * radius(t) * Math.sin(t)];
+
+const lower =
+  (by: number, curve: Curve): Curve =>
+  (t) => {
+    const [x, y] = curve(t);
+    return [x, y + by];
+  };
+
+const crescent: Curve = (t) => {
+  const tip = 1.016;
+  if (t < Math.PI) {
+    const a = tip + (t / Math.PI) * (2 * Math.PI - 2 * tip);
+    return [110 * (Math.cos(a) + 0.24), 80 * Math.sin(a)];
+  }
+  const a = 4.686 - ((t - Math.PI) / Math.PI) * 3.09;
+  return [110 * (0.79 + 0.85 * Math.cos(a)), 80 * 0.85 * Math.sin(a)];
+};
+
+const CURVES = new Map<string, Curve>([
+  [
+    "bean",
+    (t) => {
+      const [x, y] = ellipse(112, 70)(t);
+      const dent = Math.atan2(
+        Math.sin(t + Math.PI / 2),
+        Math.cos(t + Math.PI / 2)
+      );
+      return [x, y + 30 * Math.exp(-((dent / 0.6) ** 2))];
+    },
+  ],
+  ["crescent", crescent],
+  ["drop", (t) => [118 * Math.cos(t), 92 * Math.sin(t) * Math.sin(t / 2)]],
+  ["flat", ellipse(122, 48)],
+  [
+    "gourd",
+    (t) => [
+      118 * Math.cos(t),
+      104 *
+        Math.sin(t) *
+        (0.5 + 0.22 * Math.cos(2 * t)) *
+        (1 - 0.18 * Math.cos(t)),
+    ],
+  ],
+  [
+    "heart",
+    (t) => [
+      105.6 * Math.sin(t) ** 3,
+      -4.3 *
+        (13 * Math.cos(t) -
+          5 * Math.cos(2 * t) -
+          2 * Math.cos(3 * t) -
+          Math.cos(4 * t)) -
+        4,
+    ],
+  ],
+  [
+    "leaf",
+    (t) => [
+      120 * Math.cos(t),
+      66 * Math.sin(t) * Math.abs(Math.sin(t)) - 10 * Math.cos(t) ** 2 + 5,
+    ],
+  ],
+  [
+    "triangle",
+    lower(
+      10,
+      polar(90, 74, (t) => 1 + 0.13 * Math.cos(3 * (t + Math.PI / 2)))
+    ),
+  ],
+  ["oval", ellipse(118, 70)],
+  ["round", ellipse(86, 80)],
+  [
+    "square",
+    (t) => [
+      100 * Math.sign(Math.cos(t)) * Math.abs(Math.cos(t)) ** 0.45,
+      72 * Math.sign(Math.sin(t)) * Math.abs(Math.sin(t)) ** 0.45,
+    ],
+  ],
+  [
+    "star",
+    lower(
+      8,
+      polar(90, 80, (t) => 0.74 + 0.26 * Math.cos(5 * (t + Math.PI / 2)))
+    ),
+  ],
 ]);
 
-const outlineOf = (form: string, random: () => number) => {
-  const outline: [number, number][] = [];
-  if (form === "heart") {
-    for (let i = 0; i <= 64; i += 1) {
-      const t = (i / 64) * TAU;
-      outline.push([
-        128 + 16 * Math.sin(t) ** 3 * 6.6,
-        76 -
-          (13 * Math.cos(t) -
-            5 * Math.cos(2 * t) -
-            2 * Math.cos(3 * t) -
-            Math.cos(4 * t)) *
-            4.3,
-      ]);
-    }
-    return outline;
-  }
-  const [rx, ry] = radii.get(form) ?? [118, 70];
+export const outlineOf = (form: string): [number, number][] => {
+  const curve = CURVES.get(form) ?? ellipse(118, 70);
+  return Array.from({ length: 97 }, (_, i) => {
+    const [x, y] = curve((i / 96) * TAU);
+    return [128 + x, 80 + y];
+  });
+};
+
+const roughen = (outline: [number, number][], random: () => number) => {
   const phases = Array.from({ length: 4 }, () => random() * TAU);
-  for (let i = 0; i <= 64; i += 1) {
-    const a = (i / 64) * TAU;
+  return outline.map(([x, y], i): [number, number] => {
+    const a = (i / (outline.length - 1)) * TAU;
     const wobble = phases.reduce(
-      (sum, phase, k) => sum + (0.04 / (k + 1)) * Math.sin((k + 2) * a + phase),
+      (sum, phase, k) => sum + (0.03 / (k + 1)) * Math.sin((k + 2) * a + phase),
       1
     );
-    outline.push([
-      128 + Math.cos(a) * rx * wobble,
-      80 + Math.sin(a) * ry * wobble,
-    ]);
-  }
-  return outline;
+    return [128 + (x - 128) * wobble, 80 + (y - 80) * wobble];
+  });
 };
 
 const paintPattern = (
@@ -115,7 +192,7 @@ export const stoneSprite = (color: Color, form: string, pattern: string) => {
   const random = randomFrom(color.mineral[1].length * 97 + form.length * 13);
   const { canvas, ctx } = surface(256, 160);
   const [light, mid, dark] = color.mineral;
-  const outline = outlineOf(form, random);
+  const outline = roughen(outlineOf(form), random);
 
   const body = ctx.createRadialGradient(92, 52, 6, 128, 80, 140);
   body.addColorStop(0, light);

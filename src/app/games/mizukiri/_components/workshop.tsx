@@ -5,7 +5,20 @@ import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
 import type { RefObject } from "react";
 
-import { colorOf, conditionOf, isOpen, keyOf, parts } from "../_lib/cosmetics";
+import {
+  colorOf,
+  comboOf,
+  combos,
+  conditionOf,
+  formOf,
+  isOpen,
+  keyOf,
+  nameOf,
+  noteOf,
+  parts,
+  peaksOf,
+  traitsOf,
+} from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
 import { pointsLeft, progressOf, skills, unlocksOf } from "../_lib/save";
 import type { Save, Settings } from "../_lib/save";
@@ -18,6 +31,7 @@ import { font, ink } from "./theme.stylex";
 
 const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 const GOLD = "#ffd27a";
+const TOP = "0.75rem";
 
 const styles = stylex.create({
   backdrop: {
@@ -61,7 +75,7 @@ const styles = stylex.create({
     overscrollBehavior: "contain",
     paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))",
     paddingInline: "1.25rem",
-    paddingTop: "0.75rem",
+    paddingTop: TOP,
     transform: "translateY(var(--drawer-swipe-movement-y, 0))",
     transitionDuration: "450ms",
     transitionProperty: "transform",
@@ -146,19 +160,71 @@ const styles = stylex.create({
   },
   stage: {
     alignItems: "center",
+    backdropFilter: "blur(14px)",
+    backgroundColor: "rgb(13 16 26 / 0.92)",
     backgroundImage:
-      "radial-gradient(60% 70% at 50% 60%, rgb(120 170 210 / 0.18), transparent 70%)",
+      "radial-gradient(60% 70% at 30% 55%, rgb(120 170 210 / 0.16), transparent 70%)",
+    borderColor: "rgb(255 255 255 / 0.08)",
     borderRadius: 22,
+    borderStyle: "solid",
+    borderWidth: 1,
     display: "flex",
     flexDirection: "column",
-    gap: "0.4rem",
-    paddingBlock: "0.75rem 0.9rem",
+    gap: "0.2rem",
+    paddingBlock: "0.5rem 0.7rem",
+    paddingInline: "0.5rem",
+    position: "sticky",
+    top: `calc(-1 * ${TOP})`,
+    zIndex: 2,
+  },
+  stageRow: {
+    alignItems: "center",
+    display: "grid",
+    gap: "0.25rem",
+    gridTemplateColumns: "1fr 1fr",
+    width: "100%",
+  },
+  stageRadar: {
+    minWidth: 0,
   },
   stone: {
     display: "block",
     filter: "drop-shadow(0 14px 18px rgb(0 0 0 / 0.5))",
     height: "auto",
-    width: "9.5rem",
+    justifySelf: "center",
+    maxWidth: "9rem",
+    width: "100%",
+  },
+  comboLine: {
+    color: GOLD,
+    fontSize: "0.75rem",
+    fontWeight: 800,
+    letterSpacing: "0.08em",
+  },
+  combos: {
+    display: "grid",
+    gap: "0.5rem",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    listStyle: "none",
+    margin: 0,
+    padding: 0,
+  },
+  combo: {
+    backgroundColor: "rgb(255 255 255 / 0.04)",
+    borderColor: "rgb(255 255 255 / 0.08)",
+    borderRadius: 14,
+    borderStyle: "dashed",
+    borderWidth: 1,
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.15rem",
+    paddingBlock: "0.55rem",
+    paddingInline: "0.6rem",
+  },
+  comboKnown: {
+    backgroundColor: "rgb(255 210 122 / 0.06)",
+    borderColor: "rgb(255 210 122 / 0.35)",
+    borderStyle: "solid",
   },
   caption: {
     color: ink.soft,
@@ -236,9 +302,8 @@ const styles = stylex.create({
     top: -6,
   },
   tabDot: {
-    backgroundColor: GOLD,
+    backgroundColor: "#e5533d",
     borderRadius: 999,
-    boxShadow: "0 0 0 2px rgb(13 16 26)",
     display: "inline-block",
     height: 7,
     marginInlineStart: "0.3rem",
@@ -448,18 +513,22 @@ export const Workshop = ({
   onRespec,
   onSettings,
 }: WorkshopProps) => {
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ part: Part; id: string } | null>(
+    null
+  );
   const { color, form, pattern } = save.look;
   const progress = progressOf(save.xp);
   const left = pointsLeft(save);
   const unlocked = unlocksOf(save);
-  const stats = statsOf(save.gear, form);
+  const stats = statsOf(save.gear, traitsOf(save.look));
   const ghost =
-    preview === null || preview === form ? null : statsOf(save.gear, preview);
-  const names = parts.map(
-    ({ part, options }) =>
-      options.find((option) => option.id === save.look[part])?.name ?? ""
-  );
+    preview === null || save.look[preview.part] === preview.id
+      ? null
+      : statsOf(
+          save.gear,
+          traitsOf({ ...save.look, [preview.part]: preview.id })
+        );
+  const combo = comboOf(save.look);
 
   const paintStone = (canvas: HTMLCanvasElement | null) => {
     const ctx = canvas?.getContext("2d");
@@ -532,24 +601,34 @@ export const Workshop = ({
 
                 <Tabs.Panel value="stone" {...stylex.props(styles.panel)}>
                   <div {...stylex.props(styles.stage)}>
-                    <canvas
-                      aria-hidden="true"
-                      height={160}
-                      ref={paintStone}
-                      width={256}
-                      {...stylex.props(styles.stone)}
-                    />
+                    <div {...stylex.props(styles.stageRow)}>
+                      <canvas
+                        aria-hidden="true"
+                        height={160}
+                        ref={paintStone}
+                        width={256}
+                        {...stylex.props(styles.stone)}
+                      />
+                      <div {...stylex.props(styles.stageRadar)}>
+                        <Radar preview={ghost} stats={stats} />
+                      </div>
+                    </div>
                     <span {...stylex.props(styles.caption)}>
-                      {names.join("・")}
+                      {nameOf(save.look)}
                     </span>
+                    {combo === null ? null : (
+                      <span {...stylex.props(styles.comboLine)}>
+                        相性ボーナス {noteOf(combo.perks)}
+                      </span>
+                    )}
                   </div>
                   {parts.map(({ part, name, options }) => (
                     <section key={part} {...stylex.props(styles.group)}>
                       <div {...stylex.props(styles.groupHead)}>
                         <h3 {...stylex.props(styles.groupName)}>{name}</h3>
-                        {part === "form" ? (
+                        {part === "color" || part === "form" ? (
                           <span {...stylex.props(styles.small)}>
-                            形で性能が変わる
+                            性能が変わる
                           </span>
                         ) : null}
                       </div>
@@ -561,9 +640,9 @@ export const Workshop = ({
                             keyOf({ option, part })
                           );
                           const peek =
-                            part === "form" && available
+                            option.perks !== undefined && available
                               ? () => {
-                                  setPreview(option.id);
+                                  setPreview({ id: option.id, part });
                                 }
                               : undefined;
                           return (
@@ -603,9 +682,9 @@ export const Workshop = ({
                                   {conditionOf(option.unlock)}
                                 </span>
                               )}
-                              {available && option.note !== undefined ? (
+                              {available && option.perks !== undefined ? (
                                 <span {...stylex.props(styles.tileNote)}>
-                                  {option.note}
+                                  {noteOf(peaksOf(option.perks))}
                                 </span>
                               ) : null}
                             </button>
@@ -614,7 +693,42 @@ export const Workshop = ({
                       </div>
                     </section>
                   ))}
-                  <Radar preview={ghost} stats={stats} />
+                  <section {...stylex.props(styles.group)}>
+                    <div {...stylex.props(styles.groupHead)}>
+                      <h3 {...stylex.props(styles.groupName)}>相性</h3>
+                      <span {...stylex.props(styles.small)}>
+                        {save.found.length} / {combos.length} 発見
+                      </span>
+                    </div>
+                    <ul {...stylex.props(styles.combos)}>
+                      {combos.map((entry) => {
+                        const known = save.found.includes(entry.id);
+                        return (
+                          <li
+                            key={entry.id}
+                            {...stylex.props(
+                              styles.combo,
+                              known && styles.comboKnown,
+                              combo?.id === entry.id && styles.worn
+                            )}
+                          >
+                            <span {...stylex.props(styles.name)}>
+                              {known ? entry.name : "？？？"}
+                            </span>
+                            <span {...stylex.props(styles.note)}>
+                              {colorOf(entry.color).name} ×{" "}
+                              {known ? formOf(entry.form).name : "？？？"}
+                            </span>
+                            {known ? (
+                              <span {...stylex.props(styles.tileNote)}>
+                                {noteOf(entry.perks)}
+                              </span>
+                            ) : null}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
                 </Tabs.Panel>
 
                 <Tabs.Panel value="skill" {...stylex.props(styles.panel)}>

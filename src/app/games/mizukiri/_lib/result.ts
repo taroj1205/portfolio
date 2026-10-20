@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { codeOf, nameOf, stoneFrom } from "./cosmetics";
+import type { Stone } from "./cosmetics";
 import { boosts, endings, skies } from "./simulate";
 import type { Boost, Ending, Flight, Sky } from "./simulate";
 
@@ -11,6 +13,7 @@ export interface Result {
   highlight: Boost | null;
   times: number;
   quality: number;
+  stone: Stone | null;
 }
 
 interface Story {
@@ -86,7 +89,7 @@ export const describe = (result: Result): Story => {
   };
 };
 
-export const resultOf = (flight: Flight): Result => {
+export const resultOf = (flight: Flight, stone: Stone): Result => {
   const counts = new Map<Boost, number>();
   for (const bump of flight.splashes) {
     if (bump.event !== null && bump.event !== "wall") {
@@ -101,11 +104,13 @@ export const resultOf = (flight: Flight): Result => {
     quality: flight.quality,
     skips: flight.skips,
     sky: flight.river.sky,
+    stone: { color: stone.color, form: stone.form },
     times: highlight === null ? 0 : (counts.get(highlight) ?? 0),
   };
 };
 
 const shared = z.object({
+  b: z.string().max(40).optional(),
   e: z.enum(endings),
   h: z.enum(boosts).optional(),
   k: z.coerce.number().int().min(0).max(100_000).optional(),
@@ -122,7 +127,7 @@ export const readResult = (
   if (!parsed.success) {
     return null;
   }
-  const { e, h, k, m, n, q, s } = parsed.data;
+  const { b, e, h, k, m, n, q, s } = parsed.data;
   return {
     distance: m,
     ending: e,
@@ -130,6 +135,7 @@ export const readResult = (
     quality: q ?? 0,
     skips: n,
     sky: s,
+    stone: b === undefined ? null : stoneFrom(b),
     times: h === undefined ? 0 : (k ?? 1),
   };
 };
@@ -142,6 +148,9 @@ const queryOf = (result: Result) => {
     q: String(result.quality),
     s: result.sky,
   });
+  if (result.stone !== null) {
+    query.set("b", codeOf(result.stone));
+  }
   if (result.highlight !== null) {
     query.set("h", result.highlight);
     query.set("k", String(result.times));
@@ -151,6 +160,12 @@ const queryOf = (result: Result) => {
 
 export const postUrl = (result: Result, origin: string) =>
   `https://x.com/intent/tweet?${new URLSearchParams({
-    text: `${describe(result).line}\n#水切り`,
+    text: [
+      describe(result).line,
+      result.stone === null ? null : `石：${nameOf(result.stone)}`,
+      "#水切り",
+    ]
+      .filter((line) => line !== null)
+      .join("\n"),
     url: `${origin}/games/mizukiri?${queryOf(result)}`,
   }).toString()}`;

@@ -1,3 +1,4 @@
+import { traitsOf } from "./cosmetics";
 import type { Item, Part } from "./cosmetics";
 import { listenFlick, tiltAt } from "./flick";
 import { createRenderer } from "./render";
@@ -107,7 +108,7 @@ export const startSession = (
         enter("ready");
         return;
       }
-      flight = launch(river, input, save.gear, save.look.form);
+      flight = launch(river, input, save.gear, traitsOf(save.look));
       time = 0;
       tap = null;
       heard = 0;
@@ -169,7 +170,7 @@ export const startSession = (
       climbed: settled.climbed,
       unlocked: settled.unlocked,
       record: settled.record,
-      result: resultOf(done),
+      result: resultOf(done, save.look),
     });
     enter("done");
   };
