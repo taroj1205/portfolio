@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 
 import { describe, test, vi } from "vite-plus/test";
 
-import { careerOf, careerShare, readCareer } from "./career";
+import { careerOf, careerShare, describeCareer, readCareer } from "./career";
 import {
   comboOf,
   combos,
@@ -43,8 +43,10 @@ import {
   plain,
   qualityOf,
   shoreAt,
+  speedAt,
   statsOf,
   stoneAt,
+  topSpeed,
   windowFor,
   zones,
 } from "./simulate";
@@ -435,6 +437,7 @@ describe("save", () => {
       airtime: 0,
       bestAirtime: 0,
       bestSkips: 0,
+      bestSpeed: 0,
       distance: 0,
       divineThrows: 0,
       endings: {},
@@ -456,6 +459,15 @@ describe("save", () => {
     assert.equal(settled.save.runs, 1);
   });
 
+  test("the top speed of a throw is its fastest hop", () => {
+    const flight = play(launch(createRiver(9), flat, bare), 0.03);
+    const fastest = Math.max(
+      ...flight.hops.map((hop) => Math.hypot(hop.velocity.x, hop.velocity.z))
+    );
+    assert.equal(topSpeed(flight), fastest);
+    assert.ok(topSpeed(flight) >= speedAt(flight, 0));
+  });
+
   test("every finished throw adds to the lifetime tally", () => {
     const flight = play(launch(createRiver(9), flat, bare), 0.03);
     const { tally } = settle(settle(empty, flight).save, flight).save;
@@ -466,6 +478,8 @@ describe("save", () => {
     assert.equal(tally.bestAirtime, flight.duration);
     assert.equal(tally.skips, flight.skips * 2);
     assert.equal(tally.bestSkips, flight.skips);
+    assert.equal(tally.bestSpeed, topSpeed(flight));
+    assert.ok(tally.bestSpeed > 0);
     assert.equal(tally.quality, flight.quality * 2);
     assert.equal(tally.endings[flight.ending ?? "sink"], 2);
     assert.equal(
@@ -484,6 +498,7 @@ describe("save", () => {
       assert.equal(loaded.runs, 3);
       assert.equal(loaded.tally.distance, 42.5);
       assert.equal(loaded.tally.airtime, 0);
+      assert.equal(loaded.tally.bestSpeed, 0);
       assert.deepEqual(loaded.tally.grades, {});
     } finally {
       vi.unstubAllGlobals();
@@ -495,6 +510,7 @@ describe("save", () => {
       ...careerOf({ ...empty, best: 1234.5, combo: 7, runs: 42, xp: 9000 }),
       airtime: 3725.4,
       perfect: true,
+      speed: 18.5,
       total: 56_789,
     };
     const english = careerShare(career, "https://x.y", "en");
@@ -513,6 +529,12 @@ describe("save", () => {
     assert.equal(image.pathname, "/games/mizukiri/og");
     assert.equal(image.search, url.search);
     assert.deepEqual(readCareer(Object.fromEntries(url.searchParams)), career);
+    assert.deepEqual(describeCareer(career, "en").facts.at(-1), {
+      label: "Top speed",
+      value: "67 km/h",
+    });
+    const { top: _top, ...older } = Object.fromEntries(url.searchParams);
+    assert.equal(readCareer(older)?.speed, 0);
     assert.match(
       careerShare(career, "https://x.y", "ja").text,
       /^天の川水切りの戦績：自己ベスト1\.23km、42投・飛行時間1時間2分/u

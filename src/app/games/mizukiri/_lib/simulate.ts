@@ -631,10 +631,15 @@ export const land = (flight: Flight, tapAt: number | null) => {
   );
 };
 
+const paceOf = (hop: Hop) => Math.hypot(hop.velocity.x, hop.velocity.z);
+
 export const speedAt = (flight: Flight, time: number) => {
   const hop = flight.hops.find((h) => time < h.end) ?? flight.hops.at(-1);
-  return hop === undefined ? 0 : Math.hypot(hop.velocity.x, hop.velocity.z);
+  return hop === undefined ? 0 : paceOf(hop);
 };
+
+export const topSpeed = (flight: Flight) =>
+  Math.max(0, ...flight.hops.map(paceOf));
 
 export const stoneAt = (flight: Flight, time: number): Vec | null => {
   const hop = flight.hops.find((h) => time < h.end);

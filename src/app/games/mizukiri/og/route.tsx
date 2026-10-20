@@ -323,14 +323,17 @@ export const GET = async (request: NextRequest) => {
             width: 460,
           }}
         >
-          {facts.map((fact) => (
+          {facts.map((fact, index) => (
             <div
               key={fact.label}
               style={{
                 display: "flex",
                 flexDirection: "column",
                 gap: 4,
-                width: "50%",
+                width:
+                  index === facts.length - 1 && index % 2 === 0
+                    ? "100%"
+                    : "50%",
               }}
             >
               <span style={{ fontSize: 20, opacity: 0.8 }}>{fact.label}</span>

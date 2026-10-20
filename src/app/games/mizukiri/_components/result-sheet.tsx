@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { keyOf, noteOf, parts } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
-import { describe, distanceParts, shareOf } from "../_lib/result";
+import { describe, distanceParts, shareOf, toKmh } from "../_lib/result";
 import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import type { Landing } from "../_lib/session";
@@ -332,7 +332,8 @@ export const ResultSheet = ({
   onWear,
   onWorkshop,
 }: ResultSheetProps) => {
-  const { result, record, gained, climbed, combo, unlocked } = landing;
+  const { result, record, gained, climbed, combo, topSpeed, unlocked } =
+    landing;
   const lang = useLang();
   const copy = useCopy();
   const story = describe(result, lang);
@@ -364,7 +365,12 @@ export const ResultSheet = ({
         <span {...stylex.props(styles.meterUnit)}>{unit}</span>
       </p>
       <p {...stylex.props(styles.stats)}>
-        {copy.result.stats(result.skips, combo, result.quality)}
+        {copy.result.stats(
+          result.skips,
+          combo,
+          result.quality,
+          toKmh(topSpeed)
+        )}
       </p>
       {unlocked.length > 0 ? (
         <div {...stylex.props(styles.unlocks)}>

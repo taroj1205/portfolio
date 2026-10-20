@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { copy } from "./copy";
 import type { Lang, Text } from "./i18n";
-import { formatDistance, titleOf } from "./result";
+import { formatDistance, titleOf, toKmh } from "./result";
 import type { Share } from "./result";
 import { progressOf } from "./save";
 import type { Save } from "./save";
@@ -16,6 +16,7 @@ export interface Career {
   combo: number;
   level: number;
   perfect: boolean;
+  speed: number;
 }
 
 export const careerOf = (save: Save): Career => ({
@@ -25,6 +26,7 @@ export const careerOf = (save: Save): Career => ({
   level: progressOf(save.xp).level,
   perfect: save.divine,
   runs: save.runs,
+  speed: save.tally.bestSpeed,
   total: save.tally.distance,
 });
 
@@ -33,6 +35,7 @@ const labels = {
   combo: { en: "Best combo", ja: "最大コンボ" },
   perfect: { en: "Perfect throw", ja: "神投げ達成" },
   runs: { en: "Throws", ja: "投げた数" },
+  speed: { en: "Top speed", ja: "最高速度" },
   total: { en: "Total distance", ja: "総飛距離" },
 } satisfies Record<string, Text>;
 
@@ -71,6 +74,7 @@ export const describeCareer = (career: Career, lang: Lang) => {
       { label: labels.airtime[lang], value: airtime },
       { label: labels.total[lang], value: formatDistance(career.total) },
       { label: labels.combo[lang], value: `×${career.combo}` },
+      { label: labels.speed[lang], value: `${toKmh(career.speed)} km/h` },
     ],
     perfect: career.perfect ? labels.perfect[lang] : null,
     reached: lang === "en" ? `Reached ${area}` : `${area}まで到達`,
@@ -85,6 +89,7 @@ const shared = z.object({
   lv: z.coerce.number().int().min(0).max(9999),
   perfect: z.literal("1").optional(),
   runs: z.coerce.number().int().min(1).max(100_000_000),
+  top: z.coerce.number().min(0).max(1e6).optional(),
   total: z.coerce.number().min(0).max(1e16),
 });
 
@@ -95,7 +100,7 @@ export const readCareer = (
   if (!parsed.success) {
     return null;
   }
-  const { air, best, combo, lv, perfect, runs, total } = parsed.data;
+  const { air, best, combo, lv, perfect, runs, top, total } = parsed.data;
   return {
     airtime: air,
     best,
@@ -103,6 +108,7 @@ export const readCareer = (
     level: lv,
     perfect: perfect !== undefined,
     runs,
+    speed: top ?? 0,
     total,
   };
 };
@@ -114,6 +120,7 @@ export const careerQuery = (career: Career) => {
     combo: String(career.combo),
     lv: String(career.level),
     runs: String(career.runs),
+    top: career.speed.toFixed(1),
     total: career.total.toFixed(1),
   });
   if (career.perfect) {
