@@ -2198,11 +2198,11 @@ const paintWorld = (
   if (flat) {
     paintWater(ctx, view, frame.river, palette, frame.clock);
   }
+  paintShores(ctx, view, frame.river, palette, frame.clock);
   paintScene(ctx, view, frame, palette, sprites, flat);
   if ((palette.fireflies || coast === "firefly") && tier > 0) {
     paintFireflies(ctx, view, frame.river, frame.clock);
   }
-  paintShores(ctx, view, frame.river, palette, frame.clock);
   const drift = LEAVES.get(coast);
   if (drift !== undefined && tier > 0) {
     paintDrift(ctx, view, frame.clock, drift);
