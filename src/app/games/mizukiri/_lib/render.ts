@@ -31,6 +31,7 @@ interface Palette {
   sunSize: number;
   tint: Tint;
   glow: string;
+  light: boolean;
   clouds: string | null;
   ridges: [string, string];
   snow: string;
@@ -48,12 +49,13 @@ interface Palette {
   fireflies: boolean;
 }
 
-const palettes: Record<Sky, Palette> = {
+export const palettes: Record<Sky, Palette> = {
   dawn: {
     clouds: "#ffffff",
     fireflies: false,
     glint: "#ffffff",
     glow: "#fff0d6",
+    light: true,
     land: "#4b5b6b",
     mist: "#f4efea",
     mistAlpha: 0.55,
@@ -78,6 +80,7 @@ const palettes: Record<Sky, Palette> = {
     fireflies: false,
     glint: "#ffd8a8",
     glow: "#ffb27a",
+    light: false,
     land: "#1a1528",
     mist: "#f0a98a",
     mistAlpha: 0.28,
@@ -102,6 +105,7 @@ const palettes: Record<Sky, Palette> = {
     fireflies: true,
     glint: "#dfe8ff",
     glow: "#9fb6e8",
+    light: false,
     land: "#050913",
     mist: "#3a4f80",
     mistAlpha: 0.22,

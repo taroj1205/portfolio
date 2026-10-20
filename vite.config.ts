@@ -20,6 +20,10 @@ export default defineConfig({
         files: ["src/lib/i18n.ts"],
         rules: { "anti-slop/no-runtime-typeof": "off" },
       },
+      {
+        files: ["src/app/**/og/route.tsx"],
+        rules: { "shadcn/no-inline-styles": "off" },
+      },
     ],
   },
 });

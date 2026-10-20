@@ -190,7 +190,7 @@ export const readResult = (
   };
 };
 
-const queryOf = (result: Result) => {
+export const queryOf = (result: Result) => {
   const query = new URLSearchParams({
     e: result.ending,
     m: result.distance.toFixed(1),
