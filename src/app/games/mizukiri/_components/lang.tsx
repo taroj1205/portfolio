@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 
+import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
-import type { Lang } from "../_lib/i18n";
 
 export const LangContext = createContext<Lang>("ja");
 

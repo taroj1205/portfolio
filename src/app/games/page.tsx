@@ -6,8 +6,8 @@ import { media } from "../../styles/tokens.stylex";
 import { GameCard } from "./_components/game-card";
 import { SkipArt } from "./_components/skip-art";
 import { Sky } from "./_components/sky";
+import type { Text } from "./_lib/i18n";
 import { copy } from "./mizukiri/_lib/copy";
-import type { Text } from "./mizukiri/_lib/i18n";
 
 interface Game {
   href: string;

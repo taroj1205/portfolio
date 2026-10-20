@@ -1,8 +1,9 @@
 import { z } from "zod";
 
+import type { Lang, Text } from "../../_lib/i18n";
+import type { Share } from "../../_lib/share";
 import { codeOf, nameOf, stoneFrom } from "./cosmetics";
 import type { Stone } from "./cosmetics";
-import type { Lang, Text } from "./i18n";
 import { boosts, endings, skies } from "./simulate";
 import type { Boost, Ending, Flight, Sky } from "./simulate";
 
@@ -15,12 +16,6 @@ export interface Result {
   times: number;
   quality: number;
   stone: Stone | null;
-}
-
-export interface Share {
-  text: string;
-  url: string;
-  image: string;
 }
 
 interface Story {
@@ -241,6 +236,3 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
     url: `${origin}/games/mizukiri?${query.toString()}`,
   };
 };
-
-export const postUrl = (share: Share) =>
-  `https://x.com/intent/tweet?${new URLSearchParams({ text: share.text, url: share.url }).toString()}`;

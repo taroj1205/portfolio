@@ -3,10 +3,10 @@
 import * as stylex from "@stylexjs/stylex";
 import { useEffect, useRef, useState } from "react";
 
+import { guessLang } from "../../_lib/i18n";
+import type { Lang, Text } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
 import type { Copy } from "../_lib/copy";
-import { guessLang } from "../_lib/i18n";
-import type { Lang, Text } from "../_lib/i18n";
 import { distanceParts, toKmh } from "../_lib/result";
 import type { Result } from "../_lib/result";
 import type { Save } from "../_lib/save";

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { langs } from "../../_lib/i18n";
+import { createStore } from "../../_lib/storage";
 import {
   colorOf,
   comboOf,
@@ -12,7 +14,6 @@ import {
   parts,
 } from "./cosmetics";
 import type { Combo, Item, Part, Progress } from "./cosmetics";
-import { langs } from "./i18n";
 import { endings, events, grades, topSpeed, zoneIndex } from "./simulate";
 import type { Flight, Gear } from "./simulate";
 
@@ -90,27 +91,11 @@ const fresh: Save = {
   xp: 0,
 };
 
-export const loadSave = (): Save => {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw === null) {
-      return fresh;
-    }
-    const parsed = schema.safeParse(JSON.parse(raw));
-    return parsed.success ? parsed.data : fresh;
-  } catch {
-    return fresh;
-  }
-};
+const store = createStore(KEY, schema, fresh);
 
-export const storeSave = (save: Save) => {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(save));
-    return true;
-  } catch {
-    return false;
-  }
-};
+export const loadSave = store.read;
+
+export const storeSave = store.write;
 
 const needFor = (target: number) => Math.round(150 * target ** 1.8);
 

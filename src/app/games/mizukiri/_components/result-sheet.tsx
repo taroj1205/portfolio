@@ -1,17 +1,17 @@
 import * as stylex from "@stylexjs/stylex";
 import Link from "next/link";
 
+import { glass } from "../../_components/glass";
+import { ShareButton } from "../../_components/share-button";
+import { font, ink, media } from "../../_components/theme.stylex";
 import { keyOf, noteOf, parts } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
 import { describe, distanceParts, shareOf, toKmh } from "../_lib/result";
 import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import type { Landing } from "../_lib/session";
-import { glass } from "./glass";
 import { useCopy, useLang } from "./lang";
 import { Preview } from "./preview";
-import { ShareButton } from "./share-button";
-import { font, ink, media } from "./theme.stylex";
 
 const rise = stylex.keyframes({
   "0%": { opacity: 0, transform: "translateY(28px) scale(0.98)" },
@@ -420,6 +420,8 @@ export const ResultSheet = ({
       </button>
       <div {...stylex.props(styles.actions)}>
         <ShareButton
+          fileName="mizukiri.png"
+          labels={copy.result}
           share={shareOf(result, window.location.origin, lang)}
           {...stylex.props(styles.action, styles.post)}
         />

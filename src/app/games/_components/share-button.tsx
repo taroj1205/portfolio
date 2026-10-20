@@ -2,9 +2,8 @@ import { Menu } from "@base-ui/react/menu";
 import * as stylex from "@stylexjs/stylex";
 import { useRef, useState } from "react";
 
-import { postUrl } from "../_lib/result";
-import type { Share } from "../_lib/result";
-import { useCopy } from "./lang";
+import { postUrl } from "../_lib/share";
+import type { Share, ShareLabels } from "../_lib/share";
 import { ink } from "./theme.stylex";
 
 const styles = stylex.create({
@@ -106,8 +105,6 @@ const SaveMark = () => (
   </svg>
 );
 
-const FILE_NAME = "mizukiri.png";
-
 const shareNatively = async (data: ShareData) => {
   try {
     await navigator.share(data);
@@ -126,42 +123,52 @@ const copyText = async (text: string) => {
   }
 };
 
-const fetchImage = async (url: string) => {
+const fetchImage = async (url: string, name: string) => {
   try {
     const response = await fetch(url);
     if (!response.ok) {
       return null;
     }
-    return new File([await response.blob()], FILE_NAME, { type: "image/png" });
+    return new File([await response.blob()], name, { type: "image/png" });
   } catch {
     return null;
   }
 };
 
-const canShareFiles = () =>
+const canShareFiles = (name: string) =>
   "canShare" in navigator &&
   navigator.canShare({
-    files: [new File([], FILE_NAME, { type: "image/png" })],
+    files: [new File([], name, { type: "image/png" })],
   });
 
 interface ShareButtonProps {
   share: Share;
+  labels: ShareLabels;
+  fileName: string;
   className?: string;
   style?: Readonly<Record<string, string | number>>;
 }
 
-export const ShareButton = ({ share, className, style }: ShareButtonProps) => {
-  const copy = useCopy();
+export const ShareButton = ({
+  share,
+  labels,
+  fileName,
+  className,
+  style,
+}: ShareButtonProps) => {
   const [copied, setCopied] = useState(false);
   const image = useRef<{ url: string; file: Promise<File | null> } | null>(
     null
   );
   const native = "share" in navigator;
-  const files = native && canShareFiles();
+  const files = native && canShareFiles(fileName);
   const link = { text: share.text, url: share.url };
   const imageFile = async () => {
     if (image.current?.url !== share.image) {
-      image.current = { file: fetchImage(share.image), url: share.image };
+      image.current = {
+        file: fetchImage(share.image, fileName),
+        url: share.image,
+      };
     }
     return await image.current.file;
   };
@@ -188,7 +195,7 @@ export const ShareButton = ({ share, className, style }: ShareButtonProps) => {
     >
       <Menu.Trigger className={className} style={style}>
         <ShareMark />
-        {copy.result.share}
+        {labels.share}
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner side="top" sideOffset={8}>
@@ -201,17 +208,17 @@ export const ShareButton = ({ share, className, style }: ShareButtonProps) => {
                 }}
               >
                 <ImageMark />
-                {copy.result.shareImage}
+                {labels.shareImage}
               </Menu.Item>
             ) : null}
             <Menu.LinkItem
               className={itemClass}
               closeOnClick
-              download={FILE_NAME}
+              download={fileName}
               href={share.image}
             >
               <SaveMark />
-              {copy.result.saveImage}
+              {labels.saveImage}
             </Menu.LinkItem>
             {native ? (
               <Menu.Item
@@ -221,7 +228,7 @@ export const ShareButton = ({ share, className, style }: ShareButtonProps) => {
                 }}
               >
                 <LinkMark />
-                {copy.result.shareLink}
+                {labels.shareLink}
               </Menu.Item>
             ) : (
               <>
@@ -233,19 +240,19 @@ export const ShareButton = ({ share, className, style }: ShareButtonProps) => {
                   target="_blank"
                 >
                   <XMark />
-                  {copy.result.postX}
+                  {labels.postX}
                 </Menu.LinkItem>
                 <Menu.Item
                   className={itemClass}
                   closeOnClick={false}
-                  label={copy.result.copyLink}
+                  label={labels.copyLink}
                   onClick={() => {
                     void copyLink();
                   }}
                 >
                   <LinkMark />
                   <span aria-live="polite">
-                    {copied ? copy.result.copied : copy.result.copyLink}
+                    {copied ? labels.copied : labels.copyLink}
                   </span>
                 </Menu.Item>
               </>

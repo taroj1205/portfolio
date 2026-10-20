@@ -1,11 +1,12 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
+import { loadMincho } from "../../_lib/font";
+import { langFrom } from "../../_lib/i18n";
+import type { Lang } from "../../_lib/i18n";
 import { describeCareer, readCareer } from "../_lib/career";
 import type { Career } from "../_lib/career";
 import { copy } from "../_lib/copy";
-import { langFrom } from "../_lib/i18n";
-import type { Lang } from "../_lib/i18n";
 import { palettes } from "../_lib/render";
 import { describe, distanceParts, readResult } from "../_lib/result";
 import type { Result } from "../_lib/result";
@@ -13,21 +14,6 @@ import type { Result } from "../_lib/result";
 const W = 1200;
 const H = 630;
 const HORIZON = 360;
-
-const loadMincho = async (text: string) => {
-  const sheet = await fetch(
-    `https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@700&text=${encodeURIComponent(text)}`
-  );
-  const css = await sheet.text();
-  const source =
-    /src: url\((?<source>.+?)\) format\('(?:opentype|truetype)'\)/u.exec(css)
-      ?.groups?.source;
-  if (source === undefined) {
-    throw new Error("Shippori Mincho is unavailable");
-  }
-  const font = await fetch(source);
-  return await font.arrayBuffer();
-};
 
 const ridge = (base: number, amp: number, fuji: boolean) => {
   const points: string[] = [`0,${HORIZON}`];

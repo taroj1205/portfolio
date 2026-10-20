@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import { describe, test, vi } from "vite-plus/test";
 
+import { postUrl } from "../../_lib/share";
 import { careerOf, careerShare, describeCareer, readCareer } from "./career";
 import {
   comboOf,
@@ -12,13 +13,7 @@ import {
   stoneFrom,
   traitsOf,
 } from "./cosmetics";
-import {
-  describe as storyOf,
-  postUrl,
-  readResult,
-  resultOf,
-  shareOf,
-} from "./result";
+import { describe as storyOf, readResult, resultOf, shareOf } from "./result";
 import {
   foundOf,
   loadSave,
