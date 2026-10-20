@@ -39,6 +39,23 @@ const cuesOf = (shot: Throw): Cue[] => {
   return cues.toSorted((a, b) => a.time - b.time);
 };
 
+const readBest = () => {
+  try {
+    return Number(localStorage.getItem(BEST)) || 0;
+  } catch {
+    return 0;
+  }
+};
+
+const saveBest = (best: number) => {
+  try {
+    localStorage.setItem(BEST, String(best));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const newSeed = () => crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
 
 export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
@@ -51,7 +68,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   let thrownAt = 0;
   let aimFrom: number | null = null;
   let mode: Phase = "ready";
-  let best = Number(localStorage.getItem(BEST)) || 0;
+  let best = readBest();
   if (best > 0) {
     on.best(best);
   }
@@ -63,6 +80,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const stopFlick = listenFlick(canvas, {
     release: (input) => {
+      sound.unlock();
       if (mode !== "aiming") {
         return;
       }
@@ -93,7 +111,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     const record = result.skips > best;
     if (record) {
       best = result.skips;
-      localStorage.setItem(BEST, String(best));
+      saveBest(best);
       on.best(best);
     }
     on.land(result, record);

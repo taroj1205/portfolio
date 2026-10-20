@@ -9,6 +9,15 @@ const pitch = (step: number) => {
   return 587.33 * 2 ** ((degree + 12 * Math.floor(capped / YO.length)) / 12);
 };
 
+const wake = async (audio: AudioContext) => {
+  try {
+    await audio.resume();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const createSound = () => {
   let context: AudioContext | null = null;
   let master: GainNode | null = null;
@@ -163,7 +172,10 @@ export const createSound = () => {
       spray(2600, 0.5, 0.08);
     },
     unlock: () => {
-      void ready()?.resume();
+      const audio = ready();
+      if (audio) {
+        void wake(audio);
+      }
     },
   };
 };
