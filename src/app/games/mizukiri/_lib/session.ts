@@ -1,23 +1,24 @@
 import { guessLang } from "../../_lib/i18n";
 import type { Text } from "../../_lib/i18n";
 import { copy } from "./copy";
-import { traitsOf } from "./cosmetics";
-import type { Item, Part } from "./cosmetics";
+import type { Part } from "./cosmetics";
 import { listenFlick, tiltAt } from "./flick";
+import { earn, noGear, spend, traitsOf as journeyTraits } from "./journey";
+import type { Gear, Item } from "./journey";
 import { createRenderer } from "./render";
 import { resultOf } from "./result";
 import type { Result } from "./result";
 import {
-  loadSave,
-  respec,
+  loadProfiles,
   seen,
   settle,
-  storeSave,
-  tune,
+  storeProfiles,
+  viewOf,
   wear,
   wearCombo,
+  withView,
 } from "./save";
-import type { Save, Settings } from "./save";
+import type { Mode, Save, Settings } from "./save";
 import {
   createRiver,
   isBounce,
@@ -31,8 +32,10 @@ import {
   zoneIndex,
   zones,
 } from "./simulate";
-import type { Ending, Event, Flight, Gear, Grade, Splash } from "./simulate";
+import type { Ending, Event, Flight, Grade, Splash } from "./simulate";
 import { createSound } from "./sound";
+import { flatTuning, traitsOf as duelTraits, tune } from "./tuning";
+import type { Axis } from "./tuning";
 
 export type Phase = "ready" | "aiming" | "flying" | "done";
 
@@ -44,14 +47,18 @@ export interface Beat {
   event: Event | null;
 }
 
+interface Gain {
+  gained: number;
+  climbed: number;
+  unlocked: Item[];
+}
+
 export interface Landing {
   result: Result;
   record: boolean;
-  gained: number;
-  climbed: number;
   combo: number;
   topSpeed: number;
-  unlocked: Item[];
+  gain: Gain | null;
 }
 
 export interface Release {
@@ -72,6 +79,11 @@ interface Listeners {
   save: (save: Save) => void;
 }
 
+const traitsFor = (save: Save) =>
+  save.mode === "duel"
+    ? duelTraits(save.tuning)
+    : journeyTraits(save.gear, save.look);
+
 const REVEAL = 1.2;
 const SLOW = 0.3;
 
@@ -85,12 +97,18 @@ const rateAt = (flight: Flight, time: number) => {
 
 export const startSession = (
   surfaces: { scene: HTMLCanvasElement; water: HTMLCanvasElement },
-  on: Listeners
+  on: Listeners,
+  challenged: boolean
 ) => {
   const canvas = surfaces.scene;
   const draw = createRenderer(surfaces);
   const sound = createSound();
-  let save = loadSave();
+  let all = loadProfiles();
+  if (challenged && all.mode !== "duel") {
+    all = { ...all, mode: "duel" };
+    storeProfiles(all);
+  }
+  let save = viewOf(all);
   let river = createRiver(newSeed());
   let flight: Flight | null = null;
   let time = 0;
@@ -113,8 +131,17 @@ export const startSession = (
 
   const keep = (next: Save) => {
     save = next;
-    storeSave(save);
+    all = withView(all, next);
+    storeProfiles(all);
     on.save(save);
+  };
+
+  const reset = () => {
+    river = createRiver(newSeed());
+    flight = null;
+    time = 0;
+    on.speed(0);
+    enter("ready");
   };
 
   const stopFlick = listenFlick(canvas, {
@@ -128,7 +155,7 @@ export const startSession = (
         enter("ready");
         return;
       }
-      flight = launch(river, input, save.gear, traitsOf(save.look));
+      flight = launch(river, input, traitsFor(save));
       time = 0;
       tap = null;
       landedAt = Number.NEGATIVE_INFINITY;
@@ -186,19 +213,31 @@ export const startSession = (
 
   const finish = (done: Flight) => {
     const settled = settle(save, done);
-    keep(settled.save);
-    if (settled.climbed > 0 || settled.unlocked.length > 0) {
+    let next: Save = settled.save;
+    let gain: Gain | null = null;
+    if (save.mode === "journey" && settled.save.mode === "journey") {
+      const earned = earn(save, settled.save, done);
+      next = earned.save;
+      gain = {
+        climbed: earned.climbed,
+        gained: earned.gained,
+        unlocked: earned.unlocked,
+      };
+    }
+    keep(next);
+    if (
+      settled.record ||
+      (gain !== null && (gain.climbed > 0 || gain.unlocked.length > 0))
+    ) {
       sound.fanfare();
     } else {
       sound.reward();
     }
     on.land({
       combo: done.bestCombo,
-      gained: settled.gained,
-      climbed: settled.climbed,
-      unlocked: settled.unlocked,
+      gain,
       record: settled.record,
-      result: resultOf(done, save.look),
+      result: resultOf(done, save),
       topSpeed: topSpeed(done),
     });
     enter("done");
@@ -272,13 +311,7 @@ export const startSession = (
   frame = requestAnimationFrame(tick);
 
   return {
-    again: () => {
-      river = createRiver(newSeed());
-      flight = null;
-      time = 0;
-      on.speed(0);
-      enter("ready");
-    },
+    again: reset,
     wear: (part: Part, id: string) => {
       const next = wear(save, part, id);
       if (next) {
@@ -286,25 +319,51 @@ export const startSession = (
       }
     },
     wearCombo: (id: string) => {
-      const next = wearCombo(save, id);
+      const next = save.mode === "journey" ? wearCombo(save, id) : null;
       if (next) {
         keep(next);
       }
     },
-    tune: (key: keyof Gear, step: 1 | -1) => {
-      const next = tune(save, key, step);
-      if (next) {
-        keep(next);
+    tune: (key: Axis, step: 1 | -1) => {
+      if (save.mode !== "duel") {
+        return;
+      }
+      const tuning = tune(save.tuning, key, step);
+      if (tuning) {
+        keep({ ...save, tuning });
+      }
+    },
+    train: (key: keyof Gear, step: 1 | -1) => {
+      if (save.mode !== "journey") {
+        return;
+      }
+      const gear = spend(save, key, step);
+      if (gear) {
+        keep({ ...save, gear });
       }
     },
     respec: () => {
-      keep(respec(save));
+      keep(
+        save.mode === "duel"
+          ? { ...save, tuning: flatTuning }
+          : { ...save, gear: noGear }
+      );
     },
     seen: () => {
-      const next = seen(save);
+      const next = save.mode === "journey" ? seen(save) : null;
       if (next) {
         keep(next);
       }
+    },
+    switchMode: (next: Mode) => {
+      if (next === all.mode) {
+        return;
+      }
+      all = { ...all, mode: next };
+      save = viewOf(all);
+      storeProfiles(all);
+      on.save(save);
+      reset();
     },
     settings: (next: Settings) => {
       sound.mute(next.muted);

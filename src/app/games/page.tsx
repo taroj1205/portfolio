@@ -29,7 +29,7 @@ const GAMES: Game[] = [
     href: "/games/mizukiri",
     tags: [
       { en: "Flick & tap", ja: "はじく・タップ" },
-      { en: "Stones & skills", ja: "石と腕前" },
+      { en: "Stones & tuning", ja: "石と調整" },
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
     title: { en: mizukiri.en.name, ja: mizukiri.ja.name },

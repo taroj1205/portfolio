@@ -8,12 +8,19 @@ import type { RefObject } from "react";
 
 import { font, ink } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
-import { axes, traitsOf } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
-import { pointsLeft, progressOf } from "../_lib/save";
-import type { Save, Settings } from "../_lib/save";
-import { statsOf } from "../_lib/simulate";
-import type { Gear } from "../_lib/simulate";
+import {
+  pointsLeft as pointsToTrain,
+  progressOf,
+  scoresOf,
+  statsOf,
+  traitsOf as journeyTraits,
+} from "../_lib/journey";
+import type { Gear } from "../_lib/journey";
+import { modes } from "../_lib/save";
+import type { DuelSave, JourneySave, Mode, Save, Settings } from "../_lib/save";
+import { LIMIT, axes, pointsLeft, signed } from "../_lib/tuning";
+import type { Axis } from "../_lib/tuning";
 import { useCopy, useLang } from "./lang";
 import { Radar } from "./radar";
 import { RecordTab } from "./record-tab";
@@ -176,6 +183,23 @@ const styles = stylex.create({
     letterSpacing: "calc(0.15em * var(--track, 1))",
     margin: 0,
   },
+  tuneNote: {
+    color: ink.soft,
+    fontSize: "0.82rem",
+    lineHeight: 1.6,
+    margin: 0,
+  },
+  points: {
+    alignSelf: "center",
+    backgroundColor: "rgb(255 210 122 / 0.15)",
+    borderRadius: 999,
+    color: GOLD,
+    fontSize: "0.75rem",
+    fontWeight: 800,
+    letterSpacing: "calc(0.08em * var(--track, 1))",
+    paddingBlock: "0.3rem",
+    paddingInline: "0.7rem",
+  },
   tabDot: {
     backgroundColor: "#e5533d",
     borderRadius: 999,
@@ -200,16 +224,6 @@ const styles = stylex.create({
     fontWeight: 800,
     lineHeight: 1,
     WebkitBackgroundClip: "text",
-  },
-  points: {
-    backgroundColor: "rgb(255 210 122 / 0.15)",
-    borderRadius: 999,
-    color: GOLD,
-    fontSize: "0.75rem",
-    fontWeight: 800,
-    letterSpacing: "calc(0.08em * var(--track, 1))",
-    paddingBlock: "0.3rem",
-    paddingInline: "0.7rem",
   },
   bar: {
     backgroundColor: "rgb(255 255 255 / 0.1)",
@@ -360,7 +374,18 @@ const styles = stylex.create({
   },
 });
 
-const TABS = ["stone", "skill", "record", "setting"] as const;
+const TABS = {
+  duel: ["stone", "tune", "record", "setting"],
+  journey: ["stone", "skill", "record", "setting"],
+} as const;
+
+const GEAR_OF: Record<Axis, keyof Gear> = {
+  focus: "focus",
+  impact: "impact",
+  keep: "stone",
+  lift: "lift",
+  speed: "power",
+};
 
 const LANGUAGES: [Lang, string][] = [
   ["ja", "日本語"],
@@ -370,15 +395,157 @@ const LANGUAGES: [Lang, string][] = [
 const closing = (status: string | undefined) =>
   status === "starting" || status === "ending";
 
+const TunePanel = ({
+  save,
+  onTune,
+  onRespec,
+}: {
+  save: DuelSave;
+  onTune: (key: Axis, step: 1 | -1) => void;
+  onRespec: () => void;
+}) => {
+  const lang = useLang();
+  const copy = useCopy();
+  const left = pointsLeft(save.tuning);
+  const levels = {
+    focus: (save.tuning.focus + LIMIT) / (2 * LIMIT),
+    impact: (save.tuning.impact + LIMIT) / (2 * LIMIT),
+    keep: (save.tuning.keep + LIMIT) / (2 * LIMIT),
+    lift: (save.tuning.lift + LIMIT) / (2 * LIMIT),
+    speed: (save.tuning.speed + LIMIT) / (2 * LIMIT),
+  };
+  const shown = {
+    focus: signed(save.tuning.focus),
+    impact: signed(save.tuning.impact),
+    keep: signed(save.tuning.keep),
+    lift: signed(save.tuning.lift),
+    speed: signed(save.tuning.speed),
+  };
+  return (
+    <>
+      <p {...stylex.props(styles.tuneNote)}>{copy.workshop.tuneNote}</p>
+      <span {...stylex.props(styles.points)}>{copy.workshop.points(left)}</span>
+      <Radar levels={levels} shown={shown} />
+      {axes.map((axis) => (
+        <div key={axis.key} {...stylex.props(styles.row)}>
+          <span>
+            <span {...stylex.props(styles.name)}>{axis.label[lang]}</span>
+            <span {...stylex.props(styles.value)}>{shown[axis.key]}</span>
+            <span {...stylex.props(styles.note)}>{axis.note[lang]}</span>
+          </span>
+          <span {...stylex.props(styles.stepper)}>
+            <button
+              aria-label={copy.workshop.lower(axis.label[lang])}
+              disabled={save.tuning[axis.key] <= -LIMIT}
+              onClick={() => {
+                onTune(axis.key, -1);
+              }}
+              type="button"
+              {...stylex.props(styles.step)}
+            >
+              −
+            </button>
+            <button
+              aria-label={copy.workshop.raise(axis.label[lang])}
+              disabled={left <= 0 || save.tuning[axis.key] >= LIMIT}
+              onClick={() => {
+                onTune(axis.key, 1);
+              }}
+              type="button"
+              {...stylex.props(styles.step, styles.plus)}
+            >
+              ＋
+            </button>
+          </span>
+        </div>
+      ))}
+      <button onClick={onRespec} type="button" {...stylex.props(styles.ghost)}>
+        {copy.workshop.respec}
+      </button>
+    </>
+  );
+};
+
+const SkillPanel = ({
+  save,
+  onTrain,
+  onRespec,
+}: {
+  save: JourneySave;
+  onTrain: (key: keyof Gear, step: 1 | -1) => void;
+  onRespec: () => void;
+}) => {
+  const lang = useLang();
+  const copy = useCopy();
+  const progress = progressOf(save.xp);
+  const left = pointsToTrain(save);
+  const stats = statsOf(journeyTraits(save.gear, save.look));
+  return (
+    <>
+      <div {...stylex.props(styles.level)}>
+        <span {...stylex.props(styles.levelNumber)}>Lv.{progress.level}</span>
+        <span {...stylex.props(styles.points)}>
+          {copy.workshop.skillPoints(left)}
+        </span>
+      </div>
+      <div {...stylex.props(styles.bar)}>
+        <div {...stylex.props(styles.barFill(progress.part))} />
+      </div>
+      <Radar levels={stats} shown={scoresOf(stats)} />
+      {axes.map((axis) => {
+        const gear = GEAR_OF[axis.key];
+        return (
+          <div key={axis.key} {...stylex.props(styles.row)}>
+            <span>
+              <span {...stylex.props(styles.name)}>{axis.label[lang]}</span>
+              <span {...stylex.props(styles.value)}>{save.gear[gear]}</span>
+              <span {...stylex.props(styles.note)}>{axis.note[lang]}</span>
+            </span>
+            <span {...stylex.props(styles.stepper)}>
+              <button
+                aria-label={copy.workshop.lower(axis.label[lang])}
+                disabled={save.gear[gear] === 0}
+                onClick={() => {
+                  onTrain(gear, -1);
+                }}
+                type="button"
+                {...stylex.props(styles.step)}
+              >
+                −
+              </button>
+              <button
+                aria-label={copy.workshop.raise(axis.label[lang])}
+                disabled={left <= 0}
+                onClick={() => {
+                  onTrain(gear, 1);
+                }}
+                type="button"
+                {...stylex.props(styles.step, styles.plus)}
+              >
+                ＋
+              </button>
+            </span>
+          </div>
+        );
+      })}
+      <button onClick={onRespec} type="button" {...stylex.props(styles.ghost)}>
+        {copy.workshop.respecPoints}
+      </button>
+    </>
+  );
+};
+
 interface WorkshopProps {
   open: boolean;
   opener: RefObject<HTMLButtonElement | null>;
   save: Save;
   onClose: () => void;
-  onTune: (key: keyof Gear, step: 1 | -1) => void;
+  onTune: (key: Axis, step: 1 | -1) => void;
+  onTrain: (key: keyof Gear, step: 1 | -1) => void;
   onWear: (part: Part, id: string) => void;
   onWearCombo: (id: string) => void;
   onRespec: () => void;
+  onMode: (next: Mode) => void;
   onSettings: (next: Settings) => void;
 }
 
@@ -388,16 +555,15 @@ export const Workshop = ({
   save,
   onClose,
   onTune,
+  onTrain,
   onWear,
   onWearCombo,
   onRespec,
+  onMode,
   onSettings,
 }: WorkshopProps) => {
   const lang = useLang();
   const copy = useCopy();
-  const progress = progressOf(save.xp);
-  const left = pointsLeft(save);
-  const stats = statsOf(save.gear, traitsOf(save.look));
 
   return (
     <Drawer.Root
@@ -437,7 +603,7 @@ export const Workshop = ({
             <Drawer.Content {...stylex.props(styles.content)}>
               <Tabs.Root defaultValue="stone" {...stylex.props(styles.tabs)}>
                 <Tabs.List {...stylex.props(styles.list)}>
-                  {TABS.map((value) => (
+                  {TABS[save.mode].map((value) => (
                     <Tabs.Tab
                       className={(state) =>
                         stylex.props(
@@ -449,7 +615,9 @@ export const Workshop = ({
                       value={value}
                     >
                       {copy.workshop.tabs[value]}
-                      {value === "stone" && save.unseen.length > 0 ? (
+                      {value === "stone" &&
+                      save.mode === "journey" &&
+                      save.unseen.length > 0 ? (
                         <span
                           aria-hidden="true"
                           {...stylex.props(styles.tabDot)}
@@ -471,72 +639,64 @@ export const Workshop = ({
                   />
                 </Tabs.Panel>
 
-                <Tabs.Panel value="skill" {...stylex.props(styles.panel)}>
-                  <div {...stylex.props(styles.level)}>
-                    <span {...stylex.props(styles.levelNumber)}>
-                      Lv.{progress.level}
-                    </span>
-                    <span {...stylex.props(styles.points)}>
-                      {copy.workshop.points(left)}
-                    </span>
-                  </div>
-                  <div {...stylex.props(styles.bar)}>
-                    <div {...stylex.props(styles.barFill(progress.part))} />
-                  </div>
-                  <Radar preview={null} stats={stats} />
-                  {axes.map((axis) => (
-                    <div key={axis.key} {...stylex.props(styles.row)}>
-                      <span>
-                        <span {...stylex.props(styles.name)}>
-                          {axis.label[lang]}
-                        </span>
-                        <span {...stylex.props(styles.value)}>
-                          {save.gear[axis.gear]}
-                        </span>
-                        <span {...stylex.props(styles.note)}>
-                          {axis.note[lang]}
-                        </span>
-                      </span>
-                      <span {...stylex.props(styles.stepper)}>
-                        <button
-                          aria-label={copy.workshop.lower(axis.label[lang])}
-                          disabled={save.gear[axis.gear] === 0}
-                          onClick={() => {
-                            onTune(axis.gear, -1);
-                          }}
-                          type="button"
-                          {...stylex.props(styles.step)}
-                        >
-                          −
-                        </button>
-                        <button
-                          aria-label={copy.workshop.raise(axis.label[lang])}
-                          disabled={left <= 0}
-                          onClick={() => {
-                            onTune(axis.gear, 1);
-                          }}
-                          type="button"
-                          {...stylex.props(styles.step, styles.plus)}
-                        >
-                          ＋
-                        </button>
-                      </span>
-                    </div>
-                  ))}
-                  <button
-                    onClick={onRespec}
-                    type="button"
-                    {...stylex.props(styles.ghost)}
-                  >
-                    {copy.workshop.respec}
-                  </button>
-                </Tabs.Panel>
+                {save.mode === "duel" ? (
+                  <Tabs.Panel value="tune" {...stylex.props(styles.panel)}>
+                    <TunePanel
+                      onRespec={onRespec}
+                      onTune={onTune}
+                      save={save}
+                    />
+                  </Tabs.Panel>
+                ) : (
+                  <Tabs.Panel value="skill" {...stylex.props(styles.panel)}>
+                    <SkillPanel
+                      onRespec={onRespec}
+                      onTrain={onTrain}
+                      save={save}
+                    />
+                  </Tabs.Panel>
+                )}
 
                 <Tabs.Panel value="record" {...stylex.props(styles.panel)}>
                   <RecordTab save={save} />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="setting" {...stylex.props(styles.panel)}>
+                  <div {...stylex.props(styles.row)}>
+                    <span>
+                      <span {...stylex.props(styles.name)}>
+                        {copy.workshop.mode.label}
+                      </span>
+                      <span {...stylex.props(styles.note)}>
+                        {copy.workshop.mode[save.mode].note}
+                      </span>
+                    </span>
+                    <ToggleGroup
+                      aria-label={copy.workshop.mode.label}
+                      onValueChange={([next]) => {
+                        if (next !== undefined) {
+                          onMode(next);
+                        }
+                      }}
+                      value={[save.mode]}
+                      {...stylex.props(styles.segments)}
+                    >
+                      {modes.map((value) => (
+                        <Toggle
+                          className={(state) =>
+                            stylex.props(
+                              styles.segment,
+                              state.pressed && styles.segmentOn
+                            ).className
+                          }
+                          key={value}
+                          value={value}
+                        >
+                          {copy.workshop.mode[value].name}
+                        </Toggle>
+                      ))}
+                    </ToggleGroup>
+                  </div>
                   <div {...stylex.props(styles.row)}>
                     <span>
                       <span {...stylex.props(styles.name)}>

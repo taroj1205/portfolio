@@ -1,7 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 
 import { colorOf } from "../_lib/cosmetics";
-import type { Item } from "../_lib/cosmetics";
+import type { Option, Part } from "../_lib/cosmetics";
 import { outlineOf, stoneSprite } from "../_lib/sprites";
 
 const styles = stylex.create({
@@ -49,7 +49,7 @@ const TRAIL_PREVIEW = new Map<string, string>([
   ["comet", "linear-gradient(90deg, transparent, #7aa8ff, #ffffff)"],
 ]);
 
-export const Preview = ({ part, option }: Item) => {
+export const Preview = ({ part, option }: { part: Part; option: Option }) => {
   if (part === "form") {
     return (
       <svg

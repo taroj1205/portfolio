@@ -7,11 +7,12 @@ import { font, ink, media, shade } from "../../_components/theme.stylex";
 import type { Text } from "../../_lib/i18n";
 import type { Copy } from "../_lib/copy";
 import { nameOf } from "../_lib/cosmetics";
+import { pointsLeft, progressOf } from "../_lib/journey";
 import { describe, formatDistance } from "../_lib/result";
 import type { Result } from "../_lib/result";
-import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import type { Phase } from "../_lib/session";
+import { noteOf } from "../_lib/tuning";
 import { useCopy, useLang } from "./lang";
 
 export interface Popup {
@@ -132,6 +133,16 @@ const styles = stylex.create({
     transform: "rotate(-4deg)",
     width: "1.6rem",
   },
+  dot: {
+    backgroundColor: "#ffd27a",
+    borderRadius: 999,
+    boxShadow: "0 0 10px #ffd27a",
+    height: 9,
+    position: "absolute",
+    right: 2,
+    top: 2,
+    width: 9,
+  },
   corner: {
     alignItems: "flex-end",
     display: "flex",
@@ -157,16 +168,6 @@ const styles = stylex.create({
     fontVariantNumeric: "tabular-nums",
     fontWeight: 700,
     gap: "0.35rem",
-  },
-  dot: {
-    backgroundColor: "#ffd27a",
-    borderRadius: 999,
-    boxShadow: "0 0 10px #ffd27a",
-    height: 9,
-    position: "absolute",
-    right: 2,
-    top: 2,
-    width: 9,
   },
   mute: {
     position: "relative",
@@ -415,6 +416,11 @@ const Challenge = ({ challenge }: { challenge: Result }) => {
           {copy.challenge.stone(nameOf(challenge.stone, lang))}
         </span>
       )}
+      {challenge.tuning === null ? null : (
+        <span {...stylex.props(styles.label)}>
+          {copy.challenge.tuning(noteOf(challenge.tuning, lang))}
+        </span>
+      )}
       <span {...stylex.props(styles.label)}>{copy.challenge.dare}</span>
     </div>
   );
@@ -456,13 +462,13 @@ const Corner = ({
           </span>
         </p>
       )}
-      {save === null ? null : (
+      {save?.mode === "journey" ? (
         <p {...stylex.props(styles.stat)}>
           <span {...stylex.props(styles.label)}>
             Lv.{progressOf(save.xp).level}
           </span>
         </p>
-      )}
+      ) : null}
       {phase === "ready" || phase === "done" ? (
         <button
           aria-label={copy.openWorkshop}
@@ -472,7 +478,8 @@ const Corner = ({
           {...stylex.props(glass.surface, styles.mute)}
         >
           <Gear />
-          {save !== null && (pointsLeft(save) > 0 || save.unseen.length > 0) ? (
+          {save?.mode === "journey" &&
+          (pointsLeft(save) > 0 || save.unseen.length > 0) ? (
             <span aria-hidden="true" {...stylex.props(styles.dot)} />
           ) : null}
         </button>
@@ -581,7 +588,9 @@ export const Hud = ({
         </div>
       )}
 
-      {challenge && !counting ? <Challenge challenge={challenge} /> : null}
+      {challenge && !challenge.journey && !counting ? (
+        <Challenge challenge={challenge} />
+      ) : null}
 
       {hint === undefined ? null : (
         <div {...stylex.props(styles.hint)}>
