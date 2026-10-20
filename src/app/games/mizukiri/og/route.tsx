@@ -54,6 +54,8 @@ const cardText = (result: Result | null, career: Career | null, lang: Lang) => {
       caption: story.title,
       detail: `${copy[lang].best} · ${story.reached}`,
       facts: story.facts,
+      mode:
+        career.level === null ? null : copy[lang].workshop.mode.journey.name,
       rarity: story.perfect,
       unit,
       value,
@@ -74,6 +76,8 @@ const cardText = (result: Result | null, career: Career | null, lang: Lang) => {
       story?.title ?? (en ? "How far will it skip?" : "どこまで跳ねる？"),
     detail,
     facts: [],
+    mode:
+      result?.journey === true ? copy[lang].workshop.mode.journey.name : null,
     rarity: story?.rarity ?? null,
     unit,
     value,
@@ -86,13 +90,13 @@ export const GET = async (request: NextRequest) => {
   const career = result === null ? readCareer(params) : null;
   const palette = palettes[result?.sky ?? "dusk"];
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
-  const { caption, detail, facts, rarity, unit, value } = cardText(
+  const { caption, detail, facts, mode, rarity, unit, value } = cardText(
     result,
     career,
     lang
   );
   const font = await loadMincho(
-    `${value}${unit}${caption}${detail}${rarity ?? ""}${facts
+    `${value}${unit}${caption}${detail}${rarity ?? ""}${mode ?? ""}${facts
       .map((fact) => `${fact.label}${fact.value}`)
       .join("")}天の川水切り石`
   );
@@ -286,6 +290,18 @@ export const GET = async (request: NextRequest) => {
               }}
             >
               {rarity}
+            </span>
+          )}
+          {mode === null ? null : (
+            <span
+              style={{
+                border: "2px solid currentColor",
+                borderRadius: 999,
+                fontSize: 24,
+                padding: "4px 16px",
+              }}
+            >
+              {mode}
             </span>
           )}
         </div>

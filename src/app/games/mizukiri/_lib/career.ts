@@ -142,7 +142,10 @@ export const careerShare = (
   const best = formatDistance(career.best).replace(" ", "");
   const total = formatDistance(career.total).replace(" ", "");
   const runs = career.runs.toLocaleString(copy[lang].locale);
-  const rank = career.level === null ? null : `Lv.${career.level}`;
+  const rank =
+    career.level === null
+      ? null
+      : `${copy[lang].workshop.mode.journey.name} Lv.${career.level}`;
   return {
     text:
       lang === "en"

@@ -830,6 +830,12 @@ describe("results", () => {
     assert.equal(read?.tuning, null);
     const posted = new URL(postUrl(shareOf(result, "https://x.y", "en")));
     assert.doesNotMatch(posted.searchParams.get("text") ?? "", /Tuning/u);
+    assert.match(posted.searchParams.get("text") ?? "", /Mode: Journey/u);
+    const ja = new URL(postUrl(shareOf(result, "https://x.y", "ja")));
+    assert.match(ja.searchParams.get("text") ?? "", /モード：育成/u);
+    const duelResult = resultOf(flight, duel);
+    const duelText = new URL(postUrl(shareOf(duelResult, "https://x.y", "en")));
+    assert.doesNotMatch(duelText.searchParams.get("text") ?? "", /Mode:/u);
   });
 
   test("a single skip reads as once in the sink and leaf lines", () => {
@@ -1050,7 +1056,7 @@ describe("save", () => {
     assert.match(english.text, /^My Skip to the Milky Way record:/u);
     assert.match(
       english.text,
-      /reached Cherry lane \(Lv\.9\)\n#天の川水切り #SkipToTheMilkyWay$/u
+      /reached Cherry lane \(Journey Lv\.9\)\n#天の川水切り #SkipToTheMilkyWay$/u
     );
     const url = new URL(english.url);
     assert.equal(url.searchParams.get("l"), "en");
@@ -1071,7 +1077,7 @@ describe("save", () => {
     );
     assert.match(
       careerShare(career, "https://x.y", "ja").text,
-      /桜並木まで到達（Lv\.9）\n#天の川水切り$/u
+      /桜並木まで到達（育成 Lv\.9）\n#天の川水切り$/u
     );
     assert.match(
       careerShare({ ...career, airtime: 125.9 }, "https://x.y", "en").text,

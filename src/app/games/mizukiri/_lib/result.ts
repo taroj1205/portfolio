@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import type { Lang, Text } from "../../_lib/i18n";
 import type { Share } from "../../_lib/share";
+import { copy as gameCopy } from "./copy";
 import { codeOf, nameOf, stoneFrom } from "./cosmetics";
 import type { Stone } from "./cosmetics";
 import type { Save } from "./save";
@@ -241,6 +242,9 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
     result.stone === null
       ? null
       : `${lang === "en" ? "Stone: " : "石："}${nameOf(result.stone, lang)}`;
+  const mode = result.journey
+    ? `${lang === "en" ? "Mode: " : "モード："}${gameCopy[lang].workshop.mode.journey.name}`
+    : null;
   const build =
     result.tuning === null
       ? null
@@ -250,6 +254,7 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
       describe(result, lang).line,
       stone,
       build,
+      mode,
       lang === "en" ? "#天の川水切り #SkipToTheMilkyWay" : "#天の川水切り",
     ]
       .filter((line) => line !== null)
