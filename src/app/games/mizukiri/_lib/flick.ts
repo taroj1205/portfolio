@@ -78,7 +78,7 @@ export const listenFlick = (
       rise < 0.6
         ? null
         : {
-            aim: Math.max(-0.18, Math.min(0.18, aim * 0.5)),
+            aim: Math.max(-0.1, Math.min(0.1, aim * 0.35)),
             speed: Math.min(16, 4 + rise * 2.6),
             tilt: tiltAt(held),
           }

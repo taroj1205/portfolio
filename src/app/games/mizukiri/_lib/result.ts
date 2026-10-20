@@ -1,13 +1,16 @@
 import { z } from "zod";
 
-import { endings, skies } from "./simulate";
-import type { Ending, River, Sky, Throw } from "./simulate";
+import { boosts, endings, skies } from "./simulate";
+import type { Boost, Ending, Flight, Sky } from "./simulate";
 
 export interface Result {
   skips: number;
   distance: number;
   ending: Ending;
   sky: Sky;
+  highlight: Boost | null;
+  times: number;
+  quality: number;
 }
 
 interface Story {
@@ -16,66 +19,99 @@ interface Story {
   line: string;
 }
 
-const tiers: [number, string][] = [
-  [25, "伝説"],
-  [17, "名人"],
-  [10, "上手い"],
-  [5, "いい感じ"],
-  [1, "ちょん、ちょん"],
-];
-
-const stories: Record<Ending, (skips: number, distance: string) => Story> = {
-  bank: (n) => ({
-    line: `${n}回跳ねて、向こう岸まで届いた`,
-    rarity: "激レア",
-    title: "向こう岸まで届いた",
-  }),
-  duck: (n) => ({
-    line: `${n}回跳ねて、最後カモに当たった🦆`,
-    rarity: "レア",
-    title: "カモに当たった",
-  }),
-  fish: (n) => ({
-    line: `${n}回跳ねたら、魚に食べられた🐟`,
-    rarity: "幻",
-    title: "魚に食べられた",
-  }),
-  leaf: (n) => ({
-    line: `${n}回跳ねて、もみじの上で止まった🍁`,
-    rarity: "激レア",
-    title: "もみじの上で止まった",
-  }),
-  plop: () => ({
-    line: "水切りしたら1回も跳ねなかった",
-    rarity: null,
-    title: "ぽちゃん",
-  }),
-  rock: (n) => ({
-    line: `${n}回跳ねて、岩にカーンって当たった`,
-    rarity: "レア",
-    title: "岩にカーン",
-  }),
-  sink: (n, m) => ({
-    line: `水切り ${n}回跳ねた（${m}m）`,
-    rarity: null,
-    title: tiers.find(([least]) => n >= least)?.[1] ?? "ぽちゃん",
-  }),
+export const distanceParts = (meters: number): [string, string] => {
+  if (meters < 1000) {
+    return [meters.toFixed(1), "m"];
+  }
+  if (meters < 100_000) {
+    return [(meters / 1000).toFixed(2), "km"];
+  }
+  return [Math.round(meters / 1000).toLocaleString("ja-JP"), "km"];
 };
 
-export const describe = (result: Result) =>
-  stories[result.ending](result.skips, result.distance.toFixed(1));
+export const formatDistance = (meters: number) =>
+  distanceParts(meters).join(" ");
 
-export const resultOf = (shot: Throw, river: River): Result => ({
-  distance: Math.round(shot.distance * 10) / 10,
-  ending: shot.ending,
-  skips: shot.skips,
-  sky: river.sky,
-});
+const tiers: [number, string][] = [
+  [10_000, "伝説"],
+  [3000, "仙人"],
+  [1000, "名人"],
+  [300, "上手い"],
+  [60, "いい感じ"],
+  [0, "ちょん、ちょん"],
+];
+
+const notes: Record<Boost, (times: number) => string> = {
+  duck: (k) => `カモ${k}羽を踏み台に🦆`,
+  fish: () => "鯉に押し出された🐟",
+  lotus: (k) => `蓮の葉で${k}回ポンッ`,
+  rock: (k) => `岩で${k}回カーン`,
+};
+
+const rank: Boost[] = ["fish", "rock", "duck", "lotus"];
+
+export const describe = (result: Result): Story => {
+  const distance = formatDistance(result.distance).replace(" ", "");
+  const tier = tiers.find(([least]) => result.distance >= least)?.[1];
+  const divine = result.quality === 100;
+  if (result.ending === "plop") {
+    return {
+      line: "水切りしたら1回も跳ねなかった",
+      rarity: null,
+      title: "ぽちゃん",
+    };
+  }
+  const note =
+    result.highlight === null
+      ? ""
+      : `（${notes[result.highlight](result.times)}）`;
+  if (result.ending === "leaf") {
+    return {
+      line: `水切りで${result.skips}回跳ねて${distance}、最後もみじの上で止まった🍁${note}`,
+      rarity: "激レア",
+      title: "もみじの上で止まった",
+    };
+  }
+  if (divine) {
+    return {
+      line: `神投げで${result.skips}回跳ねて${distance}飛んだ${note}`,
+      rarity: "神投げ",
+      title: tier ?? "ちょん、ちょん",
+    };
+  }
+  return {
+    line: `水切りで${result.skips}回跳ねて${distance}飛んだ${note}`,
+    rarity: result.highlight === "fish" ? "幻の鯉" : null,
+    title: tier ?? "ちょん、ちょん",
+  };
+};
+
+export const resultOf = (flight: Flight): Result => {
+  const counts = new Map<Boost, number>();
+  for (const bump of flight.splashes) {
+    if (bump.event !== null && bump.event !== "wall") {
+      counts.set(bump.event, (counts.get(bump.event) ?? 0) + 1);
+    }
+  }
+  const highlight = rank.find((kind) => counts.has(kind)) ?? null;
+  return {
+    distance: Math.round(flight.distance * 10) / 10,
+    ending: flight.ending ?? "sink",
+    highlight,
+    quality: flight.quality,
+    skips: flight.skips,
+    sky: flight.river.sky,
+    times: highlight === null ? 0 : (counts.get(highlight) ?? 0),
+  };
+};
 
 const shared = z.object({
   e: z.enum(endings),
-  m: z.coerce.number().min(0).max(99),
-  n: z.coerce.number().int().min(0).max(99),
+  h: z.enum(boosts).optional(),
+  k: z.coerce.number().int().min(0).max(100_000).optional(),
+  m: z.coerce.number().min(0).max(100_000_000),
+  n: z.coerce.number().int().min(0).max(1_000_000),
+  q: z.coerce.number().int().min(0).max(100).optional(),
   s: z.enum(skies),
 });
 
@@ -86,17 +122,32 @@ export const readResult = (
   if (!parsed.success) {
     return null;
   }
-  const { e, m, n, s } = parsed.data;
-  return { distance: m, ending: e, skips: n, sky: s };
+  const { e, h, k, m, n, q, s } = parsed.data;
+  return {
+    distance: m,
+    ending: e,
+    highlight: h ?? null,
+    quality: q ?? 0,
+    skips: n,
+    sky: s,
+    times: h === undefined ? 0 : (k ?? 1),
+  };
 };
 
-const queryOf = (result: Result) =>
-  new URLSearchParams({
+const queryOf = (result: Result) => {
+  const query = new URLSearchParams({
     e: result.ending,
     m: result.distance.toFixed(1),
     n: String(result.skips),
+    q: String(result.quality),
     s: result.sky,
-  }).toString();
+  });
+  if (result.highlight !== null) {
+    query.set("h", result.highlight);
+    query.set("k", String(result.times));
+  }
+  return query.toString();
+};
 
 export const postUrl = (result: Result, origin: string) =>
   `https://x.com/intent/tweet?${new URLSearchParams({

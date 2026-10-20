@@ -1,4 +1,4 @@
-import type { Ending } from "./simulate";
+import type { Event, Grade } from "./simulate";
 
 const YO = [0, 2, 5, 7, 9];
 const VOLUME = 0.8;
@@ -113,19 +113,9 @@ export const createSound = () => {
     spray(900, 1.4, 0.4);
   };
 
-  const cues: Partial<Record<Ending, () => void>> = {
-    bank: () => {
-      tone(180, { bend: 1.2, length: 0.12, peak: 0.35, type: "triangle" });
-      tone(150, {
-        at: 0.14,
-        bend: 1.2,
-        length: 0.1,
-        peak: 0.2,
-        type: "triangle",
-      });
-    },
+  const events: Record<Event, () => void> = {
     duck: () => {
-      for (const at of [0, 0.16]) {
+      for (const at of [0, 0.14]) {
         tone(330, {
           at,
           bend: 1.3,
@@ -136,15 +126,20 @@ export const createSound = () => {
       }
     },
     fish: () => {
-      plunge();
-      tone(140, { at: 0.12, bend: 1.8, length: 0.22, peak: 0.3 });
+      spray(1400, 1.2, 0.3);
+      tone(520, { bend: 0.6, length: 0.2, peak: 0.22, type: "triangle" });
     },
-    leaf: () => {
-      tone(880, { bend: 1.1, length: 0.5, peak: 0.12, type: "triangle" });
+    lotus: () => {
+      tone(420, { bend: 1.8, length: 0.16, peak: 0.3 });
+      tone(840, { at: 0.05, bend: 1.2, length: 0.12, peak: 0.12 });
     },
     rock: () => {
       tone(1320, { bend: 1, length: 0.5, peak: 0.18, type: "triangle" });
       tone(1980, { bend: 1, length: 0.3, peak: 0.08 });
+    },
+    wall: () => {
+      tone(620, { bend: 1.4, length: 0.08, peak: 0.2, type: "square" });
+      spray(3200, 0.4, 0.05);
     },
   };
 
@@ -152,7 +147,33 @@ export const createSound = () => {
     close: () => {
       void context?.close();
     },
-    ending: (ending: Ending) => cues[ending]?.(),
+    event: (kind: Event) => {
+      events[kind]();
+    },
+    fanfare: () => {
+      for (const [i, step] of [0, 2, 4, 7, 9, 12].entries()) {
+        tone(pitch(step + 2), {
+          at: i * 0.09,
+          bend: 1,
+          length: 0.5,
+          peak: 0.14,
+          type: "triangle",
+        });
+      }
+    },
+    reward: () => {
+      tone(1760, { bend: 1, length: 0.12, peak: 0.12, type: "triangle" });
+      tone(2637, {
+        at: 0.07,
+        bend: 1,
+        length: 0.2,
+        peak: 0.1,
+        type: "triangle",
+      });
+    },
+    leaf: () => {
+      tone(880, { bend: 1.1, length: 0.5, peak: 0.12, type: "triangle" });
+    },
     mute: (next: boolean) => {
       muted = next;
       if (context && master) {
@@ -163,13 +184,22 @@ export const createSound = () => {
         );
       }
     },
-    splash: (step: number, big: boolean) => {
-      if (big) {
+    splash: (step: number, grade: Grade | null) => {
+      if (grade === null) {
         plunge();
         return;
       }
       tone(pitch(step), {});
       spray(2600, 0.5, 0.08);
+      if (grade === "perfect") {
+        tone(pitch(step + 7), {
+          at: 0.04,
+          bend: 1,
+          length: 0.3,
+          peak: 0.12,
+          type: "triangle",
+        });
+      }
     },
     unlock: () => {
       const audio = ready();
