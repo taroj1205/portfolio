@@ -206,14 +206,14 @@ const queryOf = (result: Result) => {
   return query.toString();
 };
 
-export const postUrl = (result: Result, origin: string, lang: Lang) => {
+export const shareOf = (result: Result, origin: string, lang: Lang) => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
   const stone =
     result.stone === null
       ? null
       : `${lang === "en" ? "Stone: " : "石："}${nameOf(result.stone, lang)}`;
-  return `https://x.com/intent/tweet?${new URLSearchParams({
+  return {
     text: [
       describe(result, lang).line,
       stone,
@@ -222,5 +222,10 @@ export const postUrl = (result: Result, origin: string, lang: Lang) => {
       .filter((line) => line !== null)
       .join("\n"),
     url: `${origin}/games/mizukiri?${query.toString()}`,
-  }).toString()}`;
+  };
 };
+
+export const postUrl = (result: Result, origin: string, lang: Lang) =>
+  `https://x.com/intent/tweet?${new URLSearchParams(
+    shareOf(result, origin, lang)
+  ).toString()}`;

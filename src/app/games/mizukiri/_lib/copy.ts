@@ -35,7 +35,10 @@ export interface Copy {
     wear: string;
     worn: string;
     again: string;
-    post: string;
+    share: string;
+    postX: string;
+    copyLink: string;
+    copied: string;
     workshop: string;
     points: (count: number) => string;
     xp: (count: string) => string;
@@ -105,7 +108,10 @@ export const copy: Record<Lang, Copy> = {
       maker: "Made by",
       newPart: (part) => `New ${part.toLowerCase()}`,
       points: (count) => `Skill points +${count}`,
-      post: "Post",
+      copied: "Copied",
+      copyLink: "Copy link",
+      postX: "Post on X",
+      share: "Share",
       record: "New best",
       stats: (skips, combo, quality) =>
         `${skips} skips · best combo ×${combo} · throw ${quality}%`,
@@ -183,7 +189,10 @@ export const copy: Record<Lang, Copy> = {
       maker: "つくった人",
       newPart: (part) => `新しい${part}`,
       points: (count) => `スキルポイント +${count}`,
-      post: "ポスト",
+      copied: "コピーした",
+      copyLink: "リンクをコピー",
+      postX: "Xに投稿",
+      share: "シェア",
       record: "自己ベスト更新",
       stats: (skips, combo, quality) =>
         `${skips}回跳ねた · 最大コンボ ×${combo} · 投げの質 ${quality}%`,

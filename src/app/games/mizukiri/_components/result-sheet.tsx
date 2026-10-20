@@ -3,13 +3,14 @@ import Link from "next/link";
 
 import { keyOf, noteOf, parts } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
-import { describe, distanceParts, postUrl } from "../_lib/result";
+import { describe, distanceParts } from "../_lib/result";
 import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import type { Landing } from "../_lib/session";
 import { glass } from "./glass";
 import { useCopy, useLang } from "./lang";
 import { Preview } from "./preview";
+import { ShareButton } from "./share-button";
 import { font, ink, media } from "./theme.stylex";
 
 const rise = stylex.keyframes({
@@ -312,15 +313,6 @@ const styles = stylex.create({
   },
 });
 
-const XMark = () => (
-  <svg aria-hidden="true" height="15" viewBox="0 0 24 24" width="15">
-    <path
-      d="M17.75 3h3.07l-6.71 7.67L22 21h-6.17l-4.84-6.32L5.45 21H2.37l7.18-8.2L2 3h6.33l4.37 5.78L17.75 3Zm-1.08 16.18h1.7L7.4 4.73H5.58l11.09 14.45Z"
-      fill="currentColor"
-    />
-  </svg>
-);
-
 const PART_NAMES = new Map(parts.map(({ part, name }) => [part, name]));
 
 interface ResultSheetProps {
@@ -419,15 +411,10 @@ export const ResultSheet = ({
         {copy.result.again}
       </button>
       <div {...stylex.props(styles.actions)}>
-        <a
-          href={postUrl(result, window.location.origin, lang)}
-          rel="noopener noreferrer"
-          target="_blank"
+        <ShareButton
+          result={result}
           {...stylex.props(styles.action, styles.post)}
-        >
-          <XMark />
-          {copy.result.post}
-        </a>
+        />
         <button
           onClick={onWorkshop}
           type="button"
