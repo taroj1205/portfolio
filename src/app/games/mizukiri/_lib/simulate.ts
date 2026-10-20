@@ -477,6 +477,14 @@ export const windowFor = (flight: Flight) => {
 export const nextContact = (flight: Flight) =>
   flight.ending === null ? (flight.hops.at(-1)?.end ?? null) : null;
 
+export const isLate = (flight: Flight, landedAt: number, time: number) => {
+  const since = time - landedAt;
+  const next = nextContact(flight);
+  return (
+    since <= windowFor(flight).good && (next === null || since <= next - time)
+  );
+};
+
 const gradeFor = (flight: Flight, tapAt: number | null, time: number) => {
   if (tapAt === null) {
     return "miss";

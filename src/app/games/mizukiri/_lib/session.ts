@@ -20,6 +20,7 @@ import {
 import type { Save, Settings } from "./save";
 import {
   createRiver,
+  isLate,
   land,
   launch,
   nextContact,
@@ -89,6 +90,7 @@ export const startSession = (
   let time = 0;
   let last = performance.now();
   let tap: number | null = null;
+  let landedAt = Number.NEGATIVE_INFINITY;
   let heard = 0;
   let skips = 0;
   let ended = false;
@@ -123,6 +125,7 @@ export const startSession = (
       flight = launch(river, input, save.gear, traitsOf(save.look));
       time = 0;
       tap = null;
+      landedAt = Number.NEGATIVE_INFINITY;
       heard = 0;
       skips = 0;
       ended = false;
@@ -132,7 +135,9 @@ export const startSession = (
     },
     start: () => {
       if (mode === "flying") {
-        tap ??= time;
+        if (flight !== null && !isLate(flight, landedAt, time)) {
+          tap ??= time;
+        }
         return;
       }
       if (mode !== "ready") {
@@ -195,6 +200,7 @@ export const startSession = (
       contact = nextContact(current)
     ) {
       land(current, tap);
+      landedAt = contact;
       tap = null;
     }
     for (
