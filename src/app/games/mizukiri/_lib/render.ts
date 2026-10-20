@@ -1165,8 +1165,8 @@ const paintLandmark = (bank: Bank, n: number) => {
     }
     return;
   }
-  const toriiSide = (z / 400) % 2 === (side < 0 ? 0 : 1);
-  if (coast === "village" && z % 400 === 0 && toriiSide) {
+  const toriiSide = (z / 120) % 2 === (side < 0 ? 0 : 1);
+  if (coast === "village" && z % 120 === 0 && toriiSide) {
     paintTorii(ctx, view, side * (shore + 3.2), z, palette);
   } else if (LEAVES.has(coast) && hash(n, side) > 0.35) {
     const x = side * (shore + 1.2 + hash(n, side + 4) * 2);
