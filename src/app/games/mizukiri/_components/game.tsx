@@ -12,6 +12,7 @@ import type { Result } from "../_lib/result";
 import type { Save } from "../_lib/save";
 import { startSession } from "../_lib/session";
 import type { Beat, Landing, Phase, Release } from "../_lib/session";
+import { isBounce } from "../_lib/simulate";
 import type { Event, Grade } from "../_lib/simulate";
 import { Hud } from "./hud";
 import type { Popup } from "./hud";
@@ -65,6 +66,7 @@ const releaseCall = ({ tilt, quality }: Release): Call => {
 };
 
 const eventTones: Record<Event, Popup["tone"]> = {
+  dragonfly: "gold",
   duck: "white",
   fish: "green",
   lotus: "green",
@@ -80,7 +82,7 @@ const gradeTones: Record<Grade, Popup["tone"]> = {
 };
 
 const beatCall = ({ event, grade }: Beat): Call | null => {
-  if ((event === "duck" || event === "rock") && grade !== null) {
+  if (isBounce(event) && grade !== null) {
     return {
       say: (words) => `${words.events[event]} ${words.grades[grade]}`,
       tone: eventTones[event],

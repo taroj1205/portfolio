@@ -81,6 +81,7 @@ export const copy: Record<Lang, Copy> = {
     combo: (count) => `×${count} combo`,
     endings: { leaf: "Landed", plop: "Plop", sink: "Splash" },
     events: {
+      dragonfly: "Zip!",
       duck: "Quack!",
       fish: "Carp leap!",
       lotus: "Boing",
@@ -152,7 +153,7 @@ export const copy: Record<Lang, Copy> = {
       steps: [
         "Hold, watch the stone's angle, then flick up. Nail both angle and speed for a perfect throw.",
         "Tap the moment the stone meets the water, as the ring closes. Gold means perfect.",
-        "Ducks, rocks, carp and lily pads speed you up. Drift too close to a bank and you bounce off.",
+        "Ducks, rocks, carp and lily pads speed you up, and so do dragonflies hovering over the water. Drift too close to a bank and you bounce off.",
       ],
       tabs: {
         record: "Record",
@@ -173,6 +174,7 @@ export const copy: Record<Lang, Copy> = {
     combo: (count) => `×${count} コンボ`,
     endings: { leaf: "ふわっ", plop: "ぽちゃん", sink: "ちゃぽん" },
     events: {
+      dragonfly: "スイッ！",
       duck: "グワッ！",
       fish: "鯉ジャンプ！",
       lotus: "ポンッ",
@@ -249,7 +251,7 @@ export const copy: Record<Lang, Copy> = {
       steps: [
         "押したまま、石の角度を見て上にはじく。角度と速さがぴったりだと神投げ",
         "石が着水する瞬間、輪が閉じたところでタップ。金色ならパーフェクト",
-        "カモ・岩・鯉・蓮の葉に当たると加速。土手に寄りすぎると跳ね返される",
+        "カモ・岩・鯉・蓮の葉、水面を飛ぶトンボに当たると加速。土手に寄りすぎると跳ね返される",
       ],
       tabs: { record: "戦績", setting: "設定", skill: "腕前", stone: "石" },
       title: "石と腕前",

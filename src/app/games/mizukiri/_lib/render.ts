@@ -1239,7 +1239,7 @@ const paintSplashes = (
 ) => {
   for (const [i, splash] of shot.splashes.entries()) {
     const age = time - splash.time;
-    if (age < 0 || age > 5) {
+    if (age < 0 || age > 5 || splash.y > 0) {
       continue;
     }
     const p = project(view, { x: splash.x, y: 0, z: splash.z });
@@ -1323,7 +1323,7 @@ const paintBursts = (
     if (!bright || age < 0 || age > 0.5) {
       continue;
     }
-    const p = project(view, { x: splash.x, y: 0.05, z: splash.z });
+    const p = project(view, { x: splash.x, y: splash.y + 0.05, z: splash.z });
     if (!p) {
       continue;
     }
@@ -1349,6 +1349,9 @@ const paintBursts = (
       );
       ctx.lineTo(p.x + Math.cos(a) * long, p.y + Math.sin(a) * long);
       ctx.stroke();
+    }
+    if (splash.y > 0) {
+      continue;
     }
     const ring = (0.4 + age * 6) * p.s;
     ctx.lineWidth = Math.max(1.2, 0.05 * p.s * fade);
@@ -1514,6 +1517,95 @@ const paintDuck = (
     ctx.lineTo(p.x + facing * w * 0.12, p.y - w * 0.2);
     ctx.fill();
   }
+};
+
+const paintDragonfly = (
+  ctx: CanvasRenderingContext2D,
+  view: View,
+  prop: Prop,
+  clock: number,
+  flown: number | null
+) => {
+  const facing = Math.cos(prop.turn) >= 0 ? 1 : -1;
+  const at: Vec = {
+    x: prop.x + Math.sin(clock * 1.3 + prop.turn) * 0.06,
+    y: prop.y + Math.sin(clock * 2.1 + prop.turn * 2) * 0.04,
+    z: prop.z,
+  };
+  if (flown !== null) {
+    at.x += facing * 3 * flown;
+    at.y += 1.8 * flown;
+    at.z += 4 * flown;
+  }
+  const p = project(view, at);
+  if (!p) {
+    return;
+  }
+  const L = Math.max(6, 0.36 * p.s);
+  const shadow = project(view, { x: at.x, y: 0, z: at.z });
+  if (shadow) {
+    const r = L * (0.45 + 0.3 * at.y);
+    ctx.save();
+    ctx.translate(shadow.x, shadow.y);
+    ctx.scale(1, Math.max(0.18, flatten(view, shadow.d) * 1.5));
+    const soft = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+    soft.addColorStop(0, "rgb(0 0 0 / 0.3)");
+    soft.addColorStop(1, "rgb(0 0 0 / 0)");
+    ctx.fillStyle = soft;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, TAU);
+    ctx.fill();
+    ctx.restore();
+  }
+  if (flown === null) {
+    const r = L * (1.1 + 0.15 * Math.sin(clock * 3 + prop.turn));
+    const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+    glow.addColorStop(0, rgba(GOLD, 0.35));
+    glow.addColorStop(1, rgba(GOLD, 0));
+    ctx.fillStyle = glow;
+    ctx.fillRect(p.x - r, p.y - r, r * 2, r * 2);
+  }
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.scale(facing, 1);
+  const beat = Math.sin(clock * 70 + prop.turn) * 0.35;
+  ctx.fillStyle = "rgb(236 244 255 / 0.55)";
+  ctx.strokeStyle = "rgb(30 40 60 / 0.45)";
+  ctx.lineWidth = Math.max(0.75, L * 0.025);
+  for (const [x, lean] of [
+    [0.12, -0.5],
+    [-0.02, -0.75],
+  ] as const) {
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.ellipse(
+        x * L,
+        -0.05 * L,
+        L * 0.32,
+        L * 0.07,
+        side * (lean + beat),
+        0,
+        TAU
+      );
+      ctx.fill();
+      ctx.stroke();
+    }
+  }
+  ctx.strokeStyle = "#c8432b";
+  ctx.lineCap = "round";
+  ctx.lineWidth = Math.max(1, L * 0.06);
+  ctx.beginPath();
+  ctx.moveTo(0.05 * L, 0);
+  ctx.lineTo(-0.55 * L, 0.04 * L);
+  ctx.stroke();
+  ctx.fillStyle = "#8e2f1f";
+  ctx.beginPath();
+  ctx.ellipse(0.1 * L, 0, L * 0.1, L * 0.06, 0, 0, TAU);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0.22 * L, -0.01 * L, L * 0.06, 0, TAU);
+  ctx.fill();
+  ctx.restore();
 };
 
 const SAKURA = ["#ffd3e2", "#f7a8c4", "#fbe6ee"];
@@ -1878,11 +1970,12 @@ const paintApproach = (
     return;
   }
   const at = stoneAt(flight, contact - 1e-4);
-  const p = at ? project(view, { ...at, y: 0 }) : null;
+  const airborne = (flight.pending?.y ?? 0) > 0;
+  const p = at ? project(view, airborne ? at : { ...at, y: 0 }) : null;
   if (!p) {
     return;
   }
-  const squash = flatten(view, p.d);
+  const squash = airborne ? 1 : flatten(view, p.d);
   const win = windowFor(flight);
   const target = 0.45 * p.s;
   const ring = (0.45 + remain * 3.2) * p.s;
@@ -2095,21 +2188,18 @@ const paintScene = (
     paintSplashes(ctx, view, shot, palette, time, rings);
     paintApproach(ctx, view, shot, time);
   }
+  const flownOf = (prop: Prop) => {
+    const hit =
+      shot?.bumps.find((bump) => sameProp(bump.prop, prop))?.time ?? null;
+    return hit !== null && time > hit ? time - hit : null;
+  };
   for (const prop of props) {
     if (prop.kind === "rock") {
       paintRock(ctx, view, prop, sprites.rock(prop), palette, clock);
     } else if (prop.kind === "duck") {
-      const hit =
-        shot?.bumps.find((bump) => sameProp(bump.prop, prop))?.time ?? null;
-      paintDuck(
-        ctx,
-        view,
-        prop,
-        sprites.duck,
-        palette,
-        clock,
-        hit !== null && time > hit ? time - hit : null
-      );
+      paintDuck(ctx, view, prop, sprites.duck, palette, clock, flownOf(prop));
+    } else if (prop.kind === "dragonfly") {
+      paintDragonfly(ctx, view, prop, clock, flownOf(prop));
     }
   }
   for (const bump of shot?.bumps ?? []) {
@@ -2174,7 +2264,10 @@ const transitionAt = (z: number) => {
 const ripplesOf = (frame: Frame) =>
   (frame.shot?.splashes ?? [])
     .filter(
-      (splash) => frame.time >= splash.time && frame.time - splash.time < 4.5
+      (splash) =>
+        splash.y === 0 &&
+        frame.time >= splash.time &&
+        frame.time - splash.time < 4.5
     )
     .slice(-24)
     .map((splash) => ({
