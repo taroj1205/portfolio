@@ -111,6 +111,25 @@ describe("flight", () => {
     assert.equal(flight.combo, 0);
   });
 
+  test("missing a bounce keeps the combo while a good tap still adds to it", () => {
+    let checked = 0;
+    for (let seed = 1; seed <= 60; seed += 1) {
+      for (const lead of [null, 0.5, 0.01]) {
+        const flight = launch(createRiver(seed), flat, bare);
+        const contact = nextContact(flight);
+        if (flight.pending !== null && contact !== null) {
+          flight.combo = 4;
+          land(flight, lead === null ? null : contact - lead);
+          const grade = flight.splashes.at(-1)?.grade;
+          const hit = grade === "perfect" || grade === "good";
+          assert.equal(flight.combo, hit ? 5 : 4);
+          checked += 1;
+        }
+      }
+    }
+    assert.ok(checked > 0);
+  });
+
   test("a tap just after a touch is late for it, not early for the next", () => {
     const flight = launch(createRiver(3), flat, bare);
     const landedAt = nextContact(flight);
