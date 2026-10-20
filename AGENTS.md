@@ -28,3 +28,22 @@ Do not write Base UI code from memory. Part names, props, and `data-*` attribute
 - The canvas, game loop, and in-game pointer or key input stay custom. Base UI is for the chrome around them.
 - Share a wrapper in `src/app/games/_components` when two games need the same primitive, as `share-button.tsx` does for Menu.
 - Load the `base-ui-integration` skill as well when wiring close events, portals, focus, or unmount animations.
+
+## Keeping these instructions current
+
+Treat `AGENTS.md` and `docs/` as working notes that get better every time an agent loses time. Update them in the same change as the work, without waiting to be asked.
+
+Update them when you:
+
+- guessed an API, path, command, or convention wrong and had to correct it
+- searched or read several files for something a single line here would have answered
+- hit a failure that took more than one attempt to understand, such as a check that only passes after a setup step
+- were corrected by the user, or noticed an instruction here that is wrong, stale, or points at a file that moved
+
+How:
+
+- Fix the existing line instead of adding a second one that contradicts it. Delete lines that are no longer true.
+- Write the fact and the fix in one or two lines: what to do, where, and the command or path. Skip the story of how you found out.
+- Put general rules in `AGENTS.md` and per-topic detail with examples in `docs/`. Link from `AGENTS.md` to any new doc.
+- Only record things that stay true across tasks. Leave out one-off details, task status, and anything the code or git history already shows.
+- Say in your final message which instruction lines you changed and why.
