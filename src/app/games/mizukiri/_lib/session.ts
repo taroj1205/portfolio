@@ -1,5 +1,7 @@
 import { guessLang } from "../../_lib/i18n";
 import type { Text } from "../../_lib/i18n";
+import { loadSettings, storeSettings } from "../../_lib/settings";
+import type { Settings } from "../../_lib/settings";
 import { copy } from "./copy";
 import type { Part } from "./cosmetics";
 import { listenFlick, tiltAt } from "./flick";
@@ -18,7 +20,7 @@ import {
   wearCombo,
   withView,
 } from "./save";
-import type { Mode, Save, Settings } from "./save";
+import type { Mode, Save } from "./save";
 import {
   createRiver,
   isBounce,
@@ -77,6 +79,7 @@ interface Listeners {
   speed: (metersPerSecond: number) => void;
   land: (landing: Landing) => void;
   save: (save: Save) => void;
+  settings: (settings: Settings) => void;
 }
 
 const traitsFor = (save: Save) =>
@@ -109,6 +112,7 @@ export const startSession = (
     storeProfiles(all);
   }
   let save = viewOf(all);
+  let settings = loadSettings();
   let river = createRiver(newSeed());
   let flight: Flight | null = null;
   let time = 0;
@@ -121,8 +125,9 @@ export const startSession = (
   let reached = 0;
   let aimFrom: number | null = null;
   let mode: Phase = "ready";
-  sound.mute(save.settings.muted);
+  sound.mute(settings.muted);
   on.save(save);
+  on.settings(settings);
 
   const enter = (next: Phase) => {
     mode = next;
@@ -304,7 +309,7 @@ export const startSession = (
       tilt: aimFrom === null ? null : tiltAt((now - aimFrom) / 1000),
       time,
       look: save.look,
-      surface: copy[save.settings.lang ?? guessLang()].surface,
+      surface: copy[settings.lang ?? guessLang()].surface,
     });
     frame = requestAnimationFrame(tick);
   };
@@ -366,8 +371,10 @@ export const startSession = (
       reset();
     },
     settings: (next: Settings) => {
-      sound.mute(next.muted);
-      keep({ ...save, settings: next });
+      settings = next;
+      storeSettings(settings);
+      sound.mute(settings.muted);
+      on.settings(settings);
     },
     stop: () => {
       cancelAnimationFrame(frame);

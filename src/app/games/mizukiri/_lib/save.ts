@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { langs } from "../../_lib/i18n";
 import { createStore } from "../../_lib/storage";
 import { comboOf, firstLook, parts } from "./cosmetics";
 import type { Part } from "./cosmetics";
@@ -31,13 +30,6 @@ const tally = z.object({
   quality: z.number().min(0).default(0),
   skips: count.default(0),
 });
-
-const settings = z
-  .object({
-    lang: z.enum(langs).nullable().default(null),
-    muted: z.boolean(),
-  })
-  .default({ lang: null, muted: false });
 
 const profile = z.object({
   best: z.number().min(0),
@@ -79,21 +71,15 @@ const profiles = z.object({
   duel: profile.extend({ tuning: tuningOrFlat }).transform(countsBest),
   journey: profile.extend(training).transform(countsBest),
   mode: z.enum(modes),
-  settings,
 });
 
-const legacy = profile.extend({ ...training, settings }).transform(countsBest);
+const legacy = profile.extend(training).transform(countsBest);
 
 export type Profiles = z.infer<typeof profiles>;
 
-export type Settings = Profiles["settings"];
+export type DuelSave = Profiles["duel"] & { mode: "duel" };
 
-export type DuelSave = Profiles["duel"] & { mode: "duel"; settings: Settings };
-
-export type JourneySave = Profiles["journey"] & {
-  mode: "journey";
-  settings: Settings;
-};
+export type JourneySave = Profiles["journey"] & { mode: "journey" };
 
 export type Save = DuelSave | JourneySave;
 
@@ -112,7 +98,6 @@ const fresh: Profiles = {
   duel: { ...freshProfile, tuning: flatTuning },
   journey: { ...freshProfile, gear: noGear, unseen: [], xp: 0 },
   mode: "duel",
-  settings: { lang: null, muted: false },
 };
 
 const current = createStore<Profiles | null>(KEY, profiles.nullable(), null);
@@ -123,15 +108,11 @@ const previous = createStore<z.infer<typeof legacy> | null>(
   null
 );
 
-const carriedOver = (older: z.infer<typeof legacy>): Profiles => {
-  const { settings: kept, ...journey } = older;
-  return {
-    duel: { ...fresh.duel, look: older.look },
-    journey,
-    mode: "journey",
-    settings: kept,
-  };
-};
+const carriedOver = (older: z.infer<typeof legacy>): Profiles => ({
+  duel: { ...fresh.duel, look: older.look },
+  journey: older,
+  mode: "journey",
+});
 
 export const loadProfiles = (): Profiles => {
   const saved = current.read();
@@ -146,16 +127,16 @@ export const storeProfiles = current.write;
 
 export const viewOf = (all: Profiles): Save =>
   all.mode === "duel"
-    ? { ...all.duel, mode: "duel", settings: all.settings }
-    : { ...all.journey, mode: "journey", settings: all.settings };
+    ? { ...all.duel, mode: "duel" }
+    : { ...all.journey, mode: "journey" };
 
 export const withView = (all: Profiles, view: Save): Profiles => {
   if (view.mode === "duel") {
-    const { mode: _mode, settings: kept, ...duel } = view;
-    return { ...all, duel, settings: kept };
+    const { mode: _mode, ...duel } = view;
+    return { ...all, duel };
   }
-  const { mode: _mode, settings: kept, ...journey } = view;
-  return { ...all, journey, settings: kept };
+  const { mode: _mode, ...journey } = view;
+  return { ...all, journey };
 };
 
 export const wear = <S extends Save>(

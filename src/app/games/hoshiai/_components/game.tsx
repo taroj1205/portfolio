@@ -3,8 +3,8 @@
 import * as stylex from "@stylexjs/stylex";
 import { useEffect, useRef, useState } from "react";
 
-import { guessLang } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
+import type { Settings } from "../../_lib/settings";
 import { TIER, TOP, kindOf } from "../_lib/bodies";
 import { copy } from "../_lib/copy";
 import type { Result } from "../_lib/result";
@@ -51,14 +51,15 @@ export const Game = ({
   hint,
 }: {
   challenge: Result | null;
-  hint: Lang | null;
+  hint: Lang;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const vignette = useRef<HTMLDivElement>(null);
   const session = useRef<ReturnType<typeof startSession> | null>(null);
   const shouts = useRef(0);
-  const langRef = useRef<Lang>(hint ?? "ja");
+  const langRef = useRef<Lang>(hint);
   const [save, setSave] = useState<Save | null>(null);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [score, setScore] = useState(0);
   const [next, setNext] = useState(0);
   const [drops, setDrops] = useState(0);
@@ -69,10 +70,7 @@ export const Game = ({
   );
   const [ending, setEnding] = useState<Ending | null>(null);
 
-  let lang: Lang = hint ?? "ja";
-  if (save !== null) {
-    lang = save.settings.lang ?? hint ?? guessLang();
-  }
+  const lang = settings?.lang ?? hint;
 
   useEffect(() => {
     langRef.current = lang;
@@ -113,6 +111,7 @@ export const Game = ({
             },
             save: setSave,
             score: setScore,
+            settings: setSettings,
           });
     return () => {
       session.current?.stop();
@@ -138,13 +137,21 @@ export const Game = ({
         best={save?.best ?? 0}
         challenge={drops === 0 ? challenge : null}
         lang={lang}
-        muted={save?.settings.muted ?? false}
+        muted={settings?.muted ?? false}
         next={next}
-        onMute={() => {
-          if (save !== null) {
+        onLang={() => {
+          if (settings !== null) {
             session.current?.settings({
-              ...save.settings,
-              muted: !save.settings.muted,
+              ...settings,
+              lang: lang === "ja" ? "en" : "ja",
+            });
+          }
+        }}
+        onMute={() => {
+          if (settings !== null) {
+            session.current?.settings({
+              ...settings,
+              muted: !settings.muted,
             });
           }
         }}

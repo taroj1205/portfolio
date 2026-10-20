@@ -56,7 +56,6 @@ const fresh: Save = {
   galaxies: 0,
   merges: 0,
   runs: 0,
-  settings: { lang: null, muted: false },
   top: -1,
 };
 

@@ -8,6 +8,7 @@ import type { RefObject } from "react";
 
 import { font, ink } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
+import type { Settings } from "../../_lib/settings";
 import type { Part } from "../_lib/cosmetics";
 import {
   pointsLeft as pointsToTrain,
@@ -18,7 +19,7 @@ import {
 } from "../_lib/journey";
 import type { Gear } from "../_lib/journey";
 import { modes } from "../_lib/save";
-import type { DuelSave, JourneySave, Mode, Save, Settings } from "../_lib/save";
+import type { DuelSave, JourneySave, Mode, Save } from "../_lib/save";
 import { LIMIT, axes, pointsLeft, signed } from "../_lib/tuning";
 import type { Axis } from "../_lib/tuning";
 import { useCopy, useLang } from "./lang";
@@ -539,6 +540,7 @@ interface WorkshopProps {
   open: boolean;
   opener: RefObject<HTMLButtonElement | null>;
   save: Save;
+  settings: Settings;
   onClose: () => void;
   onTune: (key: Axis, step: 1 | -1) => void;
   onTrain: (key: keyof Gear, step: 1 | -1) => void;
@@ -553,6 +555,7 @@ export const Workshop = ({
   open,
   opener,
   save,
+  settings,
   onClose,
   onTune,
   onTrain,
@@ -708,7 +711,7 @@ export const Workshop = ({
                     </span>
                     <Switch.Root
                       aria-label={copy.workshop.mute.label}
-                      checked={save.settings.muted}
+                      checked={settings.muted}
                       className={(state) =>
                         stylex.props(
                           styles.switch,
@@ -716,7 +719,7 @@ export const Workshop = ({
                         ).className
                       }
                       onCheckedChange={(checked) => {
-                        onSettings({ ...save.settings, muted: checked });
+                        onSettings({ ...settings, muted: checked });
                       }}
                     >
                       <Switch.Thumb
@@ -737,7 +740,7 @@ export const Workshop = ({
                       aria-label={copy.workshop.language}
                       onValueChange={([next]) => {
                         if (next !== undefined) {
-                          onSettings({ ...save.settings, lang: next });
+                          onSettings({ ...settings, lang: next });
                         }
                       }}
                       value={[lang]}

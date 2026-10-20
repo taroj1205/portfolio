@@ -570,17 +570,9 @@ const withStorage = <T>(items: Record<string, string>, run: () => T): T => {
 
 const fresh = withStorage({}, loadProfiles);
 
-const duel: DuelSave = {
-  ...fresh.duel,
-  mode: "duel",
-  settings: fresh.settings,
-};
+const duel: DuelSave = { ...fresh.duel, mode: "duel" };
 
-const journey: JourneySave = {
-  ...fresh.journey,
-  mode: "journey",
-  settings: fresh.settings,
-};
+const journey: JourneySave = { ...fresh.journey, mode: "journey" };
 
 const statsFor = (color: string, form: string) =>
   statsOf(journeyTraits(noGear, { color, form }));
@@ -935,15 +927,6 @@ describe("save", () => {
     assert.equal(viewOf(kept).runs, 1);
   });
 
-  test("settings are shared by both modes", () => {
-    const quiet = { ...duel, settings: { lang: "en", muted: true } } as const;
-    const all = withView(fresh, quiet);
-    assert.deepEqual(
-      viewOf({ ...all, mode: "journey" }).settings,
-      quiet.settings
-    );
-  });
-
   test("a player from before the modes carries their progress into the journey", () => {
     const before = JSON.stringify({
       best: 42.5,
@@ -952,7 +935,6 @@ describe("save", () => {
       gear: { focus: 3, impact: 1, lift: 0, power: 9, stone: 2 },
       look: { color: "slate", form: "flat", pattern: "stripe", trail: "gold" },
       runs: 12,
-      settings: { lang: "en", muted: true },
       unseen: ["color:gold"],
       xp: 5000,
     });
@@ -973,7 +955,6 @@ describe("save", () => {
     assert.deepEqual(loaded.journey.unseen, ["color:gold"]);
     assert.equal(loaded.journey.look.pattern, "stripe");
     assert.equal(loaded.journey.tally.distance, 42.5);
-    assert.deepEqual(loaded.settings, { lang: "en", muted: true });
     assert.equal(loaded.duel.best, 0);
     assert.equal(loaded.duel.runs, 0);
     assert.deepEqual(loaded.duel.tuning, flatTuning);
@@ -995,7 +976,6 @@ describe("save", () => {
     assert.equal(loaded.journey.runs, 1);
     assert.equal(loaded.journey.gear.impact, 0);
     assert.equal(loaded.journey.tally.distance, 10);
-    assert.deepEqual(loaded.settings, { lang: null, muted: false });
   });
 
   test("a new save wins over the old one", () => {

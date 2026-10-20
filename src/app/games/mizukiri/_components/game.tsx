@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { guessLang } from "../../_lib/i18n";
 import type { Lang, Text } from "../../_lib/i18n";
+import type { Settings } from "../../_lib/settings";
 import { copy } from "../_lib/copy";
 import type { Copy } from "../_lib/copy";
 import { distanceParts, toKmh } from "../_lib/result";
@@ -118,6 +119,7 @@ export const Game = ({
   const [popup, setPopup] = useState<Popup | null>(null);
   const [landed, setLanded] = useState<Landing | null>(null);
   const [save, setSave] = useState<Save | null>(null);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [thrown, setThrown] = useState(false);
   const [workshop, setWorkshop] = useState(false);
   const opener = useRef<HTMLButtonElement>(null);
@@ -175,6 +177,7 @@ export const Game = ({
                 shout(releaseCall(release));
               },
               save: setSave,
+              settings: setSettings,
               speed: (metersPerSecond) => {
                 if (paceValue.current) {
                   paceValue.current.textContent = String(
@@ -196,8 +199,8 @@ export const Game = ({
   }, [duelOnly]);
 
   let lang: Lang = hint ?? "ja";
-  if (save !== null) {
-    lang = save.settings.lang ?? hint ?? guessLang();
+  if (settings !== null) {
+    lang = settings.lang ?? hint ?? guessLang();
   }
 
   useEffect(() => {
@@ -243,7 +246,7 @@ export const Game = ({
           save={save}
         />
       ) : null}
-      {save === null ? null : (
+      {save === null || settings === null ? null : (
         <Workshop
           onClose={() => {
             setWorkshop(false);
@@ -259,15 +262,16 @@ export const Game = ({
           open={workshop}
           opener={opener}
           save={save}
+          settings={settings}
         />
       )}
-      {save === null ? null : (
+      {settings === null ? null : (
         <LanguagePicker
           lang={lang}
           onPick={(next) =>
-            session.current?.settings({ ...save.settings, lang: next })
+            session.current?.settings({ ...settings, lang: next })
           }
-          open={save.settings.lang === null}
+          open={settings.lang === null}
         />
       )}
     </LangContext>
