@@ -31,7 +31,6 @@ import { font, ink } from "./theme.stylex";
 
 const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 const GOLD = "#ffd27a";
-const TOP = "0.75rem";
 
 const styles = stylex.create({
   backdrop: {
@@ -71,11 +70,9 @@ const styles = stylex.create({
     maxHeight: "88dvh",
     maxWidth: "30rem",
     outline: "none",
-    overflowY: "auto",
-    overscrollBehavior: "contain",
-    paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))",
+    overflow: "hidden",
     paddingInline: "1.25rem",
-    paddingTop: TOP,
+    paddingTop: "0.75rem",
     transform: "translateY(var(--drawer-swipe-movement-y, 0))",
     transitionDuration: "450ms",
     transitionProperty: "transform",
@@ -106,11 +103,19 @@ const styles = stylex.create({
     margin: 0,
     textAlign: "center",
   },
+  content: {
+    display: "flex",
+    flex: 1,
+    flexDirection: "column",
+    minHeight: 0,
+  },
   tabs: {
     display: "flex",
+    flex: 1,
     flexDirection: "column",
     gap: "1rem",
     marginTop: "0.9rem",
+    minHeight: 0,
   },
   list: {
     backgroundColor: "rgb(255 255 255 / 0.06)",
@@ -154,13 +159,19 @@ const styles = stylex.create({
   },
   panel: {
     display: "flex",
+    flex: 1,
     flexDirection: "column",
     gap: "1rem",
+    marginInline: "-0.25rem",
+    minHeight: 0,
+    overflowY: "auto",
+    overscrollBehavior: "contain",
+    paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))",
+    paddingInline: "0.25rem",
     outline: "none",
   },
   stage: {
     alignItems: "center",
-    backdropFilter: "blur(14px)",
     backgroundColor: "rgb(13 16 26 / 0.92)",
     backgroundImage:
       "radial-gradient(60% 70% at 30% 55%, rgb(120 170 210 / 0.16), transparent 70%)",
@@ -173,9 +184,22 @@ const styles = stylex.create({
     gap: "0.2rem",
     paddingBlock: "0.5rem 0.7rem",
     paddingInline: "0.5rem",
-    position: "sticky",
-    top: `calc(-1 * ${TOP})`,
-    zIndex: 2,
+  },
+  pinned: {
+    overflowY: "hidden",
+    paddingBottom: 0,
+  },
+  scroller: {
+    display: "flex",
+    flex: 1,
+    flexDirection: "column",
+    gap: "1rem",
+    minHeight: 0,
+    overflowY: "auto",
+    maskImage: "linear-gradient(to bottom, transparent, black 0.75rem)",
+    overscrollBehavior: "contain",
+    paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))",
+    paddingTop: "0.5rem",
   },
   stageRow: {
     alignItems: "center",
@@ -573,7 +597,7 @@ export const Workshop = ({
             <Drawer.Title {...stylex.props(styles.title)}>
               石と腕前
             </Drawer.Title>
-            <Drawer.Content>
+            <Drawer.Content {...stylex.props(styles.content)}>
               <Tabs.Root defaultValue="stone" {...stylex.props(styles.tabs)}>
                 <Tabs.List {...stylex.props(styles.list)}>
                   {TABS.map(([value, label]) => (
@@ -599,7 +623,10 @@ export const Workshop = ({
                   <Tabs.Indicator {...stylex.props(styles.indicator)} />
                 </Tabs.List>
 
-                <Tabs.Panel value="stone" {...stylex.props(styles.panel)}>
+                <Tabs.Panel
+                  value="stone"
+                  {...stylex.props(styles.panel, styles.pinned)}
+                >
                   <div {...stylex.props(styles.stage)}>
                     <div {...stylex.props(styles.stageRow)}>
                       <canvas
@@ -622,113 +649,115 @@ export const Workshop = ({
                       </span>
                     )}
                   </div>
-                  {parts.map(({ part, name, options }) => (
-                    <section key={part} {...stylex.props(styles.group)}>
+                  <div {...stylex.props(styles.scroller)}>
+                    {parts.map(({ part, name, options }) => (
+                      <section key={part} {...stylex.props(styles.group)}>
+                        <div {...stylex.props(styles.groupHead)}>
+                          <h3 {...stylex.props(styles.groupName)}>{name}</h3>
+                          {part === "color" || part === "form" ? (
+                            <span {...stylex.props(styles.small)}>
+                              性能が変わる
+                            </span>
+                          ) : null}
+                        </div>
+                        <div {...stylex.props(styles.grid)}>
+                          {options.map((option) => {
+                            const available = isOpen(option.unlock, unlocked);
+                            const worn = save.look[part] === option.id;
+                            const isNew = save.unseen.includes(
+                              keyOf({ option, part })
+                            );
+                            const peek =
+                              option.perks !== undefined && available
+                                ? () => {
+                                    setPreview({ id: option.id, part });
+                                  }
+                                : undefined;
+                            return (
+                              <button
+                                aria-pressed={worn}
+                                disabled={!available}
+                                key={option.id}
+                                onBlur={() => {
+                                  setPreview(null);
+                                }}
+                                onClick={() => {
+                                  onWear(part, option.id);
+                                }}
+                                onFocus={peek}
+                                onPointerEnter={peek}
+                                onPointerLeave={() => {
+                                  setPreview(null);
+                                }}
+                                type="button"
+                                {...stylex.props(
+                                  styles.tile,
+                                  worn && styles.worn,
+                                  !available && styles.locked
+                                )}
+                              >
+                                {isNew ? (
+                                  <span {...stylex.props(styles.unseen)}>
+                                    NEW
+                                  </span>
+                                ) : null}
+                                <Preview option={option} part={part} />
+                                <span {...stylex.props(styles.tileName)}>
+                                  {option.name}
+                                </span>
+                                {available ? null : (
+                                  <span {...stylex.props(styles.lock)}>
+                                    {conditionOf(option.unlock)}
+                                  </span>
+                                )}
+                                {available && option.perks !== undefined ? (
+                                  <span {...stylex.props(styles.tileNote)}>
+                                    {noteOf(peaksOf(option.perks))}
+                                  </span>
+                                ) : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    ))}
+                    <section {...stylex.props(styles.group)}>
                       <div {...stylex.props(styles.groupHead)}>
-                        <h3 {...stylex.props(styles.groupName)}>{name}</h3>
-                        {part === "color" || part === "form" ? (
-                          <span {...stylex.props(styles.small)}>
-                            性能が変わる
-                          </span>
-                        ) : null}
+                        <h3 {...stylex.props(styles.groupName)}>相性</h3>
+                        <span {...stylex.props(styles.small)}>
+                          {save.found.length} / {combos.length} 発見
+                        </span>
                       </div>
-                      <div {...stylex.props(styles.grid)}>
-                        {options.map((option) => {
-                          const available = isOpen(option.unlock, unlocked);
-                          const worn = save.look[part] === option.id;
-                          const isNew = save.unseen.includes(
-                            keyOf({ option, part })
-                          );
-                          const peek =
-                            option.perks !== undefined && available
-                              ? () => {
-                                  setPreview({ id: option.id, part });
-                                }
-                              : undefined;
+                      <ul {...stylex.props(styles.combos)}>
+                        {combos.map((entry) => {
+                          const known = save.found.includes(entry.id);
                           return (
-                            <button
-                              aria-pressed={worn}
-                              disabled={!available}
-                              key={option.id}
-                              onBlur={() => {
-                                setPreview(null);
-                              }}
-                              onClick={() => {
-                                onWear(part, option.id);
-                              }}
-                              onFocus={peek}
-                              onPointerEnter={peek}
-                              onPointerLeave={() => {
-                                setPreview(null);
-                              }}
-                              type="button"
+                            <li
+                              key={entry.id}
                               {...stylex.props(
-                                styles.tile,
-                                worn && styles.worn,
-                                !available && styles.locked
+                                styles.combo,
+                                known && styles.comboKnown,
+                                combo?.id === entry.id && styles.worn
                               )}
                             >
-                              {isNew ? (
-                                <span {...stylex.props(styles.unseen)}>
-                                  NEW
-                                </span>
-                              ) : null}
-                              <Preview option={option} part={part} />
-                              <span {...stylex.props(styles.tileName)}>
-                                {option.name}
+                              <span {...stylex.props(styles.name)}>
+                                {known ? entry.name : "？？？"}
                               </span>
-                              {available ? null : (
-                                <span {...stylex.props(styles.lock)}>
-                                  {conditionOf(option.unlock)}
-                                </span>
-                              )}
-                              {available && option.perks !== undefined ? (
+                              <span {...stylex.props(styles.note)}>
+                                {colorOf(entry.color).name} ×{" "}
+                                {known ? formOf(entry.form).name : "？？？"}
+                              </span>
+                              {known ? (
                                 <span {...stylex.props(styles.tileNote)}>
-                                  {noteOf(peaksOf(option.perks))}
+                                  {noteOf(entry.perks)}
                                 </span>
                               ) : null}
-                            </button>
+                            </li>
                           );
                         })}
-                      </div>
+                      </ul>
                     </section>
-                  ))}
-                  <section {...stylex.props(styles.group)}>
-                    <div {...stylex.props(styles.groupHead)}>
-                      <h3 {...stylex.props(styles.groupName)}>相性</h3>
-                      <span {...stylex.props(styles.small)}>
-                        {save.found.length} / {combos.length} 発見
-                      </span>
-                    </div>
-                    <ul {...stylex.props(styles.combos)}>
-                      {combos.map((entry) => {
-                        const known = save.found.includes(entry.id);
-                        return (
-                          <li
-                            key={entry.id}
-                            {...stylex.props(
-                              styles.combo,
-                              known && styles.comboKnown,
-                              combo?.id === entry.id && styles.worn
-                            )}
-                          >
-                            <span {...stylex.props(styles.name)}>
-                              {known ? entry.name : "？？？"}
-                            </span>
-                            <span {...stylex.props(styles.note)}>
-                              {colorOf(entry.color).name} ×{" "}
-                              {known ? formOf(entry.form).name : "？？？"}
-                            </span>
-                            {known ? (
-                              <span {...stylex.props(styles.tileNote)}>
-                                {noteOf(entry.perks)}
-                              </span>
-                            ) : null}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </section>
+                  </div>
                 </Tabs.Panel>
 
                 <Tabs.Panel value="skill" {...stylex.props(styles.panel)}>

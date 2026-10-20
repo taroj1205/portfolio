@@ -14,18 +14,22 @@ import { postUrl, readResult, resultOf } from "./result";
 import { pointsLeft, progressOf, seen, settle, tune, wear } from "./save";
 import type { Save } from "./save";
 import {
+  areaOf,
   createRiver,
   land,
   launch,
   nextContact,
   propsIn,
+  plain,
   qualityOf,
+  shoreAt,
   statsOf,
   stoneAt,
+  zones,
 } from "./simulate";
 import type { Flight, Gear } from "./simulate";
 
-const bare: Gear = { focus: 0, power: 0, stone: 0 };
+const bare: Gear = { focus: 0, impact: 0, lift: 0, power: 0, stone: 0 };
 const flat = { aim: 0, speed: 14, tilt: 20 };
 
 const qualityAt = (tilt: number) => qualityOf({ aim: 0, speed: 16, tilt });
@@ -106,7 +110,11 @@ describe("flight", () => {
   test("a throw aimed at the bank bounces off it and stays in the river", () => {
     const river = createRiver(19);
     const flight = play(
-      launch(river, { ...flat, aim: 0.1 }, { focus: 5, power: 8, stone: 5 }),
+      launch(
+        river,
+        { ...flat, aim: 0.1 },
+        { ...bare, focus: 5, power: 8, stone: 5 }
+      ),
       0.03
     );
     assert.ok(flight.bumps.some((bump) => bump.kind === "wall"));
@@ -134,7 +142,7 @@ describe("flight", () => {
 
   test("upgrades make the same throw go farther", () => {
     const river = createRiver(17);
-    const strong = { focus: 5, power: 5, stone: 5 };
+    const strong = { focus: 5, impact: 5, lift: 5, power: 5, stone: 5 };
     assert.ok(
       play(launch(river, flat, strong), null).distance >
         play(launch(river, flat, bare), null).distance
@@ -171,6 +179,21 @@ const statsFor = (color: string, form: string) =>
   statsOf(bare, traitsOf({ color, form }));
 
 const keepOf = (color: string, form: string) => traitsOf({ color, form }).keep;
+
+describe("areas and skills", () => {
+  test("open water areas widen the river and banks return between them", () => {
+    const river = createRiver(4);
+    assert.equal(shoreAt(river, zones[areaOf("cloud")]?.from ?? 0), 40);
+    assert.equal(shoreAt(river, zones[areaOf("snow")]?.from ?? 0), river.shore);
+  });
+
+  test("training lift and impact raises those stats", () => {
+    const base = statsOf(bare, plain);
+    const trained = statsOf({ ...bare, impact: 6, lift: 6 }, plain);
+    assert.ok(trained.lift > base.lift && trained.impact > base.impact);
+    assert.equal(trained.speed, base.speed);
+  });
+});
 
 describe("stones", () => {
   test("each form trades strengths in its stats", () => {

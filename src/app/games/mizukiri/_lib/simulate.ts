@@ -10,7 +10,18 @@ export type Ending = (typeof endings)[number];
 
 export type Grade = "perfect" | "good" | "early" | "miss";
 
-export type Coast = "village" | "bamboo" | "maple" | "town" | "sea";
+export type Coast =
+  | "village"
+  | "bamboo"
+  | "sakura"
+  | "maple"
+  | "ginkgo"
+  | "town"
+  | "snow"
+  | "firefly"
+  | "sea"
+  | "cloud"
+  | "stars";
 
 export interface Zone {
   from: number;
@@ -20,11 +31,26 @@ export interface Zone {
 
 export const zones: Zone[] = [
   { coast: "village", from: 0, name: "里の川" },
-  { coast: "bamboo", from: 500, name: "竹林" },
-  { coast: "maple", from: 2000, name: "紅葉の渓谷" },
-  { coast: "town", from: 8000, name: "城下町" },
-  { coast: "sea", from: 30_000, name: "大海原" },
+  { coast: "bamboo", from: 300, name: "竹林" },
+  { coast: "sakura", from: 1000, name: "桜並木" },
+  { coast: "maple", from: 2500, name: "紅葉の渓谷" },
+  { coast: "ginkgo", from: 6000, name: "銀杏並木" },
+  { coast: "town", from: 12_000, name: "城下町" },
+  { coast: "snow", from: 25_000, name: "雪の里" },
+  { coast: "firefly", from: 50_000, name: "蛍の沢" },
+  { coast: "sea", from: 100_000, name: "大海原" },
+  { coast: "cloud", from: 250_000, name: "雲海" },
+  { coast: "stars", from: 600_000, name: "天の川" },
 ];
+
+export const areaOf = (coast: Coast) =>
+  Math.max(
+    0,
+    zones.findIndex((zone) => zone.coast === coast)
+  );
+
+export const openWater = (coast: Coast | undefined) =>
+  coast === "sea" || coast === "cloud" || coast === "stars";
 
 export const zoneIndex = (z: number) =>
   Math.max(
@@ -33,7 +59,7 @@ export const zoneIndex = (z: number) =>
   );
 
 export const shoreAt = (river: River, z: number) =>
-  zones[zoneIndex(z)]?.coast === "sea" ? 40 : river.shore;
+  openWater(zones[zoneIndex(z)]?.coast) ? 40 : river.shore;
 
 export interface Vec {
   x: number;
@@ -54,7 +80,9 @@ export interface River {
 export interface Gear {
   power: number;
   stone: number;
+  lift: number;
   focus: number;
+  impact: number;
 }
 export interface ThrowInput {
   speed: number;
@@ -212,17 +240,26 @@ export const plain: Traits = {
 const span = (value: number, low: number, high: number) =>
   Math.min(1, Math.max(0, (value - low) / (high - low)));
 
-export const statsOf = (gear: Gear, traits: Traits) => ({
-  focus: span(
-    (0.06 + 0.06 * (1 - 0.9 ** gear.focus)) * traits.focus,
-    0.01,
-    0.135
-  ),
-  impact: span(traits.impact, 0.2, 2.2),
-  keep: span(0.86 + 0.06 * (1 - 0.88 ** gear.stone) + traits.keep, 0.8, 0.95),
-  lift: span(traits.lift, 0.4, 1.9),
-  speed: span((1 + 0.15 * gear.power) * traits.speed, 0.2, 2.2),
+const trained = (gear: Gear, traits: Traits): Traits => ({
+  ...traits,
+  impact: traits.impact * (1 + 0.6 * (1 - 0.9 ** gear.impact)),
+  lift: traits.lift * (1 + 0.3 * (1 - 0.9 ** gear.lift)),
 });
+
+export const statsOf = (gear: Gear, build: Traits) => {
+  const traits = trained(gear, build);
+  return {
+    focus: span(
+      (0.06 + 0.06 * (1 - 0.9 ** gear.focus)) * traits.focus,
+      0.01,
+      0.135
+    ),
+    impact: span(traits.impact, 0.2, 2.2),
+    keep: span(0.86 + 0.06 * (1 - 0.88 ** gear.stone) + traits.keep, 0.8, 0.95),
+    lift: span(traits.lift, 0.4, 1.9),
+    speed: span((1 + 0.15 * gear.power) * traits.speed, 0.2, 2.2),
+  };
+};
 
 export const qualityOf = (input: ThrowInput) => {
   const angle = Math.exp(-(((input.tilt - 20) / 6) ** 2));
@@ -374,8 +411,9 @@ export const launch = (
   river: River,
   input: ThrowInput,
   gear: Gear,
-  traits = plain
+  build = plain
 ): Flight => {
+  const traits = trained(gear, build);
   const hold = grip(input.tilt);
   const quality = qualityOf(input);
   const speed =

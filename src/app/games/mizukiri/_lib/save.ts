@@ -13,7 +13,13 @@ const schema = z.object({
   combo: z.number().int().min(0),
   divine: z.boolean(),
   found: z.array(z.string()).default([]),
-  gear: z.object({ focus: level, power: level, stone: level }),
+  gear: z.object({
+    focus: level,
+    impact: level.default(0),
+    lift: level.default(0),
+    power: level,
+    stone: level,
+  }),
   look: z.object({
     color: z.string(),
     form: z.string(),
@@ -37,7 +43,7 @@ const fresh: Save = {
   combo: 0,
   divine: false,
   found: [],
-  gear: { focus: 0, power: 0, stone: 0 },
+  gear: { focus: 0, impact: 0, lift: 0, power: 0, stone: 0 },
   look: firstLook,
   runs: 0,
   settings: { lite: false, muted: false },
@@ -70,7 +76,9 @@ export const storeSave = (save: Save) => {
 export const skills = [
   { key: "power", name: "腕力", note: "初速と最高速が上がる" },
   { key: "stone", name: "平たい石", note: "ミスしても失速しにくい" },
+  { key: "lift", name: "跳ね上げ", note: "石が高く跳ねて長く飛ぶ" },
   { key: "focus", name: "集中", note: "タップの猶予が広がる" },
+  { key: "impact", name: "当て勘", note: "カモや鯉に当たった時の加速が上がる" },
 ] as const satisfies readonly { key: keyof Gear; name: string; note: string }[];
 
 const needFor = (target: number) => Math.round(150 * target ** 1.8);
@@ -96,9 +104,7 @@ export const pointsLeft = (save: Save) =>
   Math.max(
     0,
     progressOf(save.xp).level -
-      save.gear.power -
-      save.gear.stone -
-      save.gear.focus
+      Object.values(save.gear).reduce((sum, points) => sum + points, 0)
   );
 
 export const tune = (
@@ -117,7 +123,7 @@ export const tune = (
 
 export const respec = (save: Save): Save => ({
   ...save,
-  gear: { focus: 0, power: 0, stone: 0 },
+  gear: { focus: 0, impact: 0, lift: 0, power: 0, stone: 0 },
 });
 
 export const wear = (save: Save, part: Part, id: string): Save | null => {

@@ -8,6 +8,7 @@ import {
   speedAt,
   stoneAt,
   windowFor,
+  openWater,
   zoneIndex,
   zones,
 } from "./simulate";
@@ -328,11 +329,24 @@ const scenery: Record<
   { far: number; near: number; fuji: number; tint: [string, number] | null }
 > = {
   bamboo: { far: 0.05, fuji: 0, near: 0.06, tint: ["#2f6a3c", 0.4] },
+  cloud: { far: 0.02, fuji: 1, near: 0, tint: null },
+  firefly: { far: 0.09, fuji: 0, near: 0.07, tint: ["#16301f", 0.55] },
+  ginkgo: { far: 0.08, fuji: 0.4, near: 0.05, tint: ["#b8861a", 0.35] },
   maple: { far: 0.12, fuji: 0, near: 0.065, tint: ["#9a3020", 0.38] },
+  sakura: { far: 0.07, fuji: 0.8, near: 0.045, tint: ["#e7a1b8", 0.35] },
   sea: { far: 0, fuji: 1, near: 0, tint: null },
+  snow: { far: 0.11, fuji: 1, near: 0.06, tint: ["#eef3fa", 0.6] },
+  stars: { far: 0, fuji: 0, near: 0, tint: null },
   town: { far: 0.06, fuji: 1, near: 0.03, tint: null },
   village: { far: 0.07, fuji: 0.65, near: 0.035, tint: null },
 };
+
+const LEAVES = new Map<Coast, string[]>([
+  ["ginkgo", ["#f4c531", "#e8a81c", "#ffd95a", "#c98a12"]],
+  ["maple", ["#c8321f", "#e0562a", "#f08a2e", "#a8241c"]],
+  ["sakura", ["#f7c6d4", "#f3a7c0", "#ffe1ea", "#e88aa8"]],
+  ["snow", ["#ffffff", "#e6eef7", "#cfdcea", "#f4f8fc"]],
+]);
 
 const paintCastle = (
   ctx: CanvasRenderingContext2D,
@@ -371,6 +385,56 @@ const paintCastle = (
     ctx.closePath();
     ctx.fill();
   }
+};
+
+const paintCloudSea = (
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  horizon: number,
+  random: () => number
+) => {
+  const bank = ctx.createLinearGradient(0, horizon - h * 0.05, 0, horizon);
+  bank.addColorStop(0, "rgb(255 255 255 / 0)");
+  bank.addColorStop(1, "rgb(248 250 255 / 0.9)");
+  ctx.fillStyle = bank;
+  ctx.fillRect(0, horizon - h * 0.05, w, h * 0.05);
+  for (let i = 0; i < 26; i += 1) {
+    const cx = random() * w;
+    const cy = horizon - h * (0.005 + random() * 0.03);
+    const r = h * (0.02 + random() * 0.04);
+    const puff = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    puff.addColorStop(0, "rgb(255 255 255 / 0.75)");
+    puff.addColorStop(1, "rgb(255 255 255 / 0)");
+    ctx.fillStyle = puff;
+    ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+  }
+};
+
+const paintMilkyWay = (
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  horizon: number,
+  random: () => number
+) => {
+  ctx.fillStyle = "rgb(4 8 26 / 0.7)";
+  ctx.fillRect(0, 0, w, horizon + 1);
+  ctx.save();
+  ctx.translate(w / 2, horizon * 0.45);
+  ctx.rotate(-0.5);
+  const band = ctx.createLinearGradient(0, -horizon * 0.22, 0, horizon * 0.22);
+  band.addColorStop(0, "rgb(160 140 255 / 0)");
+  band.addColorStop(0.5, "rgb(220 210 255 / 0.32)");
+  band.addColorStop(1, "rgb(160 140 255 / 0)");
+  ctx.fillStyle = band;
+  ctx.fillRect(-w, -horizon * 0.22, w * 2, horizon * 0.44);
+  for (let i = 0; i < 700; i += 1) {
+    const spread = (random() + random() + random() - 1.5) * horizon * 0.18;
+    const size = random() > 0.97 ? 1.6 : 0.7;
+    ctx.fillStyle = `rgb(255 255 255 / ${(0.25 + random() * 0.6).toFixed(3)})`;
+    ctx.fillRect((random() - 0.5) * w * 2, spread, size, size);
+  }
+  ctx.restore();
 };
 
 const paintBackdrop = (
@@ -433,6 +497,10 @@ const paintBackdrop = (
     }
   }
 
+  if (coast === "stars") {
+    paintMilkyWay(ctx, w, horizon, random);
+  }
+
   ctx.fillStyle = palette.sun;
   ctx.shadowColor = palette.glow;
   ctx.shadowBlur = sunR * 1.6;
@@ -484,6 +552,9 @@ const paintBackdrop = (
   }
   if (coast === "town") {
     paintCastle(ctx, w * 0.64, horizon - h * 0.02, h * 0.07, palette.ridges[1]);
+  }
+  if (coast === "cloud") {
+    paintCloudSea(ctx, w, h, horizon, random);
   }
 
   const water = ctx.createLinearGradient(0, horizon, 0, h);
@@ -808,7 +879,7 @@ const paintEmbankment = (
     z >= view.camera.z + NEAR + 0.05;
     z -= Math.max(0.5, (z - view.camera.z) * 0.08)
   ) {
-    if (zoneOf(z).coast === "sea") {
+    if (openWater(zoneOf(z).coast)) {
       continue;
     }
     const x = side * shoreAt(river, z);
@@ -931,13 +1002,14 @@ const paintBamboo = (
   }
 };
 
-const paintMaple = (
+const paintTree = (
   ctx: CanvasRenderingContext2D,
   view: View,
   x: number,
   z: number,
   seed: number,
-  clock: number
+  clock: number,
+  leaves: string[]
 ) => {
   const base = project(view, { x, y: 0.4, z });
   const crown = project(view, { x, y: 3.6, z });
@@ -955,7 +1027,6 @@ const paintMaple = (
     crown.y
   );
   ctx.stroke();
-  const reds = ["#c8321f", "#e0562a", "#f08a2e", "#a8241c"];
   for (let k = 0; k < 9; k += 1) {
     const r = (0.7 + hash(seed, k) * 0.7) * base.s;
     const cx =
@@ -963,7 +1034,7 @@ const paintMaple = (
       (hash(seed, k + 10) - 0.5) * 2.6 * base.s +
       Math.sin(clock * 0.8 + k) * 0.03 * base.s;
     const cy = crown.y + (hash(seed, k + 20) - 0.6) * 1.4 * base.s;
-    ctx.fillStyle = reds[k % reds.length] ?? "#c8321f";
+    ctx.fillStyle = leaves[k % leaves.length] ?? "#c8321f";
     ctx.globalAlpha = 0.9;
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, TAU);
@@ -1087,7 +1158,7 @@ const paintLandmark = (bank: Bank, n: number) => {
   const { coast } = zoneOf(z);
   const shore = shoreAt(river, z);
   if (z % 100 === 0) {
-    if (coast === "sea") {
+    if (openWater(coast)) {
       paintBuoy(ctx, view, side * 3, z, clock);
     } else if (side < 0) {
       paintPost(ctx, view, -(shore + 0.9), z);
@@ -1097,13 +1168,13 @@ const paintLandmark = (bank: Bank, n: number) => {
   const toriiSide = (z / 400) % 2 === (side < 0 ? 0 : 1);
   if (coast === "village" && z % 400 === 0 && toriiSide) {
     paintTorii(ctx, view, side * (shore + 3.2), z, palette);
-  } else if (coast === "maple" && hash(n, side) > 0.35) {
+  } else if (LEAVES.has(coast) && hash(n, side) > 0.35) {
     const x = side * (shore + 1.2 + hash(n, side + 4) * 2);
-    paintMaple(ctx, view, x, z, n * side, clock);
+    paintTree(ctx, view, x, z, n * side, clock, LEAVES.get(coast) ?? []);
   } else if (coast === "town" && n % 2 === 0) {
     paintHouse(ctx, view, side * (shore + 0.8), z, side, n * side, clock);
   } else if (
-    (coast === "village" || coast === "town") &&
+    (coast === "village" || coast === "town" || coast === "firefly") &&
     hash(n, side) > 0.75
   ) {
     paintLantern(ctx, view, side * (shore + 1.4), z, clock);
@@ -1113,7 +1184,7 @@ const paintLandmark = (bank: Bank, n: number) => {
 const paintVerge = (bank: Bank, n: number, z: number) => {
   const { ctx, view, river, palette, clock, side } = bank;
   const { coast } = zoneOf(z);
-  if (coast === "sea" || coast === "town") {
+  if (openWater(coast) || coast === "town") {
     return;
   }
   const shore = shoreAt(river, z);
@@ -1125,7 +1196,7 @@ const paintVerge = (bank: Bank, n: number, z: number) => {
         const sway = Math.sin(clock * 0.9 + z * 0.3) * 0.25;
         paintBamboo(ctx, view, x, z, tall, sway, palette);
       }
-    } else if (coast !== "maple" || k === 0) {
+    } else if (!LEAVES.has(coast) || k === 0) {
       const tall = 1 + hash(n * side, k + 2) * 0.9;
       const sway = Math.sin(clock * 1.3 + z * 0.7 + k) * 0.1 * tall;
       paintReed(ctx, view, x, z, tall, sway, side, palette);
@@ -1837,6 +1908,30 @@ const paintFireflies = (
   });
 };
 
+const paintDrift = (
+  ctx: CanvasRenderingContext2D,
+  view: View,
+  clock: number,
+  colors: string[]
+) => {
+  for (let i = 0; i < 36; i += 1) {
+    const fall = 18 + hash(i, 6) * 30;
+    const x =
+      (((hash(i, 7) * view.w + Math.sin(clock * 0.7 + i) * 24 - clock * 12) %
+        view.w) +
+        view.w) %
+      view.w;
+    const y = (hash(i, 8) * view.h + clock * fall) % view.h;
+    const size = 2 + hash(i, 9) * 3.5;
+    ctx.fillStyle = colors[i % colors.length] ?? "#ffffff";
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath();
+    ctx.ellipse(x, y, size, size * 0.55, clock * 1.5 + i, 0, TAU);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+};
+
 const makeGrain = () => {
   const tile = document.createElement("canvas");
   tile.width = 160;
@@ -1976,8 +2071,14 @@ const mixHex = (a: string, b: string, t: number) => {
 
 const waterTint: Record<Coast, [string, number]> = {
   bamboo: ["#1f4a34", 0.25],
+  cloud: ["#c9d6e6", 0.35],
+  firefly: ["#0c2a1c", 0.4],
+  ginkgo: ["#4a3a12", 0.15],
   maple: ["#3a2a2e", 0.15],
+  sakura: ["#6a3a52", 0.15],
   sea: ["#0d3a5e", 0.45],
+  snow: ["#8fa8c4", 0.3],
+  stars: ["#0a0f2e", 0.6],
   town: ["#1c2238", 0.15],
   village: ["#000000", 0],
 };
@@ -2017,7 +2118,8 @@ const paintWorld = (
   flat: boolean,
   tier: number
 ) => {
-  if (palette.stars) {
+  const { coast } = zoneOf(view.camera.z);
+  if (palette.stars || coast === "stars") {
     paintStars(ctx, view, frame.clock);
   }
   paintFarShore(ctx, view, frame.river, palette);
@@ -2026,10 +2128,14 @@ const paintWorld = (
     paintWater(ctx, view, frame.river, palette, frame.clock);
   }
   paintScene(ctx, view, frame, palette, sprites, flat);
-  if (palette.fireflies && tier > 0) {
+  if ((palette.fireflies || coast === "firefly") && tier > 0) {
     paintFireflies(ctx, view, frame.river, frame.clock);
   }
   paintShores(ctx, view, frame.river, palette, frame.clock);
+  const drift = LEAVES.get(coast);
+  if (drift !== undefined && tier > 0) {
+    paintDrift(ctx, view, frame.clock, drift);
+  }
 };
 
 export const createRenderer = (surfaces: {

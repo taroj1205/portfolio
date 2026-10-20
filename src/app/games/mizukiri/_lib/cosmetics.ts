@@ -1,4 +1,4 @@
-import { plain, zones } from "./simulate";
+import { areaOf, plain, zones } from "./simulate";
 import type { Traits } from "./simulate";
 
 export type Unlock =
@@ -106,7 +106,7 @@ const colors: Color[] = [
     mineral: ["#5a4e48", "#2a2220", "#0e0b0a"],
     name: "隕石",
     perks: { keep: -1, speed: 2 },
-    unlock: { kind: "zone", zone: 4 },
+    unlock: { kind: "zone", zone: areaOf("sea") },
   },
 ];
 
@@ -122,7 +122,7 @@ const forms: Option[] = [
     id: "flat",
     name: "ひらべったい",
     perks: { focus: -1, impact: -1, keep: 3, lift: -2, speed: 2 },
-    unlock: { kind: "zone", zone: 1 },
+    unlock: { kind: "zone", zone: areaOf("bamboo") },
   },
   {
     id: "drop",
@@ -140,7 +140,7 @@ const forms: Option[] = [
     id: "leaf",
     name: "このは",
     perks: { impact: -2, keep: 1, lift: 3, speed: -1 },
-    unlock: { kind: "zone", zone: 2 },
+    unlock: { kind: "zone", zone: areaOf("maple") },
   },
   {
     id: "triangle",
@@ -170,7 +170,7 @@ const forms: Option[] = [
     id: "star",
     name: "ほし",
     perks: { focus: 2, impact: 2, keep: -2, lift: 1, speed: -2 },
-    unlock: { kind: "zone", zone: 3 },
+    unlock: { kind: "zone", zone: areaOf("town") },
   },
   {
     id: "gourd",
@@ -183,15 +183,27 @@ const forms: Option[] = [
 const patterns: Option[] = [
   { id: "plain", name: "無地", unlock: { kind: "start" } },
   { id: "stripe", name: "縞", unlock: { kind: "level", level: 4 } },
-  { id: "speckle", name: "まだら", unlock: { kind: "zone", zone: 2 } },
+  {
+    id: "speckle",
+    name: "まだら",
+    unlock: { kind: "zone", zone: areaOf("sakura") },
+  },
   { id: "ring", name: "輪っか", unlock: { kind: "combo", combo: 20 } },
 ];
 
 const trails: Option[] = [
   { id: "spray", name: "水しぶき", unlock: { kind: "start" } },
   { id: "gold", name: "金粉", unlock: { kind: "combo", combo: 15 } },
-  { id: "sakura", name: "桜吹雪", unlock: { kind: "zone", zone: 2 } },
-  { id: "fox", name: "狐火", unlock: { kind: "zone", zone: 3 } },
+  {
+    id: "sakura",
+    name: "桜吹雪",
+    unlock: { kind: "zone", zone: areaOf("sakura") },
+  },
+  {
+    id: "fox",
+    name: "狐火",
+    unlock: { kind: "zone", zone: areaOf("firefly") },
+  },
 ];
 
 export const parts: { part: Part; name: string; options: Option[] }[] = [
