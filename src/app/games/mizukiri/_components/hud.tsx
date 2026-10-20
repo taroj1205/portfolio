@@ -1,6 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import type { RefObject } from "react";
 
+import { BackToGames } from "../../_components/back-to-games";
 import { glass } from "../../_components/glass";
 import { font, ink, media, shade } from "../../_components/theme.stylex";
 import type { Text } from "../../_lib/i18n";
@@ -517,6 +518,7 @@ export const Hud = ({
     <div {...stylex.props(styles.root)}>
       <div {...stylex.props(styles.top)}>
         <div {...stylex.props(styles.brand)}>
+          <BackToGames label={copy.back} />
           <h1 lang="ja" {...stylex.props(styles.title)}>
             <span {...stylex.props(styles.lead)}>天の川</span>
             水切り

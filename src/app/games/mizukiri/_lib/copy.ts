@@ -6,6 +6,7 @@ export interface Copy {
   fallback: string;
   surface: string;
   name: string;
+  back: string;
   best: string;
   openWorkshop: string;
   reset: string;
@@ -77,6 +78,7 @@ export interface Copy {
 
 export const copy: Record<Lang, Copy> = {
   en: {
+    back: "Back to games",
     best: "Best",
     challenge: {
       dare: "Can you beat it?",
@@ -170,6 +172,7 @@ export const copy: Record<Lang, Copy> = {
     },
   },
   ja: {
+    back: "ゲーム一覧にもどる",
     best: "自己ベスト",
     challenge: {
       dare: "超えられる？",
