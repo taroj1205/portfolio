@@ -273,6 +273,7 @@ export const startSession = (
       river = createRiver(newSeed());
       flight = null;
       time = 0;
+      on.speed(0);
       enter("ready");
     },
     wear: (part: Part, id: string) => {
