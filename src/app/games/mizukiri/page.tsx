@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 
 import { Game } from "./_components/game";
+import { copy } from "./_lib/copy";
 import { langFrom } from "./_lib/i18n";
 import type { Text } from "./_lib/i18n";
 import { describe, formatDistance, queryOf, readResult } from "./_lib/result";
 
 const DESCRIPTION: Text = {
-  en: "Flick a stone across the river and see how far it skips.",
-  ja: "スマホではじいて、石がどこまで跳ねるか。",
+  en: "Flick a stone and skip it as far as the Milky Way.",
+  ja: "スマホではじいて、石が天の川までどこまで跳ねるか。",
 };
-
-const NAME: Text = { en: "Mizukiri", ja: "水切り" };
 
 export const generateMetadata = async ({
   searchParams,
@@ -19,8 +18,8 @@ export const generateMetadata = async ({
   const lang = langFrom(params.l);
   const shared = readResult(params);
   const title = shared
-    ? `${formatDistance(shared.distance)} · ${describe(shared, lang).title} | ${NAME[lang]}`
-    : NAME[lang];
+    ? `${formatDistance(shared.distance)} · ${describe(shared, lang).title} | ${copy[lang].name}`
+    : copy[lang].name;
   const query = new URLSearchParams(shared ? queryOf(shared) : "");
   query.set("l", lang);
   const image = {

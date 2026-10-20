@@ -110,6 +110,12 @@ const styles = stylex.create({
     textShadow: shade.small,
     writingMode: "vertical-rl",
   },
+  lead: {
+    color: "#ffd27a",
+    fontSize: "0.62em",
+    letterSpacing: "0.18em",
+    marginBlockEnd: "0.3em",
+  },
   seal: {
     alignItems: "center",
     backgroundColor: "#c8352b",
@@ -495,7 +501,10 @@ export const Hud = ({
     <div {...stylex.props(styles.root)}>
       <div {...stylex.props(styles.top)}>
         <div {...stylex.props(styles.brand)}>
-          <h1 {...stylex.props(styles.title)}>{copy.title}</h1>
+          <h1 lang="ja" {...stylex.props(styles.title)}>
+            <span {...stylex.props(styles.lead)}>天の川</span>
+            水切り
+          </h1>
           <span aria-hidden="true" {...stylex.props(styles.seal)}>
             石
           </span>

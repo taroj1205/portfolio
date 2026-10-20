@@ -346,6 +346,7 @@ describe("stones", () => {
     const result = resultOf(flight, { color: "jade", form: "bean" });
     const posted = new URL(postUrl(result, "https://x.y", "ja"));
     assert.match(posted.searchParams.get("text") ?? "", /勾玉/u);
+    assert.match(posted.searchParams.get("text") ?? "", /#天の川水切り/u);
     const english = new URL(postUrl(result, "https://x.y", "en"));
     assert.match(
       english.searchParams.get("text") ?? "",
