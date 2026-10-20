@@ -4,10 +4,12 @@ import type { ReactNode } from "react";
 
 import { media } from "../../styles/tokens.stylex";
 import { GameCard } from "./_components/game-card";
+import { MergeArt } from "./_components/merge-art";
 import { SkipArt } from "./_components/skip-art";
 import { Sky } from "./_components/sky";
 import type { Text } from "./_lib/i18n";
-import { copy } from "./mizukiri/_lib/copy";
+import { copy as hoshiai } from "./hoshiai/_lib/copy";
+import { copy as mizukiri } from "./mizukiri/_lib/copy";
 
 interface Game {
   href: string;
@@ -30,7 +32,21 @@ const GAMES: Game[] = [
       { en: "Stones & skills", ja: "石と腕前" },
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
-    title: { en: copy.en.name, ja: copy.ja.name },
+    title: { en: mizukiri.en.name, ja: mizukiri.ja.name },
+  },
+  {
+    art: <MergeArt />,
+    blurb: {
+      en: "Drop stars into the ring. Matching ones merge into the next size up, from stardust to a black hole.",
+      ja: "輪の中に星を落として、同じ星同士をくっつける。星屑からブラックホールまで育てよう。",
+    },
+    href: "/games/hoshiai",
+    tags: [
+      { en: "Drag & drop", ja: "なぞって落とす" },
+      { en: "Merge & chain", ja: "合体・連鎖" },
+      { en: "11 bodies", ja: "11の天体" },
+    ],
+    title: { en: hoshiai.en.name, ja: hoshiai.ja.name },
   },
 ];
 
