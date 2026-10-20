@@ -623,7 +623,7 @@ export const comboOf = ({ color, form }: Stone) =>
 const WORTH_STEP = 0.15;
 
 const STEP: Record<Axis, number> = {
-  focus: 0.045,
+  focus: 0.09,
   impact: 0.25,
   keep: 0.0045,
   lift: 0.12,

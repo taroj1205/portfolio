@@ -156,6 +156,7 @@ const HAND: Vec = { x: 0, y: 1, z: 0 };
 const STEP = 1 / 120;
 const SEGMENT = 30;
 const SINK = 3;
+const HOP = 4.5;
 const MODULUS = 2_147_483_647;
 const BODY = {
   dragonfly: { half: 0.3, radius: 0.5, push: 1.25, rise: 2.5 },
@@ -290,7 +291,10 @@ const worth = (gear: Gear, { boost }: Build): Gear => ({
   stone: gear.stone * boost.stone,
 });
 
-const leeway = (points: number) => 0.06 + 0.12 * eased(points);
+const leeway = (points: number) => {
+  const gained = eased(points);
+  return { good: 0.22 + 0.18 * gained, perfect: 0.09 + 0.14 * gained };
+};
 
 const grit = (points: number, hold: number) =>
   0.8 + 0.06 * hold + 0.085 * eased(points);
@@ -305,7 +309,7 @@ export const statsOf = (gear: Gear, build: Build) => {
   const points = worth(gear, build);
   const traits = trained(points, build);
   return {
-    focus: span(leeway(points.focus) * traits.focus, 0.01, 0.135),
+    focus: span(leeway(points.focus).perfect * traits.focus, 0.01, 0.25),
     impact: span(traits.impact, 0.2, 2.2),
     keep: span(grit(points.stone, 1) + traits.keep, 0.8, 0.95),
     lift: span(traits.lift, 0.4, 1.9),
@@ -337,7 +341,27 @@ const bumped = (flight: Flight, prop: Prop) =>
 
 const contact = (hop: Hop, prop: Solid) => {
   const body = BODY[prop.kind];
-  for (let t = 0; t < hop.end - hop.start; t += STEP) {
+  const { x, z } = hop.velocity;
+  const along = x * x + z * z;
+  const closest =
+    along === 0
+      ? 0
+      : ((prop.x - hop.from.x) * x + (prop.z - hop.from.z) * z) / along;
+  const gap = Math.hypot(
+    hop.from.x + x * closest - prop.x,
+    hop.from.z + z * closest - prop.z
+  );
+  if (gap >= body.radius) {
+    return null;
+  }
+  const reach =
+    along === 0
+      ? Number.POSITIVE_INFINITY
+      : Math.sqrt(body.radius ** 2 - gap ** 2) / Math.sqrt(along);
+  const end = Math.min(hop.end - hop.start, closest + reach);
+  const start = Math.max(0, closest - reach);
+  const step = Math.min(STEP, (end - start) / 16);
+  for (let t = start; t < end; t += step) {
     const p = positionIn(hop, t);
     if (
       Math.abs(p.y - prop.y) < body.half &&
@@ -361,9 +385,6 @@ const finish = (flight: Flight, ending: Ending, at: Vec, rest: Vec | null) => {
   flight.duration = flight.hops.at(-1)?.end ?? 0;
   flight.distance = Math.max(0, (rest ?? at).z);
 };
-
-const capped = (flight: Flight, speed: number) =>
-  Math.min(speed, flight.top * 1.6);
 
 const WALL = 0.4;
 
@@ -490,10 +511,8 @@ export const launch = (
 
 export const windowFor = (flight: Flight) => {
   const shrink = (1 + flight.skips * 0.06) / flight.focusScale;
-  return {
-    good: (0.12 + leeway(flight.focus)) / shrink,
-    perfect: leeway(flight.focus) / shrink,
-  };
+  const { good, perfect } = leeway(flight.focus);
+  return { good: good / shrink, perfect: perfect / shrink };
 };
 
 export const nextContact = (flight: Flight) =>
@@ -522,11 +541,14 @@ const gradeFor = (flight: Flight, tapAt: number | null, time: number) => {
   return "early";
 };
 
+const fade = (flight: Flight, speed: number, factor: number) =>
+  factor > 1 ? 1 + (factor - 1) * Math.min(1, flight.top / speed) ** 2 : factor;
+
 const GAIN: Record<Grade, (flight: Flight, speed: number) => number> = {
   early: (flight) => flight.keep,
   good: (flight) => Math.min(0.97, flight.keep + 0.06),
   miss: (flight) => flight.keep,
-  perfect: (flight, speed) => (speed < flight.top ? 1.05 : 1),
+  perfect: (flight, speed) => fade(flight, speed, 1.05),
 };
 
 const rate = (flight: Flight, grade: Grade) => {
@@ -560,12 +582,12 @@ const bounce = (
   });
   const speed = Math.hypot(hop.velocity.x, hop.velocity.z);
   const push =
-    (1 + (body.push - 1) * flight.impact) * GAIN[grade](flight, speed);
-  const scale = capped(flight, speed * push) / speed;
+    fade(flight, speed, 1 + (body.push - 1) * flight.impact) *
+    GAIN[grade](flight, speed);
   fly(
     flight,
     at,
-    { x: hop.velocity.x * scale, y: body.rise, z: hop.velocity.z * scale },
+    { x: hop.velocity.x * push, y: body.rise, z: hop.velocity.z * push },
     time
   );
 };
@@ -631,16 +653,13 @@ export const land = (flight: Flight, tapAt: number | null) => {
   let factor = GAIN[grade](flight, speed);
   let rise = 1;
   if (lotus) {
-    factor *= 1.2;
+    factor *= fade(flight, speed, 1.2);
     rise = 2.4;
   } else if (carp) {
-    factor *= 1.4;
+    factor *= fade(flight, speed, 1.4);
     rise = 3;
   }
-  const forward = capped(
-    flight,
-    speed * factor * (1 + (roll(flight) - 0.5) * 0.04)
-  );
+  const forward = speed * factor * (1 + (roll(flight) - 0.5) * 0.04);
   const scale = forward / speed;
   fly(
     flight,
@@ -648,7 +667,7 @@ export const land = (flight: Flight, tapAt: number | null) => {
     {
       x: hop.velocity.x * scale,
       y:
-        Math.min(4.5, forward * flight.lift) *
+        Math.min(HOP * (1 + 0.06 * flight.combo), forward * flight.lift) *
         rise *
         (1 + (roll(flight) - 0.5) * 0.2),
       z: hop.velocity.z * scale,

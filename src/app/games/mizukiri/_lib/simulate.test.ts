@@ -68,6 +68,9 @@ const play = (flight: Flight, lead: number | null) => {
   return flight;
 };
 
+const mean = (values: number[]) =>
+  values.reduce((sum, y) => sum + y, 0) / values.length;
+
 const strike = (seed: number, lead: number | null) => {
   const flight = launch(createRiver(seed), flat, bare);
   const contact = nextContact(flight);
@@ -121,6 +124,27 @@ describe("flight", () => {
     assert.equal(isLate(flight, landedAt, next - 0.01), false);
   });
 
+  test("every focus point and focus perk widens the tap window", () => {
+    const perfectAt = (focus: number, scale = 1) =>
+      windowFor(
+        launch(
+          createRiver(3),
+          flat,
+          { ...bare, focus },
+          { ...plain, focus: scale }
+        )
+      ).perfect;
+    assert.ok(perfectAt(1) >= perfectAt(0) * 1.1);
+    assert.ok(perfectAt(0) >= 0.09);
+    for (let focus = 1; focus <= 10; focus += 1) {
+      assert.ok(perfectAt(focus) > perfectAt(focus - 1));
+    }
+    assert.ok(perfectAt(0, 1.09) >= perfectAt(0) * 1.09);
+    assert.ok(
+      statsOf({ ...bare, focus: 10 }, plain).focus > statsOf(bare, plain).focus
+    );
+  });
+
   test("a tap before a duck or rock is graded like a touch, and bends the bounce", () => {
     let struck = 0;
     for (let seed = 1; seed <= 200; seed += 1) {
@@ -137,6 +161,63 @@ describe("flight", () => {
       assert.ok(perfect.speed > (early?.speed ?? Number.POSITIVE_INFINITY));
     }
     assert.ok(struck > 0);
+  });
+
+  test("a well-timed run keeps getting faster and hopping higher with no ceiling", () => {
+    let pastOldCap = false;
+    let highest = 0;
+    let longest = 0;
+    for (let seed = 1; seed <= 30; seed += 1) {
+      const flight = play(launch(createRiver(seed), flat, bare), 0.03);
+      for (const hop of flight.hops) {
+        const speed = Math.hypot(hop.velocity.x, hop.velocity.z);
+        pastOldCap ||= speed > flight.top * 1.6;
+        highest = Math.max(highest, hop.velocity.y);
+        longest = Math.max(longest, hop.end - hop.start);
+      }
+    }
+    assert.ok(pastOldCap);
+    assert.ok(highest > 15);
+    assert.ok(longest > 1.5);
+  });
+
+  test("hops only get taller as the streak of good taps grows", () => {
+    const strong: Gear = { focus: 0, impact: 0, lift: 6, power: 60, stone: 10 };
+    for (let seed = 1; seed <= 30; seed += 1) {
+      const idle = play(launch(createRiver(seed), flat, strong), null);
+      for (const hop of idle.hops.slice(1)) {
+        assert.ok(hop.velocity.y <= 15);
+      }
+    }
+    let taller = 0;
+    for (let seed = 1; seed <= 30; seed += 1) {
+      const flight = launch(createRiver(seed), flat, bare);
+      const heights: number[] = [];
+      for (
+        let contact = nextContact(flight);
+        contact !== null && heights.length < 40;
+        contact = nextContact(flight)
+      ) {
+        land(flight, contact - 0.03);
+        heights.push(flight.hops.at(-1)?.velocity.y ?? 0);
+      }
+      if (mean(heights.slice(-5)) > mean(heights.slice(1, 6))) {
+        taller += 1;
+      }
+    }
+    assert.ok(taller > 20);
+  });
+
+  test("bounces and perfect taps cannot run the speed away", () => {
+    const bouncy: Gear = { focus: 3, impact: 3, lift: 8, power: 6, stone: 4 };
+    let fastest = 0;
+    for (let seed = 1; seed <= 60; seed += 1) {
+      const flight = play(launch(createRiver(seed), flat, bouncy), 0.03);
+      for (const hop of flight.hops) {
+        fastest = Math.max(fastest, Math.hypot(hop.velocity.x, hop.velocity.z));
+      }
+    }
+    assert.ok(fastest < 2000);
   });
 
   test("a bounce does not count as a skip", () => {
@@ -200,10 +281,12 @@ describe("flight", () => {
         const before = flight.hops.find((hop) => hop.end === bump.time);
         const after = flight.hops.find((hop) => hop.start === bump.time);
         assert.ok(before && after);
-        assert.ok(
-          Math.hypot(after.velocity.x, after.velocity.z) >
-            Math.hypot(before.velocity.x, before.velocity.z)
-        );
+        const speedBefore = Math.hypot(before.velocity.x, before.velocity.z);
+        if (speedBefore < flight.top) {
+          assert.ok(
+            Math.hypot(after.velocity.x, after.velocity.z) > speedBefore
+          );
+        }
         const splash = flight.splashes.find(
           (s) => s.event === "dragonfly" && s.time === bump.time
         );

@@ -216,6 +216,9 @@ const shakeAt = (flight: Flight, time: number) => {
   return shake;
 };
 
+const LOOK_AHEAD = 0.3;
+const CLIMB_FROM = 3;
+
 const cameraFor = (
   flight: Flight | null,
   time: number,
@@ -234,33 +237,33 @@ const cameraFor = (
   }
   const t =
     flight.ending === null ? time : Math.min(time, flight.duration - 1e-6);
-  let x = 0;
-  let y = 0;
-  let z = 0;
-  for (let k = 0; k < 6; k += 1) {
-    const at = stoneAt(flight, t - k * 0.08);
-    x += at?.x ?? 0;
-    y += at?.y ?? 0;
-    z += at?.z ?? flight.distance;
-  }
+  const now = stoneAt(flight, t);
+  const lead = stoneAt(flight, t + LOOK_AHEAD) ?? now;
+  const x = lead?.x ?? 0;
+  const y = Math.max(now?.y ?? 0, lead?.y ?? 0);
   const speed = speedAt(flight, t);
   const rush = clamp01((speed - 14) / 40);
   const ahead = stoneAt(flight, t + 0.05);
-  const now = stoneAt(flight, t);
   const sway =
     ahead && now ? (ahead.x - now.x) / Math.max(0.05, ahead.z - now.z) : 0;
   const settle =
     flight.ending === null ? 0 : ease((time - flight.duration) / 2.4);
   const shake = shakeAt(flight, time);
   const blend = ease(time / 0.9);
-  const height = 1.05 + Math.min(3, (y / 6) * 0.45) + rush * 0.5;
+  const climb = Math.max(0, y - CLIMB_FROM);
+  const height = 1.05 + Math.min(3, (y / 6) * 0.45) + climb * 0.75 + rush * 0.5;
   return {
     pitch: 0.07 * blend,
     roll: idle.roll * (1 - blend) - sway * 0.35 + shake * 0.6,
     speed: rush,
-    x: idle.x * (1 - blend) + (x / 6) * 0.9 * blend + shake,
+    x: idle.x * (1 - blend) + x * 0.9 * blend + shake,
     y: idle.y + (height - idle.y) * blend + 1.1 * settle + shake * 0.5,
-    z: Math.max(idle.z, (now?.z ?? z / 6) - (4.6 + rush * 3)) - 3 * settle,
+    z:
+      Math.max(
+        idle.z,
+        (now?.z ?? flight.distance) - (4.6 + rush * 3 + climb * 0.5)
+      ) -
+      3 * settle,
   };
 };
 
@@ -1977,8 +1980,9 @@ const paintApproach = (
   }
   const squash = airborne ? 1 : flatten(view, p.d);
   const win = windowFor(flight);
-  const target = 0.45 * p.s;
-  const ring = (0.45 + remain * 3.2) * p.s;
+  const radiusAt = (left: number) => (0.45 + left * 3.2) * p.s;
+  const target = radiusAt(win.perfect);
+  const ring = radiusAt(remain);
   let color = "rgb(255 255 255 / 0.55)";
   if (remain <= win.good) {
     color = "rgb(255 255 255 / 0.95)";
