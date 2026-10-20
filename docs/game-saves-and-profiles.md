@@ -23,7 +23,7 @@ There are no accounts. Each game keeps its progress in `localStorage`, and a pro
 A game with a shareable stats card follows the `career` pieces in 星合 and mizukiri:
 
 - `_lib/career.ts` with `readCareer`, `careerQuery` and `careerShare`.
-- A dialog or tab that shows it with `ShareButton`.
+- A `ShareButton` that shares it. 星合 puts an icon-only one beside the best score in the HUD (the preview image is the card), and mizukiri shows a record card with one in the workshop. Keep the HUD to one small control; pass `onOpenChange` so the game pauses while the menu is open.
 - A stats branch in `og/route.tsx` and in the page's `generateMetadata`.
 
 Test that the link round-trips and that a result link and a stats link are not read as each other. Their query keys must stay apart (a result needs `p`, 星合 stats need `b` and `r`).

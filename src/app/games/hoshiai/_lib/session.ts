@@ -39,8 +39,9 @@ const newSeed = () => crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
 
 const interactive = (target: EventTarget | null) =>
   target instanceof Element &&
-  target.closest("button, a, input, select, textarea, [role='dialog']") !==
-    null;
+  target.closest(
+    "button, a, input, select, textarea, [role='dialog'], [role='menu']"
+  ) !== null;
 
 export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
