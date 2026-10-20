@@ -114,6 +114,11 @@ export const createSound = () => {
   };
 
   const events: Record<Event, () => void> = {
+    dragonfly: () => {
+      tone(700, { bend: 0.5, length: 0.2, peak: 0.16, type: "triangle" });
+      tone(1400, { at: 0.06, bend: 0.6, length: 0.16, peak: 0.08 });
+      spray(4200, 0.5, 0.12);
+    },
     duck: () => {
       for (const at of [0, 0.14]) {
         tone(330, {

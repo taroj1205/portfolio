@@ -3,7 +3,7 @@ import type { Text } from "./i18n";
 export const skies = ["dusk", "dawn", "night"] as const;
 export type Sky = (typeof skies)[number];
 
-export const boosts = ["duck", "rock", "fish", "lotus"] as const;
+export const boosts = ["duck", "rock", "fish", "lotus", "dragonfly"] as const;
 export type Boost = (typeof boosts)[number];
 export type Event = Boost | "wall";
 
@@ -77,8 +77,9 @@ export interface Vec {
   z: number;
 }
 export interface Prop {
-  kind: "duck" | "leaf" | "rock" | "lotus";
+  kind: "duck" | "leaf" | "rock" | "lotus" | "dragonfly";
   x: number;
+  y: number;
   z: number;
   turn: number;
 }
@@ -102,6 +103,7 @@ export interface ThrowInput {
 export interface Splash {
   time: number;
   x: number;
+  y: number;
   z: number;
   big: boolean;
   grade: Grade | null;
@@ -143,7 +145,7 @@ export interface Flight {
   quality: number;
   top: number;
   roll: number;
-  pending: Prop | null;
+  pending: Solid | null;
 }
 
 const GRAVITY = 9.81;
@@ -154,9 +156,16 @@ const SEGMENT = 30;
 const SINK = 3;
 const MODULUS = 2_147_483_647;
 const BODY = {
-  duck: { height: 0.4, radius: 0.45, push: 1.3, rise: 4 },
-  rock: { height: 0.5, radius: 0.6, push: 1.5, rise: 6.5 },
+  dragonfly: { half: 0.3, radius: 0.5, push: 1.25, rise: 2.5 },
+  duck: { half: 0.4, radius: 0.45, push: 1.3, rise: 4 },
+  rock: { half: 0.5, radius: 0.6, push: 1.5, rise: 6.5 },
 };
+type Solid = Prop & { kind: keyof typeof BODY };
+
+const solid = (prop: Prop): prop is Solid => prop.kind in BODY;
+
+export const isBounce = (event: Event | null): event is Solid["kind"] =>
+  event !== null && event in BODY;
 
 const seedOf = (seed: number) =>
   (Math.abs(Math.floor(seed)) % (MODULUS - 1)) + 1;
@@ -190,9 +199,9 @@ const segmentProps = (river: River, index: number): Prop[] => {
   const random = randomFrom(river.seed * 31 + index * 7919 + 17);
   const lane = shoreAt(river, index * SEGMENT) - 1.2;
   const props: Prop[] = [];
-  const add = (kind: Prop["kind"], x: number, z: number) => {
+  const add = (kind: Prop["kind"], x: number, z: number, y = 0) => {
     if (z > 8) {
-      props.push({ kind, turn: random() * Math.PI * 2, x, z });
+      props.push({ kind, turn: random() * Math.PI * 2, x, y, z });
     }
   };
   const spot = (): [number, number] => [
@@ -215,6 +224,9 @@ const segmentProps = (river: River, index: number): Prop[] => {
   const leaves = Math.floor(random() * 3);
   for (let i = 0; i < leaves; i += 1) {
     add("leaf", ...spot());
+  }
+  if (random() < 0.25) {
+    add("dragonfly", ...spot(), 0.2 + random() * 0.3);
   }
   return props;
 };
@@ -294,15 +306,12 @@ const bumped = (flight: Flight, prop: Prop) =>
     (bump) => bump.prop?.x === prop.x && bump.prop.z === prop.z
   );
 
-const contact = (hop: Hop, prop: Prop) => {
-  if (prop.kind !== "duck" && prop.kind !== "rock") {
-    return null;
-  }
+const contact = (hop: Hop, prop: Solid) => {
   const body = BODY[prop.kind];
   for (let t = 0; t < hop.end - hop.start; t += STEP) {
     const p = positionIn(hop, t);
     if (
-      p.y < body.height &&
+      Math.abs(p.y - prop.y) < body.half &&
       Math.hypot(p.x - prop.x, p.z - prop.z) < body.radius
     ) {
       return t;
@@ -349,6 +358,7 @@ const ricochet = (flight: Flight, hop: Hop, t: number) => {
     grade: null,
     time: hop.end,
     x: at.x,
+    y: 0,
     z: at.z,
   });
   const falling = hop.velocity.y - GRAVITY * t;
@@ -371,8 +381,10 @@ const fly = (flight: Flight, from: Vec, velocity: Vec, start: number): void => {
   };
   const reach = from.z + velocity.z * (hop.end - start);
   const wall = wallTime(flight.river, from, velocity);
-  let struck: { prop: Prop; t: number } | null = null;
-  for (const prop of propsIn(flight.river, from.z - 1, reach + 1)) {
+  let struck: { prop: Solid; t: number } | null = null;
+  for (const prop of propsIn(flight.river, from.z - 1, reach + 1).filter(
+    solid
+  )) {
     const t = bumped(flight, prop) ? null : contact(hop, prop);
     if (t !== null && (struck === null || t < struck.t)) {
       struck = { prop, t };
@@ -492,8 +504,13 @@ const rate = (flight: Flight, grade: Grade) => {
   flight.bestCombo = Math.max(flight.bestCombo, flight.combo);
 };
 
-const bounce = (flight: Flight, hop: Hop, prop: Prop, tapAt: number | null) => {
-  const kind = prop.kind === "rock" ? "rock" : "duck";
+const bounce = (
+  flight: Flight,
+  hop: Hop,
+  prop: Solid,
+  tapAt: number | null
+) => {
+  const { kind } = prop;
   const body = BODY[kind];
   const time = hop.end;
   const at = positionIn(hop, time - hop.start);
@@ -508,6 +525,7 @@ const bounce = (flight: Flight, hop: Hop, prop: Prop, tapAt: number | null) => {
     grade,
     time,
     x: at.x,
+    y: prop.y,
     z: at.z,
   });
   const speed = Math.hypot(hop.velocity.x, hop.velocity.z);
@@ -549,6 +567,7 @@ export const land = (flight: Flight, tapAt: number | null) => {
       grade: null,
       time,
       x: at.x,
+      y: 0,
       z: at.z,
     });
     finish(flight, flight.skips === 0 ? "plop" : "sink", at, null);
@@ -572,6 +591,7 @@ export const land = (flight: Flight, tapAt: number | null) => {
     grade,
     time,
     x: at.x,
+    y: 0,
     z: at.z,
   });
   if (carp) {

@@ -20,6 +20,7 @@ import {
 import type { Save, Settings } from "./save";
 import {
   createRiver,
+  isBounce,
   isLate,
   land,
   launch,
@@ -160,11 +161,7 @@ export const startSession = (
       sound.splash(skips, null);
       return;
     }
-    if (
-      splash.grade !== null &&
-      splash.event !== "duck" &&
-      splash.event !== "rock"
-    ) {
+    if (splash.grade !== null && !isBounce(splash.event)) {
       skips += 1;
       sound.splash(skips, splash.grade);
     }

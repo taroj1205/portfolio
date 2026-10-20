@@ -51,12 +51,14 @@ const times = (k: number) => (k === 1 ? "once" : `${k} times`);
 
 const notes: Record<Lang, Record<Boost, (times: number) => string>> = {
   en: {
+    dragonfly: (k) => count(k, "dragonfly boost"),
     duck: (k) => `bounced off ${count(k, "duck")} 🦆`,
     fish: () => "pushed by a carp 🐟",
     lotus: (k) => count(k, "lily pad hop"),
     rock: (k) => count(k, "rock bounce"),
   },
   ja: {
+    dragonfly: (k) => `トンボで${k}回スイッ`,
     duck: (k) => `カモ${k}羽を踏み台に🦆`,
     fish: () => "鯉に押し出された🐟",
     lotus: (k) => `蓮の葉で${k}回ポンッ`,
@@ -64,7 +66,7 @@ const notes: Record<Lang, Record<Boost, (times: number) => string>> = {
   },
 };
 
-const rank: Boost[] = ["fish", "rock", "duck", "lotus"];
+const rank: Boost[] = ["fish", "rock", "dragonfly", "duck", "lotus"];
 
 const lines: Record<
   Lang,

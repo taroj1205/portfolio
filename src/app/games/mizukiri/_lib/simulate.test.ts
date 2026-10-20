@@ -24,6 +24,7 @@ import type { Save } from "./save";
 import {
   areaOf,
   createRiver,
+  isBounce,
   isLate,
   land,
   launch,
@@ -129,9 +130,7 @@ describe("flight", () => {
   test("a bounce does not count as a skip", () => {
     for (let seed = 1; seed <= 60; seed += 1) {
       const flight = play(launch(createRiver(seed), flat, bare), 0.01);
-      const bounces = flight.bumps.filter(
-        (bump) => bump.kind === "duck" || bump.kind === "rock"
-      ).length;
+      const bounces = flight.bumps.filter((bump) => isBounce(bump.kind)).length;
       assert.equal(
         flight.splashes.filter((splash) => splash.grade !== null).length,
         flight.skips + bounces
@@ -175,6 +174,34 @@ describe("flight", () => {
     assert.ok(bumped > 0);
   });
 
+  test("dragonflies push the stone faster in mid-air without touching the water", () => {
+    let caught = 0;
+    for (let seed = 1; seed <= 120; seed += 1) {
+      const flight = play(launch(createRiver(seed), flat, bare), 0.03);
+      for (const bump of flight.bumps) {
+        if (bump.kind !== "dragonfly" || bump.prop === null) {
+          continue;
+        }
+        caught += 1;
+        assert.ok(bump.at.y > 0);
+        assert.ok(Math.abs(bump.at.y - bump.prop.y) < 0.3);
+        const before = flight.hops.find((hop) => hop.end === bump.time);
+        const after = flight.hops.find((hop) => hop.start === bump.time);
+        assert.ok(before && after);
+        assert.ok(
+          Math.hypot(after.velocity.x, after.velocity.z) >
+            Math.hypot(before.velocity.x, before.velocity.z)
+        );
+        const splash = flight.splashes.find(
+          (s) => s.event === "dragonfly" && s.time === bump.time
+        );
+        assert.equal(splash?.y, bump.prop.y);
+        assert.notEqual(splash?.grade ?? null, null);
+      }
+    }
+    assert.ok(caught > 0);
+  });
+
   test("a throw aimed at the bank bounces off it and stays in the river", () => {
     const river = createRiver(19);
     const flight = play(
@@ -200,7 +227,9 @@ describe("flight", () => {
 
   test("the stone touches the water at every skip and never jumps", () => {
     const flight = play(launch(createRiver(13), flat, bare), 0.03);
-    for (const splash of flight.splashes.filter((s) => s.grade !== null)) {
+    for (const splash of flight.splashes.filter(
+      (s) => s.grade !== null && !isBounce(s.event)
+    )) {
       const before = stoneAt(flight, splash.time - 1e-6);
       assert.ok(before);
       assert.ok(Math.abs(before.y) < 1e-3);

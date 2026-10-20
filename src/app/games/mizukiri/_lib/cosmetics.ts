@@ -60,8 +60,8 @@ export const axes: {
     key: "impact",
     label: { en: "Impact", ja: "当たり" },
     note: {
-      en: "How much extra speed ducks and rocks give the stone.",
-      ja: "カモや岩に当たったときの加速の大きさ",
+      en: "How much extra speed ducks, rocks and dragonflies give the stone.",
+      ja: "カモや岩、トンボに当たったときの加速の大きさ",
     },
   },
 ];
