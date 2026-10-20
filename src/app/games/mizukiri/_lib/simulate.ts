@@ -143,6 +143,7 @@ export interface Flight {
   quality: number;
   top: number;
   roll: number;
+  pending: Prop | null;
 }
 
 const GRAVITY = 9.81;
@@ -390,31 +391,9 @@ const fly = (flight: Flight, from: Vec, velocity: Vec, start: number): void => {
     flight.hops.push(hop);
     return;
   }
-  const { prop, t } = struck;
-  const kind = prop.kind === "rock" ? "rock" : "duck";
-  const body = BODY[kind];
-  hop.end = start + t;
+  hop.end = start + struck.t;
   flight.hops.push(hop);
-  const at = positionIn(hop, t);
-  flight.bumps.push({ at, kind, prop, time: hop.end });
-  flight.splashes.push({
-    big: false,
-    combo: flight.combo,
-    event: kind,
-    grade: null,
-    time: hop.end,
-    x: at.x,
-    z: at.z,
-  });
-  const speed = Math.hypot(velocity.x, velocity.z);
-  const push = 1 + (body.push - 1) * flight.impact;
-  const scale = capped(flight, speed * push) / speed;
-  fly(
-    flight,
-    at,
-    { x: velocity.x * scale, y: body.rise, z: velocity.z * scale },
-    hop.end
-  );
+  flight.pending = struck.prop;
 };
 
 export const launch = (
@@ -444,6 +423,7 @@ export const launch = (
     impact: traits.impact,
     keep: 0.8 + 0.06 * hold + 0.06 * (1 - 0.88 ** gear.stone) + traits.keep,
     lift: (0.04 + 0.0035 * Math.max(0, input.tilt)) * traits.lift,
+    pending: null,
     quality,
     rest: null,
     river,
@@ -507,9 +487,48 @@ const GAIN: Record<Grade, (flight: Flight, speed: number) => number> = {
   perfect: (flight, speed) => (speed < flight.top ? 1.05 : 1),
 };
 
+const rate = (flight: Flight, grade: Grade) => {
+  flight.combo = grade === "perfect" || grade === "good" ? flight.combo + 1 : 0;
+  flight.bestCombo = Math.max(flight.bestCombo, flight.combo);
+};
+
+const bounce = (flight: Flight, hop: Hop, prop: Prop, tapAt: number | null) => {
+  const kind = prop.kind === "rock" ? "rock" : "duck";
+  const body = BODY[kind];
+  const time = hop.end;
+  const at = positionIn(hop, time - hop.start);
+  const grade = gradeFor(flight, tapAt, time);
+  rate(flight, grade);
+  flight.pending = null;
+  flight.bumps.push({ at, kind, prop, time });
+  flight.splashes.push({
+    big: false,
+    combo: flight.combo,
+    event: kind,
+    grade,
+    time,
+    x: at.x,
+    z: at.z,
+  });
+  const speed = Math.hypot(hop.velocity.x, hop.velocity.z);
+  const push =
+    (1 + (body.push - 1) * flight.impact) * GAIN[grade](flight, speed);
+  const scale = capped(flight, speed * push) / speed;
+  fly(
+    flight,
+    at,
+    { x: hop.velocity.x * scale, y: body.rise, z: hop.velocity.z * scale },
+    time
+  );
+};
+
 export const land = (flight: Flight, tapAt: number | null) => {
   const hop = flight.hops.at(-1);
   if (hop === undefined || flight.ending !== null) {
+    return;
+  }
+  if (flight.pending !== null) {
+    bounce(flight, hop, flight.pending, tapAt);
     return;
   }
   const time = hop.end;
@@ -539,8 +558,7 @@ export const land = (flight: Flight, tapAt: number | null) => {
   const grade = gradeFor(flight, tapAt, time);
   const carp = !lotus && flight.skips >= 5 && roll(flight) < 0.02;
   flight.skips += 1;
-  flight.combo = grade === "perfect" || grade === "good" ? flight.combo + 1 : 0;
-  flight.bestCombo = Math.max(flight.bestCombo, flight.combo);
+  rate(flight, grade);
   let boost: Boost | null = null;
   if (lotus) {
     boost = "lotus";

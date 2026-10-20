@@ -72,17 +72,24 @@ const eventTones: Record<Event, Popup["tone"]> = {
   wall: "grey",
 };
 
-const gradeTones: Record<Exclude<Grade, "miss">, Popup["tone"]> = {
+const gradeTones: Record<Grade, Popup["tone"]> = {
   early: "grey",
   good: "white",
+  miss: "grey",
   perfect: "gold",
 };
 
 const beatCall = ({ event, grade }: Beat): Call | null => {
+  if ((event === "duck" || event === "rock") && grade !== null) {
+    return {
+      say: (words) => `${words.events[event]} ${words.grades[grade]}`,
+      tone: eventTones[event],
+    };
+  }
   if (event !== null) {
     return { say: (words) => words.events[event], tone: eventTones[event] };
   }
-  if (grade === null || grade === "miss") {
+  if (grade === null) {
     return null;
   }
   return { say: (words) => words.grades[grade], tone: gradeTones[grade] };
@@ -145,6 +152,9 @@ export const Game = ({
                 shout({ say: (words) => words.endings[ending], tone: "white" });
               },
               land: setLanded,
+              late: () => {
+                shout({ say: (words) => words.late, tone: "grey" });
+              },
               phase: (next) => {
                 setPhase(next);
                 if (next === "ready" || next === "flying") {

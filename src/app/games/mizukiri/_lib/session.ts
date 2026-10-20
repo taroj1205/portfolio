@@ -61,6 +61,7 @@ interface Listeners {
   zone: (name: Text) => void;
   beat: (beat: Beat) => void;
   end: (ending: Ending) => void;
+  late: () => void;
   distance: (meters: number) => void;
   land: (landing: Landing) => void;
   save: (save: Save) => void;
@@ -135,7 +136,12 @@ export const startSession = (
     },
     start: () => {
       if (mode === "flying") {
-        if (flight !== null && !isLate(flight, landedAt, time)) {
+        if (flight === null) {
+          return;
+        }
+        if (isLate(flight, landedAt, time)) {
+          on.late();
+        } else {
           tap ??= time;
         }
         return;
@@ -154,7 +160,11 @@ export const startSession = (
       sound.splash(skips, null);
       return;
     }
-    if (splash.grade !== null) {
+    if (
+      splash.grade !== null &&
+      splash.event !== "duck" &&
+      splash.event !== "rock"
+    ) {
       skips += 1;
       sound.splash(skips, splash.grade);
     }
