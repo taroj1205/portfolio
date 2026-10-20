@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { langs } from "../../_lib/i18n";
 import { createStore } from "../../_lib/storage";
 import { TOP } from "./bodies";
 import type { Result } from "./result";
@@ -14,16 +13,10 @@ const schema = z.object({
   galaxies: count,
   merges: count,
   runs: count,
-  settings: z.object({
-    lang: z.enum(langs).nullable(),
-    muted: z.boolean(),
-  }),
   top: z.number().int().min(-1).max(TOP),
 });
 
 export type Save = z.infer<typeof schema>;
-
-export type Settings = Save["settings"];
 
 const fresh: Save = {
   best: 0,
@@ -31,7 +24,6 @@ const fresh: Save = {
   galaxies: 0,
   merges: 0,
   runs: 0,
-  settings: { lang: null, muted: false },
   top: -1,
 };
 
