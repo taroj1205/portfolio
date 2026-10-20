@@ -226,7 +226,11 @@ const segmentProps = (river: River, index: number): Prop[] => {
     add("leaf", ...spot());
   }
   if (random() < 0.25) {
-    add("dragonfly", ...spot(), 0.2 + random() * 0.3);
+    add(
+      "dragonfly",
+      ...spot(),
+      random() < 0.7 ? 0.2 + random() * 0.3 : 0.7 + random() * 0.6
+    );
   }
   return props;
 };

@@ -202,6 +202,23 @@ describe("flight", () => {
     assert.ok(caught > 0);
   });
 
+  test("dragonflies fly low and high, and bouncy stones often catch high ones", () => {
+    const heights = propsIn(createRiver(4), 0, 3000)
+      .filter((prop) => prop.kind === "dragonfly")
+      .map((prop) => prop.y);
+    assert.ok(heights.some((y) => y < 0.5));
+    assert.ok(heights.some((y) => y >= 0.7));
+    const bouncy: Gear = { focus: 3, impact: 3, lift: 8, power: 6, stone: 4 };
+    let caught = 0;
+    for (let seed = 1; seed <= 300; seed += 1) {
+      const flight = play(launch(createRiver(seed), flat, bouncy), 0.03);
+      caught += flight.bumps.filter(
+        (bump) => bump.kind === "dragonfly" && (bump.prop?.y ?? 0) >= 0.7
+      ).length;
+    }
+    assert.ok(caught >= 40);
+  });
+
   test("a throw aimed at the bank bounces off it and stays in the river", () => {
     const river = createRiver(19);
     const flight = play(

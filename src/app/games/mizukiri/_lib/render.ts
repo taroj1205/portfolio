@@ -1970,11 +1970,12 @@ const paintApproach = (
     return;
   }
   const at = stoneAt(flight, contact - 1e-4);
-  const p = at ? project(view, { ...at, y: 0 }) : null;
+  const airborne = (flight.pending?.y ?? 0) > 0;
+  const p = at ? project(view, airborne ? at : { ...at, y: 0 }) : null;
   if (!p) {
     return;
   }
-  const squash = flatten(view, p.d);
+  const squash = airborne ? 1 : flatten(view, p.d);
   const win = windowFor(flight);
   const target = 0.45 * p.s;
   const ring = (0.45 + remain * 3.2) * p.s;
