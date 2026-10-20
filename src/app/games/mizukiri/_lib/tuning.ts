@@ -71,7 +71,9 @@ export const flatTuning: Tuning = {
 
 const step = z.number().int().min(-LIMIT).max(LIMIT);
 
-export const signed = (by: number) => (by > 0 ? `+${by}` : String(by));
+const BASE = 5;
+
+export const scoreOf = (by: number) => String(BASE + by);
 
 export const pointsLeft = (tuning: Tuning) =>
   axes.reduce((sum, { key }) => sum - tuning[key], 0);

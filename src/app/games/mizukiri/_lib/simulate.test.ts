@@ -59,7 +59,7 @@ import {
   flatTuning,
   noteOf,
   pointsLeft,
-  signed,
+  scoreOf,
   traitsOf,
   tune,
   tuningCode,
@@ -547,9 +547,10 @@ describe("tuning", () => {
     assert.equal(tuningFrom("4.-4.0.0.0"), null);
     assert.equal(tuningFrom("a.b.c.d.e"), null);
     assert.equal(tuningFrom("0.0.0.0."), null);
-    assert.equal(signed(2), "+2");
-    assert.equal(signed(-1), "-1");
-    assert.equal(signed(0), "0");
+    assert.equal(scoreOf(0), "5");
+    assert.equal(scoreOf(2), "7");
+    assert.equal(scoreOf(-LIMIT), "2");
+    assert.ok(Number(scoreOf(-LIMIT)) > 0);
     assert.equal(noteOf(entry, "ja"), "速さ↑↑↑ 粘り↓ 集中↓↓");
     assert.equal(noteOf(entry, "en"), "Speed↑↑↑ Grit↓ Focus↓↓");
     assert.equal(noteOf(flatTuning, "ja"), "クセなし");

@@ -20,7 +20,7 @@ import {
 import type { Gear } from "../_lib/journey";
 import { modes } from "../_lib/save";
 import type { DuelSave, JourneySave, Mode, Save } from "../_lib/save";
-import { LIMIT, axes, pointsLeft, signed } from "../_lib/tuning";
+import { LIMIT, axes, pointsLeft, scoreOf } from "../_lib/tuning";
 import type { Axis } from "../_lib/tuning";
 import { useCopy, useLang } from "./lang";
 import { Radar } from "./radar";
@@ -416,11 +416,11 @@ const TunePanel = ({
     speed: (save.tuning.speed + LIMIT) / (2 * LIMIT),
   };
   const shown = {
-    focus: signed(save.tuning.focus),
-    impact: signed(save.tuning.impact),
-    keep: signed(save.tuning.keep),
-    lift: signed(save.tuning.lift),
-    speed: signed(save.tuning.speed),
+    focus: scoreOf(save.tuning.focus),
+    impact: scoreOf(save.tuning.impact),
+    keep: scoreOf(save.tuning.keep),
+    lift: scoreOf(save.tuning.lift),
+    speed: scoreOf(save.tuning.speed),
   };
   return (
     <>
