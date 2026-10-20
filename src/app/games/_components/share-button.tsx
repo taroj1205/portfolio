@@ -145,6 +145,8 @@ interface ShareButtonProps {
   share: Share;
   labels: ShareLabels;
   fileName: string;
+  iconOnly?: boolean;
+  onOpenChange?: (open: boolean) => void;
   className?: string;
   style?: Readonly<Record<string, string | number>>;
 }
@@ -153,6 +155,8 @@ export const ShareButton = ({
   share,
   labels,
   fileName,
+  iconOnly = false,
+  onOpenChange,
   className,
   style,
 }: ShareButtonProps) => {
@@ -188,14 +192,19 @@ export const ShareButton = ({
     <Menu.Root
       onOpenChange={(open) => {
         setCopied(false);
+        onOpenChange?.(open);
         if (open && files) {
           void imageFile();
         }
       }}
     >
-      <Menu.Trigger className={className} style={style}>
+      <Menu.Trigger
+        aria-label={iconOnly ? labels.share : undefined}
+        className={className}
+        style={style}
+      >
         <ShareMark />
-        {labels.share}
+        {iconOnly ? null : labels.share}
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner side="top" sideOffset={8}>

@@ -3,9 +3,11 @@ import type { RefObject } from "react";
 
 import { BackToGames } from "../../_components/back-to-games";
 import { glass } from "../../_components/glass";
+import { ShareButton } from "../../_components/share-button";
 import { font, ink, media, shade } from "../../_components/theme.stylex";
 import { langNames } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
+import type { Share } from "../../_lib/share";
 import { bodies, kindOf } from "../_lib/bodies";
 import { copy } from "../_lib/copy";
 import { formatScore, scoreText, titleOf } from "../_lib/result";
@@ -151,19 +153,14 @@ const styles = stylex.create({
     margin: 0,
     textShadow: shade.small,
   },
-  stats: {
+  bestRow: {
     alignItems: "center",
-    borderRadius: 999,
-    cursor: "pointer",
     display: "flex",
-    fontFamily: "inherit",
-    gap: "0.4rem",
-    minHeight: "2.25rem",
-    paddingInline: "0.85rem",
-    pointerEvents: "auto",
-    transform: { default: null, ":active": "scale(0.95)" },
-    transitionDuration: "160ms",
-    transitionProperty: "transform",
+    gap: "0.5rem",
+  },
+  small: {
+    height: "2.25rem",
+    width: "2.25rem",
   },
   corner: {
     alignItems: "flex-end",
@@ -388,18 +385,6 @@ const Restart = () => (
   </svg>
 );
 
-const Bars = () => (
-  <svg aria-hidden="true" height="14" viewBox="0 0 24 24" width="14">
-    <path
-      d="M6 20V12M12 20V5M18 20v-5"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeWidth="3"
-    />
-  </svg>
-);
-
 interface HudProps {
   lang: Lang;
   score: number;
@@ -417,8 +402,8 @@ interface HudProps {
   onLang: () => void;
   onMute: () => void;
   onRestart: () => void;
-  onStats: () => void;
-  opener: RefObject<HTMLButtonElement | null>;
+  share: Share | null;
+  onSharing: (open: boolean) => void;
 }
 
 export const Hud = ({
@@ -438,8 +423,8 @@ export const Hud = ({
   onLang,
   onMute,
   onRestart,
-  onStats,
-  opener,
+  share,
+  onSharing,
 }: HudProps) => {
   const words = copy[lang];
   const other: Lang = lang === "ja" ? "en" : "ja";
@@ -465,16 +450,25 @@ export const Hud = ({
               <span {...stylex.props(styles.unit)}>{words.points}</span>
             </p>
             {best > 0 ? (
-              <button
-                aria-label={`${words.career.open}: ${words.best} ${formatScore(best, lang)}`}
-                onClick={onStats}
-                ref={opener}
-                type="button"
-                {...stylex.props(glass.surface, styles.label, styles.stats)}
-              >
-                <Bars />
-                {words.best} {formatScore(best, lang)}
-              </button>
+              <div {...stylex.props(styles.bestRow)}>
+                <p {...stylex.props(styles.label)}>
+                  {words.best} {formatScore(best, lang)}
+                </p>
+                {share === null ? null : (
+                  <ShareButton
+                    fileName="hoshiai-stats.png"
+                    iconOnly
+                    labels={words.result}
+                    onOpenChange={onSharing}
+                    share={share}
+                    {...stylex.props(
+                      glass.surface,
+                      styles.button,
+                      styles.small
+                    )}
+                  />
+                )}
+              </div>
             ) : null}
           </div>
           <div {...stylex.props(styles.corner)}>
