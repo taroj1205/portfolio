@@ -1512,6 +1512,119 @@ const paintDuck = (
 
 const SAKURA = ["#ffd3e2", "#f7a8c4", "#fbe6ee"];
 
+interface Speck {
+  x: number;
+  y: number;
+  s: number;
+  fade: number;
+  seed: number;
+  k: number;
+  time: number;
+}
+
+const SPECKS = new Map<
+  string,
+  (ctx: CanvasRenderingContext2D, at: Speck) => void
+>([
+  [
+    "gold",
+    (ctx, { x, y, s, fade, seed }) => {
+      ctx.fillStyle = rgba(hash(seed, 3) > 0.5 ? GOLD : "#fff4c2", fade);
+      ctx.beginPath();
+      ctx.arc(x, y, Math.max(1.2, 0.04 * s) * fade, 0, TAU);
+      ctx.fill();
+    },
+  ],
+  [
+    "sakura",
+    (ctx, { x, y, s, fade, seed, k, time }) => {
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = rgba(
+        SAKURA[seed % SAKURA.length] ?? "#ffd3e2",
+        0.9 * fade
+      );
+      ctx.beginPath();
+      ctx.ellipse(
+        x,
+        y + k * 1.5,
+        Math.max(2, 0.06 * s),
+        Math.max(1, 0.03 * s),
+        hash(seed, 4) * TAU + time * 6,
+        0,
+        TAU
+      );
+      ctx.fill();
+      ctx.globalCompositeOperation = "lighter";
+    },
+  ],
+  [
+    "fox",
+    (ctx, { x, y, s, fade }) => {
+      const r = Math.max(4, 0.25 * s) * fade;
+      const flame = ctx.createRadialGradient(x, y, 0, x, y, r);
+      flame.addColorStop(0, `rgb(200 240 255 / ${(0.7 * fade).toFixed(3)})`);
+      flame.addColorStop(0.5, `rgb(90 170 255 / ${(0.35 * fade).toFixed(3)})`);
+      flame.addColorStop(1, "rgb(60 120 255 / 0)");
+      ctx.fillStyle = flame;
+      ctx.fillRect(x - r, y - r, r * 2, r * 2);
+    },
+  ],
+  [
+    "ink",
+    (ctx, { x, y, s, fade, k }) => {
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = `rgb(14 14 22 / ${(0.55 * fade).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.arc(x, y, Math.max(2, 0.05 * s) * (1 + k * 0.12), 0, TAU);
+      ctx.fill();
+      ctx.globalCompositeOperation = "lighter";
+    },
+  ],
+  [
+    "bubble",
+    (ctx, { x, y, s, fade, seed, k }) => {
+      ctx.strokeStyle = rgba("#dff4ff", 0.8 * fade);
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(
+        x,
+        y - k * 2,
+        Math.max(2, 0.05 * s) * (0.6 + hash(seed, 5)),
+        0,
+        TAU
+      );
+      ctx.stroke();
+    },
+  ],
+  [
+    "comet",
+    (ctx, { x, y, s, fade }) => {
+      const r = Math.max(2, 0.07 * s) * fade;
+      ctx.fillStyle = rgba("#eaf2ff", fade);
+      ctx.beginPath();
+      ctx.moveTo(x, y - r * 2);
+      ctx.lineTo(x + r * 0.4, y - r * 0.4);
+      ctx.lineTo(x + r * 2, y);
+      ctx.lineTo(x + r * 0.4, y + r * 0.4);
+      ctx.lineTo(x, y + r * 2);
+      ctx.lineTo(x - r * 0.4, y + r * 0.4);
+      ctx.lineTo(x - r * 2, y);
+      ctx.lineTo(x - r * 0.4, y - r * 0.4);
+      ctx.fill();
+    },
+  ],
+]);
+
+const lineColor = (trail: string, k: number, time: number) => {
+  if (trail === "rainbow") {
+    return `hsl(${Math.round((k * 28 + time * 240) % 360)} 90% 72%)`;
+  }
+  if (trail === "fox") {
+    return "#8fd8ff";
+  }
+  return null;
+};
+
 const paintTrail = (
   ctx: CanvasRenderingContext2D,
   view: View,
@@ -1521,6 +1634,7 @@ const paintTrail = (
   time: number
 ) => {
   const hot = flight.combo >= 3;
+  const speck = SPECKS.get(trail);
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
   ctx.lineCap = "round";
@@ -1533,52 +1647,27 @@ const paintTrail = (
       continue;
     }
     const fade = 1 - k / 13;
-    let color = hot ? GOLD : palette.ring;
-    if (trail === "fox") {
-      color = "#8fd8ff";
-    }
-    ctx.strokeStyle = rgba(color, (hot ? 0.5 : 0.3) * fade);
+    const tone = lineColor(trail, k, time);
+    ctx.globalAlpha = (hot ? 0.5 : 0.3) * fade;
+    ctx.strokeStyle = tone ?? (hot ? GOLD : palette.ring);
     ctx.lineWidth = Math.max(1, STONE * 0.35 * pa.s * fade);
     ctx.beginPath();
     ctx.moveTo(pa.x, pa.y);
     ctx.lineTo(pb.x, pb.y);
     ctx.stroke();
-    const seed = Math.floor((time - k * 0.02) * 50);
-    const spread = Math.max(4, 0.3 * pa.s);
-    const px = pa.x + (hash(seed, 1) - 0.5) * spread * k * 0.3;
-    const py = pa.y + (hash(seed, 2) - 0.5) * spread * k * 0.3;
-    if (trail === "gold") {
-      const r = Math.max(1.2, 0.04 * pa.s) * fade;
-      ctx.fillStyle = rgba(hash(seed, 3) > 0.5 ? GOLD : "#fff4c2", fade);
-      ctx.beginPath();
-      ctx.arc(px, py, r, 0, TAU);
-      ctx.fill();
-    } else if (trail === "sakura") {
-      ctx.globalCompositeOperation = "source-over";
-      ctx.fillStyle = rgba(
-        SAKURA[seed % SAKURA.length] ?? "#ffd3e2",
-        0.9 * fade
-      );
-      ctx.beginPath();
-      ctx.ellipse(
-        px,
-        py + k * 1.5,
-        Math.max(2, 0.06 * pa.s),
-        Math.max(1, 0.03 * pa.s),
-        hash(seed, 4) * TAU + time * 6,
-        0,
-        TAU
-      );
-      ctx.fill();
-      ctx.globalCompositeOperation = "lighter";
-    } else if (trail === "fox") {
-      const r = Math.max(4, 0.25 * pa.s) * fade;
-      const flame = ctx.createRadialGradient(px, py, 0, px, py, r);
-      flame.addColorStop(0, `rgb(200 240 255 / ${(0.7 * fade).toFixed(3)})`);
-      flame.addColorStop(0.5, `rgb(90 170 255 / ${(0.35 * fade).toFixed(3)})`);
-      flame.addColorStop(1, "rgb(60 120 255 / 0)");
-      ctx.fillStyle = flame;
-      ctx.fillRect(px - r, py - r, r * 2, r * 2);
+    ctx.globalAlpha = 1;
+    if (speck !== undefined) {
+      const seed = Math.floor((time - k * 0.02) * 50);
+      const spread = Math.max(4, 0.3 * pa.s);
+      speck(ctx, {
+        fade,
+        k,
+        s: pa.s,
+        seed,
+        time,
+        x: pa.x + (hash(seed, 1) - 0.5) * spread * k * 0.3,
+        y: pa.y + (hash(seed, 2) - 0.5) * spread * k * 0.3,
+      });
     }
   }
   ctx.restore();

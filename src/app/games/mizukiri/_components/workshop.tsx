@@ -2,31 +2,16 @@ import { Drawer } from "@base-ui/react/drawer";
 import { Switch } from "@base-ui/react/switch";
 import { Tabs } from "@base-ui/react/tabs";
 import * as stylex from "@stylexjs/stylex";
-import { useState } from "react";
 import type { RefObject } from "react";
 
-import {
-  colorOf,
-  comboOf,
-  combos,
-  conditionOf,
-  formOf,
-  isOpen,
-  keyOf,
-  nameOf,
-  noteOf,
-  parts,
-  peaksOf,
-  traitsOf,
-} from "../_lib/cosmetics";
+import { traitsOf } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
-import { pointsLeft, progressOf, skills, unlocksOf } from "../_lib/save";
+import { pointsLeft, progressOf, skills } from "../_lib/save";
 import type { Save, Settings } from "../_lib/save";
 import { statsOf } from "../_lib/simulate";
 import type { Gear } from "../_lib/simulate";
-import { stoneSprite } from "../_lib/sprites";
-import { Preview } from "./preview";
 import { Radar } from "./radar";
+import { StoneTab } from "./stone-tab";
 import { font, ink } from "./theme.stylex";
 
 const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
@@ -67,7 +52,7 @@ const styles = stylex.create({
     color: ink.text,
     display: "flex",
     flexDirection: "column",
-    maxHeight: "88dvh",
+    height: "min(88dvh, 54rem)",
     maxWidth: "30rem",
     outline: "none",
     overflow: "hidden",
@@ -170,100 +155,14 @@ const styles = stylex.create({
     paddingInline: "0.25rem",
     outline: "none",
   },
-  stage: {
-    alignItems: "center",
-    backgroundColor: "rgb(13 16 26 / 0.92)",
-    backgroundImage:
-      "radial-gradient(60% 70% at 30% 55%, rgb(120 170 210 / 0.16), transparent 70%)",
-    borderColor: "rgb(255 255 255 / 0.08)",
-    borderRadius: 22,
-    borderStyle: "solid",
-    borderWidth: 1,
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.2rem",
-    paddingBlock: "0.5rem 0.7rem",
-    paddingInline: "0.5rem",
-  },
   pinned: {
     overflowY: "hidden",
     paddingBottom: 0,
-  },
-  scroller: {
-    display: "flex",
-    flex: 1,
-    flexDirection: "column",
-    gap: "1rem",
-    minHeight: 0,
-    overflowY: "auto",
-    maskImage: "linear-gradient(to bottom, transparent, black 0.75rem)",
-    overscrollBehavior: "contain",
-    paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))",
-    paddingTop: "0.5rem",
-  },
-  stageRow: {
-    alignItems: "center",
-    display: "grid",
-    gap: "0.25rem",
-    gridTemplateColumns: "1fr 1fr",
-    width: "100%",
-  },
-  stageRadar: {
-    minWidth: 0,
-  },
-  stone: {
-    display: "block",
-    filter: "drop-shadow(0 14px 18px rgb(0 0 0 / 0.5))",
-    height: "auto",
-    justifySelf: "center",
-    maxWidth: "9rem",
-    width: "100%",
-  },
-  comboLine: {
-    color: GOLD,
-    fontSize: "0.75rem",
-    fontWeight: 800,
-    letterSpacing: "0.08em",
-  },
-  combos: {
-    display: "grid",
-    gap: "0.5rem",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    listStyle: "none",
-    margin: 0,
-    padding: 0,
-  },
-  combo: {
-    backgroundColor: "rgb(255 255 255 / 0.04)",
-    borderColor: "rgb(255 255 255 / 0.08)",
-    borderRadius: 14,
-    borderStyle: "dashed",
-    borderWidth: 1,
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.15rem",
-    paddingBlock: "0.55rem",
-    paddingInline: "0.6rem",
-  },
-  comboKnown: {
-    backgroundColor: "rgb(255 210 122 / 0.06)",
-    borderColor: "rgb(255 210 122 / 0.35)",
-    borderStyle: "solid",
-  },
-  caption: {
-    color: ink.soft,
-    fontSize: "0.78rem",
-    letterSpacing: "0.12em",
   },
   group: {
     display: "flex",
     flexDirection: "column",
     gap: "0.5rem",
-  },
-  groupHead: {
-    alignItems: "baseline",
-    display: "flex",
-    justifyContent: "space-between",
   },
   groupName: {
     fontFamily: font.mincho,
@@ -271,59 +170,6 @@ const styles = stylex.create({
     fontWeight: 700,
     letterSpacing: "0.15em",
     margin: 0,
-  },
-  small: {
-    color: ink.soft,
-    fontSize: "0.72rem",
-  },
-  grid: {
-    display: "grid",
-    gap: "0.5rem",
-    gridTemplateColumns: "repeat(4, 1fr)",
-  },
-  tile: {
-    alignItems: "center",
-    backgroundColor: "rgb(255 255 255 / 0.05)",
-    borderColor: "rgb(255 255 255 / 0.1)",
-    borderRadius: 16,
-    borderStyle: "solid",
-    borderWidth: 1,
-    color: ink.text,
-    cursor: { default: "pointer", ":disabled": "not-allowed" },
-    display: "flex",
-    flexDirection: "column",
-    fontFamily: "inherit",
-    gap: "0.35rem",
-    minHeight: "5.4rem",
-    paddingBlock: "0.6rem 0.5rem",
-    paddingInline: "0.25rem",
-    position: "relative",
-    transform: { default: null, ":active": "scale(0.96)" },
-    transitionDuration: "160ms",
-    transitionProperty: "transform, border-color, background-color",
-  },
-  worn: {
-    backgroundColor: "rgb(255 210 122 / 0.14)",
-    borderColor: GOLD,
-    boxShadow: "inset 0 0 0 1px rgb(255 210 122 / 0.35)",
-  },
-  locked: {
-    opacity: 0.4,
-  },
-  unseen: {
-    backgroundImage: `linear-gradient(180deg, #fff1b8, ${GOLD} 55%, #d9962a)`,
-    borderRadius: 999,
-    boxShadow: "0 4px 12px rgb(255 190 80 / 0.45)",
-    color: "#1c1406",
-    fontSize: "0.55rem",
-    fontWeight: 800,
-    letterSpacing: "0.08em",
-    lineHeight: 1,
-    paddingBlock: "0.2rem",
-    paddingInline: "0.4rem",
-    position: "absolute",
-    right: -4,
-    top: -6,
   },
   tabDot: {
     backgroundColor: "#e5533d",
@@ -333,25 +179,6 @@ const styles = stylex.create({
     marginInlineStart: "0.3rem",
     verticalAlign: "top",
     width: 7,
-  },
-  tileName: {
-    fontSize: "0.72rem",
-    fontWeight: 700,
-    lineHeight: 1.2,
-    textAlign: "center",
-  },
-  tileNote: {
-    color: GOLD,
-    fontSize: "0.6rem",
-    fontWeight: 700,
-    lineHeight: 1.2,
-    textAlign: "center",
-  },
-  lock: {
-    color: ink.soft,
-    fontSize: "0.6rem",
-    fontWeight: 700,
-    textAlign: "center",
   },
   level: {
     alignItems: "baseline",
@@ -537,30 +364,9 @@ export const Workshop = ({
   onRespec,
   onSettings,
 }: WorkshopProps) => {
-  const [preview, setPreview] = useState<{ part: Part; id: string } | null>(
-    null
-  );
-  const { color, form, pattern } = save.look;
   const progress = progressOf(save.xp);
   const left = pointsLeft(save);
-  const unlocked = unlocksOf(save);
   const stats = statsOf(save.gear, traitsOf(save.look));
-  const ghost =
-    preview === null || save.look[preview.part] === preview.id
-      ? null
-      : statsOf(
-          save.gear,
-          traitsOf({ ...save.look, [preview.part]: preview.id })
-        );
-  const combo = comboOf(save.look);
-
-  const paintStone = (canvas: HTMLCanvasElement | null) => {
-    const ctx = canvas?.getContext("2d");
-    if (ctx) {
-      ctx.clearRect(0, 0, 256, 160);
-      ctx.drawImage(stoneSprite(colorOf(color), form, pattern), 0, 0);
-    }
-  };
 
   return (
     <Drawer.Root
@@ -627,137 +433,7 @@ export const Workshop = ({
                   value="stone"
                   {...stylex.props(styles.panel, styles.pinned)}
                 >
-                  <div {...stylex.props(styles.stage)}>
-                    <div {...stylex.props(styles.stageRow)}>
-                      <canvas
-                        aria-hidden="true"
-                        height={160}
-                        ref={paintStone}
-                        width={256}
-                        {...stylex.props(styles.stone)}
-                      />
-                      <div {...stylex.props(styles.stageRadar)}>
-                        <Radar preview={ghost} stats={stats} />
-                      </div>
-                    </div>
-                    <span {...stylex.props(styles.caption)}>
-                      {nameOf(save.look)}
-                    </span>
-                    {combo === null ? null : (
-                      <span {...stylex.props(styles.comboLine)}>
-                        相性ボーナス {noteOf(combo.perks)}
-                      </span>
-                    )}
-                  </div>
-                  <div {...stylex.props(styles.scroller)}>
-                    {parts.map(({ part, name, options }) => (
-                      <section key={part} {...stylex.props(styles.group)}>
-                        <div {...stylex.props(styles.groupHead)}>
-                          <h3 {...stylex.props(styles.groupName)}>{name}</h3>
-                          {part === "color" || part === "form" ? (
-                            <span {...stylex.props(styles.small)}>
-                              性能が変わる
-                            </span>
-                          ) : null}
-                        </div>
-                        <div {...stylex.props(styles.grid)}>
-                          {options.map((option) => {
-                            const available = isOpen(option.unlock, unlocked);
-                            const worn = save.look[part] === option.id;
-                            const isNew = save.unseen.includes(
-                              keyOf({ option, part })
-                            );
-                            const peek =
-                              option.perks !== undefined && available
-                                ? () => {
-                                    setPreview({ id: option.id, part });
-                                  }
-                                : undefined;
-                            return (
-                              <button
-                                aria-pressed={worn}
-                                disabled={!available}
-                                key={option.id}
-                                onBlur={() => {
-                                  setPreview(null);
-                                }}
-                                onClick={() => {
-                                  onWear(part, option.id);
-                                }}
-                                onFocus={peek}
-                                onPointerEnter={peek}
-                                onPointerLeave={() => {
-                                  setPreview(null);
-                                }}
-                                type="button"
-                                {...stylex.props(
-                                  styles.tile,
-                                  worn && styles.worn,
-                                  !available && styles.locked
-                                )}
-                              >
-                                {isNew ? (
-                                  <span {...stylex.props(styles.unseen)}>
-                                    NEW
-                                  </span>
-                                ) : null}
-                                <Preview option={option} part={part} />
-                                <span {...stylex.props(styles.tileName)}>
-                                  {option.name}
-                                </span>
-                                {available ? null : (
-                                  <span {...stylex.props(styles.lock)}>
-                                    {conditionOf(option.unlock)}
-                                  </span>
-                                )}
-                                {available && option.perks !== undefined ? (
-                                  <span {...stylex.props(styles.tileNote)}>
-                                    {noteOf(peaksOf(option.perks))}
-                                  </span>
-                                ) : null}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    ))}
-                    <section {...stylex.props(styles.group)}>
-                      <div {...stylex.props(styles.groupHead)}>
-                        <h3 {...stylex.props(styles.groupName)}>相性</h3>
-                        <span {...stylex.props(styles.small)}>
-                          {save.found.length} / {combos.length} 発見
-                        </span>
-                      </div>
-                      <ul {...stylex.props(styles.combos)}>
-                        {combos.map((entry) => {
-                          const known = save.found.includes(entry.id);
-                          return (
-                            <li
-                              key={entry.id}
-                              {...stylex.props(
-                                styles.combo,
-                                known && styles.comboKnown,
-                                combo?.id === entry.id && styles.worn
-                              )}
-                            >
-                              <span {...stylex.props(styles.name)}>
-                                {known ? entry.name : "？？？"}
-                              </span>
-                              <span {...stylex.props(styles.note)}>
-                                {colorOf(entry.color).name} ×{" "}
-                                {known ? formOf(entry.form).name : "？？？"}
-                              </span>
-                              {known ? (
-                                <span {...stylex.props(styles.tileNote)}>
-                                  {noteOf(entry.perks)}
-                                </span>
-                              ) : null}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </section>
-                  </div>
+                  <StoneTab onWear={onWear} save={save} />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="skill" {...stylex.props(styles.panel)}>

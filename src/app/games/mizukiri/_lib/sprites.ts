@@ -67,6 +67,36 @@ const crescent: Curve = (t) => {
   return [110 * (0.79 + 0.85 * Math.cos(a)), 80 * 0.85 * Math.sin(a)];
 };
 
+const fan: Curve = (t) => {
+  const outer = t < Math.PI;
+  const u = outer ? t / Math.PI : (t - Math.PI) / Math.PI;
+  const a = outer
+    ? (7 * Math.PI) / 6 + u * ((2 * Math.PI) / 3)
+    : (11 * Math.PI) / 6 - u * ((2 * Math.PI) / 3);
+  const r = outer ? 120 : 26;
+  return [r * Math.cos(a), r * Math.sin(a) + 53];
+};
+
+const fish: Curve = (t) => {
+  const tail = Math.exp(-(((t - Math.PI) / 0.45) ** 2));
+  const notch = Math.exp(-(((t - Math.PI) / 0.15) ** 2));
+  return [
+    95 * Math.cos(t) - 32 * tail + 26 * notch + 10,
+    48 * Math.sin(t) * (1 + 2.2 * tail),
+  ];
+};
+
+const hexagon: Curve = (t) => {
+  const sector = Math.PI / 3;
+  const r =
+    Math.cos(sector / 2) /
+    Math.cos((((t % sector) + sector) % sector) - sector / 2);
+  return [110 * r * Math.cos(t), 78 * r * Math.sin(t)];
+};
+
+const bend = (value: number, power: number) =>
+  Math.sign(value) * Math.abs(value) ** power;
+
 const CURVES = new Map<string, Curve>([
   [
     "bean",
@@ -80,6 +110,13 @@ const CURVES = new Map<string, Curve>([
     },
   ],
   ["crescent", crescent],
+  [
+    "diamond",
+    (t) => [118 * bend(Math.cos(t), 1.7), 72 * bend(Math.sin(t), 1.7)],
+  ],
+  ["fan", fan],
+  ["fish", fish],
+  ["shell", hexagon],
   ["drop", (t) => [118 * Math.cos(t), 92 * Math.sin(t) * Math.sin(t / 2)]],
   ["flat", ellipse(122, 48)],
   [
@@ -156,6 +193,41 @@ const roughen = (outline: [number, number][], random: () => number) => {
   });
 };
 
+const paintWaves = (ctx: CanvasRenderingContext2D) => {
+  ctx.strokeStyle = "rgb(255 255 255 / 0.32)";
+  ctx.lineWidth = 2.5;
+  for (let row = 0; row < 9; row += 1) {
+    const y = row * 20;
+    for (let x = row % 2 === 0 ? 0 : 22; x < 300; x += 44) {
+      for (const r of [22, 15, 8]) {
+        ctx.beginPath();
+        ctx.arc(x, y, r, Math.PI, TAU);
+        ctx.stroke();
+      }
+    }
+  }
+};
+
+const paintCracks = (ctx: CanvasRenderingContext2D, random: () => number) => {
+  ctx.strokeStyle = "#f2c14e";
+  ctx.shadowColor = "#ffd27a";
+  ctx.shadowBlur = 8;
+  ctx.lineWidth = 3;
+  for (let k = 0; k < 3; k += 1) {
+    let x = 40 + random() * 60;
+    let y = random() * 160;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    for (let step = 0; step < 7; step += 1) {
+      x += 18 + random() * 14;
+      y += (random() - 0.5) * 40;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0;
+};
+
 const paintPattern = (
   ctx: CanvasRenderingContext2D,
   pattern: string,
@@ -179,6 +251,26 @@ const paintPattern = (
       ctx.arc(random() * 256, random() * 160, 2 + random() * 5, 0, TAU);
       ctx.fill();
     }
+  } else if (pattern === "wave") {
+    paintWaves(ctx);
+  } else if (pattern === "checker") {
+    ctx.fillStyle = "rgb(0 0 0 / 0.28)";
+    for (let y = 0; y < 160; y += 22) {
+      for (let x = (y / 22) % 2 === 0 ? 0 : 22; x < 256; x += 44) {
+        ctx.fillRect(x, y, 22, 22);
+      }
+    }
+  } else if (pattern === "dots") {
+    ctx.fillStyle = "rgb(255 255 255 / 0.4)";
+    for (let y = 14; y < 160; y += 30) {
+      for (let x = (y / 30) % 2 < 1 ? 14 : 29; x < 256; x += 30) {
+        ctx.beginPath();
+        ctx.arc(x, y, 7, 0, TAU);
+        ctx.fill();
+      }
+    }
+  } else if (pattern === "mended") {
+    paintCracks(ctx, random);
   } else if (pattern === "ring") {
     ctx.strokeStyle = "rgb(250 248 240 / 0.85)";
     ctx.lineWidth = 10;

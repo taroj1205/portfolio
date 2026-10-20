@@ -108,6 +108,46 @@ const colors: Color[] = [
     perks: { keep: -1, speed: 2 },
     unlock: { kind: "zone", zone: areaOf("sea") },
   },
+  {
+    glow: "#7aa8ff",
+    id: "lapis",
+    mineral: ["#c9d8ff", "#3f5fc4", "#16224f"],
+    name: "瑠璃",
+    perks: { focus: 1, lift: 1, speed: -1 },
+    unlock: { kind: "level", level: 16 },
+  },
+  {
+    glow: null,
+    id: "coral",
+    mineral: ["#ffd8cc", "#f08a6e", "#8a3424"],
+    name: "珊瑚",
+    perks: { impact: 1, keep: -1, lift: 1 },
+    unlock: { kind: "zone", zone: areaOf("snow") },
+  },
+  {
+    glow: "#ffffff",
+    id: "crystal",
+    mineral: ["#ffffff", "#d6e4f0", "#8ea4ba"],
+    name: "水晶",
+    perks: { focus: 1, keep: -1, speed: 1 },
+    unlock: { kind: "level", level: 24 },
+  },
+  {
+    glow: "#b46bff",
+    id: "obsidian",
+    mineral: ["#6a6478", "#24202c", "#08070b"],
+    name: "黒曜石",
+    perks: { focus: -2, impact: 1, speed: 2 },
+    unlock: { kind: "zone", zone: areaOf("cloud") },
+  },
+  {
+    glow: "#fff6c8",
+    id: "moon",
+    mineral: ["#fbf6e4", "#c9c2a8", "#6e6a5c"],
+    name: "月の石",
+    perks: { focus: 1, lift: 2, speed: -2 },
+    unlock: { kind: "zone", zone: areaOf("stars") },
+  },
 ];
 
 const forms: Option[] = [
@@ -178,6 +218,30 @@ const forms: Option[] = [
     perks: { focus: -2, impact: 2, lift: 2, speed: -1 },
     unlock: { kind: "level", level: 18 },
   },
+  {
+    id: "diamond",
+    name: "ひしがた",
+    perks: { impact: 1, keep: -1, lift: -1, speed: 2 },
+    unlock: { kind: "level", level: 22 },
+  },
+  {
+    id: "fan",
+    name: "おうぎ",
+    perks: { focus: 1, impact: -1, keep: -1, lift: 2 },
+    unlock: { kind: "combo", combo: 30 },
+  },
+  {
+    id: "fish",
+    name: "さかな",
+    perks: { focus: 1, impact: -1, lift: -1, speed: 2 },
+    unlock: { kind: "zone", zone: areaOf("firefly") },
+  },
+  {
+    id: "shell",
+    name: "きっこう",
+    perks: { impact: 1, keep: 2, speed: -2 },
+    unlock: { kind: "level", level: 30 },
+  },
 ];
 
 const patterns: Option[] = [
@@ -189,6 +253,10 @@ const patterns: Option[] = [
     unlock: { kind: "zone", zone: areaOf("sakura") },
   },
   { id: "ring", name: "輪っか", unlock: { kind: "combo", combo: 20 } },
+  { id: "wave", name: "青海波", unlock: { kind: "level", level: 6 } },
+  { id: "checker", name: "市松", unlock: { kind: "level", level: 9 } },
+  { id: "dots", name: "水玉", unlock: { kind: "combo", combo: 12 } },
+  { id: "mended", name: "金継ぎ", unlock: { kind: "divine" } },
 ];
 
 const trails: Option[] = [
@@ -203,6 +271,14 @@ const trails: Option[] = [
     id: "fox",
     name: "狐火",
     unlock: { kind: "zone", zone: areaOf("firefly") },
+  },
+  { id: "rainbow", name: "虹", unlock: { kind: "level", level: 11 } },
+  { id: "ink", name: "墨", unlock: { kind: "zone", zone: areaOf("ginkgo") } },
+  { id: "bubble", name: "泡", unlock: { kind: "zone", zone: areaOf("sea") } },
+  {
+    id: "comet",
+    name: "流星",
+    unlock: { kind: "zone", zone: areaOf("stars") },
   },
 ];
 
@@ -344,6 +420,69 @@ export const combos: Combo[] = [
     id: "grilled",
     name: "焼きおにぎり",
     perks: { impact: 1, keep: 1 },
+  },
+  {
+    color: "coral",
+    form: "star",
+    id: "starfish",
+    name: "ヒトデ",
+    perks: { impact: 1, lift: 1 },
+  },
+  {
+    color: "crystal",
+    form: "drop",
+    id: "tear",
+    name: "涙",
+    perks: { focus: 2 },
+  },
+  {
+    color: "moon",
+    form: "crescent",
+    id: "lunar",
+    name: "三日月",
+    perks: { lift: 2 },
+  },
+  {
+    color: "obsidian",
+    form: "diamond",
+    id: "arrow",
+    name: "矢じり",
+    perks: { speed: 2 },
+  },
+  {
+    color: "ice",
+    form: "star",
+    id: "flake",
+    name: "雪の結晶",
+    perks: { keep: 2 },
+  },
+  {
+    color: "rose",
+    form: "fan",
+    id: "blossom",
+    name: "花扇",
+    perks: { focus: 1, lift: 1 },
+  },
+  {
+    color: "jade",
+    form: "shell",
+    id: "turtle",
+    name: "万年亀",
+    perks: { keep: 2 },
+  },
+  {
+    color: "amber",
+    form: "drop",
+    id: "sap",
+    name: "樹液",
+    perks: { keep: 1, lift: 1 },
+  },
+  {
+    color: "gold",
+    form: "fish",
+    id: "goldfish",
+    name: "金魚",
+    perks: { impact: 2 },
   },
 ];
 
