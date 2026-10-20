@@ -10,7 +10,7 @@ import {
   stoneFrom,
   traitsOf,
 } from "./cosmetics";
-import { postUrl, readResult, resultOf } from "./result";
+import { describe as storyOf, postUrl, readResult, resultOf } from "./result";
 import {
   pointsLeft,
   progressOf,
@@ -254,6 +254,30 @@ describe("stones", () => {
     assert.deepEqual(
       readResult(Object.fromEntries(shared.searchParams))?.stone,
       { color: "jade", form: "bean" }
+    );
+  });
+
+  test("a single skip reads as once in the sink and leaf lines", () => {
+    const base = {
+      distance: 12,
+      highlight: null,
+      quality: 50,
+      sky: "dusk",
+      skips: 1,
+      stone: null,
+      times: 0,
+    } as const;
+    assert.match(
+      storyOf({ ...base, ending: "sink" }, "en").line,
+      /Skipped a stone once/u
+    );
+    assert.match(
+      storyOf({ ...base, ending: "leaf" }, "en").line,
+      /Skipped once/u
+    );
+    assert.match(
+      storyOf({ ...base, ending: "leaf", skips: 3 }, "en").line,
+      /Skipped 3 times/u
     );
   });
 

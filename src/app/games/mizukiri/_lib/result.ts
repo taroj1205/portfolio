@@ -47,6 +47,8 @@ const tiers: [number, Text][] = [
 
 const count = (k: number, word: string) => `${k} ${word}${k === 1 ? "" : "s"}`;
 
+const times = (k: number) => (k === 1 ? "once" : `${k} times`);
+
 const notes: Record<Lang, Record<Boost, (times: number) => string>> = {
   en: {
     duck: (k) => `bounced off ${count(k, "duck")} 🦆`,
@@ -78,9 +80,9 @@ const lines: Record<
     divine: (skips, distance, note) =>
       `Perfect throw: ${count(skips, "skip")}, ${distance}${note}`,
     flew: (skips, distance, note) =>
-      `Skipped a stone ${skips === 1 ? "once" : `${skips} times`} for ${distance}${note}`,
+      `Skipped a stone ${times(skips)} for ${distance}${note}`,
     leaf: (skips, distance, note) => ({
-      line: `Skipped ${skips} times for ${distance} and came to rest on a maple leaf 🍁${note}`,
+      line: `Skipped ${times(skips)} for ${distance} and came to rest on a maple leaf 🍁${note}`,
       rarity: "Ultra rare",
       title: "Rested on a maple leaf",
     }),
