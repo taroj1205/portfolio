@@ -4,7 +4,7 @@ import type { Lang, Text } from "../../_lib/i18n";
 import type { Share } from "../../_lib/share";
 import { copy } from "./copy";
 import { progressOf } from "./journey";
-import { formatDistance, titleOf, toKmh } from "./result";
+import { formatDistance, journeyTag, titleOf, toKmh } from "./result";
 import type { Save } from "./save";
 import { zoneIndex, zones } from "./simulate";
 
@@ -142,10 +142,7 @@ export const careerShare = (
   const best = formatDistance(career.best).replace(" ", "");
   const total = formatDistance(career.total).replace(" ", "");
   const runs = career.runs.toLocaleString(copy[lang].locale);
-  const rank =
-    career.level === null
-      ? null
-      : `${copy[lang].workshop.mode.journey.name} Lv.${career.level}`;
+  const rank = career.level === null ? null : journeyTag(career.level, lang);
   return {
     text:
       lang === "en"

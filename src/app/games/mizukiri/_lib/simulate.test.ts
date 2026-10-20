@@ -19,6 +19,7 @@ import {
 } from "./journey";
 import {
   describe as storyOf,
+  journeyTag,
   queryOf,
   readResult,
   resultOf,
@@ -817,25 +818,38 @@ describe("results", () => {
     assert.equal(readResult({ ...older, t: "9.9.9.9.9" })?.tuning, null);
   });
 
-  test("a journey run is shared without a tuning and is not a challenge", () => {
+  test("a journey run is shared as one, with its level, and is not a challenge", () => {
     const flight = play(launch(createRiver(5), flat), null);
-    const result = resultOf(flight, journey);
+    const climbed = { ...journey, xp: 9000 };
+    const result = resultOf(flight, climbed);
     assert.equal(result.tuning, null);
     assert.equal(result.journey, true);
+    assert.equal(result.level, 9);
     const query = new URLSearchParams(queryOf(result));
     assert.equal(query.get("j"), "1");
+    assert.equal(query.get("lv"), "9");
     assert.equal(query.has("t"), false);
     const read = readResult(Object.fromEntries(query));
     assert.equal(read?.journey, true);
+    assert.equal(read?.level, 9);
     assert.equal(read?.tuning, null);
-    const posted = new URL(postUrl(shareOf(result, "https://x.y", "en")));
-    assert.doesNotMatch(posted.searchParams.get("text") ?? "", /Tuning/u);
-    assert.match(posted.searchParams.get("text") ?? "", /Mode: Journey/u);
+    const english = new URL(postUrl(shareOf(result, "https://x.y", "en")));
+    assert.match(
+      english.searchParams.get("text") ?? "",
+      /^\[Journey Lv\.9\] Skipped/u
+    );
+    assert.doesNotMatch(english.searchParams.get("text") ?? "", /Tuning/u);
     const ja = new URL(postUrl(shareOf(result, "https://x.y", "ja")));
-    assert.match(ja.searchParams.get("text") ?? "", /モード：育成/u);
+    assert.match(ja.searchParams.get("text") ?? "", /^【育成 Lv\.9】/u);
+    assert.equal(journeyTag(null, "en"), "Journey");
+    assert.equal(journeyTag(3, "ja"), "育成 Lv.3");
+    const { lv: _lv, ...withoutLevel } = Object.fromEntries(query);
+    assert.equal(readResult(withoutLevel)?.level, null);
     const duelResult = resultOf(flight, duel);
+    assert.equal(duelResult.level, null);
+    assert.equal(new URLSearchParams(queryOf(duelResult)).has("lv"), false);
     const duelText = new URL(postUrl(shareOf(duelResult, "https://x.y", "en")));
-    assert.doesNotMatch(duelText.searchParams.get("text") ?? "", /Mode:/u);
+    assert.doesNotMatch(duelText.searchParams.get("text") ?? "", /Journey/u);
   });
 
   test("a single skip reads as once in the sink and leaf lines", () => {
@@ -843,6 +857,7 @@ describe("results", () => {
       distance: 12,
       highlight: null,
       journey: false,
+      level: null,
       quality: 50,
       sky: "dusk",
       skips: 1,

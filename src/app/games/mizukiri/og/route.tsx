@@ -8,7 +8,12 @@ import { describeCareer, readCareer } from "../_lib/career";
 import type { Career } from "../_lib/career";
 import { copy } from "../_lib/copy";
 import { palettes } from "../_lib/render";
-import { describe, distanceParts, readResult } from "../_lib/result";
+import {
+  describe,
+  distanceParts,
+  journeyTag,
+  readResult,
+} from "../_lib/result";
 import type { Result } from "../_lib/result";
 
 const W = 1200;
@@ -54,8 +59,7 @@ const cardText = (result: Result | null, career: Career | null, lang: Lang) => {
       caption: story.title,
       detail: `${copy[lang].best} · ${story.reached}`,
       facts: story.facts,
-      mode:
-        career.level === null ? null : copy[lang].workshop.mode.journey.name,
+      mode: career.level === null ? null : journeyTag(career.level, lang),
       rarity: story.perfect,
       unit,
       value,
@@ -76,8 +80,7 @@ const cardText = (result: Result | null, career: Career | null, lang: Lang) => {
       story?.title ?? (en ? "How far will it skip?" : "どこまで跳ねる？"),
     detail,
     facts: [],
-    mode:
-      result?.journey === true ? copy[lang].workshop.mode.journey.name : null,
+    mode: result?.journey === true ? journeyTag(result.level, lang) : null,
     rarity: story?.rarity ?? null,
     unit,
     value,
@@ -292,23 +295,56 @@ export const GET = async (request: NextRequest) => {
               {rarity}
             </span>
           )}
-          {mode === null ? null : (
-            <span
-              style={{
-                border: "2px solid currentColor",
-                borderRadius: 999,
-                fontSize: 24,
-                padding: "4px 16px",
-              }}
-            >
-              {mode}
-            </span>
-          )}
         </div>
         <div style={{ fontSize: 28, marginTop: 12, opacity: 0.8 }}>
           {detail}
         </div>
       </div>
+      {mode === null ? null : (
+        <>
+          <div
+            style={{
+              border: "4px solid rgba(255, 210, 122, 0.9)",
+              borderRadius: 36,
+              display: "flex",
+              height: H - 32,
+              left: 16,
+              position: "absolute",
+              top: 16,
+              width: W - 32,
+            }}
+          />
+          <div
+            style={{
+              border: "1px solid rgba(255, 210, 122, 0.45)",
+              borderRadius: 28,
+              display: "flex",
+              height: H - 56,
+              left: 28,
+              position: "absolute",
+              top: 28,
+              width: W - 56,
+            }}
+          />
+          <div
+            style={{
+              backgroundImage:
+                "linear-gradient(180deg, #fff1b8, #ffd27a 50%, #d9962a)",
+              borderRadius: 999,
+              boxShadow: "0 6px 24px rgba(255, 190, 80, 0.4)",
+              color: "#2a1d05",
+              display: "flex",
+              fontSize: 32,
+              left: 80,
+              padding: "8px 28px",
+              position: "absolute",
+              top: 56,
+            }}
+          >
+            {mode}
+          </div>
+        </>
+      )}
       {facts.length > 0 ? (
         <div
           style={{
