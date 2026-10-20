@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Game } from "./_components/game";
 import { langFrom } from "./_lib/i18n";
 import type { Text } from "./_lib/i18n";
-import { describe, formatDistance, readResult } from "./_lib/result";
+import { describe, formatDistance, queryOf, readResult } from "./_lib/result";
 
 const DESCRIPTION: Text = {
   en: "Flick a stone across the river and see how far it skips.",
@@ -21,10 +21,29 @@ export const generateMetadata = async ({
   const title = shared
     ? `${formatDistance(shared.distance)} · ${describe(shared, lang).title} | ${NAME[lang]}`
     : NAME[lang];
+  const query = new URLSearchParams(shared ? queryOf(shared) : "");
+  query.set("l", lang);
+  const image = {
+    alt: title,
+    height: 630,
+    url: `/games/mizukiri/og?${query.toString()}`,
+    width: 1200,
+  };
   return {
     description: DESCRIPTION[lang],
-    openGraph: { description: DESCRIPTION[lang], title, type: "website" },
+    openGraph: {
+      description: DESCRIPTION[lang],
+      images: [image],
+      title,
+      type: "website",
+    },
     title,
+    twitter: {
+      card: "summary_large_image",
+      description: DESCRIPTION[lang],
+      images: [image],
+      title,
+    },
   };
 };
 
