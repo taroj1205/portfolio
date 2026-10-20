@@ -13,12 +13,47 @@ export type Axis = keyof Traits;
 
 export type Perks = Partial<Record<Axis, number>>;
 
-export const axes: { key: Axis; label: Text }[] = [
-  { key: "speed", label: { en: "Speed", ja: "速さ" } },
-  { key: "keep", label: { en: "Grit", ja: "粘り" } },
-  { key: "lift", label: { en: "Bounce", ja: "跳ね" } },
-  { key: "focus", label: { en: "Focus", ja: "集中" } },
-  { key: "impact", label: { en: "Impact", ja: "当たり" } },
+export const axes: { key: Axis; label: Text; note: Text }[] = [
+  {
+    key: "speed",
+    label: { en: "Speed", ja: "速さ" },
+    note: {
+      en: "How fast the stone leaves your hand. Faster stones travel farther.",
+      ja: "投げた石の初速。速いほど遠くまで飛ぶ",
+    },
+  },
+  {
+    key: "keep",
+    label: { en: "Grit", ja: "粘り" },
+    note: {
+      en: "How much speed the stone keeps on each skip, so it carries on longer.",
+      ja: "跳ねるたびに残る速さ。高いほど失速しにくく、長く跳ね続ける",
+    },
+  },
+  {
+    key: "lift",
+    label: { en: "Bounce", ja: "跳ね" },
+    note: {
+      en: "How high the stone hops on each skip. Higher hops stay in the air longer.",
+      ja: "跳ねるときの高さ。高いほど一回の滞空が長い",
+    },
+  },
+  {
+    key: "focus",
+    label: { en: "Focus", ja: "集中" },
+    note: {
+      en: "How much leeway you get to tap as the stone touches the water.",
+      ja: "着水の瞬間にタップできる猶予の広さ",
+    },
+  },
+  {
+    key: "impact",
+    label: { en: "Impact", ja: "当たり" },
+    note: {
+      en: "How much extra speed ducks and rocks give the stone.",
+      ja: "カモや岩に当たったときの加速の大きさ",
+    },
+  },
 ];
 
 export interface Option {

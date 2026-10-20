@@ -1,6 +1,9 @@
+import { Popover } from "@base-ui/react/popover";
 import * as stylex from "@stylexjs/stylex";
+import { useState } from "react";
 
 import { axes } from "../_lib/cosmetics";
+import type { Axis } from "../_lib/cosmetics";
 import type { statsOf } from "../_lib/simulate";
 import { useLang } from "./lang";
 import { font, ink } from "./theme.stylex";
@@ -10,6 +13,9 @@ type Stats = ReturnType<typeof statsOf>;
 const SIZE = 240;
 const CENTER = SIZE / 2;
 const RADIUS = 78;
+const HIT_WIDTH = 48;
+const HIT_HEIGHT = 30;
+const GOLD = "#ffd27a";
 
 const point = (index: number, value: number) => {
   const angle = -Math.PI / 2 + (index / axes.length) * Math.PI * 2;
@@ -27,7 +33,7 @@ const styles = stylex.create({
   },
   area: {
     fill: "rgb(255 210 122 / 0.32)",
-    stroke: "#ffd27a",
+    stroke: GOLD,
     strokeLinejoin: "round",
     strokeWidth: 2,
   },
@@ -56,11 +62,60 @@ const styles = stylex.create({
     maxWidth: "15rem",
     width: "100%",
   },
+  target: {
+    cursor: "pointer",
+    outline: { default: "none", ":focus-visible": `2px solid ${GOLD}` },
+  },
+  hit: {
+    fill: "transparent",
+  },
   label: {
     fill: ink.text,
     fontFamily: font.mincho,
     fontSize: 13,
     fontWeight: 700,
+    textDecorationLine: "underline",
+    textDecorationStyle: "dotted",
+    textDecorationColor: "rgb(255 255 255 / 0.45)",
+    textUnderlineOffset: 3,
+  },
+  labelOpen: {
+    fill: GOLD,
+  },
+  positioner: {
+    pointerEvents: "none",
+    zIndex: 10,
+  },
+  popup: {
+    backgroundColor: "rgb(13 16 26 / 0.96)",
+    borderColor: "rgb(255 255 255 / 0.12)",
+    borderRadius: 14,
+    borderStyle: "solid",
+    borderWidth: 1,
+    boxShadow: "0 18px 50px rgb(0 0 0 / 0.5)",
+    color: ink.soft,
+    maxWidth: "15rem",
+    outline: "none",
+    paddingBlock: "0.65rem",
+    paddingInline: "0.8rem",
+  },
+  popupTitle: {
+    color: ink.text,
+    fontFamily: font.mincho,
+    fontSize: "0.9rem",
+    fontWeight: 700,
+    margin: 0,
+  },
+  popupValue: {
+    color: GOLD,
+    fontVariantNumeric: "tabular-nums",
+    marginInlineStart: "0.5rem",
+  },
+  popupNote: {
+    fontSize: "0.8rem",
+    lineHeight: 1.5,
+    margin: 0,
+    marginTop: "0.2rem",
   },
 });
 
@@ -72,13 +127,10 @@ export const Radar = ({
   preview: Stats | null;
 }) => {
   const lang = useLang();
+  const [open, setOpen] = useState<Axis | null>(null);
   return (
     <figure {...stylex.props(styles.figure)}>
-      <svg
-        aria-hidden="true"
-        viewBox={`0 0 ${SIZE} ${SIZE}`}
-        {...stylex.props(styles.chart)}
-      >
+      <svg viewBox={`0 0 ${SIZE} ${SIZE}`} {...stylex.props(styles.chart)}>
         {[0.25, 0.5, 0.75, 1].map((ring) => (
           <polygon
             key={ring}
@@ -105,19 +157,60 @@ export const Radar = ({
         {preview === null ? null : (
           <polygon points={polygon(preview)} {...stylex.props(styles.ghost)} />
         )}
-        {axes.map(({ key, label }, index) => {
+        {axes.map(({ key, label, note }, index) => {
           const [x = 0, y = 0] = point(index, 1.32);
           return (
-            <text
-              dominantBaseline="middle"
+            <Popover.Root
               key={key}
-              textAnchor="middle"
-              x={x}
-              y={y}
-              {...stylex.props(styles.label)}
+              onOpenChange={(next) => {
+                setOpen(next ? key : null);
+              }}
+              open={open === key}
             >
-              {label[lang]}
-            </text>
+              <Popover.Trigger
+                nativeButton={false}
+                openOnHover
+                render={<g {...stylex.props(styles.target)} />}
+              >
+                <rect
+                  height={HIT_HEIGHT}
+                  width={HIT_WIDTH}
+                  x={x - HIT_WIDTH / 2}
+                  y={y - HIT_HEIGHT / 2}
+                  {...stylex.props(styles.hit)}
+                />
+                <text
+                  dominantBaseline="middle"
+                  textAnchor="middle"
+                  x={x}
+                  y={y}
+                  {...stylex.props(
+                    styles.label,
+                    open === key && styles.labelOpen
+                  )}
+                >
+                  {label[lang]}
+                </text>
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Positioner
+                  sideOffset={6}
+                  {...stylex.props(styles.positioner)}
+                >
+                  <Popover.Popup {...stylex.props(styles.popup)}>
+                    <Popover.Title {...stylex.props(styles.popupTitle)}>
+                      {label[lang]}
+                      <span {...stylex.props(styles.popupValue)}>
+                        {Math.round(stats[key] * 100)}
+                      </span>
+                    </Popover.Title>
+                    <Popover.Description {...stylex.props(styles.popupNote)}>
+                      {note[lang]}
+                    </Popover.Description>
+                  </Popover.Popup>
+                </Popover.Positioner>
+              </Popover.Portal>
+            </Popover.Root>
           );
         })}
       </svg>

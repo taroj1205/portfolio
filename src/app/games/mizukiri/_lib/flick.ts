@@ -21,7 +21,7 @@ interface Point {
 const ignored = (event: KeyboardEvent) =>
   !KEYS.has(event.code) ||
   (event.target instanceof Element &&
-    event.target.closest("a, button") !== null);
+    event.target.closest("a, button, [role=button]") !== null);
 
 export const listenFlick = (
   target: HTMLElement,
