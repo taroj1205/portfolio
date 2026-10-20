@@ -385,11 +385,15 @@ describe("throw quality", () => {
 const statsFor = (color: string, form: string) =>
   statsOf(bare, traitsOf({ color, form }));
 
-const keepOf = (color: string, form: string) => traitsOf({ color, form }).keep;
-
 const statsAt = (points: number) =>
   statsOf(
-    { focus: points, impact: points, lift: points, power: points, stone: 0 },
+    {
+      focus: points,
+      impact: points,
+      lift: points,
+      power: points,
+      stone: points,
+    },
     plain
   );
 
@@ -408,7 +412,7 @@ describe("areas and skills", () => {
   });
 
   test("every extra point keeps raising the stats instead of topping out", () => {
-    for (const key of ["focus", "impact", "lift", "speed"] as const) {
+    for (const key of ["focus", "impact", "keep", "lift", "speed"] as const) {
       assert.ok(statsAt(100)[key] > statsAt(50)[key], key);
       assert.ok(statsAt(400)[key] > statsAt(200)[key], key);
     }
@@ -433,11 +437,33 @@ describe("stones", () => {
     assert.ok(skipsOf("flat") > skipsOf("round"));
   });
 
-  test("a matching pair adds its combo bonus on top", () => {
+  test("a matching pair makes each point in its stat count for more", () => {
     assert.equal(comboOf({ color: "slate", form: "flat" })?.name.ja, "碁石");
-    const flatGain = keepOf("river", "flat") - keepOf("river", "oval");
-    const goGain = keepOf("slate", "flat") - keepOf("slate", "oval");
-    assert.ok(goGain > flatGain);
+    const go = traitsOf({ color: "slate", form: "flat" });
+    assert.equal(go.boost.stone, 1.3);
+    assert.equal(go.boost.power, 1);
+    assert.equal(traitsOf({ color: "slate", form: "oval" }).boost.stone, 1);
+    const trained = { ...bare, stone: 20 };
+    assert.ok(
+      statsOf(trained, go).keep >
+        statsOf(trained, { ...go, boost: plain.boost }).keep
+    );
+    assert.equal(
+      statsOf(bare, go).keep,
+      statsOf(bare, { ...go, boost: plain.boost }).keep
+    );
+    const river = createRiver(3);
+    const trainedGo = launch(river, flat, trained, go);
+    const plainGo = launch(river, flat, trained, { ...go, boost: plain.boost });
+    assert.ok(trainedGo.keep > plainGo.keep);
+    const jewel = traitsOf({ color: "jade", form: "bean" });
+    const focused = { ...bare, focus: 20 };
+    assert.ok(
+      windowFor(launch(river, flat, focused, jewel)).perfect >
+        windowFor(
+          launch(river, flat, focused, { ...jewel, boost: plain.boost })
+        ).perfect
+    );
     assert.equal(noteOf({ keep: 2, lift: -1 }, "ja"), "粘り↑↑ 跳ね↓");
     assert.equal(noteOf({ keep: 2, lift: -1 }, "en"), "Grit↑↑ Bounce↓");
     assert.equal(noteOf({}, "ja"), "クセなし");
