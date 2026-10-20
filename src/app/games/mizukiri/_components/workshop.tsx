@@ -376,6 +376,7 @@ interface WorkshopProps {
   onClose: () => void;
   onTune: (key: keyof Gear, step: 1 | -1) => void;
   onWear: (part: Part, id: string) => void;
+  onWearCombo: (id: string) => void;
   onRespec: () => void;
   onSettings: (next: Settings) => void;
 }
@@ -387,6 +388,7 @@ export const Workshop = ({
   onClose,
   onTune,
   onWear,
+  onWearCombo,
   onRespec,
   onSettings,
 }: WorkshopProps) => {
@@ -461,7 +463,11 @@ export const Workshop = ({
                   value="stone"
                   {...stylex.props(styles.panel, styles.pinned)}
                 >
-                  <StoneTab onWear={onWear} save={save} />
+                  <StoneTab
+                    onWear={onWear}
+                    onWearCombo={onWearCombo}
+                    save={save}
+                  />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="skill" {...stylex.props(styles.panel)}>

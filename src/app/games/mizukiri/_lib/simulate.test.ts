@@ -11,7 +11,15 @@ import {
   traitsOf,
 } from "./cosmetics";
 import { postUrl, readResult, resultOf } from "./result";
-import { pointsLeft, progressOf, seen, settle, tune, wear } from "./save";
+import {
+  pointsLeft,
+  progressOf,
+  seen,
+  settle,
+  tune,
+  wear,
+  wearCombo,
+} from "./save";
 import type { Save } from "./save";
 import {
   areaOf,
@@ -301,6 +309,22 @@ describe("save", () => {
       xp: 1e9,
     };
     assert.deepEqual(wear(black, "form", "flat")?.found, ["go"]);
+  });
+
+  test("a found combo is worn in one step without discovering others", () => {
+    const found = {
+      ...empty,
+      best: 1e6,
+      divine: true,
+      found: ["go"],
+      xp: 1e9,
+    };
+    const worn = wearCombo(found, "go");
+    assert.equal(worn?.look.color, "slate");
+    assert.equal(worn?.look.form, "flat");
+    assert.deepEqual(worn?.found, ["go"]);
+    assert.equal(wearCombo(worn ?? found, "go"), null);
+    assert.equal(wearCombo(found, "goldfish"), null);
   });
 
   test("a look can only be worn once it is unlocked", () => {

@@ -229,6 +229,7 @@ export const Game = ({
           onSettings={(next) => session.current?.settings(next)}
           onTune={(key, step) => session.current?.tune(key, step)}
           onWear={(part, id) => session.current?.wear(part, id)}
+          onWearCombo={(id) => session.current?.wearCombo(id)}
           open={workshop}
           opener={opener}
           save={save}

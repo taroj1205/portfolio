@@ -7,7 +7,16 @@ import type { Text } from "./i18n";
 import { createRenderer } from "./render";
 import { resultOf } from "./result";
 import type { Result } from "./result";
-import { loadSave, respec, seen, settle, storeSave, tune, wear } from "./save";
+import {
+  loadSave,
+  respec,
+  seen,
+  settle,
+  storeSave,
+  tune,
+  wear,
+  wearCombo,
+} from "./save";
 import type { Save, Settings } from "./save";
 import {
   createRiver,
@@ -248,6 +257,12 @@ export const startSession = (
     },
     wear: (part: Part, id: string) => {
       const next = wear(save, part, id);
+      if (next) {
+        keep(next);
+      }
+    },
+    wearCombo: (id: string) => {
+      const next = wearCombo(save, id);
       if (next) {
         keep(next);
       }

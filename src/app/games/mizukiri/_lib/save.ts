@@ -1,6 +1,16 @@
 import { z } from "zod";
 
-import { comboOf, firstLook, isOpen, keyOf, opened, parts } from "./cosmetics";
+import {
+  colorOf,
+  comboOf,
+  combos,
+  firstLook,
+  formOf,
+  isOpen,
+  keyOf,
+  opened,
+  parts,
+} from "./cosmetics";
 import type { Item, Look, Part, Progress } from "./cosmetics";
 import { langs } from "./i18n";
 import type { Text } from "./i18n";
@@ -175,6 +185,24 @@ export const wear = (save: Save, part: Part, id: string): Save | null => {
       ? save.found
       : [...save.found, combo.id];
   return { ...save, found, look };
+};
+
+export const wearCombo = (save: Save, id: string): Save | null => {
+  const entry = combos.find((combo) => combo.id === id);
+  if (!entry || !save.found.includes(id) || comboOf(save.look)?.id === id) {
+    return null;
+  }
+  const unlocked = unlocksOf(save);
+  if (
+    !isOpen(colorOf(entry.color).unlock, unlocked) ||
+    !isOpen(formOf(entry.form).unlock, unlocked)
+  ) {
+    return null;
+  }
+  return {
+    ...save,
+    look: { ...save.look, color: entry.color, form: entry.form },
+  };
 };
 
 export const settle = (save: Save, flight: Flight) => {

@@ -183,11 +183,20 @@ const styles = stylex.create({
     gap: "0.15rem",
     paddingBlock: "0.55rem",
     paddingInline: "0.6rem",
+    color: ink.text,
+    fontFamily: "inherit",
+    height: "100%",
+    textAlign: "start",
+    transitionDuration: "160ms",
+    transitionProperty: "transform, border-color, background-color",
+    width: "100%",
   },
   comboKnown: {
     backgroundColor: "rgb(255 210 122 / 0.06)",
     borderColor: "rgb(255 210 122 / 0.35)",
     borderStyle: "solid",
+    cursor: "pointer",
+    transform: { default: null, ":active": "scale(0.96)" },
   },
   name: {
     fontWeight: 700,
@@ -333,7 +342,13 @@ const Tiles = ({ part, options, save, onPeek, onWear }: TilesProps) => {
   );
 };
 
-const Combos = ({ save }: { save: Save }) => {
+const Combos = ({
+  save,
+  onWearCombo,
+}: {
+  save: Save;
+  onWearCombo: (id: string) => void;
+}) => {
   const lang = useLang();
   const copy = useCopy();
   const worn = comboOf(save.look);
@@ -348,27 +363,35 @@ const Combos = ({ save }: { save: Save }) => {
       <ul {...stylex.props(styles.combos)}>
         {combos.map((entry) => {
           const known = save.found.includes(entry.id);
+          const active = worn?.id === entry.id;
           return (
-            <li
-              key={entry.id}
-              {...stylex.props(
-                styles.combo,
-                known && styles.comboKnown,
-                worn?.id === entry.id && styles.worn
-              )}
-            >
-              <span {...stylex.props(styles.name)}>
-                {known ? entry.name[lang] : "？？？"}
-              </span>
-              <span {...stylex.props(styles.note)}>
-                {colorOf(entry.color).name[lang]} ×{" "}
-                {known ? formOf(entry.form).name[lang] : "？？？"}
-              </span>
-              {known ? (
-                <span {...stylex.props(styles.tileNote)}>
-                  {noteOf(entry.perks, lang)}
+            <li key={entry.id}>
+              <button
+                aria-pressed={active}
+                disabled={!known}
+                onClick={() => {
+                  onWearCombo(entry.id);
+                }}
+                type="button"
+                {...stylex.props(
+                  styles.combo,
+                  known && styles.comboKnown,
+                  active && styles.worn
+                )}
+              >
+                <span {...stylex.props(styles.name)}>
+                  {known ? entry.name[lang] : "？？？"}
                 </span>
-              ) : null}
+                <span {...stylex.props(styles.note)}>
+                  {colorOf(entry.color).name[lang]} ×{" "}
+                  {known ? formOf(entry.form).name[lang] : "？？？"}
+                </span>
+                {known ? (
+                  <span {...stylex.props(styles.tileNote)}>
+                    {noteOf(entry.perks, lang)}
+                  </span>
+                ) : null}
+              </button>
             </li>
           );
         })}
@@ -385,9 +408,11 @@ const SECTIONS: [string, Text][] = [
 export const StoneTab = ({
   save,
   onWear,
+  onWearCombo,
 }: {
   save: Save;
   onWear: (part: Part, id: string) => void;
+  onWearCombo: (id: string) => void;
 }) => {
   const lang = useLang();
   const copy = useCopy();
@@ -469,7 +494,7 @@ export const StoneTab = ({
           </Tabs.Panel>
         ))}
         <Tabs.Panel value="combo" {...stylex.props(styles.scroller)}>
-          <Combos save={save} />
+          <Combos onWearCombo={onWearCombo} save={save} />
         </Tabs.Panel>
       </Tabs.Root>
     </>
