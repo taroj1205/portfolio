@@ -1,6 +1,6 @@
 import type { Lang, Text } from "./i18n";
 import { areaOf, plain, zones } from "./simulate";
-import type { Traits } from "./simulate";
+import type { Gear, Traits } from "./simulate";
 
 export type Unlock =
   | { kind: "start" }
@@ -13,8 +13,14 @@ export type Axis = keyof Traits;
 
 export type Perks = Partial<Record<Axis, number>>;
 
-export const axes: { key: Axis; label: Text; note: Text }[] = [
+export const axes: {
+  key: Axis;
+  gear: keyof Gear;
+  label: Text;
+  note: Text;
+}[] = [
   {
+    gear: "power",
     key: "speed",
     label: { en: "Speed", ja: "速さ" },
     note: {
@@ -23,6 +29,7 @@ export const axes: { key: Axis; label: Text; note: Text }[] = [
     },
   },
   {
+    gear: "stone",
     key: "keep",
     label: { en: "Grit", ja: "粘り" },
     note: {
@@ -31,6 +38,7 @@ export const axes: { key: Axis; label: Text; note: Text }[] = [
     },
   },
   {
+    gear: "lift",
     key: "lift",
     label: { en: "Bounce", ja: "跳ね" },
     note: {
@@ -39,6 +47,7 @@ export const axes: { key: Axis; label: Text; note: Text }[] = [
     },
   },
   {
+    gear: "focus",
     key: "focus",
     label: { en: "Focus", ja: "集中" },
     note: {
@@ -47,6 +56,7 @@ export const axes: { key: Axis; label: Text; note: Text }[] = [
     },
   },
   {
+    gear: "impact",
     key: "impact",
     label: { en: "Impact", ja: "当たり" },
     note: {
