@@ -17,6 +17,12 @@ export interface Result {
   stone: Stone | null;
 }
 
+export interface Share {
+  text: string;
+  url: string;
+  image: string;
+}
+
 interface Story {
   title: string;
   rarity: string | null;
@@ -208,7 +214,7 @@ export const queryOf = (result: Result) => {
   return query.toString();
 };
 
-export const shareOf = (result: Result, origin: string, lang: Lang) => {
+export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
   const stone =
@@ -223,11 +229,10 @@ export const shareOf = (result: Result, origin: string, lang: Lang) => {
     ]
       .filter((line) => line !== null)
       .join("\n"),
+    image: `${origin}/games/mizukiri/og?${query.toString()}`,
     url: `${origin}/games/mizukiri?${query.toString()}`,
   };
 };
 
-export const postUrl = (result: Result, origin: string, lang: Lang) =>
-  `https://x.com/intent/tweet?${new URLSearchParams(
-    shareOf(result, origin, lang)
-  ).toString()}`;
+export const postUrl = (share: Share) =>
+  `https://x.com/intent/tweet?${new URLSearchParams({ text: share.text, url: share.url }).toString()}`;
