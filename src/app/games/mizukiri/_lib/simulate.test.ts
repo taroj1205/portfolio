@@ -24,6 +24,7 @@ import type { Save } from "./save";
 import {
   areaOf,
   createRiver,
+  isLate,
   land,
   launch,
   nextContact,
@@ -33,6 +34,7 @@ import {
   shoreAt,
   statsOf,
   stoneAt,
+  windowFor,
   zones,
 } from "./simulate";
 import type { Flight, Gear } from "./simulate";
@@ -77,6 +79,19 @@ describe("flight", () => {
     land(flight, contact - 0.5);
     assert.equal(flight.splashes.at(-1)?.grade, "early");
     assert.equal(flight.combo, 0);
+  });
+
+  test("a tap just after a touch is late for it, not early for the next", () => {
+    const flight = launch(createRiver(3), flat, bare);
+    const landedAt = nextContact(flight);
+    assert.ok(landedAt !== null);
+    land(flight, null);
+    const next = nextContact(flight);
+    assert.ok(next !== null);
+    const grace = windowFor(flight).good;
+    assert.equal(isLate(flight, landedAt, landedAt + grace / 2), true);
+    assert.equal(isLate(flight, landedAt, landedAt + grace * 2), false);
+    assert.equal(isLate(flight, landedAt, next - 0.01), false);
   });
 
   test("a steep throw sinks sooner than a flat one", () => {
