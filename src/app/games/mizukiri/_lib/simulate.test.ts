@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import { describe, test } from "vite-plus/test";
 
+import { careerOf, careerShare, readCareer } from "./career";
 import {
   comboOf,
   firstLook,
@@ -360,6 +361,7 @@ describe("stones", () => {
 
 describe("save", () => {
   const empty: Save = {
+    airtime: 0,
     best: 0,
     combo: 0,
     divine: false,
@@ -368,6 +370,7 @@ describe("save", () => {
     look: firstLook,
     runs: 0,
     settings: { lang: null, muted: false },
+    total: 0,
     unseen: [],
     xp: 0,
   };
@@ -379,6 +382,59 @@ describe("save", () => {
     assert.equal(settled.record, true);
     assert.equal(settled.save.best, flight.distance);
     assert.equal(settled.save.runs, 1);
+    const again = settle(settled.save, flight);
+    assert.equal(again.save.total, flight.distance * 2);
+    assert.ok(flight.duration > 0);
+    assert.equal(again.save.airtime, flight.duration * 2);
+  });
+
+  test("a shared record survives the link round trip", () => {
+    const career = {
+      ...careerOf({ ...empty, best: 1234.5, combo: 7, runs: 42, xp: 9000 }),
+      airtime: 3725.4,
+      perfect: true,
+      total: 56_789,
+    };
+    const english = careerShare(career, "https://x.y", "en");
+    assert.match(
+      english.text,
+      /best 1\.23km, 56\.79km across 42 throws and 1h 2m in flight/u
+    );
+    assert.match(english.text, /^My Skip to the Milky Way record:/u);
+    assert.match(
+      english.text,
+      /reached Cherry lane \(Lv\.9\)\n#天の川水切り #SkipToTheMilkyWay$/u
+    );
+    const url = new URL(english.url);
+    assert.equal(url.searchParams.get("l"), "en");
+    const image = new URL(english.image);
+    assert.equal(image.pathname, "/games/mizukiri/og");
+    assert.equal(image.search, url.search);
+    assert.deepEqual(readCareer(Object.fromEntries(url.searchParams)), career);
+    assert.match(
+      careerShare(career, "https://x.y", "ja").text,
+      /^天の川水切りの戦績：自己ベスト1\.23km、42投・飛行時間1時間2分/u
+    );
+    assert.match(
+      careerShare({ ...career, airtime: 125.9 }, "https://x.y", "en").text,
+      /and 2m 6s in flight/u
+    );
+    assert.match(
+      careerShare({ ...career, airtime: 0 }, "https://x.y", "ja").text,
+      /飛行時間0秒/u
+    );
+    assert.equal(
+      readCareer({
+        air: "1",
+        best: "10",
+        combo: "0",
+        lv: "0",
+        runs: "0",
+        total: "10",
+      }),
+      null
+    );
+    assert.equal(readResult(Object.fromEntries(url.searchParams)), null);
   });
 
   test("skill points come from levels and can be moved freely", () => {

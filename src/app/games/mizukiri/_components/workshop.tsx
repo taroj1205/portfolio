@@ -15,6 +15,7 @@ import { statsOf } from "../_lib/simulate";
 import type { Gear } from "../_lib/simulate";
 import { useCopy, useLang } from "./lang";
 import { Radar } from "./radar";
+import { RecordTab } from "./record-tab";
 import { StoneTab } from "./stone-tab";
 import { font, ink } from "./theme.stylex";
 
@@ -110,7 +111,7 @@ const styles = stylex.create({
     backgroundColor: "rgb(255 255 255 / 0.06)",
     borderRadius: 999,
     display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
+    gridTemplateColumns: "repeat(4, 1fr)",
     padding: 4,
     position: "relative",
   },
@@ -359,7 +360,7 @@ const styles = stylex.create({
   },
 });
 
-const TABS = ["stone", "skill", "setting"] as const;
+const TABS = ["stone", "skill", "record", "setting"] as const;
 
 const LANGUAGES: [Lang, string][] = [
   ["ja", "日本語"],
@@ -529,6 +530,10 @@ export const Workshop = ({
                   >
                     {copy.workshop.respec}
                   </button>
+                </Tabs.Panel>
+
+                <Tabs.Panel value="record" {...stylex.props(styles.panel)}>
+                  <RecordTab save={save} />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="setting" {...stylex.props(styles.panel)}>

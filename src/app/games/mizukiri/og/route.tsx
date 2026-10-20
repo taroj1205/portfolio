@@ -1,6 +1,8 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
+import { describeCareer, readCareer } from "../_lib/career";
+import type { Career } from "../_lib/career";
 import { copy } from "../_lib/copy";
 import { langFrom } from "../_lib/i18n";
 import type { Lang } from "../_lib/i18n";
@@ -46,15 +48,31 @@ const ridge = (base: number, amp: number, fuji: boolean) => {
   return points.join(" ");
 };
 
-const headlineSize = (result: Result | null, lang: Lang) => {
+const headlineSize = (
+  result: Result | null,
+  career: Career | null,
+  lang: Lang
+) => {
   if (result) {
     return 190;
   }
-  return lang === "en" ? 92 : 150;
+  return career === null && lang === "en" ? 92 : 150;
 };
 
-const cardText = (result: Result | null, lang: Lang) => {
+const cardText = (result: Result | null, career: Career | null, lang: Lang) => {
   const en = lang === "en";
+  if (career) {
+    const story = describeCareer(career, lang);
+    const [value, unit] = distanceParts(career.best);
+    return {
+      caption: story.title,
+      detail: `${copy[lang].best} · ${story.reached}`,
+      facts: story.facts,
+      rarity: story.perfect,
+      unit,
+      value,
+    };
+  }
   const story = result ? describe(result, lang) : null;
   const [value, unit] = result
     ? distanceParts(result.distance)
@@ -69,6 +87,7 @@ const cardText = (result: Result | null, lang: Lang) => {
     caption:
       story?.title ?? (en ? "How far will it skip?" : "どこまで跳ねる？"),
     detail,
+    facts: [],
     rarity: story?.rarity ?? null,
     unit,
     value,
@@ -76,20 +95,29 @@ const cardText = (result: Result | null, lang: Lang) => {
 };
 
 export const GET = async (request: NextRequest) => {
-  const result = readResult(Object.fromEntries(request.nextUrl.searchParams));
+  const params = Object.fromEntries(request.nextUrl.searchParams);
+  const result = readResult(params);
+  const career = result === null ? readCareer(params) : null;
   const palette = palettes[result?.sky ?? "dusk"];
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
-  const { caption, detail, rarity, unit, value } = cardText(result, lang);
-  const font = await loadMincho(
-    `${value}${unit}${caption}${detail}${rarity ?? ""}天の川水切り石`
+  const { caption, detail, facts, rarity, unit, value } = cardText(
+    result,
+    career,
+    lang
   );
+  const font = await loadMincho(
+    `${value}${unit}${caption}${detail}${rarity ?? ""}${facts
+      .map((fact) => `${fact.label}${fact.value}`)
+      .join("")}天の川水切り石`
+  );
+  const branded = result !== null || career !== null;
   const sunX = W * Math.max(palette.sunX, 0.62);
   const sunY = HORIZON - Math.max(HORIZON * palette.sunY, 64);
   const mist = `${palette.mist}${Math.round(palette.mistAlpha * 255)
     .toString(16)
     .padStart(2, "0")}`;
   const rings = Array.from(
-    { length: Math.min(result?.skips ?? 9, 14) },
+    { length: career === null ? Math.min(result?.skips ?? 9, 14) : 0 },
     (_, i) => {
       const d = 1.6 + i * 1.1;
       return { r: 260 / d, x: 820 + i * 9, y: HORIZON + 300 / d };
@@ -209,7 +237,7 @@ export const GET = async (request: NextRequest) => {
           textShadow: palette.light ? "none" : "0 4px 30px rgba(0,0,0,0.35)",
         }}
       >
-        {result ? (
+        {branded ? (
           <div
             style={{
               alignItems: "center",
@@ -241,13 +269,13 @@ export const GET = async (request: NextRequest) => {
           style={{
             alignItems: "baseline",
             display: "flex",
-            fontSize: headlineSize(result, lang),
+            fontSize: headlineSize(result, career, lang),
             lineHeight: 1,
             marginTop: 8,
           }}
         >
           {value}
-          {result ? (
+          {branded ? (
             <span style={{ fontSize: 64, marginLeft: 12 }}>{unit}</span>
           ) : null}
         </div>
@@ -279,6 +307,42 @@ export const GET = async (request: NextRequest) => {
           {detail}
         </div>
       </div>
+      {facts.length > 0 ? (
+        <div
+          style={{
+            backgroundColor: "rgba(8, 12, 24, 0.72)",
+            border: "1px solid rgba(255, 255, 255, 0.14)",
+            borderRadius: 28,
+            bottom: 64,
+            display: "flex",
+            flexWrap: "wrap",
+            padding: "26px 32px",
+            position: "absolute",
+            right: 72,
+            rowGap: 22,
+            width: 460,
+          }}
+        >
+          {facts.map((fact) => (
+            <div
+              key={fact.label}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 4,
+                width: "50%",
+              }}
+            >
+              <span style={{ fontSize: 20, opacity: 0.8 }}>{fact.label}</span>
+              <span
+                style={{ color: "#ffd27a", fontSize: 40, whiteSpace: "nowrap" }}
+              >
+                {fact.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>,
     {
       fonts: [

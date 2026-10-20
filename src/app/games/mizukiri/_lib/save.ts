@@ -19,40 +19,45 @@ import type { Flight, Gear } from "./simulate";
 const KEY = "mizukiri.v3";
 const level = z.number().int().min(0).max(9999);
 
-const schema = z.object({
-  best: z.number().min(0),
-  combo: z.number().int().min(0),
-  divine: z.boolean(),
-  found: z.array(z.string()).default([]),
-  gear: z.object({
-    focus: level,
-    impact: level.default(0),
-    lift: level.default(0),
-    power: level,
-    stone: level,
-  }),
-  look: z.object({
-    color: z.string(),
-    form: z.string(),
-    pattern: z.string(),
-    trail: z.string(),
-  }),
-  runs: z.number().int().min(0),
-  settings: z
-    .object({
-      lang: z.enum(langs).nullable().default(null),
-      muted: z.boolean(),
-    })
-    .default({ lang: null, muted: false }),
-  unseen: z.array(z.string()).default([]),
-  xp: z.number().min(0),
-});
+const schema = z
+  .object({
+    airtime: z.number().min(0).default(0),
+    best: z.number().min(0),
+    combo: z.number().int().min(0),
+    divine: z.boolean(),
+    found: z.array(z.string()).default([]),
+    gear: z.object({
+      focus: level,
+      impact: level.default(0),
+      lift: level.default(0),
+      power: level,
+      stone: level,
+    }),
+    look: z.object({
+      color: z.string(),
+      form: z.string(),
+      pattern: z.string(),
+      trail: z.string(),
+    }),
+    runs: z.number().int().min(0),
+    settings: z
+      .object({
+        lang: z.enum(langs).nullable().default(null),
+        muted: z.boolean(),
+      })
+      .default({ lang: null, muted: false }),
+    total: z.number().min(0).default(0),
+    unseen: z.array(z.string()).default([]),
+    xp: z.number().min(0),
+  })
+  .transform((save) => ({ ...save, total: Math.max(save.total, save.best) }));
 
 export type Settings = Save["settings"];
 
 export type Save = z.infer<typeof schema>;
 
 const fresh: Save = {
+  airtime: 0,
   best: 0,
   combo: 0,
   divine: false,
@@ -61,6 +66,7 @@ const fresh: Save = {
   look: firstLook,
   runs: 0,
   settings: { lang: null, muted: false },
+  total: 0,
   unseen: [],
   xp: 0,
 };
@@ -180,10 +186,12 @@ export const settle = (save: Save, flight: Flight) => {
   );
   const next: Save = {
     ...save,
+    airtime: save.airtime + flight.duration,
     best: Math.max(save.best, flight.distance),
     combo: Math.max(save.combo, flight.bestCombo),
     divine: save.divine || flight.quality === 100,
     runs: save.runs + 1,
+    total: save.total + flight.distance,
     xp: save.xp + gained,
   };
   const before = new Set(opened(unlocksOf(save)).map(keyOf));

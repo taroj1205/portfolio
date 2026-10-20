@@ -51,6 +51,12 @@ const tiers: [number, Text][] = [
   [0, { en: "Skip, skip", ja: "ちょん、ちょん" }],
 ];
 
+export const titleOf = (meters: number, lang: Lang) =>
+  (tiers.find(([least]) => meters >= least)?.[1] ?? {
+    en: "Skip, skip",
+    ja: "ちょん、ちょん",
+  })[lang];
+
 const count = (k: number, word: string) => `${k} ${word}${k === 1 ? "" : "s"}`;
 
 const times = (k: number) => (k === 1 ? "once" : `${k} times`);
@@ -113,10 +119,7 @@ const lines: Record<
 export const describe = (result: Result, lang: Lang): Story => {
   const copy = lines[lang];
   const distance = formatDistance(result.distance).replace(" ", "");
-  const title = (tiers.find(([least]) => result.distance >= least)?.[1] ?? {
-    en: "Skip, skip",
-    ja: "ちょん、ちょん",
-  })[lang];
+  const title = titleOf(result.distance, lang);
   if (result.ending === "plop") {
     return { ...copy.plop, rarity: null };
   }
