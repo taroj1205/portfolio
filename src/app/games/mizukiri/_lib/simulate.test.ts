@@ -10,7 +10,13 @@ import {
   stoneFrom,
   traitsOf,
 } from "./cosmetics";
-import { describe as storyOf, postUrl, readResult, resultOf } from "./result";
+import {
+  describe as storyOf,
+  postUrl,
+  readResult,
+  resultOf,
+  shareOf,
+} from "./result";
 import {
   pointsLeft,
   progressOf,
@@ -298,10 +304,10 @@ describe("stones", () => {
   test("a posted run carries its stone into the shared link", () => {
     const flight = play(launch(createRiver(5), flat, bare), null);
     const result = resultOf(flight, { color: "jade", form: "bean" });
-    const posted = new URL(postUrl(result, "https://x.y", "ja"));
+    const posted = new URL(postUrl(shareOf(result, "https://x.y", "ja")));
     assert.match(posted.searchParams.get("text") ?? "", /勾玉/u);
     assert.match(posted.searchParams.get("text") ?? "", /#天の川水切り/u);
-    const english = new URL(postUrl(result, "https://x.y", "en"));
+    const english = new URL(postUrl(shareOf(result, "https://x.y", "en")));
     assert.match(
       english.searchParams.get("text") ?? "",
       /Magatama \(Jade Bean\)/u
@@ -312,6 +318,9 @@ describe("stones", () => {
       "en"
     );
     const shared = new URL(posted.searchParams.get("url") ?? "");
+    const image = new URL(shareOf(result, "https://x.y", "ja").image);
+    assert.equal(image.pathname, "/games/mizukiri/og");
+    assert.equal(image.search, shared.search);
     assert.deepEqual(
       readResult(Object.fromEntries(shared.searchParams))?.stone,
       { color: "jade", form: "bean" }

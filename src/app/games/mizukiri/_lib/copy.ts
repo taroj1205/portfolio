@@ -38,6 +38,9 @@ export interface Copy {
     worn: string;
     again: string;
     share: string;
+    shareImage: string;
+    saveImage: string;
+    shareLink: string;
     postX: string;
     copyLink: string;
     copied: string;
@@ -115,7 +118,10 @@ export const copy: Record<Lang, Copy> = {
       copied: "Copied",
       copyLink: "Copy link",
       postX: "Post on X",
+      saveImage: "Save image",
       share: "Share",
+      shareImage: "Share image",
+      shareLink: "Share link",
       record: "New best",
       stats: (skips, combo, quality) =>
         `${skips} skips · best combo ×${combo} · throw ${quality}%`,
@@ -203,7 +209,10 @@ export const copy: Record<Lang, Copy> = {
       copied: "コピーした",
       copyLink: "リンクをコピー",
       postX: "Xに投稿",
+      saveImage: "画像を保存",
       share: "シェア",
+      shareImage: "画像でシェア",
+      shareLink: "リンクでシェア",
       record: "自己ベスト更新",
       stats: (skips, combo, quality) =>
         `${skips}回跳ねた · 最大コンボ ×${combo} · 投げの質 ${quality}%`,

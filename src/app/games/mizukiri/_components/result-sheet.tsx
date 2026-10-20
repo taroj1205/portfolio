@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { keyOf, noteOf, parts } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
-import { describe, distanceParts } from "../_lib/result";
+import { describe, distanceParts, shareOf } from "../_lib/result";
 import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import type { Landing } from "../_lib/session";
@@ -412,7 +412,7 @@ export const ResultSheet = ({
       </button>
       <div {...stylex.props(styles.actions)}>
         <ShareButton
-          result={result}
+          share={shareOf(result, window.location.origin, lang)}
           {...stylex.props(styles.action, styles.post)}
         />
         <button

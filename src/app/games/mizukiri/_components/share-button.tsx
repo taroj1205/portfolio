@@ -1,10 +1,10 @@
 import { Popover } from "@base-ui/react/popover";
 import * as stylex from "@stylexjs/stylex";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
-import { postUrl, shareOf } from "../_lib/result";
-import type { Result } from "../_lib/result";
-import { useCopy, useLang } from "./lang";
+import { postUrl } from "../_lib/result";
+import type { Share } from "../_lib/result";
+import { useCopy } from "./lang";
 import { ink } from "./theme.stylex";
 
 const styles = stylex.create({
@@ -78,6 +78,34 @@ const LinkMark = () => (
   </svg>
 );
 
+const ImageMark = () => (
+  <svg aria-hidden="true" height="16" viewBox="0 0 24 24" width="16">
+    <path
+      d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm-1 12 4.5-4.5 4 4L15 13l5 5M15.5 9.5h.01"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
+const SaveMark = () => (
+  <svg aria-hidden="true" height="16" viewBox="0 0 24 24" width="16">
+    <path
+      d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 20h14"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.8"
+    />
+  </svg>
+);
+
+const FILE_NAME = "mizukiri.png";
+
 const shareNatively = async (data: ShareData) => {
   try {
     await navigator.share(data);
@@ -96,75 +124,129 @@ const copyText = async (text: string) => {
   }
 };
 
+const fetchImage = async (url: string) => {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      return null;
+    }
+    return new File([await response.blob()], FILE_NAME, { type: "image/png" });
+  } catch {
+    return null;
+  }
+};
+
+const canShareFiles = () =>
+  "canShare" in navigator &&
+  navigator.canShare({
+    files: [new File([], FILE_NAME, { type: "image/png" })],
+  });
+
 interface ShareButtonProps {
-  result: Result;
+  share: Share;
   className?: string;
   style?: Readonly<Record<string, string | number>>;
 }
 
-export const ShareButton = ({ result, className, style }: ShareButtonProps) => {
-  const lang = useLang();
+export const ShareButton = ({ share, className, style }: ShareButtonProps) => {
   const copy = useCopy();
   const [copied, setCopied] = useState(false);
-  const share = shareOf(result, window.location.origin, lang);
+  const image = useRef<{ url: string; file: Promise<File | null> } | null>(
+    null
+  );
+  const native = "share" in navigator;
+  const files = native && canShareFiles();
+  const link = { text: share.text, url: share.url };
+  const imageFile = async () => {
+    if (image.current?.url !== share.image) {
+      image.current = { file: fetchImage(share.image), url: share.image };
+    }
+    return await image.current.file;
+  };
+  const shareImage = async () => {
+    const file = await imageFile();
+    await shareNatively(
+      file === null
+        ? link
+        : { files: [file], text: `${share.text}\n${share.url}` }
+    );
+  };
   const copyLink = async () => {
     setCopied(await copyText(share.url));
   };
-  const label = (
-    <>
-      <ShareMark />
-      {copy.result.share}
-    </>
-  );
-
-  if ("share" in navigator) {
-    return (
-      <button
-        className={className}
-        onClick={() => {
-          void shareNatively(share);
-        }}
-        style={style}
-        type="button"
-      >
-        {label}
-      </button>
-    );
-  }
 
   return (
     <Popover.Root
-      onOpenChange={() => {
+      onOpenChange={(open) => {
         setCopied(false);
+        if (open && files) {
+          void imageFile();
+        }
       }}
     >
       <Popover.Trigger className={className} style={style}>
-        {label}
+        <ShareMark />
+        {copy.result.share}
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner side="top" sideOffset={8}>
           <Popover.Popup {...stylex.props(styles.popup)}>
+            {files ? (
+              <button
+                onClick={() => {
+                  void shareImage();
+                }}
+                type="button"
+                {...stylex.props(styles.item)}
+              >
+                <ImageMark />
+                {copy.result.shareImage}
+              </button>
+            ) : null}
             <a
-              href={postUrl(result, window.location.origin, lang)}
-              rel="noopener noreferrer"
-              target="_blank"
+              download={FILE_NAME}
+              href={share.image}
               {...stylex.props(styles.item)}
             >
-              <XMark />
-              {copy.result.postX}
+              <SaveMark />
+              {copy.result.saveImage}
             </a>
-            <button
-              onClick={() => {
-                void copyLink();
-              }}
-              type="button"
-              {...stylex.props(styles.item)}
-            >
-              <LinkMark />
-              <span aria-live="polite">
-                {copied ? copy.result.copied : copy.result.copyLink}
-              </span>
-            </button>
+            {native ? (
+              <button
+                onClick={() => {
+                  void shareNatively(link);
+                }}
+                type="button"
+                {...stylex.props(styles.item)}
+              >
+                <LinkMark />
+                {copy.result.shareLink}
+              </button>
+            ) : (
+              <>
+                <a
+                  href={postUrl(share)}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                  {...stylex.props(styles.item)}
+                >
+                  <XMark />
+                  {copy.result.postX}
+                </a>
+                <button
+                  onClick={() => {
+                    void copyLink();
+                  }}
+                  type="button"
+                  {...stylex.props(styles.item)}
+                >
+                  <LinkMark />
+                  <span aria-live="polite">
+                    {copied ? copy.result.copied : copy.result.copyLink}
+                  </span>
+                </button>
+              </>
+            )}
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>
