@@ -4,7 +4,9 @@ import { useRef, useState } from "react";
 
 import { postUrl } from "../_lib/share";
 import type { Share, ShareLabels } from "../_lib/share";
-import { ink } from "./theme.stylex";
+import { ink, media } from "./theme.stylex";
+
+const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 
 const styles = stylex.create({
   popup: {
@@ -20,6 +22,14 @@ const styles = stylex.create({
     minWidth: "12rem",
     outline: "none",
     padding: 6,
+    transformOrigin: "var(--transform-origin)",
+    transitionDuration: "180ms",
+    transitionProperty: "opacity, transform",
+    transitionTimingFunction: EASE,
+  },
+  popupHidden: {
+    opacity: 0,
+    transform: { default: "scale(0.92)", [media.reduce]: "none" },
   },
   item: {
     alignItems: "center",
@@ -35,6 +45,8 @@ const styles = stylex.create({
     paddingBlock: "0.7rem",
     paddingInline: "0.8rem",
     textDecoration: "none",
+    transitionDuration: "120ms",
+    transitionProperty: "background-color",
     userSelect: "none",
   },
   highlighted: {
@@ -44,6 +56,14 @@ const styles = stylex.create({
 
 const itemClass = (state: { highlighted: boolean }) =>
   stylex.props(styles.item, state.highlighted && styles.highlighted).className;
+
+const popupClass = (state: { transitionStatus: string | undefined }) =>
+  stylex.props(
+    styles.popup,
+    (state.transitionStatus === "starting" ||
+      state.transitionStatus === "ending") &&
+      styles.popupHidden
+  ).className;
 
 const ShareMark = () => (
   <svg aria-hidden="true" height="16" viewBox="0 0 24 24" width="16">
@@ -199,7 +219,7 @@ export const ShareButton = ({
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner side="top" sideOffset={8}>
-          <Menu.Popup {...stylex.props(styles.popup)}>
+          <Menu.Popup className={popupClass}>
             {files ? (
               <Menu.Item
                 className={itemClass}
