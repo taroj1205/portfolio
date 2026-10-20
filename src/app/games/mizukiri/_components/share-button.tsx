@@ -1,4 +1,4 @@
-import { Popover } from "@base-ui/react/popover";
+import { Menu } from "@base-ui/react/menu";
 import * as stylex from "@stylexjs/stylex";
 import { useRef, useState } from "react";
 
@@ -9,7 +9,7 @@ import { ink } from "./theme.stylex";
 
 const styles = stylex.create({
   popup: {
-    backgroundColor: "rgb(13 16 26 / 0.96)",
+    backgroundColor: "rgb(13 16 26)",
     borderColor: "rgb(255 255 255 / 0.12)",
     borderRadius: 18,
     borderStyle: "solid",
@@ -24,12 +24,7 @@ const styles = stylex.create({
   },
   item: {
     alignItems: "center",
-    backgroundColor: {
-      default: "transparent",
-      ":hover": "rgb(255 255 255 / 0.08)",
-    },
     borderRadius: 12,
-    borderWidth: 0,
     color: ink.text,
     cursor: "pointer",
     display: "flex",
@@ -37,12 +32,19 @@ const styles = stylex.create({
     fontSize: "0.9rem",
     fontWeight: 700,
     gap: "0.6rem",
+    outline: "none",
     paddingBlock: "0.7rem",
     paddingInline: "0.8rem",
-    textAlign: "start",
     textDecoration: "none",
+    userSelect: "none",
+  },
+  highlighted: {
+    backgroundColor: "rgb(255 255 255 / 0.1)",
   },
 });
+
+const itemClass = (state: { highlighted: boolean }) =>
+  stylex.props(styles.item, state.highlighted && styles.highlighted).className;
 
 const ShareMark = () => (
   <svg aria-hidden="true" height="16" viewBox="0 0 24 24" width="16">
@@ -176,7 +178,7 @@ export const ShareButton = ({ share, className, style }: ShareButtonProps) => {
   };
 
   return (
-    <Popover.Root
+    <Menu.Root
       onOpenChange={(open) => {
         setCopied(false);
         if (open && files) {
@@ -184,72 +186,73 @@ export const ShareButton = ({ share, className, style }: ShareButtonProps) => {
         }
       }}
     >
-      <Popover.Trigger className={className} style={style}>
+      <Menu.Trigger className={className} style={style}>
         <ShareMark />
         {copy.result.share}
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Positioner side="top" sideOffset={8}>
-          <Popover.Popup {...stylex.props(styles.popup)}>
+      </Menu.Trigger>
+      <Menu.Portal>
+        <Menu.Positioner side="top" sideOffset={8}>
+          <Menu.Popup {...stylex.props(styles.popup)}>
             {files ? (
-              <button
+              <Menu.Item
+                className={itemClass}
                 onClick={() => {
                   void shareImage();
                 }}
-                type="button"
-                {...stylex.props(styles.item)}
               >
                 <ImageMark />
                 {copy.result.shareImage}
-              </button>
+              </Menu.Item>
             ) : null}
-            <a
+            <Menu.LinkItem
+              className={itemClass}
+              closeOnClick
               download={FILE_NAME}
               href={share.image}
-              {...stylex.props(styles.item)}
             >
               <SaveMark />
               {copy.result.saveImage}
-            </a>
+            </Menu.LinkItem>
             {native ? (
-              <button
+              <Menu.Item
+                className={itemClass}
                 onClick={() => {
                   void shareNatively(link);
                 }}
-                type="button"
-                {...stylex.props(styles.item)}
               >
                 <LinkMark />
                 {copy.result.shareLink}
-              </button>
+              </Menu.Item>
             ) : (
               <>
-                <a
+                <Menu.LinkItem
+                  className={itemClass}
+                  closeOnClick
                   href={postUrl(share)}
                   rel="noopener noreferrer"
                   target="_blank"
-                  {...stylex.props(styles.item)}
                 >
                   <XMark />
                   {copy.result.postX}
-                </a>
-                <button
+                </Menu.LinkItem>
+                <Menu.Item
+                  className={itemClass}
+                  closeOnClick={false}
+                  label={copy.result.copyLink}
                   onClick={() => {
                     void copyLink();
                   }}
-                  type="button"
-                  {...stylex.props(styles.item)}
                 >
                   <LinkMark />
                   <span aria-live="polite">
                     {copied ? copy.result.copied : copy.result.copyLink}
                   </span>
-                </button>
+                </Menu.Item>
               </>
             )}
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
   );
 };
