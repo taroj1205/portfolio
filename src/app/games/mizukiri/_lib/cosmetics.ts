@@ -1,6 +1,6 @@
 import type { Lang, Text } from "./i18n";
 import { areaOf, plain, zones } from "./simulate";
-import type { Gear, Traits } from "./simulate";
+import type { Build, Gear, Traits } from "./simulate";
 
 export type Unlock =
   | { kind: "start" }
@@ -620,6 +620,8 @@ export const combos: Combo[] = [
 export const comboOf = ({ color, form }: Stone) =>
   combos.find((combo) => combo.color === color && combo.form === form) ?? null;
 
+const WORTH_STEP = 0.15;
+
 const STEP: Record<Axis, number> = {
   focus: 0.045,
   impact: 0.25,
@@ -631,14 +633,22 @@ const STEP: Record<Axis, number> = {
 const perksOf = (look: Stone): Perks[] => [
   colorOf(look.color).perks ?? {},
   formOf(look.form).perks ?? {},
-  comboOf(look)?.perks ?? {},
 ];
 
-export const traitsOf = (look: Stone): Traits => {
+export const traitsOf = (look: Stone): Build => {
   const steps = (axis: Axis) =>
     perksOf(look).reduce((sum, perks) => sum + (perks[axis] ?? 0), 0);
   const scale = (axis: Axis) => (1 + STEP[axis]) ** steps(axis);
+  const combo = comboOf(look)?.perks ?? {};
+  const worth = (axis: Axis) => 1 + WORTH_STEP * (combo[axis] ?? 0);
   return {
+    boost: {
+      focus: worth("focus"),
+      impact: worth("impact"),
+      lift: worth("lift"),
+      power: worth("speed"),
+      stone: worth("keep"),
+    },
     focus: plain.focus * scale("focus"),
     impact: plain.impact * scale("impact"),
     keep: plain.keep + STEP.keep * steps("keep"),
