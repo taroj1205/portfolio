@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import { comboOf, firstLook, isOpen, keyOf, opened, parts } from "./cosmetics";
 import type { Item, Look, Part, Progress } from "./cosmetics";
+import { langs } from "./i18n";
+import type { Text } from "./i18n";
 import { zoneIndex } from "./simulate";
 import type { Flight, Gear } from "./simulate";
 
@@ -27,7 +29,12 @@ const schema = z.object({
     trail: z.string(),
   }),
   runs: z.number().int().min(0),
-  settings: z.object({ muted: z.boolean() }).default({ muted: false }),
+  settings: z
+    .object({
+      lang: z.enum(langs).nullable().default(null),
+      muted: z.boolean(),
+    })
+    .default({ lang: null, muted: false }),
   unseen: z.array(z.string()).default([]),
   xp: z.number().min(0),
 });
@@ -44,7 +51,7 @@ const fresh: Save = {
   gear: { focus: 0, impact: 0, lift: 0, power: 0, stone: 0 },
   look: firstLook,
   runs: 0,
-  settings: { muted: false },
+  settings: { lang: null, muted: false },
   unseen: [],
   xp: 0,
 };
@@ -71,13 +78,39 @@ export const storeSave = (save: Save) => {
   }
 };
 
-export const skills = [
-  { key: "power", name: "腕力", note: "初速と最高速が上がる" },
-  { key: "stone", name: "平たい石", note: "ミスしても失速しにくい" },
-  { key: "lift", name: "跳ね上げ", note: "石が高く跳ねて長く飛ぶ" },
-  { key: "focus", name: "集中", note: "タップの猶予が広がる" },
-  { key: "impact", name: "当て勘", note: "カモや鯉に当たった時の加速が上がる" },
-] as const satisfies readonly { key: keyof Gear; name: string; note: string }[];
+export const skills: { key: keyof Gear; name: Text; note: Text }[] = [
+  {
+    key: "power",
+    name: { en: "Arm", ja: "腕力" },
+    note: { en: "Higher launch and top speed", ja: "初速と最高速が上がる" },
+  },
+  {
+    key: "stone",
+    name: { en: "Flat stone", ja: "平たい石" },
+    note: { en: "Lose less speed on a miss", ja: "ミスしても失速しにくい" },
+  },
+  {
+    key: "lift",
+    name: { en: "Lift", ja: "跳ね上げ" },
+    note: {
+      en: "Bounces higher and flies longer",
+      ja: "石が高く跳ねて長く飛ぶ",
+    },
+  },
+  {
+    key: "focus",
+    name: { en: "Focus", ja: "集中" },
+    note: { en: "Wider tap timing", ja: "タップの猶予が広がる" },
+  },
+  {
+    key: "impact",
+    name: { en: "Aim", ja: "当て勘" },
+    note: {
+      en: "More boost from ducks and carp",
+      ja: "カモや鯉に当たった時の加速が上がる",
+    },
+  },
+];
 
 const needFor = (target: number) => Math.round(150 * target ** 1.8);
 

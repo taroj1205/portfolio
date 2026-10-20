@@ -213,12 +213,14 @@ describe("stones", () => {
   });
 
   test("a matching pair adds its combo bonus on top", () => {
-    assert.equal(comboOf({ color: "slate", form: "flat" })?.name, "碁石");
+    assert.equal(comboOf({ color: "slate", form: "flat" })?.name.ja, "碁石");
     const flatGain = keepOf("river", "flat") - keepOf("river", "oval");
     const goGain = keepOf("slate", "flat") - keepOf("slate", "oval");
     assert.ok(goGain > flatGain);
-    assert.equal(noteOf({ keep: 2, lift: -1 }), "粘り↑↑ 跳ね↓");
-    assert.equal(noteOf({}), "クセなし");
+    assert.equal(noteOf({ keep: 2, lift: -1 }, "ja"), "粘り↑↑ 跳ね↓");
+    assert.equal(noteOf({ keep: 2, lift: -1 }, "en"), "Grit↑↑ Bounce↓");
+    assert.equal(noteOf({}, "ja"), "クセなし");
+    assert.equal(noteOf({}, "en"), "Balanced");
     assert.deepEqual(peaksOf({ focus: 3, keep: 1, lift: -1, speed: -2 }), {
       focus: 3,
       speed: -2,
@@ -227,10 +229,19 @@ describe("stones", () => {
 
   test("a posted run carries its stone into the shared link", () => {
     const flight = play(launch(createRiver(5), flat, bare), null);
-    const posted = new URL(
-      postUrl(resultOf(flight, { color: "jade", form: "bean" }), "https://x.y")
-    );
+    const result = resultOf(flight, { color: "jade", form: "bean" });
+    const posted = new URL(postUrl(result, "https://x.y", "ja"));
     assert.match(posted.searchParams.get("text") ?? "", /勾玉/u);
+    const english = new URL(postUrl(result, "https://x.y", "en"));
+    assert.match(
+      english.searchParams.get("text") ?? "",
+      /Magatama \(Jade Bean\)/u
+    );
+    assert.match(english.searchParams.get("text") ?? "", /Skipped/u);
+    assert.equal(
+      new URL(english.searchParams.get("url") ?? "").searchParams.get("l"),
+      "en"
+    );
     const shared = new URL(posted.searchParams.get("url") ?? "");
     assert.deepEqual(
       readResult(Object.fromEntries(shared.searchParams))?.stone,
@@ -254,7 +265,7 @@ describe("save", () => {
     gear: bare,
     look: firstLook,
     runs: 0,
-    settings: { muted: false },
+    settings: { lang: null, muted: false },
     unseen: [],
     xp: 0,
   };

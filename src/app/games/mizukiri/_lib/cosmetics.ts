@@ -1,3 +1,4 @@
+import type { Lang, Text } from "./i18n";
 import { areaOf, plain, zones } from "./simulate";
 import type { Traits } from "./simulate";
 
@@ -12,17 +13,17 @@ export type Axis = keyof Traits;
 
 export type Perks = Partial<Record<Axis, number>>;
 
-export const axes: { key: Axis; label: string }[] = [
-  { key: "speed", label: "速さ" },
-  { key: "keep", label: "粘り" },
-  { key: "lift", label: "跳ね" },
-  { key: "focus", label: "集中" },
-  { key: "impact", label: "当たり" },
+export const axes: { key: Axis; label: Text }[] = [
+  { key: "speed", label: { en: "Speed", ja: "速さ" } },
+  { key: "keep", label: { en: "Grit", ja: "粘り" } },
+  { key: "lift", label: { en: "Bounce", ja: "跳ね" } },
+  { key: "focus", label: { en: "Focus", ja: "集中" } },
+  { key: "impact", label: { en: "Impact", ja: "当たり" } },
 ];
 
 export interface Option {
   id: string;
-  name: string;
+  name: Text;
   unlock: Unlock;
   perks?: Perks;
 }
@@ -52,7 +53,7 @@ const colors: Color[] = [
     id: "river",
     metal: false,
     mineral: ["#c9c4ba", "#8d8a84", "#4f4c47"],
-    name: "川石",
+    name: { en: "River", ja: "川石" },
     perks: {},
     unlock: { kind: "start" },
   },
@@ -62,7 +63,7 @@ const colors: Color[] = [
     id: "slate",
     metal: false,
     mineral: ["#7a7f86", "#3a3d43", "#141518"],
-    name: "黒",
+    name: { en: "Black", ja: "黒" },
     perks: { impact: 1, keep: 1, lift: -2 },
     unlock: { kind: "level", level: 2 },
   },
@@ -72,7 +73,7 @@ const colors: Color[] = [
     id: "rose",
     metal: false,
     mineral: ["#f3d2c8", "#c98b7c", "#6e3e35"],
-    name: "桜色",
+    name: { en: "Blush", ja: "桜色" },
     perks: { focus: 1, impact: -2, lift: 1 },
     unlock: { kind: "level", level: 5 },
   },
@@ -82,7 +83,7 @@ const colors: Color[] = [
     id: "ice",
     metal: false,
     mineral: ["#eef9ff", "#9fd3ea", "#3f7f9c"],
-    name: "氷",
+    name: { en: "Ice", ja: "氷" },
     perks: { impact: -2, keep: 1, speed: 1 },
     unlock: { kind: "level", level: 8 },
   },
@@ -92,7 +93,7 @@ const colors: Color[] = [
     id: "jade",
     metal: false,
     mineral: ["#d4f7e0", "#4fae7c", "#1d5a3c"],
-    name: "翡翠",
+    name: { en: "Jade", ja: "翡翠" },
     perks: { focus: 2, speed: -1 },
     unlock: { kind: "combo", combo: 10 },
   },
@@ -102,7 +103,7 @@ const colors: Color[] = [
     id: "amber",
     metal: false,
     mineral: ["#ffe2a8", "#d98a2b", "#6b3410"],
-    name: "琥珀",
+    name: { en: "Amber", ja: "琥珀" },
     perks: { lift: 2, speed: -1 },
     unlock: { kind: "level", level: 12 },
   },
@@ -112,7 +113,7 @@ const colors: Color[] = [
     id: "gold",
     metal: true,
     mineral: ["#fff4c2", "#e8b84a", "#7a4e0e"],
-    name: "金",
+    name: { en: "Gold", ja: "金" },
     perks: { impact: 2, speed: -1 },
     unlock: { kind: "divine" },
   },
@@ -122,7 +123,7 @@ const colors: Color[] = [
     id: "meteor",
     metal: true,
     mineral: ["#5a4e48", "#2a2220", "#0e0b0a"],
-    name: "隕石",
+    name: { en: "Meteorite", ja: "隕石" },
     perks: { keep: -1, speed: 2 },
     unlock: { kind: "zone", zone: areaOf("sea") },
   },
@@ -132,7 +133,7 @@ const colors: Color[] = [
     id: "lapis",
     metal: false,
     mineral: ["#c9d8ff", "#3f5fc4", "#16224f"],
-    name: "瑠璃",
+    name: { en: "Lapis", ja: "瑠璃" },
     perks: { focus: 1, lift: 1, speed: -1 },
     unlock: { kind: "level", level: 16 },
   },
@@ -142,7 +143,7 @@ const colors: Color[] = [
     id: "coral",
     metal: false,
     mineral: ["#ffd8cc", "#f08a6e", "#8a3424"],
-    name: "珊瑚",
+    name: { en: "Coral", ja: "珊瑚" },
     perks: { impact: 1, keep: -1, lift: 1 },
     unlock: { kind: "zone", zone: areaOf("snow") },
   },
@@ -152,7 +153,7 @@ const colors: Color[] = [
     id: "crystal",
     metal: false,
     mineral: ["#ffffff", "#d6e4f0", "#8ea4ba"],
-    name: "水晶",
+    name: { en: "Crystal", ja: "水晶" },
     perks: { focus: 1, keep: -1, speed: 1 },
     unlock: { kind: "level", level: 24 },
   },
@@ -162,7 +163,7 @@ const colors: Color[] = [
     id: "obsidian",
     metal: false,
     mineral: ["#6a6478", "#24202c", "#08070b"],
-    name: "黒曜石",
+    name: { en: "Obsidian", ja: "黒曜石" },
     perks: { focus: -2, impact: 1, speed: 2 },
     unlock: { kind: "zone", zone: areaOf("cloud") },
   },
@@ -172,149 +173,198 @@ const colors: Color[] = [
     id: "moon",
     metal: false,
     mineral: ["#fbf6e4", "#c9c2a8", "#6e6a5c"],
-    name: "月の石",
+    name: { en: "Moonstone", ja: "月の石" },
     perks: { focus: 1, lift: 2, speed: -2 },
     unlock: { kind: "zone", zone: areaOf("stars") },
   },
 ];
 
 const forms: Option[] = [
-  { id: "oval", name: "たまご", perks: {}, unlock: { kind: "start" } },
+  {
+    id: "oval",
+    name: { en: "Egg", ja: "たまご" },
+    perks: {},
+    unlock: { kind: "start" },
+  },
   {
     id: "round",
-    name: "まんまる",
+    name: { en: "Round", ja: "まんまる" },
     perks: { focus: 2, keep: -2, lift: 2, speed: -1 },
     unlock: { kind: "level", level: 3 },
   },
   {
     id: "flat",
-    name: "ひらべったい",
+    name: { en: "Flat", ja: "ひらべったい" },
     perks: { focus: -1, impact: -1, keep: 3, lift: -2, speed: 2 },
     unlock: { kind: "zone", zone: areaOf("bamboo") },
   },
   {
     id: "drop",
-    name: "しずく",
+    name: { en: "Drop", ja: "しずく" },
     perks: { focus: -1, lift: -1, speed: 3 },
     unlock: { kind: "level", level: 5 },
   },
   {
     id: "square",
-    name: "かくいし",
+    name: { en: "Square", ja: "かくいし" },
     perks: { impact: 1, keep: 3, lift: -2, speed: -1 },
     unlock: { kind: "level", level: 7 },
   },
   {
     id: "leaf",
-    name: "このは",
+    name: { en: "Leaf", ja: "このは" },
     perks: { impact: -2, keep: 1, lift: 3, speed: -1 },
     unlock: { kind: "zone", zone: areaOf("maple") },
   },
   {
     id: "triangle",
-    name: "おにぎり",
+    name: { en: "Onigiri", ja: "おにぎり" },
     perks: { focus: -2, impact: 2, keep: 1 },
     unlock: { kind: "combo", combo: 10 },
   },
   {
     id: "heart",
-    name: "ハート",
+    name: { en: "Heart", ja: "ハート" },
     perks: { focus: 1, impact: 3, keep: -1, speed: -2 },
     unlock: { kind: "level", level: 10 },
   },
   {
     id: "bean",
-    name: "まめ",
+    name: { en: "Bean", ja: "まめ" },
     perks: { focus: 3, keep: 1, lift: -1, speed: -2 },
     unlock: { kind: "level", level: 13 },
   },
   {
     id: "crescent",
-    name: "みかづき",
+    name: { en: "Crescent", ja: "みかづき" },
     perks: { focus: 2, impact: -1, keep: -2, speed: 2 },
     unlock: { kind: "combo", combo: 20 },
   },
   {
     id: "star",
-    name: "ほし",
+    name: { en: "Star", ja: "ほし" },
     perks: { focus: 2, impact: 2, keep: -2, lift: 1, speed: -2 },
     unlock: { kind: "zone", zone: areaOf("town") },
   },
   {
     id: "gourd",
-    name: "ひょうたん",
+    name: { en: "Gourd", ja: "ひょうたん" },
     perks: { focus: -2, impact: 2, lift: 2, speed: -1 },
     unlock: { kind: "level", level: 18 },
   },
   {
     id: "diamond",
-    name: "ひしがた",
+    name: { en: "Diamond", ja: "ひしがた" },
     perks: { impact: 1, keep: -1, lift: -1, speed: 2 },
     unlock: { kind: "level", level: 22 },
   },
   {
     id: "fan",
-    name: "おうぎ",
+    name: { en: "Fan", ja: "おうぎ" },
     perks: { focus: 1, impact: -1, keep: -1, lift: 2 },
     unlock: { kind: "combo", combo: 30 },
   },
   {
     id: "fish",
-    name: "さかな",
+    name: { en: "Fish", ja: "さかな" },
     perks: { focus: 1, impact: -1, lift: -1, speed: 2 },
     unlock: { kind: "zone", zone: areaOf("firefly") },
   },
   {
     id: "shell",
-    name: "きっこう",
+    name: { en: "Hexagon", ja: "きっこう" },
     perks: { impact: 1, keep: 2, speed: -2 },
     unlock: { kind: "level", level: 30 },
   },
 ];
 
 const patterns: Option[] = [
-  { id: "plain", name: "無地", unlock: { kind: "start" } },
-  { id: "stripe", name: "縞", unlock: { kind: "level", level: 4 } },
+  { id: "plain", name: { en: "Plain", ja: "無地" }, unlock: { kind: "start" } },
+  {
+    id: "stripe",
+    name: { en: "Stripes", ja: "縞" },
+    unlock: { kind: "level", level: 4 },
+  },
   {
     id: "speckle",
-    name: "まだら",
+    name: { en: "Speckled", ja: "まだら" },
     unlock: { kind: "zone", zone: areaOf("sakura") },
   },
-  { id: "ring", name: "輪っか", unlock: { kind: "combo", combo: 20 } },
-  { id: "wave", name: "青海波", unlock: { kind: "level", level: 6 } },
-  { id: "checker", name: "市松", unlock: { kind: "level", level: 9 } },
-  { id: "dots", name: "水玉", unlock: { kind: "combo", combo: 12 } },
-  { id: "mended", name: "金継ぎ", unlock: { kind: "divine" } },
+  {
+    id: "ring",
+    name: { en: "Ring", ja: "輪っか" },
+    unlock: { kind: "combo", combo: 20 },
+  },
+  {
+    id: "wave",
+    name: { en: "Seigaiha", ja: "青海波" },
+    unlock: { kind: "level", level: 6 },
+  },
+  {
+    id: "checker",
+    name: { en: "Ichimatsu", ja: "市松" },
+    unlock: { kind: "level", level: 9 },
+  },
+  {
+    id: "dots",
+    name: { en: "Polka dots", ja: "水玉" },
+    unlock: { kind: "combo", combo: 12 },
+  },
+  {
+    id: "mended",
+    name: { en: "Kintsugi", ja: "金継ぎ" },
+    unlock: { kind: "divine" },
+  },
 ];
 
 const trails: Option[] = [
-  { id: "spray", name: "水しぶき", unlock: { kind: "start" } },
-  { id: "gold", name: "金粉", unlock: { kind: "combo", combo: 15 } },
+  {
+    id: "spray",
+    name: { en: "Spray", ja: "水しぶき" },
+    unlock: { kind: "start" },
+  },
+  {
+    id: "gold",
+    name: { en: "Gold dust", ja: "金粉" },
+    unlock: { kind: "combo", combo: 15 },
+  },
   {
     id: "sakura",
-    name: "桜吹雪",
+    name: { en: "Cherry petals", ja: "桜吹雪" },
     unlock: { kind: "zone", zone: areaOf("sakura") },
   },
   {
     id: "fox",
-    name: "狐火",
+    name: { en: "Foxfire", ja: "狐火" },
     unlock: { kind: "zone", zone: areaOf("firefly") },
   },
-  { id: "rainbow", name: "虹", unlock: { kind: "level", level: 11 } },
-  { id: "ink", name: "墨", unlock: { kind: "zone", zone: areaOf("ginkgo") } },
-  { id: "bubble", name: "泡", unlock: { kind: "zone", zone: areaOf("sea") } },
+  {
+    id: "rainbow",
+    name: { en: "Rainbow", ja: "虹" },
+    unlock: { kind: "level", level: 11 },
+  },
+  {
+    id: "ink",
+    name: { en: "Ink", ja: "墨" },
+    unlock: { kind: "zone", zone: areaOf("ginkgo") },
+  },
+  {
+    id: "bubble",
+    name: { en: "Bubbles", ja: "泡" },
+    unlock: { kind: "zone", zone: areaOf("sea") },
+  },
   {
     id: "comet",
-    name: "流星",
+    name: { en: "Meteors", ja: "流星" },
     unlock: { kind: "zone", zone: areaOf("stars") },
   },
 ];
 
-export const parts: { part: Part; name: string; options: Option[] }[] = [
-  { name: "石の種類", options: colors, part: "color" },
-  { name: "形", options: forms, part: "form" },
-  { name: "模様", options: patterns, part: "pattern" },
-  { name: "軌跡", options: trails, part: "trail" },
+export const parts: { part: Part; name: Text; options: Option[] }[] = [
+  { name: { en: "Stone", ja: "石の種類" }, options: colors, part: "color" },
+  { name: { en: "Shape", ja: "形" }, options: forms, part: "form" },
+  { name: { en: "Pattern", ja: "模様" }, options: patterns, part: "pattern" },
+  { name: { en: "Trail", ja: "軌跡" }, options: trails, part: "trail" },
 ];
 
 export const firstLook: Look = {
@@ -353,18 +403,20 @@ export const isOpen = (unlock: Unlock, progress: Progress) => {
   return true;
 };
 
-export const conditionOf = (unlock: Unlock) => {
+export const conditionOf = (unlock: Unlock, lang: Lang) => {
+  const en = lang === "en";
   if (unlock.kind === "level") {
     return `Lv.${unlock.level}`;
   }
   if (unlock.kind === "combo") {
-    return `コンボ${unlock.combo}`;
+    return en ? `Combo ${unlock.combo}` : `コンボ${unlock.combo}`;
   }
   if (unlock.kind === "zone") {
-    return `${zones[unlock.zone]?.name ?? ""}に到達`;
+    const area = zones[unlock.zone]?.name[lang] ?? "";
+    return en ? `Reach ${area}` : `${area}に到達`;
   }
   if (unlock.kind === "divine") {
-    return "神投げ";
+    return en ? "Perfect throw" : "神投げ";
   }
   return "";
 };
@@ -385,131 +437,137 @@ export const opened = (progress: Progress): Item[] =>
 
 export interface Combo {
   id: string;
-  name: string;
+  name: Text;
   color: string;
   form: string;
   perks: Perks;
 }
 
 export const combos: Combo[] = [
-  { color: "slate", form: "flat", id: "go", name: "碁石", perks: { keep: 2 } },
+  {
+    color: "slate",
+    form: "flat",
+    id: "go",
+    name: { en: "Go stone", ja: "碁石" },
+    perks: { keep: 2 },
+  },
   {
     color: "jade",
     form: "bean",
     id: "jewel",
-    name: "勾玉",
+    name: { en: "Magatama", ja: "勾玉" },
     perks: { focus: 2 },
   },
   {
     color: "gold",
     form: "star",
     id: "venus",
-    name: "一番星",
+    name: { en: "Evening star", ja: "一番星" },
     perks: { impact: 2, lift: 1 },
   },
   {
     color: "rose",
     form: "leaf",
     id: "petal",
-    name: "花びら",
+    name: { en: "Petal", ja: "花びら" },
     perks: { lift: 2 },
   },
   {
     color: "meteor",
     form: "drop",
     id: "shooting",
-    name: "流れ星",
+    name: { en: "Shooting star", ja: "流れ星" },
     perks: { speed: 2 },
   },
   {
     color: "rose",
     form: "heart",
     id: "love",
-    name: "恋の石",
+    name: { en: "Love stone", ja: "恋の石" },
     perks: { impact: 2 },
   },
   {
     color: "gold",
     form: "gourd",
     id: "gourds",
-    name: "千成瓢箪",
+    name: { en: "Gourd standard", ja: "千成瓢箪" },
     perks: { impact: 1, lift: 1, speed: 1 },
   },
   {
     color: "ice",
     form: "crescent",
     id: "moon",
-    name: "氷の月",
+    name: { en: "Ice moon", ja: "氷の月" },
     perks: { focus: 1, speed: 2 },
   },
   {
     color: "amber",
     form: "triangle",
     id: "grilled",
-    name: "焼きおにぎり",
+    name: { en: "Grilled onigiri", ja: "焼きおにぎり" },
     perks: { impact: 1, keep: 1 },
   },
   {
     color: "coral",
     form: "star",
     id: "starfish",
-    name: "ヒトデ",
+    name: { en: "Starfish", ja: "ヒトデ" },
     perks: { impact: 1, lift: 1 },
   },
   {
     color: "crystal",
     form: "drop",
     id: "tear",
-    name: "涙",
+    name: { en: "Teardrop", ja: "涙" },
     perks: { focus: 2 },
   },
   {
     color: "moon",
     form: "crescent",
     id: "lunar",
-    name: "三日月",
+    name: { en: "Crescent moon", ja: "三日月" },
     perks: { lift: 2 },
   },
   {
     color: "obsidian",
     form: "diamond",
     id: "arrow",
-    name: "矢じり",
+    name: { en: "Arrowhead", ja: "矢じり" },
     perks: { speed: 2 },
   },
   {
     color: "ice",
     form: "star",
     id: "flake",
-    name: "雪の結晶",
+    name: { en: "Snowflake", ja: "雪の結晶" },
     perks: { keep: 2 },
   },
   {
     color: "rose",
     form: "fan",
     id: "blossom",
-    name: "花扇",
+    name: { en: "Flower fan", ja: "花扇" },
     perks: { focus: 1, lift: 1 },
   },
   {
     color: "jade",
     form: "shell",
     id: "turtle",
-    name: "万年亀",
+    name: { en: "Ancient turtle", ja: "万年亀" },
     perks: { keep: 2 },
   },
   {
     color: "amber",
     form: "drop",
     id: "sap",
-    name: "樹液",
+    name: { en: "Sap", ja: "樹液" },
     perks: { keep: 1, lift: 1 },
   },
   {
     color: "gold",
     form: "fish",
     id: "goldfish",
-    name: "金魚",
+    name: { en: "Goldfish", ja: "金魚" },
     perks: { impact: 2 },
   },
 ];
@@ -544,15 +602,18 @@ export const traitsOf = (look: Stone): Traits => {
   };
 };
 
-export const noteOf = (perks: Perks) => {
+export const noteOf = (perks: Perks, lang: Lang) => {
   const marks = axes.flatMap(({ key, label }) => {
     const step = perks[key] ?? 0;
     if (step === 0) {
       return [];
     }
-    return [`${label}${(step > 0 ? "↑" : "↓").repeat(Math.abs(step))}`];
+    return [`${label[lang]}${(step > 0 ? "↑" : "↓").repeat(Math.abs(step))}`];
   });
-  return marks.length === 0 ? "クセなし" : marks.join(" ");
+  if (marks.length > 0) {
+    return marks.join(" ");
+  }
+  return lang === "en" ? "Balanced" : "クセなし";
 };
 
 export const peaksOf = (perks: Perks): Perks => {
@@ -567,10 +628,17 @@ export const peaksOf = (perks: Perks): Perks => {
   };
 };
 
-export const nameOf = ({ color, form }: Stone) => {
+export const nameOf = ({ color, form }: Stone, lang: Lang) => {
   const combo = comboOf({ color, form });
-  const base = `${colorOf(color).name}の${formOf(form).name}`;
-  return combo === null ? base : `${combo.name}（${base}）`;
+  const kind = colorOf(color).name[lang];
+  const cut = formOf(form).name[lang];
+  const base = lang === "en" ? `${kind} ${cut}` : `${kind}の${cut}`;
+  if (combo === null) {
+    return base;
+  }
+  return lang === "en"
+    ? `${combo.name.en} (${base})`
+    : `${combo.name.ja}（${base}）`;
 };
 
 const known = (options: Option[], id: string | undefined) =>

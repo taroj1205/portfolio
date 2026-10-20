@@ -17,10 +17,12 @@ import {
   traitsOf,
 } from "../_lib/cosmetics";
 import type { Option, Part } from "../_lib/cosmetics";
+import type { Text } from "../_lib/i18n";
 import { unlocksOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import { statsOf } from "../_lib/simulate";
 import { stoneSprite } from "../_lib/sprites";
+import { useCopy, useLang } from "./lang";
 import { Preview } from "./preview";
 import { Radar } from "./radar";
 import { font, ink } from "./theme.stylex";
@@ -64,13 +66,13 @@ const styles = stylex.create({
   caption: {
     color: ink.soft,
     fontSize: "0.78rem",
-    letterSpacing: "0.12em",
+    letterSpacing: "calc(0.12em * var(--track, 1))",
   },
   comboLine: {
     color: GOLD,
     fontSize: "0.75rem",
     fontWeight: 800,
-    letterSpacing: "0.08em",
+    letterSpacing: "calc(0.08em * var(--track, 1))",
   },
   scroller: {
     display: "flex",
@@ -135,7 +137,7 @@ const styles = stylex.create({
     color: "#1c1406",
     fontSize: "0.55rem",
     fontWeight: 800,
-    letterSpacing: "0.08em",
+    letterSpacing: "calc(0.08em * var(--track, 1))",
     lineHeight: 1,
     paddingBlock: "0.2rem",
     paddingInline: "0.4rem",
@@ -229,7 +231,7 @@ const styles = stylex.create({
     fontSize: "0.82rem",
     fontWeight: 700,
     gap: "0.3rem",
-    letterSpacing: "0.1em",
+    letterSpacing: "calc(0.1em * var(--track, 1))",
     paddingBlock: "0.4rem",
     paddingInline: "0.85rem",
     transitionDuration: "160ms",
@@ -259,16 +261,18 @@ interface TilesProps {
 }
 
 const Tiles = ({ part, options, save, onPeek, onWear }: TilesProps) => {
+  const lang = useLang();
+  const copy = useCopy();
   const unlocked = unlocksOf(save);
   const open = options.filter((option) => isOpen(option.unlock, unlocked));
   return (
     <section {...stylex.props(styles.group)}>
       <div {...stylex.props(styles.groupHead)}>
         <span {...stylex.props(styles.small)}>
-          解放 {open.length} / {options.length}
+          {copy.workshop.opened(open.length, options.length)}
         </span>
         {part === "color" || part === "form" ? (
-          <span {...stylex.props(styles.small)}>性能が変わる</span>
+          <span {...stylex.props(styles.small)}>{copy.workshop.shifts}</span>
         ) : null}
       </div>
       <div {...stylex.props(styles.grid)}>
@@ -308,15 +312,17 @@ const Tiles = ({ part, options, save, onPeek, onWear }: TilesProps) => {
                 <span {...stylex.props(styles.unseen)}>NEW</span>
               ) : null}
               <Preview option={option} part={part} />
-              <span {...stylex.props(styles.tileName)}>{option.name}</span>
+              <span {...stylex.props(styles.tileName)}>
+                {option.name[lang]}
+              </span>
               {available ? null : (
                 <span {...stylex.props(styles.lock)}>
-                  {conditionOf(option.unlock)}
+                  {conditionOf(option.unlock, lang)}
                 </span>
               )}
               {available && option.perks !== undefined ? (
                 <span {...stylex.props(styles.tileNote)}>
-                  {noteOf(peaksOf(option.perks))}
+                  {noteOf(peaksOf(option.perks), lang)}
                 </span>
               ) : null}
             </button>
@@ -328,16 +334,16 @@ const Tiles = ({ part, options, save, onPeek, onWear }: TilesProps) => {
 };
 
 const Combos = ({ save }: { save: Save }) => {
+  const lang = useLang();
+  const copy = useCopy();
   const worn = comboOf(save.look);
   return (
     <section {...stylex.props(styles.group)}>
       <div {...stylex.props(styles.groupHead)}>
         <span {...stylex.props(styles.small)}>
-          発見 {save.found.length} / {combos.length}
+          {copy.workshop.found(save.found.length, combos.length)}
         </span>
-        <span {...stylex.props(styles.small)}>
-          決まった組み合わせでボーナス
-        </span>
+        <span {...stylex.props(styles.small)}>{copy.workshop.pairs}</span>
       </div>
       <ul {...stylex.props(styles.combos)}>
         {combos.map((entry) => {
@@ -352,15 +358,15 @@ const Combos = ({ save }: { save: Save }) => {
               )}
             >
               <span {...stylex.props(styles.name)}>
-                {known ? entry.name : "？？？"}
+                {known ? entry.name[lang] : "？？？"}
               </span>
               <span {...stylex.props(styles.note)}>
-                {colorOf(entry.color).name} ×{" "}
-                {known ? formOf(entry.form).name : "？？？"}
+                {colorOf(entry.color).name[lang]} ×{" "}
+                {known ? formOf(entry.form).name[lang] : "？？？"}
               </span>
               {known ? (
                 <span {...stylex.props(styles.tileNote)}>
-                  {noteOf(entry.perks)}
+                  {noteOf(entry.perks, lang)}
                 </span>
               ) : null}
             </li>
@@ -371,9 +377,9 @@ const Combos = ({ save }: { save: Save }) => {
   );
 };
 
-const SECTIONS: [string, string][] = [
-  ...parts.map(({ part, name }): [string, string] => [part, name]),
-  ["combo", "相性"],
+const SECTIONS: [string, Text][] = [
+  ...parts.map(({ part, name }): [string, Text] => [part, name]),
+  ["combo", { en: "Combos", ja: "相性" }],
 ];
 
 export const StoneTab = ({
@@ -383,6 +389,8 @@ export const StoneTab = ({
   save: Save;
   onWear: (part: Part, id: string) => void;
 }) => {
+  const lang = useLang();
+  const copy = useCopy();
   const [peek, setPeek] = useState<Peek>(null);
   const { color, form, pattern } = save.look;
   const stats = statsOf(save.gear, traitsOf(save.look));
@@ -417,10 +425,10 @@ export const StoneTab = ({
             <Radar preview={ghost} stats={stats} />
           </div>
         </div>
-        <span {...stylex.props(styles.caption)}>{nameOf(save.look)}</span>
+        <span {...stylex.props(styles.caption)}>{nameOf(save.look, lang)}</span>
         {combo === null ? null : (
           <span {...stylex.props(styles.comboLine)}>
-            相性ボーナス {noteOf(combo.perks)}
+            {copy.workshop.bonus(noteOf(combo.perks, lang))}
           </span>
         )}
       </div>
@@ -438,7 +446,7 @@ export const StoneTab = ({
               key={key}
               value={key}
             >
-              {label}
+              {label[lang]}
               {fresh(key) ? (
                 <span aria-hidden="true" {...stylex.props(styles.dot)} />
               ) : null}

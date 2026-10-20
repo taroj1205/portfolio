@@ -8,6 +8,7 @@ import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import type { Landing } from "../_lib/session";
 import { glass } from "./glass";
+import { useCopy, useLang } from "./lang";
 import { Preview } from "./preview";
 import { font, ink, media } from "./theme.stylex";
 
@@ -61,7 +62,7 @@ const styles = stylex.create({
     borderRadius: 999,
     fontSize: "0.7rem",
     fontWeight: 700,
-    letterSpacing: "0.1em",
+    letterSpacing: "calc(0.1em * var(--track, 1))",
     paddingBlock: "0.25rem",
     paddingInline: "0.65rem",
   },
@@ -76,7 +77,7 @@ const styles = stylex.create({
     fontFamily: font.mincho,
     fontSize: "1.15rem",
     fontWeight: 700,
-    letterSpacing: "0.2em",
+    letterSpacing: "calc(0.2em * var(--track, 1))",
     margin: 0,
   },
   meter: {
@@ -97,7 +98,7 @@ const styles = stylex.create({
     color: ink.soft,
     fontSize: "0.9rem",
     fontVariantNumeric: "tabular-nums",
-    letterSpacing: "0.04em",
+    letterSpacing: "calc(0.04em * var(--track, 1))",
     margin: 0,
   },
   actions: {
@@ -115,7 +116,7 @@ const styles = stylex.create({
     fontWeight: 700,
     gap: "0.5rem",
     justifyContent: "center",
-    letterSpacing: "0.08em",
+    letterSpacing: "calc(0.08em * var(--track, 1))",
     minHeight: "3.1rem",
     textDecoration: "none",
     transform: { default: null, ":active": "scale(0.97)" },
@@ -130,7 +131,7 @@ const styles = stylex.create({
     flex: "none",
     fontFamily: font.mincho,
     fontSize: "1.15rem",
-    letterSpacing: "0.3em",
+    letterSpacing: "calc(0.3em * var(--track, 1))",
     minHeight: "3.6rem",
     width: "100%",
   },
@@ -166,7 +167,7 @@ const styles = stylex.create({
     color: "#ffd27a",
     fontSize: "0.8rem",
     fontWeight: 800,
-    letterSpacing: "0.4em",
+    letterSpacing: "calc(0.4em * var(--track, 1))",
   },
   levelNumber: {
     animationDuration: "900ms",
@@ -283,7 +284,7 @@ const styles = stylex.create({
     color: "#ffd27a",
     fontSize: "0.68rem",
     fontWeight: 800,
-    letterSpacing: "0.12em",
+    letterSpacing: "calc(0.12em * var(--track, 1))",
   },
   wear: {
     borderColor: "rgb(255 210 122 / 0.6)",
@@ -305,7 +306,7 @@ const styles = stylex.create({
     alignSelf: "center",
     color: ink.soft,
     fontSize: "0.75rem",
-    letterSpacing: "0.12em",
+    letterSpacing: "calc(0.12em * var(--track, 1))",
     paddingBlock: "0.35rem",
     textDecoration: "none",
   },
@@ -338,7 +339,9 @@ export const ResultSheet = ({
   onWorkshop,
 }: ResultSheetProps) => {
   const { result, record, gained, climbed, combo, unlocked } = landing;
-  const story = describe(result);
+  const lang = useLang();
+  const copy = useCopy();
+  const story = describe(result, lang);
   const [value, unit] = distanceParts(result.distance);
   const progress = progressOf(save.xp);
   const left = pointsLeft(save);
@@ -352,12 +355,12 @@ export const ResultSheet = ({
         )}
         {record ? (
           <span {...stylex.props(styles.badge, styles.outline)}>
-            自己ベスト更新
+            {copy.result.record}
           </span>
         ) : null}
         {climbed > 0 ? (
           <span {...stylex.props(styles.badge, styles.gold)}>
-            レベルアップ Lv.{progress.level}
+            {copy.result.levelUp} Lv.{progress.level}
           </span>
         ) : null}
       </div>
@@ -367,12 +370,13 @@ export const ResultSheet = ({
         <span {...stylex.props(styles.meterUnit)}>{unit}</span>
       </p>
       <p {...stylex.props(styles.stats)}>
-        {result.skips}回跳ねた · 最大コンボ ×{combo} · 投げの質 {result.quality}
-        %
+        {copy.result.stats(result.skips, combo, result.quality)}
       </p>
       {unlocked.length > 0 ? (
         <div {...stylex.props(styles.unlocks)}>
-          <span {...stylex.props(styles.levelLabel)}>新しく解放</span>
+          <span {...stylex.props(styles.levelLabel)}>
+            {copy.result.unlocked}
+          </span>
           {unlocked.map(({ part, option }) => {
             const worn = save.look[part] === option.id;
             return (
@@ -388,17 +392,19 @@ export const ResultSheet = ({
                 <Preview option={option} part={part} />
                 <span {...stylex.props(styles.unlockText)}>
                   <span {...stylex.props(styles.unlockKind)}>
-                    新しい{PART_NAMES.get(part)}
+                    {copy.result.newPart(PART_NAMES.get(part)?.[lang] ?? "")}
                   </span>
-                  <span {...stylex.props(styles.name)}>{option.name}</span>
+                  <span {...stylex.props(styles.name)}>
+                    {option.name[lang]}
+                  </span>
                   {option.perks === undefined ? null : (
                     <span {...stylex.props(styles.note)}>
-                      {noteOf(option.perks)}
+                      {noteOf(option.perks, lang)}
                     </span>
                   )}
                 </span>
                 <span {...stylex.props(styles.wear, worn && styles.wearOn)}>
-                  {worn ? "つけてる" : "つける"}
+                  {worn ? copy.result.worn : copy.result.wear}
                 </span>
               </button>
             );
@@ -410,40 +416,44 @@ export const ResultSheet = ({
         type="button"
         {...stylex.props(styles.action, styles.primary)}
       >
-        もう一回
+        {copy.result.again}
       </button>
       <div {...stylex.props(styles.actions)}>
         <a
-          href={postUrl(result, window.location.origin)}
+          href={postUrl(result, window.location.origin, lang)}
           rel="noopener noreferrer"
           target="_blank"
           {...stylex.props(styles.action, styles.post)}
         >
           <XMark />
-          ポスト
+          {copy.result.post}
         </a>
         <button
           onClick={onWorkshop}
           type="button"
           {...stylex.props(glass.surface, styles.action, styles.again)}
         >
-          石と腕前
+          {copy.result.workshop}
           {left > 0 ? <span {...stylex.props(styles.dot)}>{left}</span> : null}
         </button>
       </div>
 
       {climbed > 0 ? (
         <div {...stylex.props(styles.levelUp)}>
-          <span {...stylex.props(styles.levelLabel)}>レベルアップ</span>
+          <span {...stylex.props(styles.levelLabel)}>
+            {copy.result.levelUp}
+          </span>
           <span {...stylex.props(styles.levelNumber)}>Lv.{progress.level}</span>
-          <span {...stylex.props(styles.small)}>スキルポイント +{climbed}</span>
+          <span {...stylex.props(styles.small)}>
+            {copy.result.points(climbed)}
+          </span>
         </div>
       ) : null}
       <div {...stylex.props(styles.section)}>
         <div {...stylex.props(styles.head)}>
           <h3 {...stylex.props(styles.heading)}>Lv.{progress.level}</h3>
           <span {...stylex.props(styles.small)}>
-            +{gained.toLocaleString("ja-JP")} 経験値
+            {copy.result.xp(gained.toLocaleString(copy.locale))}
           </span>
         </div>
         <div {...stylex.props(styles.bar)}>
@@ -453,8 +463,8 @@ export const ResultSheet = ({
         </div>
       </div>
 
-      <Link href="/ja" {...stylex.props(styles.maker)}>
-        つくった人
+      <Link href={`/${lang}`} {...stylex.props(styles.maker)}>
+        {copy.result.maker}
       </Link>
     </section>
   );

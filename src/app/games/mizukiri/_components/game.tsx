@@ -3,14 +3,20 @@
 import * as stylex from "@stylexjs/stylex";
 import { useEffect, useRef, useState } from "react";
 
+import { copy } from "../_lib/copy";
+import type { Copy } from "../_lib/copy";
+import { guessLang } from "../_lib/i18n";
+import type { Lang, Text } from "../_lib/i18n";
 import { distanceParts } from "../_lib/result";
 import type { Result } from "../_lib/result";
 import type { Save } from "../_lib/save";
 import { startSession } from "../_lib/session";
 import type { Beat, Landing, Phase, Release } from "../_lib/session";
-import type { Ending, Event, Grade } from "../_lib/simulate";
+import type { Event, Grade } from "../_lib/simulate";
 import { Hud } from "./hud";
 import type { Popup } from "./hud";
+import { LangContext } from "./lang";
+import { LanguagePicker } from "./language-picker";
 import { ResultSheet } from "./result-sheet";
 import { Workshop } from "./workshop";
 
@@ -33,51 +39,62 @@ const styles = stylex.create({
 
 const TUTORIAL_RUNS = 3;
 
-const releaseCall = ({ tilt, quality }: Release): Omit<Popup, "id"> => {
+type Call = Omit<Popup, "id">;
+
+const releaseCall = ({ tilt, quality }: Release): Call => {
   if (quality === 100) {
-    return { text: "神投げ", tone: "gold" };
+    return { say: (words) => words.release.divine, tone: "gold" };
   }
-  let hint = "";
+  let lean: "steep" | "flat" | null = null;
   if (tilt > 23) {
-    hint = " 立てすぎ";
+    lean = "steep";
   } else if (tilt < 17) {
-    hint = " 寝かせすぎ";
+    lean = "flat";
   }
+  const hint = (words: Copy) => (lean === null ? "" : words.release[lean]);
   if (quality >= 90) {
-    return { text: `${quality}% 惜しい！${hint}`, tone: "gold" };
+    return {
+      say: (words) => `${words.release.close(quality)}${hint(words)}`,
+      tone: "gold",
+    };
   }
-  return { text: `${quality}%${hint}`, tone: quality >= 60 ? "white" : "grey" };
+  return {
+    say: (words) => `${words.release.plain(quality)}${hint(words)}`,
+    tone: quality >= 60 ? "white" : "grey",
+  };
 };
 
-const eventCalls: Record<Event, Omit<Popup, "id">> = {
-  duck: { text: "グワッ！", tone: "white" },
-  fish: { text: "鯉ジャンプ！", tone: "green" },
-  lotus: { text: "ポンッ", tone: "green" },
-  rock: { text: "カーン！", tone: "gold" },
-  wall: { text: "カツン", tone: "grey" },
+const eventTones: Record<Event, Popup["tone"]> = {
+  duck: "white",
+  fish: "green",
+  lotus: "green",
+  rock: "gold",
+  wall: "grey",
 };
 
-const gradeCalls: Record<Grade, Omit<Popup, "id"> | null> = {
-  early: { text: "はやい", tone: "grey" },
-  good: { text: "ナイス", tone: "white" },
-  miss: null,
-  perfect: { text: "パーフェクト", tone: "gold" },
+const gradeTones: Record<Exclude<Grade, "miss">, Popup["tone"]> = {
+  early: "grey",
+  good: "white",
+  perfect: "gold",
 };
 
-const beatCall = (beat: Beat) => {
-  if (beat.event !== null) {
-    return eventCalls[beat.event];
+const beatCall = ({ event, grade }: Beat): Call | null => {
+  if (event !== null) {
+    return { say: (words) => words.events[event], tone: eventTones[event] };
   }
-  return beat.grade === null ? null : gradeCalls[beat.grade];
+  if (grade === null || grade === "miss") {
+    return null;
+  }
+  return { say: (words) => words.grades[grade], tone: gradeTones[grade] };
 };
 
-const endCalls: Record<Ending, string> = {
-  leaf: "ふわっ",
-  plop: "ぽちゃん",
-  sink: "ちゃぽん",
-};
-
-export const Game = ({ challenge }: { challenge: Result | null }) => {
+export const Game = ({
+  challenge,
+  hint,
+}: {
+  challenge: Result | null;
+  hint: Lang | null;
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const waterRef = useRef<HTMLCanvasElement>(null);
   const meterValue = useRef<HTMLSpanElement>(null);
@@ -93,14 +110,12 @@ export const Game = ({ challenge }: { challenge: Result | null }) => {
   const [thrown, setThrown] = useState(false);
   const [workshop, setWorkshop] = useState(false);
   const opener = useRef<HTMLButtonElement>(null);
-  const [banner, setBanner] = useState<{ id: number; name: string } | null>(
-    null
-  );
+  const [banner, setBanner] = useState<{ id: number; name: Text } | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const waterCanvas = waterRef.current;
-    const shout = (call: Omit<Popup, "id">) => {
+    const shout = (call: Call) => {
       shouts.current += 1;
       setPopup({ ...call, id: shouts.current });
     };
@@ -127,7 +142,7 @@ export const Game = ({ challenge }: { challenge: Result | null }) => {
               },
               end: (ending) => {
                 setCombo(0);
-                shout({ text: endCalls[ending], tone: "white" });
+                shout({ say: (words) => words.endings[ending], tone: "white" });
               },
               land: setLanded,
               phase: (next) => {
@@ -158,15 +173,24 @@ export const Game = ({ challenge }: { challenge: Result | null }) => {
     };
   }, []);
 
+  let lang: Lang = hint ?? "ja";
+  if (save !== null) {
+    lang = save.settings.lang ?? hint ?? guessLang();
+  }
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+
   return (
-    <>
+    <LangContext value={lang}>
       <canvas
         aria-hidden="true"
         ref={waterRef}
         {...stylex.props(styles.canvas, styles.water)}
       />
       <canvas ref={canvasRef} {...stylex.props(styles.canvas)}>
-        川に石を投げて、どこまで跳ねるかを競うゲーム。画面を押したまま上にはじくか、スペースキーを押して離すと投げられる。石が水面に着く瞬間にタップするか、スペースキーを押すと加速する。
+        {copy[lang].fallback}
       </canvas>
       <Hud
         banner={banner}
@@ -210,6 +234,15 @@ export const Game = ({ challenge }: { challenge: Result | null }) => {
           save={save}
         />
       )}
-    </>
+      {save === null ? null : (
+        <LanguagePicker
+          lang={lang}
+          onPick={(next) =>
+            session.current?.settings({ ...save.settings, lang: next })
+          }
+          open={save.settings.lang === null}
+        />
+      )}
+    </LangContext>
   );
 };

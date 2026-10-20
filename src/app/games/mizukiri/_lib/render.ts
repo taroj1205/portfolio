@@ -130,6 +130,7 @@ export interface Frame {
   clock: number;
   tilt: number | null;
   look: Look;
+  surface: string;
 }
 
 interface Camera {
@@ -1802,7 +1803,8 @@ const paintHand = (
   view: View,
   { stone, edge }: Pick<Sprites, "stone" | "edge">,
   tilt: number | null,
-  clock: number
+  clock: number,
+  surface: string
 ) => {
   const aiming = tilt !== null;
   const angle = tilt ?? 28 + 3 * Math.sin(clock * 1.4);
@@ -1825,7 +1827,7 @@ const paintHand = (
   ctx.font = "600 12px ui-sans-serif, system-ui, sans-serif";
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  ctx.fillText("水面", size * 0.62, 6);
+  ctx.fillText(surface, size * 0.62, 6);
 
   ctx.strokeStyle = aiming ? GOLD : "rgb(255 255 255 / 0.4)";
   ctx.lineWidth = aiming ? 3 : 2;
@@ -2408,7 +2410,7 @@ export const createRenderer = (surfaces: {
     paintWorld(ctx, view, frame, palette, sprites.set, water === null, tier);
     ctx.restore();
     if (!frame.shot) {
-      paintHand(ctx, view, sprites.set, frame.tilt, frame.clock);
+      paintHand(ctx, view, sprites.set, frame.tilt, frame.clock, frame.surface);
     }
     paintFilm(ctx, view, tier > 0 ? pattern : null, frame.clock);
   };

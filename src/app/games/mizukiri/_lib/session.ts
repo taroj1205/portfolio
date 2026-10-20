@@ -1,6 +1,9 @@
+import { copy } from "./copy";
 import { traitsOf } from "./cosmetics";
 import type { Item, Part } from "./cosmetics";
 import { listenFlick, tiltAt } from "./flick";
+import { guessLang } from "./i18n";
+import type { Text } from "./i18n";
 import { createRenderer } from "./render";
 import { resultOf } from "./result";
 import type { Result } from "./result";
@@ -45,7 +48,7 @@ export interface Release {
 interface Listeners {
   phase: (phase: Phase) => void;
   release: (release: Release) => void;
-  zone: (name: string) => void;
+  zone: (name: Text) => void;
   beat: (beat: Beat) => void;
   end: (ending: Ending) => void;
   distance: (meters: number) => void;
@@ -205,7 +208,7 @@ export const startSession = (
     const zone = zoneIndex(z);
     if (zone > reached) {
       reached = zone;
-      on.zone(zones[zone]?.name ?? "");
+      on.zone(zones[zone]?.name ?? { en: "", ja: "" });
     }
     if (
       mode === "flying" &&
@@ -230,6 +233,7 @@ export const startSession = (
       tilt: aimFrom === null ? null : tiltAt((now - aimFrom) / 1000),
       time,
       look: save.look,
+      surface: copy[save.settings.lang ?? guessLang()].surface,
     });
     frame = requestAnimationFrame(tick);
   };

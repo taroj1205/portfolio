@@ -1,3 +1,5 @@
+import type { Text } from "./i18n";
+
 export const skies = ["dusk", "dawn", "night"] as const;
 export type Sky = (typeof skies)[number];
 
@@ -25,22 +27,30 @@ export type Coast =
 
 export interface Zone {
   from: number;
-  name: string;
+  name: Text;
   coast: Coast;
 }
 
 export const zones: Zone[] = [
-  { coast: "village", from: 0, name: "里の川" },
-  { coast: "bamboo", from: 300, name: "竹林" },
-  { coast: "sakura", from: 1000, name: "桜並木" },
-  { coast: "maple", from: 2500, name: "紅葉の渓谷" },
-  { coast: "ginkgo", from: 6000, name: "銀杏並木" },
-  { coast: "town", from: 12_000, name: "城下町" },
-  { coast: "snow", from: 25_000, name: "雪の里" },
-  { coast: "firefly", from: 50_000, name: "蛍の沢" },
-  { coast: "sea", from: 100_000, name: "大海原" },
-  { coast: "cloud", from: 250_000, name: "雲海" },
-  { coast: "stars", from: 600_000, name: "天の川" },
+  { coast: "village", from: 0, name: { en: "Village stream", ja: "里の川" } },
+  { coast: "bamboo", from: 300, name: { en: "Bamboo grove", ja: "竹林" } },
+  { coast: "sakura", from: 1000, name: { en: "Cherry lane", ja: "桜並木" } },
+  { coast: "maple", from: 2500, name: { en: "Maple gorge", ja: "紅葉の渓谷" } },
+  {
+    coast: "ginkgo",
+    from: 6000,
+    name: { en: "Ginkgo avenue", ja: "銀杏並木" },
+  },
+  { coast: "town", from: 12_000, name: { en: "Castle town", ja: "城下町" } },
+  { coast: "snow", from: 25_000, name: { en: "Snow village", ja: "雪の里" } },
+  {
+    coast: "firefly",
+    from: 50_000,
+    name: { en: "Firefly creek", ja: "蛍の沢" },
+  },
+  { coast: "sea", from: 100_000, name: { en: "Open sea", ja: "大海原" } },
+  { coast: "cloud", from: 250_000, name: { en: "Sea of clouds", ja: "雲海" } },
+  { coast: "stars", from: 600_000, name: { en: "Milky Way", ja: "天の川" } },
 ];
 
 export const areaOf = (coast: Coast) =>

@@ -16,4 +16,12 @@
   }
 }
 
+:root {
+  --track: 1;
+}
+
+:root:lang(en) {
+  --track: 0.25;
+}
+
 @stylex;

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { codeOf, nameOf, stoneFrom } from "./cosmetics";
 import type { Stone } from "./cosmetics";
+import type { Lang, Text } from "./i18n";
 import { boosts, endings, skies } from "./simulate";
 import type { Boost, Ending, Flight, Sky } from "./simulate";
 
@@ -35,57 +36,104 @@ export const distanceParts = (meters: number): [string, string] => {
 export const formatDistance = (meters: number) =>
   distanceParts(meters).join(" ");
 
-const tiers: [number, string][] = [
-  [10_000, "伝説"],
-  [3000, "仙人"],
-  [1000, "名人"],
-  [300, "上手い"],
-  [60, "いい感じ"],
-  [0, "ちょん、ちょん"],
+const tiers: [number, Text][] = [
+  [10_000, { en: "Legend", ja: "伝説" }],
+  [3000, { en: "Sage", ja: "仙人" }],
+  [1000, { en: "Master", ja: "名人" }],
+  [300, { en: "Skilled", ja: "上手い" }],
+  [60, { en: "Nice", ja: "いい感じ" }],
+  [0, { en: "Skip, skip", ja: "ちょん、ちょん" }],
 ];
 
-const notes: Record<Boost, (times: number) => string> = {
-  duck: (k) => `カモ${k}羽を踏み台に🦆`,
-  fish: () => "鯉に押し出された🐟",
-  lotus: (k) => `蓮の葉で${k}回ポンッ`,
-  rock: (k) => `岩で${k}回カーン`,
+const count = (k: number, word: string) => `${k} ${word}${k === 1 ? "" : "s"}`;
+
+const notes: Record<Lang, Record<Boost, (times: number) => string>> = {
+  en: {
+    duck: (k) => `bounced off ${count(k, "duck")} 🦆`,
+    fish: () => "pushed by a carp 🐟",
+    lotus: (k) => count(k, "lily pad hop"),
+    rock: (k) => count(k, "rock bounce"),
+  },
+  ja: {
+    duck: (k) => `カモ${k}羽を踏み台に🦆`,
+    fish: () => "鯉に押し出された🐟",
+    lotus: (k) => `蓮の葉で${k}回ポンッ`,
+    rock: (k) => `岩で${k}回カーン`,
+  },
 };
 
 const rank: Boost[] = ["fish", "rock", "duck", "lotus"];
 
-export const describe = (result: Result): Story => {
-  const distance = formatDistance(result.distance).replace(" ", "");
-  const tier = tiers.find(([least]) => result.distance >= least)?.[1];
-  const divine = result.quality === 100;
-  if (result.ending === "plop") {
-    return {
-      line: "水切りしたら1回も跳ねなかった",
-      rarity: null,
-      title: "ぽちゃん",
-    };
+const lines: Record<
+  Lang,
+  {
+    plop: Omit<Story, "rarity">;
+    leaf: (skips: number, distance: string, note: string) => Story;
+    flew: (skips: number, distance: string, note: string) => string;
+    divine: (skips: number, distance: string, note: string) => string;
+    rarity: { divine: string; carp: string };
   }
-  const note =
-    result.highlight === null
-      ? ""
-      : `（${notes[result.highlight](result.times)}）`;
-  if (result.ending === "leaf") {
-    return {
-      line: `水切りで${result.skips}回跳ねて${distance}、最後もみじの上で止まった🍁${note}`,
+> = {
+  en: {
+    divine: (skips, distance, note) =>
+      `Perfect throw: ${count(skips, "skip")}, ${distance}${note}`,
+    flew: (skips, distance, note) =>
+      `Skipped a stone ${skips === 1 ? "once" : `${skips} times`} for ${distance}${note}`,
+    leaf: (skips, distance, note) => ({
+      line: `Skipped ${skips} times for ${distance} and came to rest on a maple leaf 🍁${note}`,
+      rarity: "Ultra rare",
+      title: "Rested on a maple leaf",
+    }),
+    plop: { line: "Threw a stone and it never skipped", title: "Plop" },
+    rarity: { carp: "Phantom carp", divine: "Perfect throw" },
+  },
+  ja: {
+    divine: (skips, distance, note) =>
+      `神投げで${skips}回跳ねて${distance}飛んだ${note}`,
+    flew: (skips, distance, note) =>
+      `水切りで${skips}回跳ねて${distance}飛んだ${note}`,
+    leaf: (skips, distance, note) => ({
+      line: `水切りで${skips}回跳ねて${distance}、最後もみじの上で止まった🍁${note}`,
       rarity: "激レア",
       title: "もみじの上で止まった",
-    };
+    }),
+    plop: { line: "水切りしたら1回も跳ねなかった", title: "ぽちゃん" },
+    rarity: { carp: "幻の鯉", divine: "神投げ" },
+  },
+};
+
+export const describe = (result: Result, lang: Lang): Story => {
+  const copy = lines[lang];
+  const distance = formatDistance(result.distance).replace(" ", "");
+  const title = (tiers.find(([least]) => result.distance >= least)?.[1] ?? {
+    en: "Skip, skip",
+    ja: "ちょん、ちょん",
+  })[lang];
+  if (result.ending === "plop") {
+    return { ...copy.plop, rarity: null };
   }
-  if (divine) {
+  const told =
+    result.highlight === null
+      ? ""
+      : notes[lang][result.highlight](result.times);
+  let note = "";
+  if (told !== "") {
+    note = lang === "en" ? ` (${told})` : `（${told}）`;
+  }
+  if (result.ending === "leaf") {
+    return copy.leaf(result.skips, distance, note);
+  }
+  if (result.quality === 100) {
     return {
-      line: `神投げで${result.skips}回跳ねて${distance}飛んだ${note}`,
-      rarity: "神投げ",
-      title: tier ?? "ちょん、ちょん",
+      line: copy.divine(result.skips, distance, note),
+      rarity: copy.rarity.divine,
+      title,
     };
   }
   return {
-    line: `水切りで${result.skips}回跳ねて${distance}飛んだ${note}`,
-    rarity: result.highlight === "fish" ? "幻の鯉" : null,
-    title: tier ?? "ちょん、ちょん",
+    line: copy.flew(result.skips, distance, note),
+    rarity: result.highlight === "fish" ? copy.rarity.carp : null,
+    title,
   };
 };
 
@@ -158,14 +206,21 @@ const queryOf = (result: Result) => {
   return query.toString();
 };
 
-export const postUrl = (result: Result, origin: string) =>
-  `https://x.com/intent/tweet?${new URLSearchParams({
+export const postUrl = (result: Result, origin: string, lang: Lang) => {
+  const query = new URLSearchParams(queryOf(result));
+  query.set("l", lang);
+  const stone =
+    result.stone === null
+      ? null
+      : `${lang === "en" ? "Stone: " : "石："}${nameOf(result.stone, lang)}`;
+  return `https://x.com/intent/tweet?${new URLSearchParams({
     text: [
-      describe(result).line,
-      result.stone === null ? null : `石：${nameOf(result.stone)}`,
-      "#水切り",
+      describe(result, lang).line,
+      stone,
+      lang === "en" ? "#水切り #mizukiri" : "#水切り",
     ]
       .filter((line) => line !== null)
       .join("\n"),
-    url: `${origin}/games/mizukiri?${queryOf(result)}`,
+    url: `${origin}/games/mizukiri?${query.toString()}`,
   }).toString()}`;
+};

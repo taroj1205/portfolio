@@ -1,18 +1,21 @@
 import * as stylex from "@stylexjs/stylex";
 import type { RefObject } from "react";
 
+import type { Copy } from "../_lib/copy";
 import { nameOf } from "../_lib/cosmetics";
+import type { Text } from "../_lib/i18n";
 import { describe, formatDistance } from "../_lib/result";
 import type { Result } from "../_lib/result";
 import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import type { Phase } from "../_lib/session";
 import { glass } from "./glass";
+import { useCopy, useLang } from "./lang";
 import { font, ink, media, shade } from "./theme.stylex";
 
 export interface Popup {
   id: number;
-  text: string;
+  say: (copy: Copy) => string;
   tone: "gold" | "white" | "grey" | "green";
 }
 
@@ -47,10 +50,26 @@ const swipe = stylex.keyframes({
 });
 
 const unveil = stylex.keyframes({
-  "0%": { filter: "blur(10px)", letterSpacing: "0.9em", opacity: 0 },
-  "22%": { filter: "blur(0)", letterSpacing: "0.5em", opacity: 1 },
-  "75%": { filter: "blur(0)", letterSpacing: "0.46em", opacity: 1 },
-  "100%": { filter: "blur(6px)", letterSpacing: "0.42em", opacity: 0 },
+  "0%": {
+    filter: "blur(10px)",
+    letterSpacing: "calc(0.9em * var(--track, 1))",
+    opacity: 0,
+  },
+  "22%": {
+    filter: "blur(0)",
+    letterSpacing: "calc(0.5em * var(--track, 1))",
+    opacity: 1,
+  },
+  "75%": {
+    filter: "blur(0)",
+    letterSpacing: "calc(0.46em * var(--track, 1))",
+    opacity: 1,
+  },
+  "100%": {
+    filter: "blur(6px)",
+    letterSpacing: "calc(0.42em * var(--track, 1))",
+    opacity: 0,
+  },
 });
 
 const throb = stylex.keyframes({
@@ -121,7 +140,7 @@ const styles = stylex.create({
     color: ink.soft,
     display: "block",
     fontSize: "0.7rem",
-    letterSpacing: "0.14em",
+    letterSpacing: "calc(0.14em * var(--track, 1))",
   },
   value: {
     alignItems: "center",
@@ -210,7 +229,7 @@ const styles = stylex.create({
     boxShadow: "0 0 24px rgb(255 210 122 / 0.6)",
     fontSize: "0.8rem",
     fontWeight: 800,
-    letterSpacing: "0.1em",
+    letterSpacing: "calc(0.1em * var(--track, 1))",
     marginTop: "0.6rem",
     paddingBlock: "0.2rem",
     paddingInline: "0.7rem",
@@ -297,7 +316,7 @@ const styles = stylex.create({
     flexDirection: "column",
     gap: "0.4rem",
     insetInline: 0,
-    letterSpacing: "0.18em",
+    letterSpacing: "calc(0.18em * var(--track, 1))",
     position: "absolute",
     textShadow: shade.small,
   },
@@ -344,14 +363,8 @@ const Gear = () => (
   </svg>
 );
 
-const hints: Partial<Record<Phase, string>> = {
-  aiming: "いい角度で、上にはじく",
-  flying: "輪が閉じる瞬間にタップ！",
-  ready: "押したまま、上にはじく",
-};
-
 interface HudProps {
-  banner: { id: number; name: string } | null;
+  banner: { id: number; name: Text } | null;
   phase: Phase;
   skips: number;
   combo: number;
@@ -365,18 +378,66 @@ interface HudProps {
   unitRef: RefObject<HTMLSpanElement | null>;
 }
 
-const Challenge = ({ challenge }: { challenge: Result }) => (
-  <div {...stylex.props(glass.surface, styles.challenge)}>
-    <span {...stylex.props(styles.label)}>届いた記録</span>
-    <p {...stylex.props(styles.challengeTitle)}>
-      {formatDistance(challenge.distance)} · {describe(challenge).title}
-    </p>
-    {challenge.stone === null ? null : (
-      <span {...stylex.props(styles.label)}>石：{nameOf(challenge.stone)}</span>
-    )}
-    <span {...stylex.props(styles.label)}>超えられる？</span>
-  </div>
-);
+const Challenge = ({ challenge }: { challenge: Result }) => {
+  const lang = useLang();
+  const copy = useCopy();
+  return (
+    <div {...stylex.props(glass.surface, styles.challenge)}>
+      <span {...stylex.props(styles.label)}>{copy.challenge.received}</span>
+      <p {...stylex.props(styles.challengeTitle)}>
+        {formatDistance(challenge.distance)} · {describe(challenge, lang).title}
+      </p>
+      {challenge.stone === null ? null : (
+        <span {...stylex.props(styles.label)}>
+          {copy.challenge.stone(nameOf(challenge.stone, lang))}
+        </span>
+      )}
+      <span {...stylex.props(styles.label)}>{copy.challenge.dare}</span>
+    </div>
+  );
+};
+
+const Corner = ({
+  phase,
+  save,
+  onWorkshop,
+  opener,
+}: Pick<HudProps, "phase" | "save" | "onWorkshop" | "opener">) => {
+  const copy = useCopy();
+  return (
+    <div {...stylex.props(styles.corner)}>
+      {save === null || save.best <= 0 ? null : (
+        <p {...stylex.props(styles.stat)}>
+          <span {...stylex.props(styles.label)}>{copy.best}</span>
+          <span {...stylex.props(styles.value)}>
+            {formatDistance(save.best)}
+          </span>
+        </p>
+      )}
+      {save === null ? null : (
+        <p {...stylex.props(styles.stat)}>
+          <span {...stylex.props(styles.label)}>
+            Lv.{progressOf(save.xp).level}
+          </span>
+        </p>
+      )}
+      {phase === "ready" || phase === "done" ? (
+        <button
+          aria-label={copy.openWorkshop}
+          onClick={onWorkshop}
+          ref={opener}
+          type="button"
+          {...stylex.props(glass.surface, styles.mute)}
+        >
+          <Gear />
+          {save !== null && (pointsLeft(save) > 0 || save.unseen.length > 0) ? (
+            <span aria-hidden="true" {...stylex.props(styles.dot)} />
+          ) : null}
+        </button>
+      ) : null}
+    </div>
+  );
+};
 
 export const Hud = ({
   banner,
@@ -392,49 +453,28 @@ export const Hud = ({
   valueRef,
   unitRef,
 }: HudProps) => {
+  const lang = useLang();
+  const copy = useCopy();
   const counting = phase === "flying" || phase === "done";
-  const hint = phase === "flying" && !tutorial ? undefined : hints[phase];
+  const hint =
+    phase === "done" || (phase === "flying" && !tutorial)
+      ? undefined
+      : copy.hints[phase];
   return (
     <div {...stylex.props(styles.root)}>
       <div {...stylex.props(styles.top)}>
         <div {...stylex.props(styles.brand)}>
-          <h1 {...stylex.props(styles.title)}>水切り</h1>
+          <h1 {...stylex.props(styles.title)}>{copy.title}</h1>
           <span aria-hidden="true" {...stylex.props(styles.seal)}>
             石
           </span>
         </div>
-        <div {...stylex.props(styles.corner)}>
-          {save === null || save.best <= 0 ? null : (
-            <p {...stylex.props(styles.stat)}>
-              <span {...stylex.props(styles.label)}>自己ベスト</span>
-              <span {...stylex.props(styles.value)}>
-                {formatDistance(save.best)}
-              </span>
-            </p>
-          )}
-          {save === null ? null : (
-            <p {...stylex.props(styles.stat)}>
-              <span {...stylex.props(styles.label)}>
-                Lv.{progressOf(save.xp).level}
-              </span>
-            </p>
-          )}
-          {phase === "ready" || phase === "done" ? (
-            <button
-              aria-label="石と腕前をひらく"
-              onClick={onWorkshop}
-              ref={opener}
-              type="button"
-              {...stylex.props(glass.surface, styles.mute)}
-            >
-              <Gear />
-              {save !== null &&
-              (pointsLeft(save) > 0 || save.unseen.length > 0) ? (
-                <span aria-hidden="true" {...stylex.props(styles.dot)} />
-              ) : null}
-            </button>
-          ) : null}
-        </div>
+        <Corner
+          onWorkshop={onWorkshop}
+          opener={opener}
+          phase={phase}
+          save={save}
+        />
       </div>
 
       <div
@@ -449,10 +489,10 @@ export const Hud = ({
         </span>
         <span key={skips} {...stylex.props(styles.count)}>
           {skips}
-          <span {...stylex.props(styles.countUnit)}>回</span>
+          <span {...stylex.props(styles.countUnit)}>{copy.skipUnit}</span>
         </span>
         {combo >= 2 ? (
-          <span {...stylex.props(styles.combo)}>×{combo} コンボ</span>
+          <span {...stylex.props(styles.combo)}>{copy.combo(combo)}</span>
         ) : null}
       </div>
 
@@ -462,7 +502,7 @@ export const Hud = ({
           key={popup.id}
           {...stylex.props(styles.shout, styles[popup.tone])}
         >
-          {popup.text}
+          {popup.say(copy)}
         </p>
       )}
 
@@ -473,7 +513,7 @@ export const Hud = ({
           {...stylex.props(styles.banner)}
         >
           <span {...stylex.props(styles.bannerRule)} />
-          <span {...stylex.props(styles.bannerName)}>{banner.name}</span>
+          <span {...stylex.props(styles.bannerName)}>{banner.name[lang]}</span>
           <span {...stylex.props(styles.bannerRule)} />
         </div>
       )}

@@ -1,15 +1,19 @@
 import { Drawer } from "@base-ui/react/drawer";
 import { Switch } from "@base-ui/react/switch";
 import { Tabs } from "@base-ui/react/tabs";
+import { Toggle } from "@base-ui/react/toggle";
+import { ToggleGroup } from "@base-ui/react/toggle-group";
 import * as stylex from "@stylexjs/stylex";
 import type { RefObject } from "react";
 
 import { traitsOf } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
+import type { Lang } from "../_lib/i18n";
 import { pointsLeft, progressOf, skills } from "../_lib/save";
 import type { Save, Settings } from "../_lib/save";
 import { statsOf } from "../_lib/simulate";
 import type { Gear } from "../_lib/simulate";
+import { useCopy, useLang } from "./lang";
 import { Radar } from "./radar";
 import { StoneTab } from "./stone-tab";
 import { font, ink } from "./theme.stylex";
@@ -84,7 +88,7 @@ const styles = stylex.create({
     fontFamily: font.mincho,
     fontSize: "1.2rem",
     fontWeight: 700,
-    letterSpacing: "0.3em",
+    letterSpacing: "calc(0.3em * var(--track, 1))",
     margin: 0,
     textAlign: "center",
   },
@@ -118,7 +122,7 @@ const styles = stylex.create({
     fontFamily: font.mincho,
     fontSize: "0.95rem",
     fontWeight: 700,
-    letterSpacing: "0.2em",
+    letterSpacing: "calc(0.2em * var(--track, 1))",
     minHeight: "2.5rem",
     position: "relative",
     transitionDuration: "200ms",
@@ -168,7 +172,7 @@ const styles = stylex.create({
     fontFamily: font.mincho,
     fontSize: "0.95rem",
     fontWeight: 700,
-    letterSpacing: "0.15em",
+    letterSpacing: "calc(0.15em * var(--track, 1))",
     margin: 0,
   },
   tabDot: {
@@ -202,7 +206,7 @@ const styles = stylex.create({
     color: GOLD,
     fontSize: "0.75rem",
     fontWeight: 800,
-    letterSpacing: "0.08em",
+    letterSpacing: "calc(0.08em * var(--track, 1))",
     paddingBlock: "0.3rem",
     paddingInline: "0.7rem",
   },
@@ -285,7 +289,7 @@ const styles = stylex.create({
     fontFamily: "inherit",
     fontSize: "0.8rem",
     fontWeight: 700,
-    letterSpacing: "0.12em",
+    letterSpacing: "calc(0.12em * var(--track, 1))",
     paddingBlock: "0.55rem",
     paddingInline: "1.2rem",
   },
@@ -318,6 +322,32 @@ const styles = stylex.create({
   thumbOn: {
     translate: "1.35rem 0",
   },
+  segments: {
+    backgroundColor: "rgb(255 255 255 / 0.06)",
+    borderRadius: 999,
+    display: "flex",
+    flexShrink: 0,
+    gap: 2,
+    padding: 3,
+  },
+  segment: {
+    backgroundColor: "transparent",
+    borderRadius: 999,
+    borderWidth: 0,
+    color: ink.soft,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    fontSize: "0.8rem",
+    fontWeight: 700,
+    paddingBlock: "0.45rem",
+    paddingInline: "0.85rem",
+    transitionDuration: "160ms",
+    transitionProperty: "background-color, color",
+  },
+  segmentOn: {
+    backgroundColor: GOLD,
+    color: "#1c1406",
+  },
   howto: {
     color: ink.soft,
     display: "grid",
@@ -329,13 +359,12 @@ const styles = stylex.create({
   },
 });
 
-const TABS = [
-  ["stone", "石"],
-  ["skill", "腕前"],
-  ["setting", "設定"],
-] as const;
+const TABS = ["stone", "skill", "setting"] as const;
 
-const SETTINGS = [["muted", "音を消す", "効果音と川の音"]] as const;
+const LANGUAGES: [Lang, string][] = [
+  ["ja", "日本語"],
+  ["en", "English"],
+];
 
 const closing = (status: string | undefined) =>
   status === "starting" || status === "ending";
@@ -361,6 +390,8 @@ export const Workshop = ({
   onRespec,
   onSettings,
 }: WorkshopProps) => {
+  const lang = useLang();
+  const copy = useCopy();
   const progress = progressOf(save.xp);
   const left = pointsLeft(save);
   const stats = statsOf(save.gear, traitsOf(save.look));
@@ -398,12 +429,12 @@ export const Workshop = ({
           >
             <span aria-hidden="true" {...stylex.props(styles.handle)} />
             <Drawer.Title {...stylex.props(styles.title)}>
-              石と腕前
+              {copy.workshop.title}
             </Drawer.Title>
             <Drawer.Content {...stylex.props(styles.content)}>
               <Tabs.Root defaultValue="stone" {...stylex.props(styles.tabs)}>
                 <Tabs.List {...stylex.props(styles.list)}>
-                  {TABS.map(([value, label]) => (
+                  {TABS.map((value) => (
                     <Tabs.Tab
                       className={(state) =>
                         stylex.props(
@@ -414,7 +445,7 @@ export const Workshop = ({
                       key={value}
                       value={value}
                     >
-                      {label}
+                      {copy.workshop.tabs[value]}
                       {value === "stone" && save.unseen.length > 0 ? (
                         <span
                           aria-hidden="true"
@@ -439,7 +470,7 @@ export const Workshop = ({
                       Lv.{progress.level}
                     </span>
                     <span {...stylex.props(styles.points)}>
-                      振れるポイント {left}
+                      {copy.workshop.points(left)}
                     </span>
                   </div>
                   <div {...stylex.props(styles.bar)}>
@@ -449,15 +480,19 @@ export const Workshop = ({
                   {skills.map((skill) => (
                     <div key={skill.key} {...stylex.props(styles.row)}>
                       <span>
-                        <span {...stylex.props(styles.name)}>{skill.name}</span>
+                        <span {...stylex.props(styles.name)}>
+                          {skill.name[lang]}
+                        </span>
                         <span {...stylex.props(styles.value)}>
                           {save.gear[skill.key]}
                         </span>
-                        <span {...stylex.props(styles.note)}>{skill.note}</span>
+                        <span {...stylex.props(styles.note)}>
+                          {skill.note[lang]}
+                        </span>
                       </span>
                       <span {...stylex.props(styles.stepper)}>
                         <button
-                          aria-label={`${skill.name}を1下げる`}
+                          aria-label={copy.workshop.lower(skill.name[lang])}
                           disabled={save.gear[skill.key] === 0}
                           onClick={() => {
                             onTune(skill.key, -1);
@@ -468,7 +503,7 @@ export const Workshop = ({
                           −
                         </button>
                         <button
-                          aria-label={`${skill.name}を1上げる`}
+                          aria-label={copy.workshop.raise(skill.name[lang])}
                           disabled={left <= 0}
                           onClick={() => {
                             onTune(skill.key, 1);
@@ -486,53 +521,82 @@ export const Workshop = ({
                     type="button"
                     {...stylex.props(styles.ghost)}
                   >
-                    ポイントを全部戻す
+                    {copy.workshop.respec}
                   </button>
                 </Tabs.Panel>
 
                 <Tabs.Panel value="setting" {...stylex.props(styles.panel)}>
-                  {SETTINGS.map(([key, label, note]) => (
-                    <div key={key} {...stylex.props(styles.row)}>
-                      <span>
-                        <span {...stylex.props(styles.name)}>{label}</span>
-                        <span {...stylex.props(styles.note)}>{note}</span>
+                  <div {...stylex.props(styles.row)}>
+                    <span>
+                      <span {...stylex.props(styles.name)}>
+                        {copy.workshop.mute.label}
                       </span>
-                      <Switch.Root
-                        aria-label={label}
-                        checked={save.settings[key]}
+                      <span {...stylex.props(styles.note)}>
+                        {copy.workshop.mute.note}
+                      </span>
+                    </span>
+                    <Switch.Root
+                      aria-label={copy.workshop.mute.label}
+                      checked={save.settings.muted}
+                      className={(state) =>
+                        stylex.props(
+                          styles.switch,
+                          state.checked && styles.switchOn
+                        ).className
+                      }
+                      onCheckedChange={(checked) => {
+                        onSettings({ ...save.settings, muted: checked });
+                      }}
+                    >
+                      <Switch.Thumb
                         className={(state) =>
                           stylex.props(
-                            styles.switch,
-                            state.checked && styles.switchOn
+                            styles.thumb,
+                            state.checked && styles.thumbOn
                           ).className
                         }
-                        onCheckedChange={(checked) => {
-                          onSettings({ ...save.settings, [key]: checked });
-                        }}
-                      >
-                        <Switch.Thumb
+                      />
+                    </Switch.Root>
+                  </div>
+                  <div {...stylex.props(styles.row)}>
+                    <span {...stylex.props(styles.name)}>
+                      {copy.workshop.language}
+                    </span>
+                    <ToggleGroup
+                      aria-label={copy.workshop.language}
+                      onValueChange={([next]) => {
+                        if (next !== undefined) {
+                          onSettings({ ...save.settings, lang: next });
+                        }
+                      }}
+                      value={[lang]}
+                      {...stylex.props(styles.segments)}
+                    >
+                      {LANGUAGES.map(([value, label]) => (
+                        <Toggle
                           className={(state) =>
                             stylex.props(
-                              styles.thumb,
-                              state.checked && styles.thumbOn
+                              styles.segment,
+                              state.pressed && styles.segmentOn
                             ).className
                           }
-                        />
-                      </Switch.Root>
-                    </div>
-                  ))}
+                          key={value}
+                          lang={value}
+                          value={value}
+                        >
+                          {label}
+                        </Toggle>
+                      ))}
+                    </ToggleGroup>
+                  </div>
                   <section {...stylex.props(styles.group)}>
-                    <h3 {...stylex.props(styles.groupName)}>遊び方</h3>
+                    <h3 {...stylex.props(styles.groupName)}>
+                      {copy.workshop.howto}
+                    </h3>
                     <ol {...stylex.props(styles.howto)}>
-                      <li>
-                        押したまま、石の角度を見て上にはじく。角度と速さがぴったりだと神投げ
-                      </li>
-                      <li>
-                        石が着水する瞬間、輪が閉じたところでタップ。金色ならパーフェクト
-                      </li>
-                      <li>
-                        カモ・岩・鯉・蓮の葉に当たると加速。土手に寄りすぎると跳ね返される
-                      </li>
+                      {copy.workshop.steps.map((step) => (
+                        <li key={step}>{step}</li>
+                      ))}
                     </ol>
                   </section>
                 </Tabs.Panel>
