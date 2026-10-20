@@ -267,16 +267,18 @@ export const plain: Traits = {
 };
 
 const span = (value: number, low: number, high: number) =>
-  Math.min(1, Math.max(0, (value - low) / (high - low)));
+  Math.max(0, (value - low) / (high - low));
+
+const earned = (points: number) => 1 - 0.9 ** points + points / (points + 300);
 
 const trained = (gear: Gear, traits: Traits): Traits => ({
   ...traits,
-  impact: traits.impact * (1 + 0.6 * (1 - 0.9 ** gear.impact)),
-  lift: traits.lift * (1 + 0.3 * (1 - 0.9 ** gear.lift)),
+  impact: traits.impact * (1 + 0.6 * earned(gear.impact)),
+  lift: traits.lift * (1 + 0.3 * earned(gear.lift)),
 });
 
 const leeway = (focus: number, scale: number) => {
-  const gained = 1 - 0.92 ** focus;
+  const gained = earned(focus);
   return {
     good: (0.22 + 0.18 * gained) * scale,
     perfect: (0.09 + 0.14 * gained) * scale,
