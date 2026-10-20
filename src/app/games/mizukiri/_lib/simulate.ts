@@ -275,14 +275,18 @@ const trained = (gear: Gear, traits: Traits): Traits => ({
   lift: traits.lift * (1 + 0.3 * (1 - 0.9 ** gear.lift)),
 });
 
+const leeway = (focus: number, scale: number) => {
+  const gained = 1 - 0.92 ** focus;
+  return {
+    good: (0.22 + 0.18 * gained) * scale,
+    perfect: (0.09 + 0.14 * gained) * scale,
+  };
+};
+
 export const statsOf = (gear: Gear, build: Traits) => {
   const traits = trained(gear, build);
   return {
-    focus: span(
-      (0.06 + 0.06 * (1 - 0.9 ** gear.focus)) * traits.focus,
-      0.01,
-      0.135
-    ),
+    focus: span(leeway(gear.focus, traits.focus).perfect, 0.01, 0.25),
     impact: span(traits.impact, 0.2, 2.2),
     keep: span(0.86 + 0.06 * (1 - 0.88 ** gear.stone) + traits.keep, 0.8, 0.95),
     lift: span(traits.lift, 0.4, 1.9),
@@ -314,7 +318,27 @@ const bumped = (flight: Flight, prop: Prop) =>
 
 const contact = (hop: Hop, prop: Solid) => {
   const body = BODY[prop.kind];
-  for (let t = 0; t < hop.end - hop.start; t += STEP) {
+  const { x, z } = hop.velocity;
+  const along = x * x + z * z;
+  const closest =
+    along === 0
+      ? 0
+      : ((prop.x - hop.from.x) * x + (prop.z - hop.from.z) * z) / along;
+  const gap = Math.hypot(
+    hop.from.x + x * closest - prop.x,
+    hop.from.z + z * closest - prop.z
+  );
+  if (gap >= body.radius) {
+    return null;
+  }
+  const reach =
+    along === 0
+      ? Number.POSITIVE_INFINITY
+      : Math.sqrt(body.radius ** 2 - gap ** 2) / Math.sqrt(along);
+  const end = Math.min(hop.end - hop.start, closest + reach);
+  const start = Math.max(0, closest - reach);
+  const step = Math.min(STEP, (end - start) / 16);
+  for (let t = start; t < end; t += step) {
     const p = positionIn(hop, t);
     if (
       Math.abs(p.y - prop.y) < body.half &&
@@ -338,9 +362,6 @@ const finish = (flight: Flight, ending: Ending, at: Vec, rest: Vec | null) => {
   flight.duration = flight.hops.at(-1)?.end ?? 0;
   flight.distance = Math.max(0, (rest ?? at).z);
 };
-
-const capped = (flight: Flight, speed: number) =>
-  Math.min(speed, flight.top * 1.6);
 
 const WALL = 0.4;
 
@@ -465,11 +486,9 @@ export const launch = (
 };
 
 export const windowFor = (flight: Flight) => {
-  const shrink = (1 + flight.skips * 0.06) / flight.focusScale;
-  return {
-    good: (0.18 + 0.1 * (1 - 0.9 ** flight.focus)) / shrink,
-    perfect: (0.06 + 0.06 * (1 - 0.9 ** flight.focus)) / shrink,
-  };
+  const shrink = 1 + flight.skips * 0.06;
+  const { good, perfect } = leeway(flight.focus, flight.focusScale);
+  return { good: good / shrink, perfect: perfect / shrink };
 };
 
 export const nextContact = (flight: Flight) =>
@@ -502,7 +521,7 @@ const GAIN: Record<Grade, (flight: Flight, speed: number) => number> = {
   early: (flight) => flight.keep,
   good: (flight) => Math.min(0.97, flight.keep + 0.06),
   miss: (flight) => flight.keep,
-  perfect: (flight, speed) => (speed < flight.top ? 1.05 : 1),
+  perfect: (flight, speed) => 1 + 0.05 * Math.min(1, flight.top / speed) ** 2,
 };
 
 const rate = (flight: Flight, grade: Grade) => {
@@ -537,11 +556,10 @@ const bounce = (
   const speed = Math.hypot(hop.velocity.x, hop.velocity.z);
   const push =
     (1 + (body.push - 1) * flight.impact) * GAIN[grade](flight, speed);
-  const scale = capped(flight, speed * push) / speed;
   fly(
     flight,
     at,
-    { x: hop.velocity.x * scale, y: body.rise, z: hop.velocity.z * scale },
+    { x: hop.velocity.x * push, y: body.rise, z: hop.velocity.z * push },
     time
   );
 };
@@ -613,20 +631,14 @@ export const land = (flight: Flight, tapAt: number | null) => {
     factor *= 1.4;
     rise = 3;
   }
-  const forward = capped(
-    flight,
-    speed * factor * (1 + (roll(flight) - 0.5) * 0.04)
-  );
+  const forward = speed * factor * (1 + (roll(flight) - 0.5) * 0.04);
   const scale = forward / speed;
   fly(
     flight,
     at,
     {
       x: hop.velocity.x * scale,
-      y:
-        Math.min(4.5, forward * flight.lift) *
-        rise *
-        (1 + (roll(flight) - 0.5) * 0.2),
+      y: forward * flight.lift * rise * (1 + (roll(flight) - 0.5) * 0.2),
       z: hop.velocity.z * scale,
     },
     time

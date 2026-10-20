@@ -621,7 +621,7 @@ export const comboOf = ({ color, form }: Stone) =>
   combos.find((combo) => combo.color === color && combo.form === form) ?? null;
 
 const STEP: Record<Axis, number> = {
-  focus: 0.045,
+  focus: 0.09,
   impact: 0.25,
   keep: 0.0045,
   lift: 0.12,

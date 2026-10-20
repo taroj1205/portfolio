@@ -117,6 +117,27 @@ describe("flight", () => {
     assert.equal(isLate(flight, landedAt, next - 0.01), false);
   });
 
+  test("every focus point and focus perk widens the tap window", () => {
+    const perfectAt = (focus: number, scale = 1) =>
+      windowFor(
+        launch(
+          createRiver(3),
+          flat,
+          { ...bare, focus },
+          { ...plain, focus: scale }
+        )
+      ).perfect;
+    assert.ok(perfectAt(1) >= perfectAt(0) * 1.1);
+    assert.ok(perfectAt(0) >= 0.09);
+    for (let focus = 1; focus <= 10; focus += 1) {
+      assert.ok(perfectAt(focus) > perfectAt(focus - 1));
+    }
+    assert.ok(perfectAt(0, 1.09) >= perfectAt(0) * 1.09);
+    assert.ok(
+      statsOf({ ...bare, focus: 10 }, plain).focus > statsOf(bare, plain).focus
+    );
+  });
+
   test("a tap before a duck or rock is graded like a touch, and bends the bounce", () => {
     let struck = 0;
     for (let seed = 1; seed <= 200; seed += 1) {
@@ -133,6 +154,24 @@ describe("flight", () => {
       assert.ok(perfect.speed > (early?.speed ?? Number.POSITIVE_INFINITY));
     }
     assert.ok(struck > 0);
+  });
+
+  test("a well-timed run keeps getting faster and hopping higher with no ceiling", () => {
+    let pastOldCap = false;
+    let highest = 0;
+    let longest = 0;
+    for (let seed = 1; seed <= 30; seed += 1) {
+      const flight = play(launch(createRiver(seed), flat, bare), 0.03);
+      for (const hop of flight.hops) {
+        const speed = Math.hypot(hop.velocity.x, hop.velocity.z);
+        pastOldCap ||= speed > flight.top * 1.6;
+        highest = Math.max(highest, hop.velocity.y);
+        longest = Math.max(longest, hop.end - hop.start);
+      }
+    }
+    assert.ok(pastOldCap);
+    assert.ok(highest > 4.5);
+    assert.ok(longest > 1.5);
   });
 
   test("a bounce does not count as a skip", () => {
