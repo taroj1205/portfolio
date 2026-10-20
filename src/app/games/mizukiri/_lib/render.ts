@@ -1350,6 +1350,9 @@ const paintBursts = (
       ctx.lineTo(p.x + Math.cos(a) * long, p.y + Math.sin(a) * long);
       ctx.stroke();
     }
+    if (splash.y > 0) {
+      continue;
+    }
     const ring = (0.4 + age * 6) * p.s;
     ctx.lineWidth = Math.max(1.2, 0.05 * p.s * fade);
     ctx.beginPath();
