@@ -8,20 +8,26 @@ import {
   colorOf,
   comboOf,
   combos,
-  conditionOf,
   formOf,
-  isOpen,
-  keyOf,
   nameOf,
-  noteOf,
   parts,
-  peaksOf,
-  traitsOf,
 } from "../_lib/cosmetics";
 import type { Option, Part } from "../_lib/cosmetics";
-import { foundOf, unlocksOf } from "../_lib/save";
-import type { Save } from "../_lib/save";
-import { statsOf } from "../_lib/simulate";
+import {
+  comboPerksOf,
+  conditionOf,
+  foundOf,
+  isUnlocked,
+  keyOf,
+  peaksOf,
+  perksNote,
+  perksOf,
+  scoresOf,
+  statsOf,
+  traitsOf as journeyTraits,
+  unlockOf,
+} from "../_lib/journey";
+import type { JourneySave, Save } from "../_lib/save";
 import { stoneSprite } from "../_lib/sprites";
 import { useCopy, useLang } from "./lang";
 import { Preview } from "./preview";
@@ -54,6 +60,9 @@ const styles = stylex.create({
   },
   stageRadar: {
     minWidth: 0,
+  },
+  stageSolo: {
+    gridTemplateColumns: "1fr",
   },
   stone: {
     display: "block",
@@ -272,24 +281,29 @@ interface TilesProps {
 const Tiles = ({ part, options, save, onPeek, onWear }: TilesProps) => {
   const lang = useLang();
   const copy = useCopy();
-  const unlocked = unlocksOf(save);
-  const open = options.filter((option) => isOpen(option.unlock, unlocked));
+  const journey = save.mode === "journey";
+  const open = journey
+    ? options.filter((option) => isUnlocked(save, part, option))
+    : options;
   return (
     <section {...stylex.props(styles.group)}>
-      <div {...stylex.props(styles.groupHead)}>
-        <span {...stylex.props(styles.small)}>
-          {copy.workshop.opened(open.length, options.length)}
-        </span>
-        {part === "color" || part === "form" ? (
-          <span {...stylex.props(styles.small)}>{copy.workshop.shifts}</span>
-        ) : null}
-      </div>
+      {journey ? (
+        <div {...stylex.props(styles.groupHead)}>
+          <span {...stylex.props(styles.small)}>
+            {copy.workshop.opened(open.length, options.length)}
+          </span>
+          {part === "color" || part === "form" ? (
+            <span {...stylex.props(styles.small)}>{copy.workshop.shifts}</span>
+          ) : null}
+        </div>
+      ) : null}
       <div {...stylex.props(styles.grid)}>
         {options.map((option) => {
           const available = open.includes(option);
           const worn = save.look[part] === option.id;
+          const perks = journey ? perksOf(part, option.id) : undefined;
           const peek =
-            option.perks !== undefined && available
+            perks !== undefined && available
               ? () => {
                   onPeek({ id: option.id, part });
                 }
@@ -317,7 +331,7 @@ const Tiles = ({ part, options, save, onPeek, onWear }: TilesProps) => {
                 !available && styles.locked
               )}
             >
-              {save.unseen.includes(keyOf({ option, part })) ? (
+              {journey && save.unseen.includes(keyOf({ option, part })) ? (
                 <span {...stylex.props(styles.unseen)}>NEW</span>
               ) : null}
               <Preview option={option} part={part} />
@@ -326,12 +340,12 @@ const Tiles = ({ part, options, save, onPeek, onWear }: TilesProps) => {
               </span>
               {available ? null : (
                 <span {...stylex.props(styles.lock)}>
-                  {conditionOf(option.unlock, lang)}
+                  {conditionOf(unlockOf(part, option), lang)}
                 </span>
               )}
-              {available && option.perks !== undefined ? (
+              {available && perks !== undefined ? (
                 <span {...stylex.props(styles.tileNote)}>
-                  {noteOf(peaksOf(option.perks), lang)}
+                  {perksNote(peaksOf(perks), lang)}
                 </span>
               ) : null}
             </button>
@@ -346,7 +360,7 @@ const Combos = ({
   save,
   onWearCombo,
 }: {
-  save: Save;
+  save: JourneySave;
   onWearCombo: (id: string) => void;
 }) => {
   const lang = useLang();
@@ -389,7 +403,7 @@ const Combos = ({
                 </span>
                 {known ? (
                   <span {...stylex.props(styles.tileNote)}>
-                    {noteOf(entry.perks, lang)}
+                    {perksNote(comboPerksOf(entry), lang)}
                   </span>
                 ) : null}
               </button>
@@ -401,10 +415,7 @@ const Combos = ({
   );
 };
 
-const SECTIONS: [string, Text][] = [
-  ...parts.map(({ part, name }): [string, Text] => [part, name]),
-  ["combo", { en: "Combos", ja: "相性" }],
-];
+const COMBO_SECTION: [string, Text] = ["combo", { en: "Combos", ja: "相性" }];
 
 export const StoneTab = ({
   save,
@@ -419,13 +430,23 @@ export const StoneTab = ({
   const copy = useCopy();
   const [peek, setPeek] = useState<Peek>(null);
   const { color, form, pattern } = save.look;
-  const stats = statsOf(save.gear, traitsOf(save.look));
+  const sections = [
+    ...parts.map(({ part, name }): [string, Text] => [part, name]),
+    ...(save.mode === "journey" ? [COMBO_SECTION] : []),
+  ];
+  const stats =
+    save.mode === "journey"
+      ? statsOf(journeyTraits(save.gear, save.look))
+      : null;
   const ghost =
-    peek === null || save.look[peek.part] === peek.id
-      ? null
-      : statsOf(save.gear, traitsOf({ ...save.look, [peek.part]: peek.id }));
+    save.mode === "journey" && peek !== null && save.look[peek.part] !== peek.id
+      ? statsOf(
+          journeyTraits(save.gear, { ...save.look, [peek.part]: peek.id })
+        )
+      : null;
   const combo = comboOf(save.look);
   const fresh = (section: string) =>
+    save.mode === "journey" &&
     save.unseen.some((key) => key.startsWith(`${section}:`));
 
   const paintStone = (canvas: HTMLCanvasElement | null) => {
@@ -439,7 +460,9 @@ export const StoneTab = ({
   return (
     <>
       <div {...stylex.props(styles.stage)}>
-        <div {...stylex.props(styles.stageRow)}>
+        <div
+          {...stylex.props(styles.stageRow, stats === null && styles.stageSolo)}
+        >
           <canvas
             aria-hidden="true"
             height={160}
@@ -447,23 +470,25 @@ export const StoneTab = ({
             width={256}
             {...stylex.props(styles.stone)}
           />
-          <div {...stylex.props(styles.stageRadar)}>
-            <Radar preview={ghost} stats={stats} />
-          </div>
+          {stats === null ? null : (
+            <div {...stylex.props(styles.stageRadar)}>
+              <Radar levels={stats} preview={ghost} shown={scoresOf(stats)} />
+            </div>
+          )}
         </div>
         <span {...stylex.props(styles.caption)}>{nameOf(save.look, lang)}</span>
-        {combo === null ? null : (
+        {combo === null || save.mode !== "journey" ? null : (
           <span {...stylex.props(styles.comboLine)}>
-            {copy.workshop.bonus(noteOf(combo.perks, lang))}
+            {copy.workshop.bonus(perksNote(comboPerksOf(combo), lang))}
           </span>
         )}
       </div>
       <Tabs.Root
-        defaultValue={SECTIONS.find(([key]) => fresh(key))?.[0] ?? "form"}
+        defaultValue={sections.find(([key]) => fresh(key))?.[0] ?? "form"}
         {...stylex.props(styles.sections)}
       >
         <Tabs.List {...stylex.props(styles.chips)}>
-          {SECTIONS.map(([key, label]) => (
+          {sections.map(([key, label]) => (
             <Tabs.Tab
               className={(state) =>
                 stylex.props(styles.chip, state.active && styles.chipActive)
@@ -494,9 +519,11 @@ export const StoneTab = ({
             />
           </Tabs.Panel>
         ))}
-        <Tabs.Panel value="combo" {...stylex.props(styles.scroller)}>
-          <Combos onWearCombo={onWearCombo} save={save} />
-        </Tabs.Panel>
+        {save.mode === "journey" ? (
+          <Tabs.Panel value="combo" {...stylex.props(styles.scroller)}>
+            <Combos onWearCombo={onWearCombo} save={save} />
+          </Tabs.Panel>
+        ) : null}
       </Tabs.Root>
     </>
   );

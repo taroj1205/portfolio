@@ -90,13 +90,6 @@ export interface River {
   sky: Sky;
   shore: number;
 }
-export interface Gear {
-  power: number;
-  stone: number;
-  lift: number;
-  focus: number;
-  impact: number;
-}
 export interface ThrowInput {
   speed: number;
   tilt: number;
@@ -139,8 +132,9 @@ export interface Flight {
   duration: number;
   distance: number;
   rest: Vec | null;
-  focus: number;
   focusScale: number;
+  good: number;
+  perfect: number;
   impact: number;
   keep: number;
   lift: number;
@@ -257,65 +251,23 @@ export interface Traits {
   lift: number;
   focus: number;
   impact: number;
+  top: number;
+  good: number;
+  perfect: number;
 }
 
-export interface Build extends Traits {
-  boost: Gear;
-}
-
-export const plain: Build = {
-  boost: { focus: 1, impact: 1, lift: 1, power: 1, stone: 1 },
+export const plain: Traits = {
   focus: 1,
+  good: 0.22,
   impact: 1,
   keep: 0,
   lift: 1,
+  perfect: 0.09,
   speed: 1,
+  top: 30,
 };
 
-const span = (value: number, low: number, high: number) =>
-  Math.max(0, (value - low) / (high - low));
-
-const earned = (points: number) =>
-  0.6 * (1 - 0.9 ** points) + 2.4 * Math.log1p(points / 40);
-
-const eased = (points: number) => {
-  const total = earned(points);
-  return total / (total + 1);
-};
-
-const worth = (gear: Gear, { boost }: Build): Gear => ({
-  focus: gear.focus * boost.focus,
-  impact: gear.impact * boost.impact,
-  lift: gear.lift * boost.lift,
-  power: gear.power * boost.power,
-  stone: gear.stone * boost.stone,
-});
-
-const leeway = (points: number) => {
-  const gained = eased(points);
-  return { good: 0.22 + 0.18 * gained, perfect: 0.09 + 0.14 * gained };
-};
-
-const grit = (points: number, hold: number) =>
-  0.8 + 0.06 * hold + 0.085 * eased(points);
-
-const trained = (gear: Gear, traits: Traits): Traits => ({
-  ...traits,
-  impact: traits.impact * (1 + 0.6 * earned(gear.impact)),
-  lift: traits.lift * (1 + 0.3 * earned(gear.lift)),
-});
-
-export const statsOf = (gear: Gear, build: Build) => {
-  const points = worth(gear, build);
-  const traits = trained(points, build);
-  return {
-    focus: span(leeway(points.focus).perfect * traits.focus, 0.01, 0.25),
-    impact: span(traits.impact, 0.2, 2.2),
-    keep: span(grit(points.stone, 1) + traits.keep, 0.8, 0.95),
-    lift: span(traits.lift, 0.4, 1.9),
-    speed: span((1 + 0.15 * points.power) * traits.speed, 0.2, 2.2),
-  };
-};
+const grit = (hold: number) => 0.8 + 0.06 * hold;
 
 export const qualityOf = (input: ThrowInput) => {
   const angle = Math.exp(-(((input.tilt - 20) / 6) ** 2));
@@ -461,18 +413,11 @@ const fly = (flight: Flight, from: Vec, velocity: Vec, start: number): void => {
 export const launch = (
   river: River,
   input: ThrowInput,
-  base: Gear,
-  build = plain
+  traits: Traits = plain
 ): Flight => {
-  const gear = worth(base, build);
-  const traits = trained(gear, build);
   const hold = grip(input.tilt);
   const quality = qualityOf(input);
-  const speed =
-    input.speed *
-    (1 + 0.15 * gear.power) *
-    traits.speed *
-    (1 + 4 * (quality / 100) ** 8);
+  const speed = input.speed * traits.speed * (1 + 4 * (quality / 100) ** 8);
   const flight: Flight = {
     bestCombo: 0,
     bumps: [],
@@ -480,13 +425,14 @@ export const launch = (
     distance: 0,
     duration: 0,
     ending: null,
-    focus: gear.focus,
-    hops: [],
     focusScale: traits.focus,
+    good: traits.good,
+    hops: [],
     impact: traits.impact,
-    keep: grit(gear.stone, hold) + traits.keep,
+    keep: grit(hold) + traits.keep,
     lift: (0.04 + 0.0035 * Math.max(0, input.tilt)) * traits.lift,
     pending: null,
+    perfect: traits.perfect,
     quality,
     rest: null,
     river,
@@ -494,7 +440,7 @@ export const launch = (
     skips: 0,
     splashes: [],
     tilt: input.tilt,
-    top: 30 * (1 + 0.15 * gear.power),
+    top: traits.top,
   };
   fly(
     flight,
@@ -511,8 +457,7 @@ export const launch = (
 
 export const windowFor = (flight: Flight) => {
   const shrink = (1 + flight.skips * 0.06) / flight.focusScale;
-  const { good, perfect } = leeway(flight.focus);
-  return { good: good / shrink, perfect: perfect / shrink };
+  return { good: flight.good / shrink, perfect: flight.perfect / shrink };
 };
 
 export const nextContact = (flight: Flight) =>

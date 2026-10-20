@@ -4,10 +4,16 @@ import Link from "next/link";
 import { glass } from "../../_components/glass";
 import { ShareButton } from "../../_components/share-button";
 import { font, ink, media } from "../../_components/theme.stylex";
-import { keyOf, noteOf, parts } from "../_lib/cosmetics";
+import { parts } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
+import {
+  keyOf,
+  perksNote,
+  perksOf,
+  pointsLeft,
+  progressOf,
+} from "../_lib/journey";
 import { describe, distanceParts, shareOf, toKmh } from "../_lib/result";
-import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import type { Landing } from "../_lib/session";
 import { useCopy, useLang } from "./lang";
@@ -332,14 +338,15 @@ export const ResultSheet = ({
   onWear,
   onWorkshop,
 }: ResultSheetProps) => {
-  const { result, record, gained, climbed, combo, topSpeed, unlocked } =
-    landing;
+  const { result, record, combo, topSpeed, gain } = landing;
   const lang = useLang();
   const copy = useCopy();
   const story = describe(result, lang);
   const [value, unit] = distanceParts(result.distance);
-  const progress = progressOf(save.xp);
-  const left = pointsLeft(save);
+  const progress = save.mode === "journey" ? progressOf(save.xp) : null;
+  const left = save.mode === "journey" ? pointsLeft(save) : 0;
+  const climbed = gain?.climbed ?? 0;
+  const unlocked = gain?.unlocked ?? [];
   return (
     <section aria-live="polite" {...stylex.props(glass.surface, styles.sheet)}>
       <div {...stylex.props(styles.badges)}>
@@ -353,7 +360,7 @@ export const ResultSheet = ({
             {copy.result.record}
           </span>
         ) : null}
-        {climbed > 0 ? (
+        {climbed > 0 && progress !== null ? (
           <span {...stylex.props(styles.badge, styles.gold)}>
             {copy.result.levelUp} Lv.{progress.level}
           </span>
@@ -397,9 +404,9 @@ export const ResultSheet = ({
                   <span {...stylex.props(styles.name)}>
                     {option.name[lang]}
                   </span>
-                  {option.perks === undefined ? null : (
+                  {perksOf(part, option.id) === undefined ? null : (
                     <span {...stylex.props(styles.note)}>
-                      {noteOf(option.perks, lang)}
+                      {perksNote(perksOf(part, option.id) ?? {}, lang)}
                     </span>
                   )}
                 </span>
@@ -435,7 +442,7 @@ export const ResultSheet = ({
         </button>
       </div>
 
-      {climbed > 0 ? (
+      {climbed > 0 && progress !== null ? (
         <div {...stylex.props(styles.levelUp)}>
           <span {...stylex.props(styles.levelLabel)}>
             {copy.result.levelUp}
@@ -446,19 +453,21 @@ export const ResultSheet = ({
           </span>
         </div>
       ) : null}
-      <div {...stylex.props(styles.section)}>
-        <div {...stylex.props(styles.head)}>
-          <h3 {...stylex.props(styles.heading)}>Lv.{progress.level}</h3>
-          <span {...stylex.props(styles.small)}>
-            {copy.result.xp(gained.toLocaleString(copy.locale))}
-          </span>
+      {gain !== null && progress !== null ? (
+        <div {...stylex.props(styles.section)}>
+          <div {...stylex.props(styles.head)}>
+            <h3 {...stylex.props(styles.heading)}>Lv.{progress.level}</h3>
+            <span {...stylex.props(styles.small)}>
+              {copy.result.xp(gain.gained.toLocaleString(copy.locale))}
+            </span>
+          </div>
+          <div {...stylex.props(styles.bar)}>
+            <div
+              {...stylex.props(styles.barFill, styles.barWidth(progress.part))}
+            />
+          </div>
         </div>
-        <div {...stylex.props(styles.bar)}>
-          <div
-            {...stylex.props(styles.barFill, styles.barWidth(progress.part))}
-          />
-        </div>
-      </div>
+      ) : null}
 
       <Link href={`/${lang}`} {...stylex.props(styles.maker)}>
         {copy.result.maker}

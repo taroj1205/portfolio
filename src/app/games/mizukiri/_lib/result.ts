@@ -2,10 +2,15 @@ import { z } from "zod";
 
 import type { Lang, Text } from "../../_lib/i18n";
 import type { Share } from "../../_lib/share";
+import { copy as gameCopy } from "./copy";
 import { codeOf, nameOf, stoneFrom } from "./cosmetics";
 import type { Stone } from "./cosmetics";
+import { progressOf } from "./journey";
+import type { Save } from "./save";
 import { boosts, endings, skies } from "./simulate";
 import type { Boost, Ending, Flight, Sky } from "./simulate";
+import { noteOf, tuningCode, tuningFrom } from "./tuning";
+import type { Tuning } from "./tuning";
 
 export interface Result {
   skips: number;
@@ -16,6 +21,9 @@ export interface Result {
   times: number;
   quality: number;
   stone: Stone | null;
+  tuning: Tuning | null;
+  journey: boolean;
+  level: number | null;
 }
 
 interface Story {
@@ -148,7 +156,7 @@ export const describe = (result: Result, lang: Lang): Story => {
   };
 };
 
-export const resultOf = (flight: Flight, stone: Stone): Result => {
+export const resultOf = (flight: Flight, save: Save): Result => {
   const counts = new Map<Boost, number>();
   for (const bump of flight.splashes) {
     if (bump.event !== null && bump.event !== "wall") {
@@ -160,11 +168,14 @@ export const resultOf = (flight: Flight, stone: Stone): Result => {
     distance: Math.round(flight.distance * 10) / 10,
     ending: flight.ending ?? "sink",
     highlight,
+    journey: save.mode === "journey",
+    level: save.mode === "journey" ? progressOf(save.xp).level : null,
     quality: flight.quality,
     skips: flight.skips,
     sky: flight.river.sky,
-    stone: { color: stone.color, form: stone.form },
+    stone: { color: save.look.color, form: save.look.form },
     times: highlight === null ? 0 : (counts.get(highlight) ?? 0),
+    tuning: save.mode === "duel" ? save.tuning : null,
   };
 };
 
@@ -172,11 +183,14 @@ const shared = z.object({
   b: z.string().max(40).optional(),
   e: z.enum(endings),
   h: z.enum(boosts).optional(),
+  j: z.literal("1").optional(),
   k: z.coerce.number().int().min(0).max(100_000).optional(),
+  lv: z.coerce.number().int().min(0).max(9999).optional(),
   m: z.coerce.number().min(0).max(100_000_000),
   n: z.coerce.number().int().min(0).max(1_000_000),
   q: z.coerce.number().int().min(0).max(100).optional(),
   s: z.enum(skies),
+  t: z.string().max(40).optional(),
 });
 
 export const readResult = (
@@ -186,16 +200,19 @@ export const readResult = (
   if (!parsed.success) {
     return null;
   }
-  const { b, e, h, k, m, n, q, s } = parsed.data;
+  const { b, e, h, j, k, lv, m, n, q, s, t } = parsed.data;
   return {
     distance: m,
     ending: e,
     highlight: h ?? null,
+    journey: j !== undefined,
+    level: j === undefined ? null : (lv ?? null),
     quality: q ?? 0,
     skips: n,
     sky: s,
     stone: b === undefined ? null : stoneFrom(b),
     times: h === undefined ? 0 : (k ?? 1),
+    tuning: t === undefined ? null : tuningFrom(t),
   };
 };
 
@@ -210,11 +227,25 @@ export const queryOf = (result: Result) => {
   if (result.stone !== null) {
     query.set("b", codeOf(result.stone));
   }
+  if (result.tuning !== null) {
+    query.set("t", tuningCode(result.tuning));
+  }
+  if (result.journey) {
+    query.set("j", "1");
+    if (result.level !== null) {
+      query.set("lv", String(result.level));
+    }
+  }
   if (result.highlight !== null) {
     query.set("h", result.highlight);
     query.set("k", String(result.times));
   }
   return query.toString();
+};
+
+export const journeyTag = (level: number | null, lang: Lang) => {
+  const { name } = gameCopy[lang].workshop.mode.journey;
+  return level === null ? name : `${name} Lv.${level}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
@@ -224,10 +255,21 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
     result.stone === null
       ? null
       : `${lang === "en" ? "Stone: " : "石："}${nameOf(result.stone, lang)}`;
+  const told = describe(result, lang).line;
+  let post = told;
+  if (result.journey) {
+    const tag = journeyTag(result.level, lang);
+    post = lang === "en" ? `[${tag}] ${told}` : `【${tag}】${told}`;
+  }
+  const build =
+    result.tuning === null
+      ? null
+      : `${lang === "en" ? "Tuning: " : "配分："}${noteOf(result.tuning, lang)}`;
   return {
     text: [
-      describe(result, lang).line,
+      post,
       stone,
+      build,
       lang === "en" ? "#天の川水切り #SkipToTheMilkyWay" : "#天の川水切り",
     ]
       .filter((line) => line !== null)

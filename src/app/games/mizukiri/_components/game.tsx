@@ -105,6 +105,7 @@ export const Game = ({
   challenge: Result | null;
   hint: Lang | null;
 }) => {
+  const duelOnly = challenge !== null && !challenge.journey;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const waterRef = useRef<HTMLCanvasElement>(null);
   const meterValue = useRef<HTMLSpanElement>(null);
@@ -188,13 +189,14 @@ export const Game = ({
                 shouts.current += 1;
                 setBanner({ id: shouts.current, name });
               },
-            }
+            },
+            duelOnly
           );
     return () => {
       session.current?.stop();
       session.current = null;
     };
-  }, []);
+  }, [duelOnly]);
 
   let lang: Lang = hint ?? "ja";
   if (settings !== null) {
@@ -217,7 +219,9 @@ export const Game = ({
       </canvas>
       <Hud
         banner={banner}
-        challenge={thrown ? null : challenge}
+        challenge={
+          thrown || (save !== null && save.mode !== "duel") ? null : challenge
+        }
         onReset={() => session.current?.again()}
         onWorkshop={() => {
           setWorkshop(true);
@@ -250,8 +254,10 @@ export const Game = ({
             setWorkshop(false);
             session.current?.seen();
           }}
+          onMode={(next) => session.current?.switchMode(next)}
           onRespec={() => session.current?.respec()}
           onSettings={(next) => session.current?.settings(next)}
+          onTrain={(key, step) => session.current?.train(key, step)}
           onTune={(key, step) => session.current?.tune(key, step)}
           onWear={(part, id) => session.current?.wear(part, id)}
           onWearCombo={(id) => session.current?.wearCombo(id)}

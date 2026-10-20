@@ -1,24 +1,21 @@
 import { z } from "zod";
 
 import { createStore } from "../../_lib/storage";
-import {
-  colorOf,
-  comboOf,
-  combos,
-  firstLook,
-  formOf,
-  isOpen,
-  keyOf,
-  opened,
-  parts,
-} from "./cosmetics";
-import type { Combo, Item, Part, Progress } from "./cosmetics";
-import { endings, events, grades, topSpeed, zoneIndex } from "./simulate";
-import type { Flight, Gear } from "./simulate";
+import { comboOf, firstLook, parts } from "./cosmetics";
+import type { Part } from "./cosmetics";
+import { foundOf, isUnlocked, noGear } from "./journey";
+import { endings, events, grades, topSpeed } from "./simulate";
+import type { Flight } from "./simulate";
+import { flatTuning, tuningOrFlat } from "./tuning";
 
-const KEY = "mizukiri.v3";
-const level = z.number().int().min(0).max(9999);
+const KEY = "mizukiri.v4";
+const LEGACY_KEY = "mizukiri.v3";
 const count = z.number().int().min(0);
+const level = z.number().int().min(0).max(9999);
+
+export const modes = ["duel", "journey"] as const;
+
+export type Mode = (typeof modes)[number];
 
 const tally = z.object({
   airtime: z.number().min(0).default(0),
@@ -34,128 +31,136 @@ const tally = z.object({
   skips: count.default(0),
 });
 
-const schema = z
-  .object({
-    best: z.number().min(0),
-    combo: z.number().int().min(0),
-    divine: z.boolean(),
-    gear: z.object({
-      focus: level,
-      impact: level.default(0),
-      lift: level.default(0),
-      power: level,
-      stone: level,
-    }),
-    look: z.object({
-      color: z.string(),
-      form: z.string(),
-      pattern: z.string(),
-      trail: z.string(),
-    }),
-    runs: z.number().int().min(0),
-    tally: tally.prefault({}),
-    unseen: z.array(z.string()).default([]),
-    xp: z.number().min(0),
-  })
-  .transform((save) => ({
-    ...save,
-    tally: {
-      ...save.tally,
-      distance: Math.max(save.tally.distance, save.best),
-    },
-  }));
+const profile = z.object({
+  best: z.number().min(0),
+  combo: z.number().int().min(0),
+  divine: z.boolean(),
+  look: z.object({
+    color: z.string(),
+    form: z.string(),
+    pattern: z.string(),
+    trail: z.string(),
+  }),
+  runs: z.number().int().min(0),
+  tally: tally.prefault({}),
+});
 
-export type Save = z.infer<typeof schema>;
+const training = {
+  gear: z.object({
+    focus: level,
+    impact: level.default(0),
+    lift: level.default(0),
+    power: level,
+    stone: level,
+  }),
+  unseen: z.array(z.string()).default([]),
+  xp: z.number().min(0),
+};
+
+const countsBest = <T extends { best: number; tally: { distance: number } }>(
+  entry: T
+): T => ({
+  ...entry,
+  tally: {
+    ...entry.tally,
+    distance: Math.max(entry.tally.distance, entry.best),
+  },
+});
+
+const profiles = z.object({
+  duel: profile.extend({ tuning: tuningOrFlat }).transform(countsBest),
+  journey: profile.extend(training).transform(countsBest),
+  mode: z.enum(modes),
+});
+
+const legacy = profile.extend(training).transform(countsBest);
+
+export type Profiles = z.infer<typeof profiles>;
+
+export type DuelSave = Profiles["duel"] & { mode: "duel" };
+
+export type JourneySave = Profiles["journey"] & { mode: "journey" };
+
+export type Save = DuelSave | JourneySave;
 
 type Tally = Save["tally"];
 
-const fresh: Save = {
+const freshProfile = {
   best: 0,
   combo: 0,
   divine: false,
-  gear: { focus: 0, impact: 0, lift: 0, power: 0, stone: 0 },
   look: firstLook,
   runs: 0,
   tally: tally.parse({}),
-  unseen: [],
-  xp: 0,
 };
 
-const store = createStore(KEY, schema, fresh);
-
-export const loadSave = store.read;
-
-export const storeSave = store.write;
-
-const needFor = (target: number) => Math.round(150 * target ** 1.8);
-
-export const progressOf = (xp: number) => {
-  let reached = 0;
-  while (xp >= needFor(reached + 1)) {
-    reached += 1;
-  }
-  const floor = needFor(reached);
-  const ceiling = needFor(reached + 1);
-  return { level: reached, part: (xp - floor) / (ceiling - floor) };
+const fresh: Profiles = {
+  duel: { ...freshProfile, tuning: flatTuning },
+  journey: { ...freshProfile, gear: noGear, unseen: [], xp: 0 },
+  mode: "duel",
 };
 
-export const unlocksOf = (save: Save): Progress => ({
-  combo: save.combo,
-  divine: save.divine,
-  level: progressOf(save.xp).level,
-  zone: zoneIndex(save.best),
+const current = createStore<Profiles | null>(KEY, profiles.nullable(), null);
+
+const previous = createStore<z.infer<typeof legacy> | null>(
+  LEGACY_KEY,
+  legacy.nullable(),
+  null
+);
+
+const carriedOver = (older: z.infer<typeof legacy>): Profiles => ({
+  duel: { ...fresh.duel, look: older.look },
+  journey: older,
+  mode: "journey",
 });
 
-export const pointsLeft = (save: Save) =>
-  Math.max(
-    0,
-    progressOf(save.xp).level -
-      Object.values(save.gear).reduce((sum, points) => sum + points, 0)
-  );
-
-export const tune = (
-  save: Save,
-  key: keyof Gear,
-  step: 1 | -1
-): Save | null => {
-  if (step === 1 && pointsLeft(save) <= 0) {
-    return null;
+export const loadProfiles = (): Profiles => {
+  const saved = current.read();
+  if (saved !== null) {
+    return saved;
   }
-  if (step === -1 && save.gear[key] === 0) {
-    return null;
-  }
-  return { ...save, gear: { ...save.gear, [key]: save.gear[key] + step } };
+  const older = previous.read();
+  return older === null ? fresh : carriedOver(older);
 };
 
-export const respec = (save: Save): Save => ({
-  ...save,
-  gear: { focus: 0, impact: 0, lift: 0, power: 0, stone: 0 },
-});
+export const storeProfiles = current.write;
 
-export const wear = (save: Save, part: Part, id: string): Save | null => {
+export const viewOf = (all: Profiles): Save =>
+  all.mode === "duel"
+    ? { ...all.duel, mode: "duel" }
+    : { ...all.journey, mode: "journey" };
+
+export const withView = (all: Profiles, view: Save): Profiles => {
+  if (view.mode === "duel") {
+    const { mode: _mode, ...duel } = view;
+    return { ...all, duel };
+  }
+  const { mode: _mode, ...journey } = view;
+  return { ...all, journey };
+};
+
+export const wear = <S extends Save>(
+  save: S,
+  part: Part,
+  id: string
+): S | null => {
   const option = parts
     .find((entry) => entry.part === part)
     ?.options.find((entry) => entry.id === id);
   if (
-    !option ||
-    !isOpen(option.unlock, unlocksOf(save)) ||
-    save.look[part] === id
+    option === undefined ||
+    save.look[part] === id ||
+    (save.mode === "journey" && !isUnlocked(save, part, option))
   ) {
     return null;
   }
   return { ...save, look: { ...save.look, [part]: id } };
 };
 
-export const foundOf = (save: Save): Combo[] => {
-  const unlocked = unlocksOf(save);
-  return combos.filter(
-    ({ color, form }) =>
-      isOpen(colorOf(color).unlock, unlocked) &&
-      isOpen(formOf(form).unlock, unlocked)
-  );
-};
-
-export const wearCombo = (save: Save, id: string): Save | null => {
+export const wearCombo = (
+  save: JourneySave,
+  id: string
+): JourneySave | null => {
   const entry = foundOf(save).find((combo) => combo.id === id);
   if (!entry || comboOf(save.look)?.id === id) {
     return null;
@@ -165,6 +170,9 @@ export const wearCombo = (save: Save, id: string): Save | null => {
     look: { ...save.look, color: entry.color, form: entry.form },
   };
 };
+
+export const seen = (save: JourneySave): JourneySave | null =>
+  save.unseen.length === 0 ? null : { ...save, unseen: [] };
 
 const counted = <Key extends string>(
   counts: Partial<Record<Key, number>>,
@@ -197,35 +205,14 @@ const tallied = (before: Tally, flight: Flight): Tally => ({
   skips: before.skips + flight.skips,
 });
 
-export const settle = (save: Save, flight: Flight) => {
-  const gained = Math.round(
-    flight.distance * 0.5 +
-      flight.skips * 2 +
-      flight.bestCombo * 5 +
-      (flight.quality >= 90 ? 40 : 0) +
-      (flight.quality === 100 ? 160 : 0)
-  );
-  const next: Save = {
+export const settle = <S extends Save>(save: S, flight: Flight) => ({
+  record: flight.distance > save.best,
+  save: {
     ...save,
     best: Math.max(save.best, flight.distance),
     combo: Math.max(save.combo, flight.bestCombo),
     divine: save.divine || flight.quality === 100,
     runs: save.runs + 1,
     tally: tallied(save.tally, flight),
-    xp: save.xp + gained,
-  };
-  const before = new Set(opened(unlocksOf(save)).map(keyOf));
-  const unlocked: Item[] = opened(unlocksOf(next)).filter(
-    (item) => !before.has(keyOf(item))
-  );
-  return {
-    gained,
-    climbed: progressOf(next.xp).level - progressOf(save.xp).level,
-    record: flight.distance > save.best,
-    save: { ...next, unseen: [...save.unseen, ...unlocked.map(keyOf)] },
-    unlocked,
-  };
-};
-
-export const seen = (save: Save): Save | null =>
-  save.unseen.length === 0 ? null : { ...save, unseen: [] };
+  },
+});

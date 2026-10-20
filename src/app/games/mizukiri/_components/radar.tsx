@@ -3,12 +3,11 @@ import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
 
 import { font, ink } from "../../_components/theme.stylex";
-import { axes } from "../_lib/cosmetics";
-import type { Axis } from "../_lib/cosmetics";
-import type { statsOf } from "../_lib/simulate";
+import { axes } from "../_lib/tuning";
+import type { Axis } from "../_lib/tuning";
 import { useLang } from "./lang";
 
-type Stats = ReturnType<typeof statsOf>;
+export type Levels = Record<Axis, number>;
 
 const SIZE = 240;
 const CENTER = SIZE / 2;
@@ -23,15 +22,17 @@ const point = (index: number, value: number) => {
   return [CENTER + Math.cos(angle) * reach, CENTER + Math.sin(angle) * reach];
 };
 
-const polygon = (stats: Stats, tier: number) =>
+const polygon = (levels: Levels, tier: number) =>
   axes
-    .map(({ key }, index) => point(index, stats[key] / tier).join(","))
+    .map(({ key }, index) => point(index, levels[key] / tier).join(","))
     .join(" ");
 
-const tierOf = (...shown: Stats[]) =>
+const tierOf = (...shown: Levels[]) =>
   Math.max(
     1,
-    Math.ceil(Math.max(...shown.flatMap((s) => axes.map(({ key }) => s[key]))))
+    Math.ceil(
+      Math.max(...shown.flatMap((entry) => axes.map(({ key }) => entry[key])))
+    )
   );
 
 const styles = stylex.create({
@@ -42,6 +43,13 @@ const styles = stylex.create({
     fontVariantNumeric: "tabular-nums",
     fontWeight: 700,
   },
+  ghost: {
+    fill: "rgb(255 255 255 / 0.08)",
+    stroke: "rgb(255 255 255 / 0.85)",
+    strokeDasharray: "4 4",
+    strokeLinejoin: "round",
+    strokeWidth: 1.5,
+  },
   grid: {
     fill: "none",
     stroke: "rgb(255 255 255 / 0.16)",
@@ -51,13 +59,6 @@ const styles = stylex.create({
     stroke: GOLD,
     strokeLinejoin: "round",
     strokeWidth: 2,
-  },
-  ghost: {
-    fill: "rgb(255 255 255 / 0.08)",
-    stroke: "rgb(255 255 255 / 0.85)",
-    strokeDasharray: "4 4",
-    strokeLinejoin: "round",
-    strokeWidth: 1.5,
   },
   hidden: {
     clipPath: "inset(50%)",
@@ -135,15 +136,17 @@ const styles = stylex.create({
 });
 
 export const Radar = ({
-  stats,
-  preview,
+  levels,
+  shown,
+  preview = null,
 }: {
-  stats: Stats;
-  preview: Stats | null;
+  levels: Levels;
+  shown: Record<Axis, string>;
+  preview?: Levels | null;
 }) => {
   const lang = useLang();
   const [open, setOpen] = useState<Axis | null>(null);
-  const tier = tierOf(...(preview === null ? [stats] : [stats, preview]));
+  const tier = tierOf(...(preview === null ? [levels] : [levels, preview]));
   return (
     <figure {...stylex.props(styles.figure)}>
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} {...stylex.props(styles.chart)}>
@@ -169,7 +172,10 @@ export const Radar = ({
             />
           );
         })}
-        <polygon points={polygon(stats, tier)} {...stylex.props(styles.area)} />
+        <polygon
+          points={polygon(levels, tier)}
+          {...stylex.props(styles.area)}
+        />
         {preview === null ? null : (
           <polygon
             points={polygon(preview, tier)}
@@ -231,7 +237,7 @@ export const Radar = ({
                     <Popover.Title {...stylex.props(styles.popupTitle)}>
                       {label[lang]}
                       <span {...stylex.props(styles.popupValue)}>
-                        {Math.round(stats[key] * 100)}
+                        {shown[key]}
                       </span>
                     </Popover.Title>
                     <Popover.Description {...stylex.props(styles.popupNote)}>
@@ -246,9 +252,7 @@ export const Radar = ({
       </svg>
       <figcaption {...stylex.props(styles.hidden)}>
         {axes
-          .map(
-            ({ key, label }) => `${label[lang]} ${Math.round(stats[key] * 100)}`
-          )
+          .map(({ key, label }) => `${label[lang]} ${shown[key]}`)
           .join("、")}
       </figcaption>
     </figure>
