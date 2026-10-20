@@ -2,8 +2,10 @@ import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
 import { langFrom } from "../_lib/i18n";
+import type { Lang } from "../_lib/i18n";
 import { palettes } from "../_lib/render";
-import { describe, readResult } from "../_lib/result";
+import { describe, distanceParts, readResult } from "../_lib/result";
+import type { Result } from "../_lib/result";
 
 const W = 1200;
 const H = 630;
@@ -43,18 +45,35 @@ const ridge = (base: number, amp: number, fuji: boolean) => {
   return points.join(" ");
 };
 
+const cardText = (result: Result | null, lang: Lang) => {
+  const en = lang === "en";
+  const story = result ? describe(result, lang) : null;
+  const [value, unit] = result
+    ? distanceParts(result.distance)
+    : [en ? "Mizukiri" : "水切り", ""];
+  let detail = en ? "Just flick your phone" : "スマホではじくだけ";
+  if (result) {
+    detail = en
+      ? `${result.skips} skips · throw ${result.quality}%`
+      : `${result.skips}回跳ねた · 投げの質 ${result.quality}%`;
+  }
+  return {
+    caption:
+      story?.title ?? (en ? "How far will it skip?" : "どこまで跳ねる？"),
+    detail,
+    rarity: story?.rarity ?? null,
+    unit,
+    value,
+  };
+};
+
 export const GET = async (request: NextRequest) => {
   const result = readResult(Object.fromEntries(request.nextUrl.searchParams));
   const palette = palettes[result?.sky ?? "dusk"];
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
-  const story = result ? describe(result, lang) : null;
-  const headline = result ? String(result.skips) : "水切り";
-  const caption = story?.title ?? "石は何回跳ねる？";
-  const detail = result
-    ? `${result.distance.toFixed(1)} m`
-    : "スマホではじくだけ";
+  const { caption, detail, rarity, unit, value } = cardText(result, lang);
   const font = await loadMincho(
-    `${headline}${caption}${detail}${story?.rarity ?? ""}水切り回石`
+    `${value}${unit}${caption}${detail}${rarity ?? ""}水切り石`
   );
   const sunX = W * Math.max(palette.sunX, 0.62);
   const sunY = HORIZON - Math.max(HORIZON * palette.sunY, 64);
@@ -214,14 +233,14 @@ export const GET = async (request: NextRequest) => {
           style={{
             alignItems: "baseline",
             display: "flex",
-            fontSize: result ? 220 : 150,
+            fontSize: result ? 190 : 150,
             lineHeight: 1,
             marginTop: 8,
           }}
         >
-          {headline}
+          {value}
           {result ? (
-            <span style={{ fontSize: 64, marginLeft: 12 }}>回</span>
+            <span style={{ fontSize: 64, marginLeft: 12 }}>{unit}</span>
           ) : null}
         </div>
         <div
@@ -234,7 +253,7 @@ export const GET = async (request: NextRequest) => {
           }}
         >
           {caption}
-          {story !== null && story.rarity !== null ? (
+          {rarity === null ? null : (
             <span
               style={{
                 backgroundColor: "#ffd27a",
@@ -244,9 +263,9 @@ export const GET = async (request: NextRequest) => {
                 padding: "6px 18px",
               }}
             >
-              {story.rarity}
+              {rarity}
             </span>
-          ) : null}
+          )}
         </div>
         <div style={{ fontSize: 28, marginTop: 12, opacity: 0.8 }}>
           {detail}
