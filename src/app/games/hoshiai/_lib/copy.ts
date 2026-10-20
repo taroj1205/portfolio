@@ -6,6 +6,7 @@ interface Copy {
   name: string;
   fallback: string;
   points: string;
+  back: string;
   best: string;
   next: string;
   mute: string;
@@ -30,6 +31,7 @@ interface Copy {
 
 export const copy: Record<Lang, Copy> = {
   en: {
+    back: "Back to games",
     best: "Best",
     chain: (count) => `${count} chain!`,
     challenge: { dare: "Can you beat it?", received: "Challenge" },
@@ -68,6 +70,7 @@ export const copy: Record<Lang, Copy> = {
     unmute: "Turn sound on",
   },
   ja: {
+    back: "ゲーム一覧にもどる",
     best: "最高",
     chain: (count) => `${count}連鎖！`,
     challenge: { dare: "これ、超えられる？", received: "挑戦状" },
