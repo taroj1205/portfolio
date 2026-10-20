@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Game } from "./_components/game";
+import { careerQuery, describeCareer, readCareer } from "./_lib/career";
 import { copy } from "./_lib/copy";
 import { langFrom } from "./_lib/i18n";
 import type { Text } from "./_lib/i18n";
@@ -17,10 +18,16 @@ export const generateMetadata = async ({
   const params = await searchParams;
   const lang = langFrom(params.l);
   const shared = readResult(params);
-  const title = shared
-    ? `${formatDistance(shared.distance)} · ${describe(shared, lang).title} | ${copy[lang].name}`
-    : copy[lang].name;
-  const query = new URLSearchParams(shared ? queryOf(shared) : "");
+  const career = shared === null ? readCareer(params) : null;
+  let title = copy[lang].name;
+  let query = new URLSearchParams();
+  if (shared) {
+    title = `${formatDistance(shared.distance)} · ${describe(shared, lang).title} | ${copy[lang].name}`;
+    query = new URLSearchParams(queryOf(shared));
+  } else if (career) {
+    title = `${describeCareer(career, lang).title} · ${formatDistance(career.best)} | ${copy[lang].name}`;
+    query = new URLSearchParams(careerQuery(career));
+  }
   query.set("l", lang);
   const image = {
     alt: title,

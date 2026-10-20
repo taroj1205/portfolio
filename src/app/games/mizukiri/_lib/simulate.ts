@@ -5,12 +5,14 @@ export type Sky = (typeof skies)[number];
 
 export const boosts = ["duck", "rock", "fish", "lotus"] as const;
 export type Boost = (typeof boosts)[number];
-export type Event = Boost | "wall";
+export const events = [...boosts, "wall"] as const;
+export type Event = (typeof events)[number];
 
 export const endings = ["plop", "sink", "leaf"] as const;
 export type Ending = (typeof endings)[number];
 
-export type Grade = "perfect" | "good" | "early" | "miss";
+export const grades = ["perfect", "good", "early", "miss"] as const;
+export type Grade = (typeof grades)[number];
 
 export type Coast =
   | "village"
