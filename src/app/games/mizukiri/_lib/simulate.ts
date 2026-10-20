@@ -267,22 +267,20 @@ export const plain: Traits = {
 };
 
 const span = (value: number, low: number, high: number) =>
-  Math.min(1, Math.max(0, (value - low) / (high - low)));
+  Math.max(0, (value - low) / (high - low));
+
+const earned = (points: number) => 1 - 0.9 ** points + points / (points + 300);
 
 const trained = (gear: Gear, traits: Traits): Traits => ({
   ...traits,
-  impact: traits.impact * (1 + 0.6 * (1 - 0.9 ** gear.impact)),
-  lift: traits.lift * (1 + 0.3 * (1 - 0.9 ** gear.lift)),
+  impact: traits.impact * (1 + 0.6 * earned(gear.impact)),
+  lift: traits.lift * (1 + 0.3 * earned(gear.lift)),
 });
 
 export const statsOf = (gear: Gear, build: Traits) => {
   const traits = trained(gear, build);
   return {
-    focus: span(
-      (0.06 + 0.06 * (1 - 0.9 ** gear.focus)) * traits.focus,
-      0.01,
-      0.135
-    ),
+    focus: span((0.06 + 0.06 * earned(gear.focus)) * traits.focus, 0.01, 0.135),
     impact: span(traits.impact, 0.2, 2.2),
     keep: span(0.86 + 0.06 * (1 - 0.88 ** gear.stone) + traits.keep, 0.8, 0.95),
     lift: span(traits.lift, 0.4, 1.9),
@@ -467,8 +465,8 @@ export const launch = (
 export const windowFor = (flight: Flight) => {
   const shrink = (1 + flight.skips * 0.06) / flight.focusScale;
   return {
-    good: (0.18 + 0.1 * (1 - 0.9 ** flight.focus)) / shrink,
-    perfect: (0.06 + 0.06 * (1 - 0.9 ** flight.focus)) / shrink,
+    good: (0.18 + 0.1 * earned(flight.focus)) / shrink,
+    perfect: (0.06 + 0.06 * earned(flight.focus)) / shrink,
   };
 };
 

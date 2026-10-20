@@ -302,6 +302,12 @@ const statsFor = (color: string, form: string) =>
 
 const keepOf = (color: string, form: string) => traitsOf({ color, form }).keep;
 
+const statsAt = (points: number) =>
+  statsOf(
+    { focus: points, impact: points, lift: points, power: points, stone: 0 },
+    plain
+  );
+
 describe("areas and skills", () => {
   test("open water areas widen the river and banks return between them", () => {
     const river = createRiver(4);
@@ -314,6 +320,14 @@ describe("areas and skills", () => {
     const trained = statsOf({ ...bare, impact: 6, lift: 6 }, plain);
     assert.ok(trained.lift > base.lift && trained.impact > base.impact);
     assert.equal(trained.speed, base.speed);
+  });
+
+  test("every extra point keeps raising the stats instead of topping out", () => {
+    for (const key of ["focus", "impact", "lift", "speed"] as const) {
+      assert.ok(statsAt(100)[key] > statsAt(50)[key], key);
+      assert.ok(statsAt(400)[key] > statsAt(200)[key], key);
+    }
+    assert.ok(statsAt(40).speed > 1);
   });
 });
 
