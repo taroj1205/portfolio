@@ -156,6 +156,7 @@ const HAND: Vec = { x: 0, y: 1, z: 0 };
 const STEP = 1 / 120;
 const SEGMENT = 30;
 const SINK = 3;
+const HOP = 4.5;
 const MODULUS = 2_147_483_647;
 const BODY = {
   dragonfly: { half: 0.3, radius: 0.5, push: 1.25, rise: 2.5 },
@@ -519,11 +520,14 @@ const gradeFor = (flight: Flight, tapAt: number | null, time: number) => {
   return "early";
 };
 
+const fade = (flight: Flight, speed: number, factor: number) =>
+  factor > 1 ? 1 + (factor - 1) * Math.min(1, flight.top / speed) ** 2 : factor;
+
 const GAIN: Record<Grade, (flight: Flight, speed: number) => number> = {
   early: (flight) => flight.keep,
   good: (flight) => Math.min(0.97, flight.keep + 0.06),
   miss: (flight) => flight.keep,
-  perfect: (flight, speed) => 1 + 0.05 * Math.min(1, flight.top / speed) ** 2,
+  perfect: (flight, speed) => fade(flight, speed, 1.05),
 };
 
 const rate = (flight: Flight, grade: Grade) => {
@@ -557,7 +561,8 @@ const bounce = (
   });
   const speed = Math.hypot(hop.velocity.x, hop.velocity.z);
   const push =
-    (1 + (body.push - 1) * flight.impact) * GAIN[grade](flight, speed);
+    fade(flight, speed, 1 + (body.push - 1) * flight.impact) *
+    GAIN[grade](flight, speed);
   fly(
     flight,
     at,
@@ -627,10 +632,10 @@ export const land = (flight: Flight, tapAt: number | null) => {
   let factor = GAIN[grade](flight, speed);
   let rise = 1;
   if (lotus) {
-    factor *= 1.2;
+    factor *= fade(flight, speed, 1.2);
     rise = 2.4;
   } else if (carp) {
-    factor *= 1.4;
+    factor *= fade(flight, speed, 1.4);
     rise = 3;
   }
   const forward = speed * factor * (1 + (roll(flight) - 0.5) * 0.04);
@@ -640,7 +645,10 @@ export const land = (flight: Flight, tapAt: number | null) => {
     at,
     {
       x: hop.velocity.x * scale,
-      y: forward * flight.lift * rise * (1 + (roll(flight) - 0.5) * 0.2),
+      y:
+        Math.min(HOP * (1 + 0.06 * flight.combo), forward * flight.lift) *
+        rise *
+        (1 + (roll(flight) - 0.5) * 0.2),
       z: hop.velocity.z * scale,
     },
     time
