@@ -14,36 +14,7 @@ Users should not require interaction for content to be revealed for a perfect UX
 
 Do not leave comments in code unless explicitly stated.
 
-## Games (`src/app/games`)
+## Read on demand
 
-Build interactive UI in games with Base UI (`@base-ui/react`) primitives instead of hand-rolling them. Import per component (`@base-ui/react/dialog`) and style the parts with StyleX props.
-
-Do not write Base UI code from memory. Part names, props, and `data-*` attributes change between versions and may differ from your training data. Before using or editing any primitive, read both of these in full:
-
-1. `docs/base-ui-in-games.md` for the patterns this repo already uses.
-2. The package docs for that primitive, `node_modules/@base-ui/react/docs/react/components/<name>.md` (index at `node_modules/@base-ui/react/docs/index.md`). If the installed version has no page for the primitive, say so instead of guessing the API.
-
-- Use Base UI for anything with state, focus, keyboard, or overlay behaviour: Dialog, Drawer, Popover, Menu, Tooltip, Tabs, Switch, Toggle, ToggleGroup, Slider, RadioGroup, Select, NumberField, Field. Do not recreate these with `<button aria-pressed>`, `role="dialog"`, or manual focus and Escape handling.
-- A plain `<button type="button">` is fine for a one-off action with no state of its own.
-- The canvas, game loop, and in-game pointer or key input stay custom. Base UI is for the chrome around them.
-- Share a wrapper in `src/app/games/_components` when two games need the same primitive, as `share-button.tsx` does for Menu.
-- Load the `base-ui-integration` skill as well when wiring close events, portals, focus, or unmount animations.
-
-## Keeping these instructions current
-
-Treat `AGENTS.md` and `docs/` as working notes that get better every time an agent loses time. Update them in the same change as the work, without waiting to be asked.
-
-Update them when you:
-
-- guessed an API, path, command, or convention wrong and had to correct it
-- searched or read several files for something a single line here would have answered
-- hit a failure that took more than one attempt to understand, such as a check that only passes after a setup step
-- were corrected by the user, or noticed an instruction here that is wrong, stale, or points at a file that moved
-
-How:
-
-- Fix the existing line instead of adding a second one that contradicts it. Delete lines that are no longer true.
-- Write the fact and the fix in one or two lines: what to do, where, and the command or path. Skip the story of how you found out.
-- Put general rules in `AGENTS.md` and per-topic detail with examples in `docs/`. Link from `AGENTS.md` to any new doc.
-- Only record things that stay true across tasks. Leave out one-off details, task status, and anything the code or git history already shows.
-- Say in your final message which instruction lines you changed and why.
+- Before adding or changing interactive UI in `src/app/games` (overlays, sheets, menus, tabs, switches, toggles, other controls), read `docs/base-ui-in-games.md` in full. It names the Base UI package docs to read for the primitive; do not write Base UI code from memory.
+- When you lose time on something these notes should have told you, such as a wrong guess, a stale instruction, or a failure that took several tries, or when the user corrects you, read `docs/keeping-instructions-current.md` and update the notes in the same change.

@@ -1,6 +1,21 @@
 # Base UI in games
 
-Reference for building game UI with `@base-ui/react`. The rules live in `AGENTS.md`; this is where to look for working examples. These examples do not replace the package docs: read `node_modules/@base-ui/react/docs/react/components/<name>.md` for the primitive before using or changing it.
+Rules and working examples for building game UI (`src/app/games`) with `@base-ui/react`. Import per component (`@base-ui/react/dialog`) and style the parts with StyleX props.
+
+## Read before writing
+
+Do not write Base UI code from memory. Part names, props, and `data-*` attributes change between versions and may differ from your training data. Before using or editing any primitive:
+
+1. Read this file in full.
+2. Read the package page for that primitive, `node_modules/@base-ui/react/docs/react/components/<name>.md` (index at `node_modules/@base-ui/react/docs/index.md`). If the installed version has no page for it, say so instead of guessing the API.
+3. Load the `base-ui-integration` skill when wiring close events, portals, focus, or unmount animations.
+
+## Rules
+
+- Use Base UI for anything with state, focus, keyboard, or overlay behaviour: Dialog, Drawer, Popover, Menu, Tooltip, Tabs, Switch, Toggle, ToggleGroup, Slider, RadioGroup, Select, NumberField, Field. Do not recreate these with `<button aria-pressed>`, `role="dialog"`, or manual focus and Escape handling.
+- A plain `<button type="button">` is fine for a one-off action with no state of its own.
+- The canvas, game loop, and in-game pointer or key input stay custom. Base UI is for the chrome around them.
+- Share a wrapper in `src/app/games/_components` when two games need the same primitive, as `share-button.tsx` does for Menu.
 
 ## Where each primitive is used
 
