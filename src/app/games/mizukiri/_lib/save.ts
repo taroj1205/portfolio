@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { langs } from "../../_lib/i18n";
 import { createStore } from "../../_lib/storage";
 import {
   colorOf,
@@ -54,12 +53,6 @@ const schema = z
       trail: z.string(),
     }),
     runs: z.number().int().min(0),
-    settings: z
-      .object({
-        lang: z.enum(langs).nullable().default(null),
-        muted: z.boolean(),
-      })
-      .default({ lang: null, muted: false }),
     tally: tally.prefault({}),
     unseen: z.array(z.string()).default([]),
     xp: z.number().min(0),
@@ -72,8 +65,6 @@ const schema = z
     },
   }));
 
-export type Settings = Save["settings"];
-
 export type Save = z.infer<typeof schema>;
 
 type Tally = Save["tally"];
@@ -85,7 +76,6 @@ const fresh: Save = {
   gear: { focus: 0, impact: 0, lift: 0, power: 0, stone: 0 },
   look: firstLook,
   runs: 0,
-  settings: { lang: null, muted: false },
   tally: tally.parse({}),
   unseen: [],
   xp: 0,

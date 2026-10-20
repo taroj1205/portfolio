@@ -565,7 +565,6 @@ describe("save", () => {
     gear: bare,
     look: firstLook,
     runs: 0,
-    settings: { lang: null, muted: false },
     tally: {
       airtime: 0,
       bestAirtime: 0,

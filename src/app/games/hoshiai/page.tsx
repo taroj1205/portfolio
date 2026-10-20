@@ -1,8 +1,9 @@
 import * as stylex from "@stylexjs/stylex";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 
 import { Sky } from "../_components/sky";
-import { langFrom } from "../_lib/i18n";
+import { langFrom, langFromHeader } from "../_lib/i18n";
 import type { Text } from "../_lib/i18n";
 import { Game } from "./_components/game";
 import { copy } from "./_lib/copy";
@@ -23,11 +24,19 @@ const styles = stylex.create({
   },
 });
 
+const langOf = async (param: string | string[] | undefined) => {
+  if (param !== undefined) {
+    return langFrom(param);
+  }
+  const incoming = await headers();
+  return langFromHeader(incoming.get("accept-language"));
+};
+
 export const generateMetadata = async ({
   searchParams,
 }: PageProps<"/games/hoshiai">): Promise<Metadata> => {
   const params = await searchParams;
-  const lang = langFrom(params.l);
+  const lang = await langOf(params.l);
   const shared = readResult(params);
   const query = new URLSearchParams(shared ? queryOf(shared) : "");
   query.set("l", lang);
@@ -63,10 +72,7 @@ const Page = async ({ searchParams }: PageProps<"/games/hoshiai">) => {
   return (
     <div {...stylex.props(styles.page)}>
       <Sky />
-      <Game
-        challenge={readResult(params)}
-        hint={params.l === undefined ? null : langFrom(params.l)}
-      />
+      <Game challenge={readResult(params)} hint={await langOf(params.l)} />
     </div>
   );
 };

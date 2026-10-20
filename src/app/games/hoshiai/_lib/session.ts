@@ -1,9 +1,11 @@
+import { loadSettings, storeSettings } from "../../_lib/settings";
+import type { Settings } from "../../_lib/settings";
 import { TOP } from "./bodies";
 import { createRenderer } from "./render";
 import { resultOf } from "./result";
 import type { Result } from "./result";
 import { discover, loadSave, settle, storeSave } from "./save";
-import type { Save, Settings } from "./save";
+import type { Save } from "./save";
 import { createSound } from "./sound";
 import { TICK, canDrop, createWorld, drop, step } from "./world";
 import type { Merge, Orb, World } from "./world";
@@ -22,6 +24,7 @@ interface Listeners {
   danger: (level: number) => void;
   over: (ending: Ending) => void;
   save: (save: Save) => void;
+  settings: (settings: Settings) => void;
 }
 
 const REVEAL = 1.2;
@@ -44,6 +47,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const render = createRenderer(canvas, calm);
   const sound = createSound();
   let save = loadSave();
+  let settings = loadSettings();
   let world: World = createWorld(newSeed());
   let known = save.top;
   let aim = -Math.PI / 2;
@@ -58,8 +62,9 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   let warned = 0;
   let pending = 0;
   let last = performance.now();
-  sound.mute(save.settings.muted);
+  sound.mute(settings.muted);
   on.save(save);
+  on.settings(settings);
   on.score(0);
   on.queue(world.queue);
 
@@ -281,8 +286,10 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       on.queue(world.queue);
     },
     settings: (next: Settings) => {
-      sound.mute(next.muted);
-      keep({ ...save, settings: next });
+      settings = next;
+      storeSettings(settings);
+      sound.mute(settings.muted);
+      on.settings(settings);
     },
     stop: () => {
       cancelAnimationFrame(frame);

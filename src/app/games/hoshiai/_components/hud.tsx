@@ -4,6 +4,7 @@ import type { RefObject } from "react";
 import { BackToGames } from "../../_components/back-to-games";
 import { glass } from "../../_components/glass";
 import { font, ink, media, shade } from "../../_components/theme.stylex";
+import { langNames } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import { bodies, kindOf } from "../_lib/bodies";
 import { copy } from "../_lib/copy";
@@ -175,6 +176,13 @@ const styles = stylex.create({
     transitionDuration: "160ms",
     transitionProperty: "transform",
     width: "2.75rem",
+  },
+  language: {
+    fontSize: "0.8rem",
+    fontWeight: 700,
+    letterSpacing: "calc(0.08em * var(--track, 1))",
+    paddingInline: "1rem",
+    width: "auto",
   },
   next: {
     alignItems: "center",
@@ -380,6 +388,7 @@ interface HudProps {
   banner: { id: number; tier: number } | null;
   challenge: Result | null;
   vignette: RefObject<HTMLDivElement | null>;
+  onLang: () => void;
   onMute: () => void;
   onRestart: () => void;
 }
@@ -398,10 +407,12 @@ export const Hud = ({
   banner,
   challenge,
   vignette,
+  onLang,
   onMute,
   onRestart,
 }: HudProps) => {
   const words = copy[lang];
+  const other: Lang = lang === "ja" ? "en" : "ja";
   const upcoming = kindOf(next);
   return (
     <>
@@ -451,6 +462,14 @@ export const Hud = ({
                 </button>
               ) : null}
             </div>
+            <button
+              lang={other}
+              onClick={onLang}
+              type="button"
+              {...stylex.props(glass.surface, styles.button, styles.language)}
+            >
+              {langNames[other]}
+            </button>
             {playing ? (
               <div {...stylex.props(glass.surface, styles.next)}>
                 <span {...stylex.props(styles.label)}>{words.next}</span>

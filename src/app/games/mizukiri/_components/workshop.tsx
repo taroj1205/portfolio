@@ -8,10 +8,11 @@ import type { RefObject } from "react";
 
 import { font, ink } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
+import type { Settings } from "../../_lib/settings";
 import { axes, traitsOf } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
 import { pointsLeft, progressOf } from "../_lib/save";
-import type { Save, Settings } from "../_lib/save";
+import type { Save } from "../_lib/save";
 import { statsOf } from "../_lib/simulate";
 import type { Gear } from "../_lib/simulate";
 import { useCopy, useLang } from "./lang";
@@ -374,6 +375,7 @@ interface WorkshopProps {
   open: boolean;
   opener: RefObject<HTMLButtonElement | null>;
   save: Save;
+  settings: Settings;
   onClose: () => void;
   onTune: (key: keyof Gear, step: 1 | -1) => void;
   onWear: (part: Part, id: string) => void;
@@ -386,6 +388,7 @@ export const Workshop = ({
   open,
   opener,
   save,
+  settings,
   onClose,
   onTune,
   onWear,
@@ -548,7 +551,7 @@ export const Workshop = ({
                     </span>
                     <Switch.Root
                       aria-label={copy.workshop.mute.label}
-                      checked={save.settings.muted}
+                      checked={settings.muted}
                       className={(state) =>
                         stylex.props(
                           styles.switch,
@@ -556,7 +559,7 @@ export const Workshop = ({
                         ).className
                       }
                       onCheckedChange={(checked) => {
-                        onSettings({ ...save.settings, muted: checked });
+                        onSettings({ ...settings, muted: checked });
                       }}
                     >
                       <Switch.Thumb
@@ -577,7 +580,7 @@ export const Workshop = ({
                       aria-label={copy.workshop.language}
                       onValueChange={([next]) => {
                         if (next !== undefined) {
-                          onSettings({ ...save.settings, lang: next });
+                          onSettings({ ...settings, lang: next });
                         }
                       }}
                       value={[lang]}

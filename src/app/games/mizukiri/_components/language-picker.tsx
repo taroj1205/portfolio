@@ -2,6 +2,7 @@ import { Dialog } from "@base-ui/react/dialog";
 import * as stylex from "@stylexjs/stylex";
 
 import { font, ink, media } from "../../_components/theme.stylex";
+import { langNames } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
 
@@ -94,8 +95,6 @@ const styles = stylex.create({
   },
 });
 
-const NAMES: Record<Lang, string> = { en: "English", ja: "日本語" };
-
 interface LanguagePickerProps {
   open: boolean;
   lang: Lang;
@@ -134,7 +133,7 @@ export const LanguagePicker = ({ open, lang, onPick }: LanguagePickerProps) => {
                   choice === lang && styles.first
                 )}
               >
-                {NAMES[choice]}
+                {langNames[choice]}
               </button>
             ))}
           </div>
