@@ -551,8 +551,12 @@ const GAIN: Record<Grade, (flight: Flight, speed: number) => number> = {
   perfect: (flight, speed) => fade(flight, speed, 1.05),
 };
 
-const rate = (flight: Flight, grade: Grade) => {
-  flight.combo = grade === "perfect" || grade === "good" ? flight.combo + 1 : 0;
+const rate = (flight: Flight, grade: Grade, forgiving = false) => {
+  if (grade === "perfect" || grade === "good") {
+    flight.combo += 1;
+  } else if (!forgiving) {
+    flight.combo = 0;
+  }
   flight.bestCombo = Math.max(flight.bestCombo, flight.combo);
 };
 
@@ -567,7 +571,7 @@ const bounce = (
   const time = hop.end;
   const at = positionIn(hop, time - hop.start);
   const grade = gradeFor(flight, tapAt, time);
-  rate(flight, grade);
+  rate(flight, grade, true);
   flight.pending = null;
   flight.bumps.push({ at, kind, prop, time });
   flight.splashes.push({
