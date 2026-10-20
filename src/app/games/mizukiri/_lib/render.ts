@@ -1544,18 +1544,18 @@ const paintDragonfly = (
   const L = Math.max(6, 0.36 * p.s);
   const shadow = project(view, { x: at.x, y: 0, z: at.z });
   if (shadow) {
-    ctx.fillStyle = "rgb(0 0 0 / 0.16)";
+    const r = L * (0.45 + 0.3 * at.y);
+    ctx.save();
+    ctx.translate(shadow.x, shadow.y);
+    ctx.scale(1, Math.max(0.18, flatten(view, shadow.d) * 1.5));
+    const soft = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+    soft.addColorStop(0, "rgb(0 0 0 / 0.3)");
+    soft.addColorStop(1, "rgb(0 0 0 / 0)");
+    ctx.fillStyle = soft;
     ctx.beginPath();
-    ctx.ellipse(
-      shadow.x,
-      shadow.y,
-      L * 0.4,
-      L * 0.4 * flatten(view, shadow.d),
-      0,
-      0,
-      TAU
-    );
+    ctx.arc(0, 0, r, 0, TAU);
     ctx.fill();
+    ctx.restore();
   }
   if (flown === null) {
     const r = L * (1.1 + 0.15 * Math.sin(clock * 3 + prop.turn));
