@@ -13,3 +13,8 @@ You are the most incredible designer, and this is a place for you to showcase ho
 Users should not require interaction for content to be revealed for a perfect UX site.
 
 Do not leave comments in code unless explicitly stated.
+
+## Read on demand
+
+- Before adding or changing interactive UI in `src/app/games` (overlays, sheets, menus, tabs, switches, toggles, other controls), read `docs/base-ui-in-games.md` in full. It names the Base UI package docs to read for the primitive; do not write Base UI code from memory.
+- When you lose time on something these notes should have told you, such as a wrong guess, a stale instruction, or a failure that took several tries, or when the user corrects you, read `docs/keeping-instructions-current.md` and update the notes in the same change.
