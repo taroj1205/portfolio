@@ -258,7 +258,12 @@ export interface Traits {
   impact: number;
 }
 
-export const plain: Traits = {
+export interface Build extends Traits {
+  boost: Gear;
+}
+
+export const plain: Build = {
+  boost: { focus: 1, impact: 1, lift: 1, power: 1, stone: 1 },
   focus: 1,
   impact: 1,
   keep: 0,
@@ -269,7 +274,26 @@ export const plain: Traits = {
 const span = (value: number, low: number, high: number) =>
   Math.max(0, (value - low) / (high - low));
 
-const earned = (points: number) => 1 - 0.9 ** points + points / (points + 300);
+const earned = (points: number) =>
+  0.6 * (1 - 0.9 ** points) + 2.4 * Math.log1p(points / 40);
+
+const eased = (points: number) => {
+  const total = earned(points);
+  return total / (total + 1);
+};
+
+const worth = (gear: Gear, { boost }: Build): Gear => ({
+  focus: gear.focus * boost.focus,
+  impact: gear.impact * boost.impact,
+  lift: gear.lift * boost.lift,
+  power: gear.power * boost.power,
+  stone: gear.stone * boost.stone,
+});
+
+const leeway = (points: number) => 0.06 + 0.12 * eased(points);
+
+const grit = (points: number, hold: number) =>
+  0.8 + 0.06 * hold + 0.085 * eased(points);
 
 const trained = (gear: Gear, traits: Traits): Traits => ({
   ...traits,
@@ -277,14 +301,15 @@ const trained = (gear: Gear, traits: Traits): Traits => ({
   lift: traits.lift * (1 + 0.3 * earned(gear.lift)),
 });
 
-export const statsOf = (gear: Gear, build: Traits) => {
-  const traits = trained(gear, build);
+export const statsOf = (gear: Gear, build: Build) => {
+  const points = worth(gear, build);
+  const traits = trained(points, build);
   return {
-    focus: span((0.06 + 0.06 * earned(gear.focus)) * traits.focus, 0.01, 0.135),
+    focus: span(leeway(points.focus) * traits.focus, 0.01, 0.135),
     impact: span(traits.impact, 0.2, 2.2),
-    keep: span(0.86 + 0.06 * (1 - 0.88 ** gear.stone) + traits.keep, 0.8, 0.95),
+    keep: span(grit(points.stone, 1) + traits.keep, 0.8, 0.95),
     lift: span(traits.lift, 0.4, 1.9),
-    speed: span((1 + 0.15 * gear.power) * traits.speed, 0.2, 2.2),
+    speed: span((1 + 0.15 * points.power) * traits.speed, 0.2, 2.2),
   };
 };
 
@@ -415,9 +440,10 @@ const fly = (flight: Flight, from: Vec, velocity: Vec, start: number): void => {
 export const launch = (
   river: River,
   input: ThrowInput,
-  gear: Gear,
+  base: Gear,
   build = plain
 ): Flight => {
+  const gear = worth(base, build);
   const traits = trained(gear, build);
   const hold = grip(input.tilt);
   const quality = qualityOf(input);
@@ -437,7 +463,7 @@ export const launch = (
     hops: [],
     focusScale: traits.focus,
     impact: traits.impact,
-    keep: 0.8 + 0.06 * hold + 0.06 * (1 - 0.88 ** gear.stone) + traits.keep,
+    keep: grit(gear.stone, hold) + traits.keep,
     lift: (0.04 + 0.0035 * Math.max(0, input.tilt)) * traits.lift,
     pending: null,
     quality,
@@ -465,8 +491,8 @@ export const launch = (
 export const windowFor = (flight: Flight) => {
   const shrink = (1 + flight.skips * 0.06) / flight.focusScale;
   return {
-    good: (0.18 + 0.1 * earned(flight.focus)) / shrink,
-    perfect: (0.06 + 0.06 * earned(flight.focus)) / shrink,
+    good: (0.12 + leeway(flight.focus)) / shrink,
+    perfect: leeway(flight.focus) / shrink,
   };
 };
 
