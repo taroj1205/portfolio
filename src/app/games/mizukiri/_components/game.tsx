@@ -195,6 +195,7 @@ export const Game = ({
       <Hud
         banner={banner}
         challenge={thrown ? null : challenge}
+        onReset={() => session.current?.again()}
         onWorkshop={() => {
           setWorkshop(true);
         }}
