@@ -18,7 +18,7 @@ import {
 } from "../_lib/cosmetics";
 import type { Option, Part } from "../_lib/cosmetics";
 import type { Text } from "../_lib/i18n";
-import { unlocksOf } from "../_lib/save";
+import { foundOf, unlocksOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import { statsOf } from "../_lib/simulate";
 import { stoneSprite } from "../_lib/sprites";
@@ -352,17 +352,18 @@ const Combos = ({
   const lang = useLang();
   const copy = useCopy();
   const worn = comboOf(save.look);
+  const found = foundOf(save);
   return (
     <section {...stylex.props(styles.group)}>
       <div {...stylex.props(styles.groupHead)}>
         <span {...stylex.props(styles.small)}>
-          {copy.workshop.found(save.found.length, combos.length)}
+          {copy.workshop.found(found.length, combos.length)}
         </span>
         <span {...stylex.props(styles.small)}>{copy.workshop.pairs}</span>
       </div>
       <ul {...stylex.props(styles.combos)}>
         {combos.map((entry) => {
-          const known = save.found.includes(entry.id);
+          const known = found.includes(entry);
           const active = worn?.id === entry.id;
           return (
             <li key={entry.id}>

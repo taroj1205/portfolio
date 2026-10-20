@@ -11,7 +11,7 @@ import {
   opened,
   parts,
 } from "./cosmetics";
-import type { Item, Look, Part, Progress } from "./cosmetics";
+import type { Combo, Item, Part, Progress } from "./cosmetics";
 import { langs } from "./i18n";
 import { endings, events, grades, zoneIndex } from "./simulate";
 import type { Flight, Gear } from "./simulate";
@@ -38,7 +38,6 @@ const schema = z
     best: z.number().min(0),
     combo: z.number().int().min(0),
     divine: z.boolean(),
-    found: z.array(z.string()).default([]),
     gear: z.object({
       focus: level,
       impact: level.default(0),
@@ -81,7 +80,6 @@ const fresh: Save = {
   best: 0,
   combo: 0,
   divine: false,
-  found: [],
   gear: { focus: 0, impact: 0, lift: 0, power: 0, stone: 0 },
   look: firstLook,
   runs: 0,
@@ -169,25 +167,21 @@ export const wear = (save: Save, part: Part, id: string): Save | null => {
   ) {
     return null;
   }
-  const look: Look = { ...save.look, [part]: id };
-  const combo = comboOf(look);
-  const found =
-    combo === null || save.found.includes(combo.id)
-      ? save.found
-      : [...save.found, combo.id];
-  return { ...save, found, look };
+  return { ...save, look: { ...save.look, [part]: id } };
+};
+
+export const foundOf = (save: Save): Combo[] => {
+  const unlocked = unlocksOf(save);
+  return combos.filter(
+    ({ color, form }) =>
+      isOpen(colorOf(color).unlock, unlocked) &&
+      isOpen(formOf(form).unlock, unlocked)
+  );
 };
 
 export const wearCombo = (save: Save, id: string): Save | null => {
-  const entry = combos.find((combo) => combo.id === id);
-  if (!entry || !save.found.includes(id) || comboOf(save.look)?.id === id) {
-    return null;
-  }
-  const unlocked = unlocksOf(save);
-  if (
-    !isOpen(colorOf(entry.color).unlock, unlocked) ||
-    !isOpen(formOf(entry.form).unlock, unlocked)
-  ) {
+  const entry = foundOf(save).find((combo) => combo.id === id);
+  if (!entry || comboOf(save.look)?.id === id) {
     return null;
   }
   return {

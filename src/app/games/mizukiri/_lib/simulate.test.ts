@@ -5,6 +5,7 @@ import { describe, test, vi } from "vite-plus/test";
 import { careerOf, careerShare, readCareer } from "./career";
 import {
   comboOf,
+  combos,
   firstLook,
   noteOf,
   peaksOf,
@@ -19,6 +20,7 @@ import {
   shareOf,
 } from "./result";
 import {
+  foundOf,
   loadSave,
   pointsLeft,
   progressOf,
@@ -302,6 +304,12 @@ const statsFor = (color: string, form: string) =>
 
 const keepOf = (color: string, form: string) => traitsOf({ color, form }).keep;
 
+const statsAt = (points: number) =>
+  statsOf(
+    { focus: points, impact: points, lift: points, power: points, stone: 0 },
+    plain
+  );
+
 describe("areas and skills", () => {
   test("open water areas widen the river and banks return between them", () => {
     const river = createRiver(4);
@@ -314,6 +322,14 @@ describe("areas and skills", () => {
     const trained = statsOf({ ...bare, impact: 6, lift: 6 }, plain);
     assert.ok(trained.lift > base.lift && trained.impact > base.impact);
     assert.equal(trained.speed, base.speed);
+  });
+
+  test("every extra point keeps raising the stats instead of topping out", () => {
+    for (const key of ["focus", "impact", "lift", "speed"] as const) {
+      assert.ok(statsAt(100)[key] > statsAt(50)[key], key);
+      assert.ok(statsAt(400)[key] > statsAt(200)[key], key);
+    }
+    assert.ok(statsAt(40).speed > 1);
   });
 });
 
@@ -411,7 +427,6 @@ describe("save", () => {
     best: 0,
     combo: 0,
     divine: false,
-    found: [],
     gear: bare,
     look: firstLook,
     runs: 0,
@@ -538,30 +553,24 @@ describe("save", () => {
     assert.equal(tune(lowered, "power", -1), null);
   });
 
-  test("wearing a combo pair records the discovery", () => {
-    const black = {
-      ...empty,
-      best: 1e6,
-      look: { ...firstLook, color: "slate" },
-      xp: 1e9,
-    };
-    assert.deepEqual(wear(black, "form", "flat")?.found, ["go"]);
+  test("a combo is found once both of its parts are unlocked", () => {
+    const maxed = { ...empty, best: 1e6, combo: 99, divine: true, xp: 1e9 };
+    assert.deepEqual(
+      foundOf(maxed).map(({ id }) => id),
+      combos.map(({ id }) => id)
+    );
+    assert.ok(foundOf(empty).length < combos.length);
+    assert.ok(!foundOf(empty).some(({ id }) => id === "go"));
   });
 
-  test("a found combo is worn in one step without discovering others", () => {
-    const found = {
-      ...empty,
-      best: 1e6,
-      divine: true,
-      found: ["go"],
-      xp: 1e9,
-    };
-    const worn = wearCombo(found, "go");
+  test("a found combo is worn in one step, and a locked one is not", () => {
+    const maxed = { ...empty, best: 1e6, combo: 99, divine: true, xp: 1e9 };
+    const worn = wearCombo(maxed, "go");
     assert.equal(worn?.look.color, "slate");
     assert.equal(worn?.look.form, "flat");
-    assert.deepEqual(worn?.found, ["go"]);
-    assert.equal(wearCombo(worn ?? found, "go"), null);
-    assert.equal(wearCombo(found, "goldfish"), null);
+    assert.equal(wearCombo(worn ?? maxed, "go"), null);
+    assert.equal(wearCombo(maxed, "nope"), null);
+    assert.equal(wearCombo(empty, "go"), null);
   });
 
   test("a look can only be worn once it is unlocked", () => {
