@@ -42,6 +42,9 @@ export const distanceParts = (meters: number): [string, string] => {
 export const formatDistance = (meters: number) =>
   distanceParts(meters).join(" ");
 
+export const toKmh = (metersPerSecond: number) =>
+  Math.round(metersPerSecond * 3.6);
+
 const tiers: [number, Text][] = [
   [10_000, { en: "Legend", ja: "伝説" }],
   [3000, { en: "Sage", ja: "仙人" }],

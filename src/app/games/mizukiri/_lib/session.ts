@@ -27,6 +27,7 @@ import {
   nextContact,
   speedAt,
   stoneAt,
+  topSpeed,
   zoneIndex,
   zones,
 } from "./simulate";
@@ -49,6 +50,7 @@ export interface Landing {
   gained: number;
   climbed: number;
   combo: number;
+  topSpeed: number;
   unlocked: Item[];
 }
 
@@ -197,6 +199,7 @@ export const startSession = (
       unlocked: settled.unlocked,
       record: settled.record,
       result: resultOf(done, save.look),
+      topSpeed: topSpeed(done),
     });
     enter("done");
   };

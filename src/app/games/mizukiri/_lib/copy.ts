@@ -31,7 +31,12 @@ export interface Copy {
   result: {
     record: string;
     levelUp: string;
-    stats: (skips: number, combo: number, quality: number) => string;
+    stats: (
+      skips: number,
+      combo: number,
+      quality: number,
+      kmh: number
+    ) => string;
     unlocked: string;
     newPart: (part: string) => string;
     wear: string;
@@ -125,8 +130,8 @@ export const copy: Record<Lang, Copy> = {
       shareImage: "Share image",
       shareLink: "Share link",
       record: "New best",
-      stats: (skips, combo, quality) =>
-        `${skips} skips · best combo ×${combo} · throw ${quality}%`,
+      stats: (skips, combo, quality, kmh) =>
+        `${skips} skips · best combo ×${combo} · throw ${quality}% · top\u00A0${kmh}\u00A0km/h`,
       unlocked: "Unlocked",
       wear: "Use",
       workshop: "Stone & skills",
@@ -223,8 +228,8 @@ export const copy: Record<Lang, Copy> = {
       shareImage: "画像でシェア",
       shareLink: "リンクでシェア",
       record: "自己ベスト更新",
-      stats: (skips, combo, quality) =>
-        `${skips}回跳ねた · 最大コンボ ×${combo} · 投げの質 ${quality}%`,
+      stats: (skips, combo, quality, kmh) =>
+        `${skips}回跳ねた · 最大コンボ ×${combo} · 投げの質 ${quality}% · 最高速度\u00A0${kmh}\u00A0km/h`,
       unlocked: "新しく解放",
       wear: "つける",
       workshop: "石と腕前",

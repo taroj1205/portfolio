@@ -13,7 +13,7 @@ import {
 } from "./cosmetics";
 import type { Combo, Item, Part, Progress } from "./cosmetics";
 import { langs } from "./i18n";
-import { endings, events, grades, zoneIndex } from "./simulate";
+import { endings, events, grades, topSpeed, zoneIndex } from "./simulate";
 import type { Flight, Gear } from "./simulate";
 
 const KEY = "mizukiri.v3";
@@ -24,6 +24,7 @@ const tally = z.object({
   airtime: z.number().min(0).default(0),
   bestAirtime: z.number().min(0).default(0),
   bestSkips: count.default(0),
+  bestSpeed: z.number().min(0).default(0),
   distance: z.number().min(0).default(0),
   divineThrows: count.default(0),
   endings: z.partialRecord(z.enum(endings), count).default({}),
@@ -205,6 +206,7 @@ const tallied = (before: Tally, flight: Flight): Tally => ({
   airtime: before.airtime + flight.duration,
   bestAirtime: Math.max(before.bestAirtime, flight.duration),
   bestSkips: Math.max(before.bestSkips, flight.skips),
+  bestSpeed: Math.max(before.bestSpeed, topSpeed(flight)),
   distance: before.distance + flight.distance,
   divineThrows: before.divineThrows + (flight.quality === 100 ? 1 : 0),
   endings: counted(before.endings, [flight.ending ?? "sink"]),

@@ -7,7 +7,7 @@ import { copy } from "../_lib/copy";
 import type { Copy } from "../_lib/copy";
 import { guessLang } from "../_lib/i18n";
 import type { Lang, Text } from "../_lib/i18n";
-import { distanceParts } from "../_lib/result";
+import { distanceParts, toKmh } from "../_lib/result";
 import type { Result } from "../_lib/result";
 import type { Save } from "../_lib/save";
 import { startSession } from "../_lib/session";
@@ -177,7 +177,7 @@ export const Game = ({
               speed: (metersPerSecond) => {
                 if (paceValue.current) {
                   paceValue.current.textContent = String(
-                    Math.round(metersPerSecond * 3.6)
+                    toKmh(metersPerSecond)
                   );
                 }
               },

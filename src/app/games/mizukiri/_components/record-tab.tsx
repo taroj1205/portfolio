@@ -134,6 +134,9 @@ const styles = stylex.create({
     paddingBlock: "0.65rem",
     paddingInline: "0.8rem",
   },
+  wide: {
+    gridColumn: "1 / -1",
+  },
   factLabel: {
     color: ink.soft,
     fontSize: "0.68rem",
@@ -207,8 +210,14 @@ export const RecordTab = ({ save }: { save: Save }) => {
         </p>
         <p {...stylex.props(styles.caption)}>{title}</p>
         <dl {...stylex.props(styles.facts)}>
-          {facts.map((fact) => (
-            <div key={fact.label} {...stylex.props(styles.fact)}>
+          {facts.map((fact, index) => (
+            <div
+              key={fact.label}
+              {...stylex.props(
+                styles.fact,
+                index === facts.length - 1 && index % 2 === 0 && styles.wide
+              )}
+            >
               <dt {...stylex.props(styles.factLabel)}>{fact.label}</dt>
               <dd {...stylex.props(styles.factValue)}>{fact.value}</dd>
             </div>
