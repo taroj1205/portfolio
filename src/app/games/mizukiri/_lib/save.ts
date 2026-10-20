@@ -13,7 +13,6 @@ import {
 } from "./cosmetics";
 import type { Item, Look, Part, Progress } from "./cosmetics";
 import { langs } from "./i18n";
-import type { Text } from "./i18n";
 import { zoneIndex } from "./simulate";
 import type { Flight, Gear } from "./simulate";
 
@@ -87,40 +86,6 @@ export const storeSave = (save: Save) => {
     return false;
   }
 };
-
-export const skills: { key: keyof Gear; name: Text; note: Text }[] = [
-  {
-    key: "power",
-    name: { en: "Arm", ja: "腕力" },
-    note: { en: "Higher launch and top speed", ja: "初速と最高速が上がる" },
-  },
-  {
-    key: "stone",
-    name: { en: "Flat stone", ja: "平たい石" },
-    note: { en: "Lose less speed on a miss", ja: "ミスしても失速しにくい" },
-  },
-  {
-    key: "lift",
-    name: { en: "Lift", ja: "跳ね上げ" },
-    note: {
-      en: "Bounces higher and flies longer",
-      ja: "石が高く跳ねて長く飛ぶ",
-    },
-  },
-  {
-    key: "focus",
-    name: { en: "Focus", ja: "集中" },
-    note: { en: "Wider tap timing", ja: "タップの猶予が広がる" },
-  },
-  {
-    key: "impact",
-    name: { en: "Aim", ja: "当て勘" },
-    note: {
-      en: "More boost from ducks and carp",
-      ja: "カモや鯉に当たった時の加速が上がる",
-    },
-  },
-];
 
 const needFor = (target: number) => Math.round(150 * target ** 1.8);
 

@@ -6,10 +6,10 @@ import { ToggleGroup } from "@base-ui/react/toggle-group";
 import * as stylex from "@stylexjs/stylex";
 import type { RefObject } from "react";
 
-import { traitsOf } from "../_lib/cosmetics";
+import { axes, traitsOf } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
 import type { Lang } from "../_lib/i18n";
-import { pointsLeft, progressOf, skills } from "../_lib/save";
+import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save, Settings } from "../_lib/save";
 import { statsOf } from "../_lib/simulate";
 import type { Gear } from "../_lib/simulate";
@@ -483,25 +483,25 @@ export const Workshop = ({
                     <div {...stylex.props(styles.barFill(progress.part))} />
                   </div>
                   <Radar preview={null} stats={stats} />
-                  {skills.map((skill) => (
-                    <div key={skill.key} {...stylex.props(styles.row)}>
+                  {axes.map((axis) => (
+                    <div key={axis.key} {...stylex.props(styles.row)}>
                       <span>
                         <span {...stylex.props(styles.name)}>
-                          {skill.name[lang]}
+                          {axis.label[lang]}
                         </span>
                         <span {...stylex.props(styles.value)}>
-                          {save.gear[skill.key]}
+                          {save.gear[axis.gear]}
                         </span>
                         <span {...stylex.props(styles.note)}>
-                          {skill.note[lang]}
+                          {axis.note[lang]}
                         </span>
                       </span>
                       <span {...stylex.props(styles.stepper)}>
                         <button
-                          aria-label={copy.workshop.lower(skill.name[lang])}
-                          disabled={save.gear[skill.key] === 0}
+                          aria-label={copy.workshop.lower(axis.label[lang])}
+                          disabled={save.gear[axis.gear] === 0}
                           onClick={() => {
-                            onTune(skill.key, -1);
+                            onTune(axis.gear, -1);
                           }}
                           type="button"
                           {...stylex.props(styles.step)}
@@ -509,10 +509,10 @@ export const Workshop = ({
                           −
                         </button>
                         <button
-                          aria-label={copy.workshop.raise(skill.name[lang])}
+                          aria-label={copy.workshop.raise(axis.label[lang])}
                           disabled={left <= 0}
                           onClick={() => {
-                            onTune(skill.key, 1);
+                            onTune(axis.gear, 1);
                           }}
                           type="button"
                           {...stylex.props(styles.step, styles.plus)}
