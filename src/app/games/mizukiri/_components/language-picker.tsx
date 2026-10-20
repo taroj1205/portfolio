@@ -1,9 +1,9 @@
 import { Dialog } from "@base-ui/react/dialog";
 import * as stylex from "@stylexjs/stylex";
 
+import { font, ink, media } from "../../_components/theme.stylex";
+import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
-import type { Lang } from "../_lib/i18n";
-import { font, ink, media } from "./theme.stylex";
 
 const GOLD = "#ffd27a";
 

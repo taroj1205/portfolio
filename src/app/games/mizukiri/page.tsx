@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
+import { langFrom } from "../_lib/i18n";
+import type { Text } from "../_lib/i18n";
 import { Game } from "./_components/game";
 import { careerQuery, describeCareer, readCareer } from "./_lib/career";
 import { copy } from "./_lib/copy";
-import { langFrom } from "./_lib/i18n";
-import type { Text } from "./_lib/i18n";
 import { describe, formatDistance, queryOf, readResult } from "./_lib/result";
 
 const DESCRIPTION: Text = {

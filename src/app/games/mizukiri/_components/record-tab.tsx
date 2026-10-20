@@ -1,11 +1,11 @@
 import * as stylex from "@stylexjs/stylex";
 
+import { ShareButton } from "../../_components/share-button";
+import { font, ink, media } from "../../_components/theme.stylex";
 import { careerOf, careerShare, describeCareer } from "../_lib/career";
 import { distanceParts } from "../_lib/result";
 import type { Save } from "../_lib/save";
 import { useCopy, useLang } from "./lang";
-import { ShareButton } from "./share-button";
-import { font, ink, media } from "./theme.stylex";
 
 const GOLD = "#ffd27a";
 
@@ -226,6 +226,8 @@ export const RecordTab = ({ save }: { save: Save }) => {
       </div>
       {career.runs > 0 ? (
         <ShareButton
+          fileName="mizukiri.png"
+          labels={copy.result}
           share={careerShare(career, window.location.origin, lang)}
           {...stylex.props(styles.share)}
         />

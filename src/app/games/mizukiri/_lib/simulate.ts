@@ -1,4 +1,4 @@
-import type { Text } from "./i18n";
+import type { Text } from "../../_lib/i18n";
 
 export const skies = ["dusk", "dawn", "night"] as const;
 export type Sky = (typeof skies)[number];

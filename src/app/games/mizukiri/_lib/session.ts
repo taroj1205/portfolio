@@ -1,9 +1,9 @@
+import { guessLang } from "../../_lib/i18n";
+import type { Text } from "../../_lib/i18n";
 import { copy } from "./copy";
 import { traitsOf } from "./cosmetics";
 import type { Item, Part } from "./cosmetics";
 import { listenFlick, tiltAt } from "./flick";
-import { guessLang } from "./i18n";
-import type { Text } from "./i18n";
 import { createRenderer } from "./render";
 import { resultOf } from "./result";
 import type { Result } from "./result";

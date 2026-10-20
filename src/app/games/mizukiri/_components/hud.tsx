@@ -1,17 +1,17 @@
 import * as stylex from "@stylexjs/stylex";
 import type { RefObject } from "react";
 
+import { glass } from "../../_components/glass";
+import { font, ink, media, shade } from "../../_components/theme.stylex";
+import type { Text } from "../../_lib/i18n";
 import type { Copy } from "../_lib/copy";
 import { nameOf } from "../_lib/cosmetics";
-import type { Text } from "../_lib/i18n";
 import { describe, formatDistance } from "../_lib/result";
 import type { Result } from "../_lib/result";
 import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import type { Phase } from "../_lib/session";
-import { glass } from "./glass";
 import { useCopy, useLang } from "./lang";
-import { font, ink, media, shade } from "./theme.stylex";
 
 export interface Popup {
   id: number;

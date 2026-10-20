@@ -2,11 +2,11 @@ import { Popover } from "@base-ui/react/popover";
 import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
 
+import { font, ink } from "../../_components/theme.stylex";
 import { axes } from "../_lib/cosmetics";
 import type { Axis } from "../_lib/cosmetics";
 import type { statsOf } from "../_lib/simulate";
 import { useLang } from "./lang";
-import { font, ink } from "./theme.stylex";
 
 type Stats = ReturnType<typeof statsOf>;
 

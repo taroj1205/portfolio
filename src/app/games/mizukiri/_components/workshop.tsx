@@ -6,9 +6,10 @@ import { ToggleGroup } from "@base-ui/react/toggle-group";
 import * as stylex from "@stylexjs/stylex";
 import type { RefObject } from "react";
 
+import { font, ink } from "../../_components/theme.stylex";
+import type { Lang } from "../../_lib/i18n";
 import { axes, traitsOf } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
-import type { Lang } from "../_lib/i18n";
 import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save, Settings } from "../_lib/save";
 import { statsOf } from "../_lib/simulate";
@@ -17,7 +18,6 @@ import { useCopy, useLang } from "./lang";
 import { Radar } from "./radar";
 import { RecordTab } from "./record-tab";
 import { StoneTab } from "./stone-tab";
-import { font, ink } from "./theme.stylex";
 
 const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 const GOLD = "#ffd27a";

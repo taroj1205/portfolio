@@ -2,6 +2,8 @@ import { Tabs } from "@base-ui/react/tabs";
 import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
 
+import { font, ink } from "../../_components/theme.stylex";
+import type { Text } from "../../_lib/i18n";
 import {
   colorOf,
   comboOf,
@@ -17,7 +19,6 @@ import {
   traitsOf,
 } from "../_lib/cosmetics";
 import type { Option, Part } from "../_lib/cosmetics";
-import type { Text } from "../_lib/i18n";
 import { foundOf, unlocksOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import { statsOf } from "../_lib/simulate";
@@ -25,7 +26,6 @@ import { stoneSprite } from "../_lib/sprites";
 import { useCopy, useLang } from "./lang";
 import { Preview } from "./preview";
 import { Radar } from "./radar";
-import { font, ink } from "./theme.stylex";
 
 const GOLD = "#ffd27a";
 

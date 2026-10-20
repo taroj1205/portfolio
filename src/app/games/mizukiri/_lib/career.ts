@@ -1,9 +1,9 @@
 import { z } from "zod";
 
+import type { Lang, Text } from "../../_lib/i18n";
+import type { Share } from "../../_lib/share";
 import { copy } from "./copy";
-import type { Lang, Text } from "./i18n";
 import { formatDistance, titleOf, toKmh } from "./result";
-import type { Share } from "./result";
 import { progressOf } from "./save";
 import type { Save } from "./save";
 import { zoneIndex, zones } from "./simulate";

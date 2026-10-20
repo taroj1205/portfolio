@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { media } from "../../../styles/tokens.stylex";
-import type { Text } from "../mizukiri/_lib/i18n";
+import type { Text } from "../_lib/i18n";
 
 const GOLD = "#ffd27a";
 

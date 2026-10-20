@@ -1,4 +1,4 @@
-import type { Lang, Text } from "./i18n";
+import type { Lang, Text } from "../../_lib/i18n";
 import { areaOf, plain, zones } from "./simulate";
 import type { Build, Gear, Traits } from "./simulate";
 
