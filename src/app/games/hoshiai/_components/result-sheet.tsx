@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { glass } from "../../_components/glass";
 import { ShareButton } from "../../_components/share-button";
+import { StarLink } from "../../_components/star-link";
 import { font, ink, media } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
 import { bodies } from "../_lib/bodies";
@@ -239,6 +240,7 @@ export const ResultSheet = ({ lang, ending, onAgain }: ResultSheetProps) => {
         share={shareOf(result, window.location.origin, lang)}
         {...stylex.props(styles.action, styles.share)}
       />
+      <StarLink>{words.result.star}</StarLink>
       <div {...stylex.props(styles.links)}>
         <Link href="/games" {...stylex.props(styles.link)}>
           {words.result.games}

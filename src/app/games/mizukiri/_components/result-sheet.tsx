@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { glass } from "../../_components/glass";
 import { ShareButton } from "../../_components/share-button";
+import { StarLink } from "../../_components/star-link";
 import { font, ink, media } from "../../_components/theme.stylex";
 import { parts } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
@@ -469,6 +470,7 @@ export const ResultSheet = ({
         </div>
       ) : null}
 
+      <StarLink>{copy.result.star}</StarLink>
       <Link href={`/${lang}`} {...stylex.props(styles.maker)}>
         {copy.result.maker}
       </Link>
