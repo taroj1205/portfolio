@@ -219,7 +219,7 @@ export const shareOf = (result: Result, origin: string, lang: Lang) => {
     text: [
       describe(result, lang).line,
       stone,
-      lang === "en" ? "#水切り #mizukiri" : "#水切り",
+      lang === "en" ? "#天の川水切り #SkipToTheMilkyWay" : "#天の川水切り",
     ]
       .filter((line) => line !== null)
       .join("\n"),

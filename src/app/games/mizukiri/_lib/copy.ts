@@ -5,7 +5,7 @@ export interface Copy {
   locale: string;
   fallback: string;
   surface: string;
-  title: string;
+  name: string;
   best: string;
   openWorkshop: string;
   reset: string;
@@ -127,7 +127,7 @@ export const copy: Record<Lang, Copy> = {
     },
     skipUnit: "skips",
     surface: "water",
-    title: "水切り",
+    name: "Skip to the Milky Way",
     workshop: {
       bonus: (note) => `Combo bonus ${note}`,
       found: (count, total) => `Found ${count} / ${total}`,
@@ -215,7 +215,7 @@ export const copy: Record<Lang, Copy> = {
     },
     skipUnit: "回",
     surface: "水面",
-    title: "水切り",
+    name: "天の川水切り",
     workshop: {
       bonus: (note) => `相性ボーナス ${note}`,
       found: (count, total) => `発見 ${count} / ${total}`,

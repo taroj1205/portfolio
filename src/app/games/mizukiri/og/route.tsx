@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
+import { copy } from "../_lib/copy";
 import { langFrom } from "../_lib/i18n";
 import type { Lang } from "../_lib/i18n";
 import { palettes } from "../_lib/render";
@@ -45,12 +46,19 @@ const ridge = (base: number, amp: number, fuji: boolean) => {
   return points.join(" ");
 };
 
+const headlineSize = (result: Result | null, lang: Lang) => {
+  if (result) {
+    return 190;
+  }
+  return lang === "en" ? 92 : 150;
+};
+
 const cardText = (result: Result | null, lang: Lang) => {
   const en = lang === "en";
   const story = result ? describe(result, lang) : null;
   const [value, unit] = result
     ? distanceParts(result.distance)
-    : [en ? "Mizukiri" : "水切り", ""];
+    : [copy[lang].name, ""];
   let detail = en ? "Just flick your phone" : "スマホではじくだけ";
   if (result) {
     detail = en
@@ -73,7 +81,7 @@ export const GET = async (request: NextRequest) => {
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
   const { caption, detail, rarity, unit, value } = cardText(result, lang);
   const font = await loadMincho(
-    `${value}${unit}${caption}${detail}${rarity ?? ""}水切り石`
+    `${value}${unit}${caption}${detail}${rarity ?? ""}天の川水切り石`
   );
   const sunX = W * Math.max(palette.sunX, 0.62);
   const sunY = HORIZON - Math.max(HORIZON * palette.sunY, 64);
@@ -211,7 +219,7 @@ export const GET = async (request: NextRequest) => {
               letterSpacing: 12,
             }}
           >
-            水切り
+            天の川水切り
             <div
               style={{
                 alignItems: "center",
@@ -233,7 +241,7 @@ export const GET = async (request: NextRequest) => {
           style={{
             alignItems: "baseline",
             display: "flex",
-            fontSize: result ? 190 : 150,
+            fontSize: headlineSize(result, lang),
             lineHeight: 1,
             marginTop: 8,
           }}
