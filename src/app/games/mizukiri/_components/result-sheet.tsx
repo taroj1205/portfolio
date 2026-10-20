@@ -1,11 +1,14 @@
 import * as stylex from "@stylexjs/stylex";
 import Link from "next/link";
 
+import { keyOf, parts } from "../_lib/cosmetics";
+import type { Part } from "../_lib/cosmetics";
 import { describe, distanceParts, postUrl } from "../_lib/result";
 import { pointsLeft, progressOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import type { Landing } from "../_lib/session";
 import { glass } from "./glass";
+import { Preview } from "./preview";
 import { font, ink, media } from "./theme.stylex";
 
 const rise = stylex.keyframes({
@@ -17,6 +20,11 @@ const crown = stylex.keyframes({
   "0%": { opacity: 0, transform: "scale(1.6)" },
   "60%": { opacity: 1, transform: "scale(0.96)" },
   "100%": { opacity: 1, transform: "scale(1)" },
+});
+
+const shine = stylex.keyframes({
+  "0%": { backgroundPosition: "160% 0" },
+  "100%": { backgroundPosition: "-60% 0" },
 });
 
 const fill = stylex.keyframes({
@@ -114,6 +122,28 @@ const styles = stylex.create({
     transitionDuration: "160ms",
     transitionProperty: "transform",
   },
+  primary: {
+    backgroundImage: "linear-gradient(180deg, #fff1b8, #ffd27a 50%, #d9962a)",
+    borderWidth: 0,
+    boxShadow: "0 10px 30px rgb(255 190 80 / 0.35)",
+    color: "#1c1406",
+    flex: "none",
+    fontFamily: font.mincho,
+    fontSize: "1.15rem",
+    letterSpacing: "0.3em",
+    minHeight: "3.6rem",
+    width: "100%",
+  },
+  dot: {
+    backgroundColor: "#ffd27a",
+    borderRadius: 999,
+    color: "#1c1406",
+    fontSize: "0.7rem",
+    fontWeight: 800,
+    lineHeight: "1.2rem",
+    minWidth: "1.2rem",
+    paddingInline: "0.3rem",
+  },
   post: {
     backgroundColor: "#fffaf3",
     borderWidth: 0,
@@ -193,12 +223,6 @@ const styles = stylex.create({
   barWidth: (part: number) => ({
     width: `${Math.round(part * 100)}%`,
   }),
-  row: {
-    alignItems: "center",
-    display: "flex",
-    gap: "0.75rem",
-    justifyContent: "space-between",
-  },
   name: {
     fontWeight: 700,
   },
@@ -212,74 +236,70 @@ const styles = stylex.create({
     display: "block",
     fontSize: "0.72rem",
   },
-  stepper: {
-    alignItems: "center",
-    display: "inline-flex",
-    flexShrink: 0,
-    gap: "0.4rem",
-  },
-  step: {
-    alignItems: "center",
-    borderRadius: 12,
-    color: ink.text,
-    cursor: { default: "pointer", ":disabled": "not-allowed" },
-    display: "inline-flex",
-    fontFamily: "inherit",
-    fontSize: "1.15rem",
-    fontWeight: 700,
-    height: "2.6rem",
-    justifyContent: "center",
-    opacity: { default: 1, ":disabled": 0.3 },
-    padding: 0,
-    transform: { default: null, ":active": "scale(0.94)" },
-    width: "2.6rem",
-  },
-  chips: {
+  unlocks: {
     display: "flex",
+    flexDirection: "column",
     gap: "0.45rem",
-    overflowX: "auto",
-    paddingBottom: "0.2rem",
-    scrollbarWidth: "none",
   },
-  chip: {
+  unlock: {
     alignItems: "center",
-    backgroundColor: "rgb(255 255 255 / 0.06)",
-    borderColor: "rgb(255 255 255 / 0.14)",
-    borderRadius: 14,
+    animationDuration: "2.4s",
+    animationIterationCount: "infinite",
+    animationName: { default: shine, [media.reduce]: "none" },
+    animationTimingFunction: "ease-in-out",
+    backgroundColor: "rgb(255 210 122 / 0.08)",
+    backgroundImage:
+      "linear-gradient(105deg, transparent 35%, rgb(255 241 184 / 0.22) 50%, transparent 65%)",
+    backgroundSize: "250% 100%",
+    borderColor: "rgb(255 210 122 / 0.55)",
+    borderRadius: 16,
     borderStyle: "solid",
     borderWidth: 1,
     color: ink.text,
-    cursor: { default: "pointer", ":disabled": "not-allowed" },
+    cursor: "pointer",
     display: "flex",
-    flexDirection: "column",
-    flexShrink: 0,
     fontFamily: "inherit",
-    fontSize: "0.78rem",
-    fontWeight: 700,
-    gap: "0.3rem",
-    minWidth: "4.6rem",
-    paddingBlock: "0.55rem",
-    paddingInline: "0.6rem",
-    transform: { default: null, ":active": "scale(0.96)" },
+    gap: "0.75rem",
+    paddingBlock: "0.65rem",
+    paddingInline: "0.8rem",
+    textAlign: "start",
+    transform: { default: null, ":active": "scale(0.98)" },
+    transitionDuration: "160ms",
+    transitionProperty: "transform",
   },
-  worn: {
+  unlockWorn: {
+    animationName: "none",
     backgroundColor: "rgb(255 210 122 / 0.16)",
     borderColor: "#ffd27a",
   },
-  locked: {
-    opacity: 0.45,
+  unlockText: {
+    display: "flex",
+    flex: 1,
+    flexDirection: "column",
+    gap: "0.1rem",
+    minWidth: 0,
   },
-  swatch: (light: string, mid: string, dark: string) => ({
-    backgroundImage: `radial-gradient(circle at 35% 30%, ${light}, ${mid} 50%, ${dark})`,
+  unlockKind: {
+    color: "#ffd27a",
+    fontSize: "0.68rem",
+    fontWeight: 800,
+    letterSpacing: "0.12em",
+  },
+  wear: {
+    borderColor: "rgb(255 210 122 / 0.6)",
     borderRadius: 999,
-    boxShadow: "inset 0 -3px 6px rgb(0 0 0 / 0.35)",
-    height: "1.6rem",
-    width: "2.2rem",
-  }),
-  condition: {
-    color: ink.soft,
-    fontSize: "0.65rem",
-    fontWeight: 600,
+    borderStyle: "solid",
+    borderWidth: 1,
+    color: "#ffd27a",
+    flexShrink: 0,
+    fontSize: "0.75rem",
+    fontWeight: 800,
+    paddingBlock: "0.35rem",
+    paddingInline: "0.75rem",
+  },
+  wearOn: {
+    backgroundColor: "#ffd27a",
+    color: "#1c1406",
   },
   maker: {
     alignSelf: "center",
@@ -300,10 +320,13 @@ const XMark = () => (
   </svg>
 );
 
+const PART_NAMES = new Map(parts.map(({ part, name }) => [part, name]));
+
 interface ResultSheetProps {
   landing: Landing;
   save: Save;
   onAgain: () => void;
+  onWear: (part: Part, id: string) => void;
   onWorkshop: () => void;
 }
 
@@ -311,6 +334,7 @@ export const ResultSheet = ({
   landing,
   save,
   onAgain,
+  onWear,
   onWorkshop,
 }: ResultSheetProps) => {
   const { result, record, gained, climbed, combo, unlocked } = landing;
@@ -336,11 +360,6 @@ export const ResultSheet = ({
             レベルアップ Lv.{progress.level}
           </span>
         ) : null}
-        {unlocked.map((option) => (
-          <span key={option.id} {...stylex.props(styles.badge, styles.outline)}>
-            解放：{option.name}
-          </span>
-        ))}
       </div>
       <h2 {...stylex.props(styles.title)}>{story.title}</h2>
       <p {...stylex.props(styles.meter)}>
@@ -351,6 +370,46 @@ export const ResultSheet = ({
         {result.skips}回跳ねた · 最大コンボ ×{combo} · 投げの質 {result.quality}
         %
       </p>
+      {unlocked.length > 0 ? (
+        <div {...stylex.props(styles.unlocks)}>
+          <span {...stylex.props(styles.levelLabel)}>新しく解放</span>
+          {unlocked.map(({ part, option }) => {
+            const worn = save.look[part] === option.id;
+            return (
+              <button
+                aria-pressed={worn}
+                key={keyOf({ option, part })}
+                onClick={() => {
+                  onWear(part, option.id);
+                }}
+                type="button"
+                {...stylex.props(styles.unlock, worn && styles.unlockWorn)}
+              >
+                <Preview option={option} part={part} />
+                <span {...stylex.props(styles.unlockText)}>
+                  <span {...stylex.props(styles.unlockKind)}>
+                    新しい{PART_NAMES.get(part)}
+                  </span>
+                  <span {...stylex.props(styles.name)}>{option.name}</span>
+                  {option.note === undefined ? null : (
+                    <span {...stylex.props(styles.note)}>{option.note}</span>
+                  )}
+                </span>
+                <span {...stylex.props(styles.wear, worn && styles.wearOn)}>
+                  {worn ? "つけてる" : "つける"}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+      <button
+        onClick={onAgain}
+        type="button"
+        {...stylex.props(styles.action, styles.primary)}
+      >
+        もう一回
+      </button>
       <div {...stylex.props(styles.actions)}>
         <a
           href={postUrl(result, window.location.origin)}
@@ -362,11 +421,12 @@ export const ResultSheet = ({
           ポスト
         </a>
         <button
-          onClick={onAgain}
+          onClick={onWorkshop}
           type="button"
           {...stylex.props(glass.surface, styles.action, styles.again)}
         >
-          もう一回
+          石と腕前
+          {left > 0 ? <span {...stylex.props(styles.dot)}>{left}</span> : null}
         </button>
       </div>
 
@@ -389,14 +449,6 @@ export const ResultSheet = ({
             {...stylex.props(styles.barFill, styles.barWidth(progress.part))}
           />
         </div>
-        <button
-          onClick={onWorkshop}
-          type="button"
-          {...stylex.props(glass.surface, styles.action, styles.again)}
-        >
-          石と腕前
-          {left > 0 ? `（ポイント ${left}）` : ""}
-        </button>
       </div>
 
       <Link href="/ja" {...stylex.props(styles.maker)}>

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "vite-plus/test";
 
 import { firstLook } from "./cosmetics";
-import { pointsLeft, progressOf, settle, tune, wear } from "./save";
+import { pointsLeft, progressOf, seen, settle, tune, wear } from "./save";
 import type { Save } from "./save";
 import {
   createRiver,
@@ -185,6 +185,8 @@ describe("save", () => {
     gear: bare,
     look: firstLook,
     runs: 0,
+    settings: { lite: false, muted: false },
+    unseen: [],
     xp: 0,
   };
 
@@ -224,6 +226,22 @@ describe("save", () => {
       bare
     );
     const settled = settle(empty, play(flight, null));
-    assert.ok(settled.unlocked.some((option) => option.id === "gold"));
+    assert.ok(
+      settled.unlocked.some(
+        ({ part, option }) => part === "color" && option.id === "gold"
+      )
+    );
+    assert.ok(settled.save.unseen.includes("color:gold"));
+    assert.deepEqual(seen(settled.save)?.unseen, []);
+  });
+
+  test("a trail unlocks even when a color shares its id", () => {
+    const flight = play(launch(createRiver(23), flat, bare), null);
+    const settled = settle(
+      { ...empty, divine: true },
+      { ...flight, bestCombo: 15 }
+    );
+    assert.ok(settled.save.unseen.includes("trail:gold"));
+    assert.ok(!settled.save.unseen.includes("color:gold"));
   });
 });

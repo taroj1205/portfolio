@@ -91,7 +91,6 @@ export const Game = ({ challenge }: { challenge: Result | null }) => {
   const [landed, setLanded] = useState<Landing | null>(null);
   const [save, setSave] = useState<Save | null>(null);
   const [thrown, setThrown] = useState(false);
-  const [muted, setMuted] = useState(false);
   const [workshop, setWorkshop] = useState(false);
   const opener = useRef<HTMLButtonElement>(null);
   const [banner, setBanner] = useState<{ id: number; name: string } | null>(
@@ -159,11 +158,6 @@ export const Game = ({ challenge }: { challenge: Result | null }) => {
     };
   }, []);
 
-  const toggleMute = () => {
-    setMuted(!muted);
-    session.current?.mute(!muted);
-  };
-
   return (
     <>
       <canvas
@@ -194,6 +188,7 @@ export const Game = ({ challenge }: { challenge: Result | null }) => {
         <ResultSheet
           landing={landed}
           onAgain={() => session.current?.again()}
+          onWear={(part, id) => session.current?.wear(part, id)}
           onWorkshop={() => {
             setWorkshop(true);
           }}
@@ -202,11 +197,12 @@ export const Game = ({ challenge }: { challenge: Result | null }) => {
       ) : null}
       {save === null ? null : (
         <Workshop
-          muted={muted}
           onClose={() => {
             setWorkshop(false);
+            session.current?.seen();
           }}
-          onMute={toggleMute}
+          onRespec={() => session.current?.respec()}
+          onSettings={(next) => session.current?.settings(next)}
           onTune={(key, step) => session.current?.tune(key, step)}
           onWear={(part, id) => session.current?.wear(part, id)}
           open={workshop}

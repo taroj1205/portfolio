@@ -11,6 +11,7 @@ export interface Option {
   id: string;
   name: string;
   unlock: Unlock;
+  note?: string;
 }
 
 export interface Color extends Option {
@@ -73,10 +74,25 @@ const colors: Color[] = [
 ];
 
 const forms: Option[] = [
-  { id: "oval", name: "たまご", unlock: { kind: "start" } },
-  { id: "round", name: "まんまる", unlock: { kind: "level", level: 3 } },
-  { id: "flat", name: "ひらべったい", unlock: { kind: "zone", zone: 1 } },
-  { id: "heart", name: "ハート", unlock: { kind: "level", level: 10 } },
+  { id: "oval", name: "たまご", note: "バランス型", unlock: { kind: "start" } },
+  {
+    id: "round",
+    name: "まんまる",
+    note: "跳ね↑ 集中↑ 粘り↓",
+    unlock: { kind: "level", level: 3 },
+  },
+  {
+    id: "flat",
+    name: "ひらべったい",
+    note: "粘り↑ 速さ↑ 跳ね↓",
+    unlock: { kind: "zone", zone: 1 },
+  },
+  {
+    id: "heart",
+    name: "ハート",
+    note: "当たり↑↑ 速さ↓",
+    unlock: { kind: "level", level: 10 },
+  },
 ];
 
 const patterns: Option[] = [
@@ -149,7 +165,16 @@ export const conditionOf = (unlock: Unlock) => {
   return "";
 };
 
-export const opened = (progress: Progress) =>
-  parts.flatMap(({ options }) =>
-    options.filter((option) => isOpen(option.unlock, progress))
+export interface Item {
+  part: Part;
+  option: Option;
+}
+
+export const keyOf = ({ part, option }: Item) => `${part}:${option.id}`;
+
+export const opened = (progress: Progress): Item[] =>
+  parts.flatMap(({ part, options }) =>
+    options
+      .filter((option) => isOpen(option.unlock, progress))
+      .map((option) => ({ option, part }))
   );

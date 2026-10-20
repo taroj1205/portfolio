@@ -414,7 +414,8 @@ export const Hud = ({
               {...stylex.props(glass.surface, styles.mute)}
             >
               <Gear />
-              {save !== null && pointsLeft(save) > 0 ? (
+              {save !== null &&
+              (pointsLeft(save) > 0 || save.unseen.length > 0) ? (
                 <span aria-hidden="true" {...stylex.props(styles.dot)} />
               ) : null}
             </button>

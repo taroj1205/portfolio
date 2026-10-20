@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { firstLook, isOpen, opened, parts } from "./cosmetics";
-import type { Look, Option, Part, Progress } from "./cosmetics";
+import { firstLook, isOpen, keyOf, opened, parts } from "./cosmetics";
+import type { Item, Look, Part, Progress } from "./cosmetics";
 import { zoneIndex } from "./simulate";
 import type { Flight, Gear } from "./simulate";
 
@@ -20,8 +20,14 @@ const schema = z.object({
     trail: z.string(),
   }),
   runs: z.number().int().min(0),
+  settings: z
+    .object({ lite: z.boolean(), muted: z.boolean() })
+    .default({ lite: false, muted: false }),
+  unseen: z.array(z.string()).default([]),
   xp: z.number().min(0),
 });
+
+export type Settings = Save["settings"];
 
 export type Save = z.infer<typeof schema>;
 
@@ -32,6 +38,8 @@ const fresh: Save = {
   gear: { focus: 0, power: 0, stone: 0 },
   look: firstLook,
   runs: 0,
+  settings: { lite: false, muted: false },
+  unseen: [],
   xp: 0,
 };
 
@@ -105,6 +113,11 @@ export const tune = (
   return { ...save, gear: { ...save.gear, [key]: save.gear[key] + step } };
 };
 
+export const respec = (save: Save): Save => ({
+  ...save,
+  gear: { focus: 0, power: 0, stone: 0 },
+});
+
 export const wear = (save: Save, part: Part, id: string): Save | null => {
   const option = parts
     .find((entry) => entry.part === part)
@@ -136,15 +149,18 @@ export const settle = (save: Save, flight: Flight) => {
     runs: save.runs + 1,
     xp: save.xp + gained,
   };
-  const before = new Set(opened(unlocksOf(save)).map((option) => option.id));
-  const unlocked: Option[] = opened(unlocksOf(next)).filter(
-    (option) => !before.has(option.id)
+  const before = new Set(opened(unlocksOf(save)).map(keyOf));
+  const unlocked: Item[] = opened(unlocksOf(next)).filter(
+    (item) => !before.has(keyOf(item))
   );
   return {
     gained,
     climbed: progressOf(next.xp).level - progressOf(save.xp).level,
     record: flight.distance > save.best,
-    save: next,
+    save: { ...next, unseen: [...save.unseen, ...unlocked.map(keyOf)] },
     unlocked,
   };
 };
+
+export const seen = (save: Save): Save | null =>
+  save.unseen.length === 0 ? null : { ...save, unseen: [] };

@@ -129,6 +129,7 @@ export interface Frame {
   clock: number;
   tilt: number | null;
   look: Look;
+  lite: boolean;
 }
 
 interface Camera {
@@ -156,7 +157,7 @@ interface Screen {
 
 const TAU = Math.PI * 2;
 const NEAR = 0.35;
-const STONE = 0.2;
+const STONE = 0.26;
 const GOLD = "#ffd27a";
 
 const hash = (a: number, b = 0) => {
@@ -247,14 +248,14 @@ const cameraFor = (
     flight.ending === null ? 0 : ease((time - flight.duration) / 2.4);
   const shake = shakeAt(flight, time);
   const blend = ease(time / 0.9);
-  const height = 0.68 + Math.min(3, (y / 6) * 0.45) + rush * 0.5;
+  const height = 1.05 + Math.min(3, (y / 6) * 0.45) + rush * 0.5;
   return {
     pitch: 0.07 * blend,
     roll: idle.roll * (1 - blend) - sway * 0.35 + shake * 0.6,
     speed: rush,
     x: idle.x * (1 - blend) + (x / 6) * 0.9 * blend + shake,
     y: idle.y + (height - idle.y) * blend + 1.1 * settle + shake * 0.5,
-    z: Math.max(idle.z, (now?.z ?? z / 6) - (2.8 + rush * 3)) - 3 * settle,
+    z: Math.max(idle.z, (now?.z ?? z / 6) - (4.6 + rush * 3)) - 3 * settle,
   };
 };
 
@@ -1285,6 +1286,7 @@ const paintBursts = (
 
 interface Sprites {
   stone: HTMLCanvasElement;
+  edge: HTMLCanvasElement;
   duck: HTMLCanvasElement;
   rock: (prop: Prop) => HTMLCanvasElement;
   lotus: (prop: Prop) => HTMLCanvasElement;
@@ -1293,7 +1295,20 @@ interface Sprites {
 
 const keyOf = (prop: Prop) => Math.floor(prop.turn * 1_000_000);
 
+const darken = (source: HTMLCanvasElement) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = source.width;
+  canvas.height = source.height;
+  const ctx = canvas.getContext("2d");
+  if (ctx) {
+    ctx.filter = "brightness(0.32) saturate(0.8)";
+    ctx.drawImage(source, 0, 0);
+  }
+  return canvas;
+};
+
 const createSprites = (tint: Tint, look: Look): Sprites => {
+  const stone = stoneSprite(colorOf(look.color), look.form, look.pattern);
   const cache = new Map<string, HTMLCanvasElement>();
   const memo = (key: string, make: () => HTMLCanvasElement) => {
     const hit = cache.get(key);
@@ -1315,7 +1330,8 @@ const createSprites = (tint: Tint, look: Look): Sprites => {
       memo(`lotus:${keyOf(prop)}`, () => lotusSprite(keyOf(prop), tint)),
     rock: (prop) =>
       memo(`rock:${keyOf(prop)}`, () => rockSprite(keyOf(prop), tint)),
-    stone: stoneSprite(colorOf(look.color), look.form, look.pattern),
+    edge: darken(stone),
+    stone,
   };
 };
 
@@ -1497,11 +1513,34 @@ const paintTrail = (
   ctx.restore();
 };
 
+const poseOf = (flight: Flight, at: Vec, time: number, view: View) => {
+  const ahead = stoneAt(flight, time + 0.02) ?? at;
+  const rise = ahead.y - at.y;
+  const run = Math.hypot(ahead.x - at.x, ahead.z - at.z);
+  const speed = run / 0.02;
+  const climb = run > 1e-4 ? Math.atan2(rise, run) : 0;
+  const base = (Math.min(60, Math.max(0, flight.tilt)) * Math.PI) / 180;
+  const last = flight.splashes.findLast((splash) => splash.time <= time);
+  const since = last ? time - last.time : 10;
+  const kick = Math.exp(-since * 7) * Math.sin(since * 38) * 0.45;
+  const wobble = Math.exp(-since * 5) * Math.sin(since * 27) * 0.22;
+  const landed = flight.ending !== null && time > flight.duration;
+  const d = Math.max(0.5, at.z - view.camera.z);
+  return {
+    pitch: landed ? 0 : base * 0.55 + climb * 0.6 + kick,
+    roll: landed ? 0 : wobble + Math.sin(time * 3.1) * 0.05,
+    speed,
+    spin: landed ? 0.4 : time * (8 + Math.min(40, speed) * 0.9),
+    view: Math.atan2(view.camera.y - at.y, d),
+  };
+};
+
 const paintStone = (
   ctx: CanvasRenderingContext2D,
   view: View,
   flight: Flight,
   sprite: HTMLCanvasElement,
+  edge: HTMLCanvasElement,
   trail: string,
   palette: Palette,
   time: number
@@ -1546,13 +1585,76 @@ const paintStone = (
       len * 4 + 16
     );
   }
-  const pitch = (Math.min(60, Math.max(0, flight.tilt)) * Math.PI) / 180;
+  const pose = poseOf(flight, at, time, view);
+  const face = Math.min(1, Math.max(0.14, Math.sin(pose.view + pose.pitch)));
+  const thick = len * 0.11 * Math.cos(pose.view + pose.pitch);
+  if (moving && pose.speed > 12) {
+    for (let k = 3; k >= 1; k -= 1) {
+      const ghost = stoneAt(flight, time - k * 0.012);
+      const q = ghost ? project(view, ghost) : null;
+      if (q) {
+        ctx.save();
+        ctx.globalAlpha = 0.12 * (4 - k);
+        ctx.translate(q.x, q.y);
+        ctx.rotate(pose.roll);
+        ctx.scale(1, face);
+        ctx.rotate(pose.spin - k * 0.4);
+        ctx.drawImage(sprite, -len / 2, (-len * 0.625) / 2, len, len * 0.625);
+        ctx.restore();
+      }
+    }
+  }
   ctx.save();
   ctx.translate(p.x, p.y);
-  ctx.scale(1, 0.18 + 0.75 * Math.sin(pitch));
-  ctx.rotate(moving ? time * 24 : 0.4);
+  ctx.rotate(pose.roll);
+  ctx.save();
+  ctx.translate(0, Math.max(1, thick));
+  ctx.scale(1, face);
+  ctx.rotate(pose.spin);
+  ctx.drawImage(edge, -len / 2, (-len * 0.625) / 2, len, len * 0.625);
+  ctx.restore();
+  ctx.scale(1, face);
+  ctx.rotate(pose.spin);
   ctx.drawImage(sprite, -len / 2, (-len * 0.625) / 2, len, len * 0.625);
   ctx.restore();
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(pose.roll);
+  ctx.scale(1, face);
+  ctx.globalCompositeOperation = "lighter";
+  const sheen = ctx.createRadialGradient(
+    -len * 0.15,
+    -len * 0.12,
+    0,
+    -len * 0.15,
+    -len * 0.12,
+    len * 0.4
+  );
+  sheen.addColorStop(
+    0,
+    rgba(palette.glint, 0.55 * (0.4 + 0.6 * Math.abs(Math.sin(pose.spin))))
+  );
+  sheen.addColorStop(1, rgba(palette.glint, 0));
+  ctx.fillStyle = sheen;
+  ctx.fillRect(-len, -len, len * 2, len * 2);
+  ctx.restore();
+  if (moving && time < 1.4) {
+    const fade = Math.min(1, (1.4 - time) / 0.4);
+    ctx.save();
+    ctx.globalAlpha = fade;
+    ctx.fillStyle = GOLD;
+    ctx.font = `700 ${Math.round(Math.max(13, len * 0.5))}px "Hiragino Mincho ProN", serif`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = "rgb(0 0 0 / 0.6)";
+    ctx.shadowBlur = 6;
+    ctx.fillText(
+      `${Math.round(flight.tilt)}°`,
+      p.x + len * 0.7 + 6,
+      p.y - len * 0.5
+    );
+    ctx.restore();
+  }
 };
 
 const paintHand = (
@@ -1846,7 +1948,16 @@ const paintScene = (
     }
   }
   if (shot) {
-    paintStone(ctx, view, shot, sprites.stone, frame.look.trail, palette, time);
+    paintStone(
+      ctx,
+      view,
+      shot,
+      sprites.stone,
+      sprites.edge,
+      frame.look.trail,
+      palette,
+      time
+    );
     paintBursts(ctx, view, shot, time);
   }
 };
@@ -1940,7 +2051,7 @@ export const createRenderer = (surfaces: {
   let rig: Camera | null = null;
   let lastClock = 0;
   let lastShot: Flight | null = null;
-  let tier = 2;
+  let ceiling = 2;
   let pace = 1 / 60;
   let strain = 0;
   let frames = 0;
@@ -1952,8 +2063,8 @@ export const createRenderer = (surfaces: {
     }
     pace = pace * 0.95 + dt * 0.05;
     strain = pace > 0.026 ? strain + 1 : Math.max(0, strain - 2);
-    if (strain > 90 && tier > 0) {
-      tier -= 1;
+    if (strain > 90 && ceiling > 0) {
+      ceiling -= 1;
       strain = 0;
       pace = 1 / 60;
     }
@@ -1987,6 +2098,7 @@ export const createRenderer = (surfaces: {
     const dt = Math.min(0.1, Math.max(0, frame.clock - lastClock));
     lastClock = frame.clock;
     measure(dt);
+    const tier = frame.lite ? 0 : ceiling;
     const dpr = Math.min(window.devicePixelRatio || 1, [1, 1.5, 2][tier] ?? 2);
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;

@@ -1,10 +1,10 @@
-import type { Option, Part } from "./cosmetics";
+import type { Item, Part } from "./cosmetics";
 import { listenFlick, tiltAt } from "./flick";
 import { createRenderer } from "./render";
 import { resultOf } from "./result";
 import type { Result } from "./result";
-import { loadSave, settle, storeSave, tune, wear } from "./save";
-import type { Save } from "./save";
+import { loadSave, respec, seen, settle, storeSave, tune, wear } from "./save";
+import type { Save, Settings } from "./save";
 import {
   createRiver,
   land,
@@ -33,7 +33,7 @@ export interface Landing {
   gained: number;
   climbed: number;
   combo: number;
-  unlocked: Option[];
+  unlocked: Item[];
 }
 
 export interface Release {
@@ -82,6 +82,7 @@ export const startSession = (
   let reached = 0;
   let aimFrom: number | null = null;
   let mode: Phase = "ready";
+  sound.mute(save.settings.muted);
   on.save(save);
 
   const enter = (next: Phase) => {
@@ -157,7 +158,7 @@ export const startSession = (
   const finish = (done: Flight) => {
     const settled = settle(save, done);
     keep(settled.save);
-    if (settled.climbed > 0) {
+    if (settled.climbed > 0 || settled.unlocked.length > 0) {
       sound.fanfare();
     } else {
       sound.reward();
@@ -227,6 +228,7 @@ export const startSession = (
       shot: flight,
       tilt: aimFrom === null ? null : tiltAt((now - aimFrom) / 1000),
       time,
+      lite: save.settings.lite,
       look: save.look,
     });
     frame = requestAnimationFrame(tick);
@@ -252,7 +254,19 @@ export const startSession = (
         keep(next);
       }
     },
-    mute: sound.mute,
+    respec: () => {
+      keep(respec(save));
+    },
+    seen: () => {
+      const next = seen(save);
+      if (next) {
+        keep(next);
+      }
+    },
+    settings: (next: Settings) => {
+      sound.mute(next.muted);
+      keep({ ...save, settings: next });
+    },
     stop: () => {
       cancelAnimationFrame(frame);
       stopFlick();
