@@ -17,6 +17,12 @@ export interface Result {
   stone: Stone | null;
 }
 
+export interface Share {
+  text: string;
+  url: string;
+  image: string;
+}
+
 interface Story {
   title: string;
   rarity: string | null;
@@ -44,6 +50,12 @@ const tiers: [number, Text][] = [
   [60, { en: "Nice", ja: "いい感じ" }],
   [0, { en: "Skip, skip", ja: "ちょん、ちょん" }],
 ];
+
+export const titleOf = (meters: number, lang: Lang) =>
+  (tiers.find(([least]) => meters >= least)?.[1] ?? {
+    en: "Skip, skip",
+    ja: "ちょん、ちょん",
+  })[lang];
 
 const count = (k: number, word: string) => `${k} ${word}${k === 1 ? "" : "s"}`;
 
@@ -109,10 +121,7 @@ const lines: Record<
 export const describe = (result: Result, lang: Lang): Story => {
   const copy = lines[lang];
   const distance = formatDistance(result.distance).replace(" ", "");
-  const title = (tiers.find(([least]) => result.distance >= least)?.[1] ?? {
-    en: "Skip, skip",
-    ja: "ちょん、ちょん",
-  })[lang];
+  const title = titleOf(result.distance, lang);
   if (result.ending === "plop") {
     return { ...copy.plop, rarity: null };
   }
@@ -210,7 +219,7 @@ export const queryOf = (result: Result) => {
   return query.toString();
 };
 
-export const shareOf = (result: Result, origin: string, lang: Lang) => {
+export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
   const stone =
@@ -225,11 +234,10 @@ export const shareOf = (result: Result, origin: string, lang: Lang) => {
     ]
       .filter((line) => line !== null)
       .join("\n"),
+    image: `${origin}/games/mizukiri/og?${query.toString()}`,
     url: `${origin}/games/mizukiri?${query.toString()}`,
   };
 };
 
-export const postUrl = (result: Result, origin: string, lang: Lang) =>
-  `https://x.com/intent/tweet?${new URLSearchParams(
-    shareOf(result, origin, lang)
-  ).toString()}`;
+export const postUrl = (share: Share) =>
+  `https://x.com/intent/tweet?${new URLSearchParams({ text: share.text, url: share.url }).toString()}`;

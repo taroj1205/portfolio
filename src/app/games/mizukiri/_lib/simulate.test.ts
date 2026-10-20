@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, test, vi } from "vite-plus/test";
 
+import { careerOf, careerShare, readCareer } from "./career";
 import {
   comboOf,
   firstLook,
@@ -10,8 +11,15 @@ import {
   stoneFrom,
   traitsOf,
 } from "./cosmetics";
-import { describe as storyOf, postUrl, readResult, resultOf } from "./result";
 import {
+  describe as storyOf,
+  postUrl,
+  readResult,
+  resultOf,
+  shareOf,
+} from "./result";
+import {
+  loadSave,
   pointsLeft,
   progressOf,
   seen,
@@ -344,10 +352,10 @@ describe("stones", () => {
   test("a posted run carries its stone into the shared link", () => {
     const flight = play(launch(createRiver(5), flat, bare), null);
     const result = resultOf(flight, { color: "jade", form: "bean" });
-    const posted = new URL(postUrl(result, "https://x.y", "ja"));
+    const posted = new URL(postUrl(shareOf(result, "https://x.y", "ja")));
     assert.match(posted.searchParams.get("text") ?? "", /勾玉/u);
     assert.match(posted.searchParams.get("text") ?? "", /#天の川水切り/u);
-    const english = new URL(postUrl(result, "https://x.y", "en"));
+    const english = new URL(postUrl(shareOf(result, "https://x.y", "en")));
     assert.match(
       english.searchParams.get("text") ?? "",
       /Magatama \(Jade Bean\)/u
@@ -358,6 +366,9 @@ describe("stones", () => {
       "en"
     );
     const shared = new URL(posted.searchParams.get("url") ?? "");
+    const image = new URL(shareOf(result, "https://x.y", "ja").image);
+    assert.equal(image.pathname, "/games/mizukiri/og");
+    assert.equal(image.search, shared.search);
     assert.deepEqual(
       readResult(Object.fromEntries(shared.searchParams))?.stone,
       { color: "jade", form: "bean" }
@@ -405,6 +416,18 @@ describe("save", () => {
     look: firstLook,
     runs: 0,
     settings: { lang: null, muted: false },
+    tally: {
+      airtime: 0,
+      bestAirtime: 0,
+      bestSkips: 0,
+      distance: 0,
+      divineThrows: 0,
+      endings: {},
+      events: {},
+      grades: {},
+      quality: 0,
+      skips: 0,
+    },
     unseen: [],
     xp: 0,
   };
@@ -416,6 +439,89 @@ describe("save", () => {
     assert.equal(settled.record, true);
     assert.equal(settled.save.best, flight.distance);
     assert.equal(settled.save.runs, 1);
+  });
+
+  test("every finished throw adds to the lifetime tally", () => {
+    const flight = play(launch(createRiver(9), flat, bare), 0.03);
+    const { tally } = settle(settle(empty, flight).save, flight).save;
+    const graded = flight.splashes.filter(({ grade }) => grade !== null);
+    assert.ok(flight.duration > 0 && graded.length > 0);
+    assert.equal(tally.distance, flight.distance * 2);
+    assert.equal(tally.airtime, flight.duration * 2);
+    assert.equal(tally.bestAirtime, flight.duration);
+    assert.equal(tally.skips, flight.skips * 2);
+    assert.equal(tally.bestSkips, flight.skips);
+    assert.equal(tally.quality, flight.quality * 2);
+    assert.equal(tally.endings[flight.ending ?? "sink"], 2);
+    assert.equal(
+      Object.values(tally.grades).reduce((sum, n) => sum + n, 0),
+      graded.length * 2
+    );
+  });
+
+  test("an older save loads with an empty tally that counts its best", () => {
+    const { tally: _, ...older } = { ...empty, best: 42.5, runs: 3 };
+    vi.stubGlobal("localStorage", {
+      getItem: () => JSON.stringify(older),
+    });
+    try {
+      const loaded = loadSave();
+      assert.equal(loaded.runs, 3);
+      assert.equal(loaded.tally.distance, 42.5);
+      assert.equal(loaded.tally.airtime, 0);
+      assert.deepEqual(loaded.tally.grades, {});
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  test("a shared record survives the link round trip", () => {
+    const career = {
+      ...careerOf({ ...empty, best: 1234.5, combo: 7, runs: 42, xp: 9000 }),
+      airtime: 3725.4,
+      perfect: true,
+      total: 56_789,
+    };
+    const english = careerShare(career, "https://x.y", "en");
+    assert.match(
+      english.text,
+      /best 1\.23km, 56\.79km across 42 throws and 1h 2m in flight/u
+    );
+    assert.match(english.text, /^My Skip to the Milky Way record:/u);
+    assert.match(
+      english.text,
+      /reached Cherry lane \(Lv\.9\)\n#天の川水切り #SkipToTheMilkyWay$/u
+    );
+    const url = new URL(english.url);
+    assert.equal(url.searchParams.get("l"), "en");
+    const image = new URL(english.image);
+    assert.equal(image.pathname, "/games/mizukiri/og");
+    assert.equal(image.search, url.search);
+    assert.deepEqual(readCareer(Object.fromEntries(url.searchParams)), career);
+    assert.match(
+      careerShare(career, "https://x.y", "ja").text,
+      /^天の川水切りの戦績：自己ベスト1\.23km、42投・飛行時間1時間2分/u
+    );
+    assert.match(
+      careerShare({ ...career, airtime: 125.9 }, "https://x.y", "en").text,
+      /and 2m 6s in flight/u
+    );
+    assert.match(
+      careerShare({ ...career, airtime: 0 }, "https://x.y", "ja").text,
+      /飛行時間0秒/u
+    );
+    assert.equal(
+      readCareer({
+        air: "1",
+        best: "10",
+        combo: "0",
+        lv: "0",
+        runs: "0",
+        total: "10",
+      }),
+      null
+    );
+    assert.equal(readResult(Object.fromEntries(url.searchParams)), null);
   });
 
   test("skill points come from levels and can be moved freely", () => {

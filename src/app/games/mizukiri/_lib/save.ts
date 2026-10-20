@@ -13,44 +13,69 @@ import {
 } from "./cosmetics";
 import type { Item, Look, Part, Progress } from "./cosmetics";
 import { langs } from "./i18n";
-import { zoneIndex } from "./simulate";
+import { endings, events, grades, zoneIndex } from "./simulate";
 import type { Flight, Gear } from "./simulate";
 
 const KEY = "mizukiri.v3";
 const level = z.number().int().min(0).max(9999);
+const count = z.number().int().min(0);
 
-const schema = z.object({
-  best: z.number().min(0),
-  combo: z.number().int().min(0),
-  divine: z.boolean(),
-  found: z.array(z.string()).default([]),
-  gear: z.object({
-    focus: level,
-    impact: level.default(0),
-    lift: level.default(0),
-    power: level,
-    stone: level,
-  }),
-  look: z.object({
-    color: z.string(),
-    form: z.string(),
-    pattern: z.string(),
-    trail: z.string(),
-  }),
-  runs: z.number().int().min(0),
-  settings: z
-    .object({
-      lang: z.enum(langs).nullable().default(null),
-      muted: z.boolean(),
-    })
-    .default({ lang: null, muted: false }),
-  unseen: z.array(z.string()).default([]),
-  xp: z.number().min(0),
+const tally = z.object({
+  airtime: z.number().min(0).default(0),
+  bestAirtime: z.number().min(0).default(0),
+  bestSkips: count.default(0),
+  distance: z.number().min(0).default(0),
+  divineThrows: count.default(0),
+  endings: z.partialRecord(z.enum(endings), count).default({}),
+  events: z.partialRecord(z.enum(events), count).default({}),
+  grades: z.partialRecord(z.enum(grades), count).default({}),
+  quality: z.number().min(0).default(0),
+  skips: count.default(0),
 });
+
+const schema = z
+  .object({
+    best: z.number().min(0),
+    combo: z.number().int().min(0),
+    divine: z.boolean(),
+    found: z.array(z.string()).default([]),
+    gear: z.object({
+      focus: level,
+      impact: level.default(0),
+      lift: level.default(0),
+      power: level,
+      stone: level,
+    }),
+    look: z.object({
+      color: z.string(),
+      form: z.string(),
+      pattern: z.string(),
+      trail: z.string(),
+    }),
+    runs: z.number().int().min(0),
+    settings: z
+      .object({
+        lang: z.enum(langs).nullable().default(null),
+        muted: z.boolean(),
+      })
+      .default({ lang: null, muted: false }),
+    tally: tally.prefault({}),
+    unseen: z.array(z.string()).default([]),
+    xp: z.number().min(0),
+  })
+  .transform((save) => ({
+    ...save,
+    tally: {
+      ...save.tally,
+      distance: Math.max(save.tally.distance, save.best),
+    },
+  }));
 
 export type Settings = Save["settings"];
 
 export type Save = z.infer<typeof schema>;
+
+type Tally = Save["tally"];
 
 const fresh: Save = {
   best: 0,
@@ -61,6 +86,7 @@ const fresh: Save = {
   look: firstLook,
   runs: 0,
   settings: { lang: null, muted: false },
+  tally: tally.parse({}),
   unseen: [],
   xp: 0,
 };
@@ -170,6 +196,36 @@ export const wearCombo = (save: Save, id: string): Save | null => {
   };
 };
 
+const counted = <Key extends string>(
+  counts: Partial<Record<Key, number>>,
+  keys: Key[]
+) => {
+  const next = { ...counts };
+  for (const key of keys) {
+    next[key] = (next[key] ?? 0) + 1;
+  }
+  return next;
+};
+
+const tallied = (before: Tally, flight: Flight): Tally => ({
+  airtime: before.airtime + flight.duration,
+  bestAirtime: Math.max(before.bestAirtime, flight.duration),
+  bestSkips: Math.max(before.bestSkips, flight.skips),
+  distance: before.distance + flight.distance,
+  divineThrows: before.divineThrows + (flight.quality === 100 ? 1 : 0),
+  endings: counted(before.endings, [flight.ending ?? "sink"]),
+  events: counted(
+    before.events,
+    flight.splashes.flatMap(({ event }) => (event === null ? [] : [event]))
+  ),
+  grades: counted(
+    before.grades,
+    flight.splashes.flatMap(({ grade }) => (grade === null ? [] : [grade]))
+  ),
+  quality: before.quality + flight.quality,
+  skips: before.skips + flight.skips,
+});
+
 export const settle = (save: Save, flight: Flight) => {
   const gained = Math.round(
     flight.distance * 0.5 +
@@ -184,6 +240,7 @@ export const settle = (save: Save, flight: Flight) => {
     combo: Math.max(save.combo, flight.bestCombo),
     divine: save.divine || flight.quality === 100,
     runs: save.runs + 1,
+    tally: tallied(save.tally, flight),
     xp: save.xp + gained,
   };
   const before = new Set(opened(unlocksOf(save)).map(keyOf));

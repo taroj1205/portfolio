@@ -38,6 +38,9 @@ export interface Copy {
     worn: string;
     again: string;
     share: string;
+    shareImage: string;
+    saveImage: string;
+    shareLink: string;
     postX: string;
     copyLink: string;
     copied: string;
@@ -48,7 +51,8 @@ export interface Copy {
   };
   workshop: {
     title: string;
-    tabs: { stone: string; skill: string; setting: string };
+    tabs: { stone: string; skill: string; record: string; setting: string };
+    firstThrow: string;
     opened: (count: number, total: number) => string;
     found: (count: number, total: number) => string;
     shifts: string;
@@ -116,7 +120,10 @@ export const copy: Record<Lang, Copy> = {
       copied: "Copied",
       copyLink: "Copy link",
       postX: "Post on X",
+      saveImage: "Save image",
       share: "Share",
+      shareImage: "Share image",
+      shareLink: "Share link",
       record: "New best",
       stats: (skips, combo, quality) =>
         `${skips} skips · best combo ×${combo} · throw ${quality}%`,
@@ -131,6 +138,7 @@ export const copy: Record<Lang, Copy> = {
     name: "Skip to the Milky Way",
     workshop: {
       bonus: (note) => `Combo bonus ${note}`,
+      firstThrow: "Throw a stone to start your record",
       found: (count, total) => `Found ${count} / ${total}`,
       howto: "How to play",
       language: "Language",
@@ -147,7 +155,12 @@ export const copy: Record<Lang, Copy> = {
         "Tap the moment the stone meets the water, as the ring closes. Gold means perfect.",
         "Ducks, rocks, carp and lily pads speed you up, and so do dragonflies hovering over the water. Drift too close to a bank and you bounce off.",
       ],
-      tabs: { setting: "Settings", skill: "Skills", stone: "Stone" },
+      tabs: {
+        record: "Record",
+        setting: "Settings",
+        skill: "Skills",
+        stone: "Stone",
+      },
       title: "Stone & skills",
     },
   },
@@ -205,7 +218,10 @@ export const copy: Record<Lang, Copy> = {
       copied: "コピーした",
       copyLink: "リンクをコピー",
       postX: "Xに投稿",
+      saveImage: "画像を保存",
       share: "シェア",
+      shareImage: "画像でシェア",
+      shareLink: "リンクでシェア",
       record: "自己ベスト更新",
       stats: (skips, combo, quality) =>
         `${skips}回跳ねた · 最大コンボ ×${combo} · 投げの質 ${quality}%`,
@@ -220,6 +236,7 @@ export const copy: Record<Lang, Copy> = {
     name: "天の川水切り",
     workshop: {
       bonus: (note) => `相性ボーナス ${note}`,
+      firstThrow: "石を投げると戦績が残る",
       found: (count, total) => `発見 ${count} / ${total}`,
       howto: "遊び方",
       language: "言語",
@@ -236,7 +253,7 @@ export const copy: Record<Lang, Copy> = {
         "石が着水する瞬間、輪が閉じたところでタップ。金色ならパーフェクト",
         "カモ・岩・鯉・蓮の葉、水面を飛ぶトンボに当たると加速。土手に寄りすぎると跳ね返される",
       ],
-      tabs: { setting: "設定", skill: "腕前", stone: "石" },
+      tabs: { record: "戦績", setting: "設定", skill: "腕前", stone: "石" },
       title: "石と腕前",
     },
   },
