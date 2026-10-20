@@ -68,9 +68,6 @@ const play = (flight: Flight, lead: number | null) => {
   return flight;
 };
 
-const mean = (values: number[]) =>
-  values.reduce((sum, y) => sum + y, 0) / values.length;
-
 const strike = (seed: number, lead: number | null) => {
   const flight = launch(createRiver(seed), flat, bare);
   const contact = nextContact(flight);
@@ -200,31 +197,44 @@ describe("flight", () => {
     assert.ok(longest > 1.5);
   });
 
-  test("hops only get taller as the streak of good taps grows", () => {
-    const strong: Gear = { focus: 0, impact: 0, lift: 6, power: 60, stone: 10 };
+  test("a skim on the water stays low at any speed", () => {
+    const fast: Gear = { focus: 0, impact: 0, lift: 6, power: 40, stone: 10 };
+    let checked = 0;
     for (let seed = 1; seed <= 30; seed += 1) {
-      const idle = play(launch(createRiver(seed), flat, strong), null);
-      for (const hop of idle.hops.slice(1)) {
-        assert.ok(hop.velocity.y <= 15);
+      const flight = play(launch(createRiver(seed), flat, fast), 0.03);
+      for (const splash of flight.splashes) {
+        const hop = flight.hops.find((h) => h.start === splash.time);
+        if (splash.grade !== null && splash.event === null && hop) {
+          assert.ok(hop.velocity.y <= 4.5 * 1.11);
+          checked += 1;
+        }
       }
     }
-    let taller = 0;
-    for (let seed = 1; seed <= 30; seed += 1) {
-      const flight = launch(createRiver(seed), flat, bare);
-      const heights: number[] = [];
-      for (
-        let contact = nextContact(flight);
-        contact !== null && heights.length < 40;
-        contact = nextContact(flight)
-      ) {
-        land(flight, contact - 0.03);
-        heights.push(flight.hops.at(-1)?.velocity.y ?? 0);
-      }
-      if (mean(heights.slice(-5)) > mean(heights.slice(1, 6))) {
-        taller += 1;
+    assert.ok(checked > 100);
+  });
+
+  test("hitting something kicks the stone up harder the faster it was going", () => {
+    const fast: Gear = { focus: 0, impact: 0, lift: 6, power: 40, stone: 10 };
+    let kicked = 0;
+    for (let seed = 1; seed <= 60; seed += 1) {
+      const flight = play(launch(createRiver(seed), flat, fast), 0.03);
+      for (const bump of flight.bumps) {
+        const before = flight.hops.find((h) => h.end === bump.time);
+        const after = flight.hops.find((h) => h.start === bump.time);
+        if (!isBounce(bump.kind) || !before || !after) {
+          continue;
+        }
+        const speed = Math.hypot(before.velocity.x, before.velocity.z);
+        assert.ok(
+          after.velocity.y >=
+            2.5 * Math.max(1, Math.sqrt(speed / flight.top)) - 1e-9
+        );
+        if (speed > 1.5 * flight.top) {
+          kicked += 1;
+        }
       }
     }
-    assert.ok(taller > 20);
+    assert.ok(kicked > 0);
   });
 
   test("bounces and perfect taps cannot run the speed away", () => {

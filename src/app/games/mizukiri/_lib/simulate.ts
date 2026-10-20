@@ -544,6 +544,9 @@ const gradeFor = (flight: Flight, tapAt: number | null, time: number) => {
 const fade = (flight: Flight, speed: number, factor: number) =>
   factor > 1 ? 1 + (factor - 1) * Math.min(1, flight.top / speed) ** 2 : factor;
 
+const kick = (flight: Flight, speed: number) =>
+  Math.max(1, Math.sqrt(speed / flight.top));
+
 const GAIN: Record<Grade, (flight: Flight, speed: number) => number> = {
   early: (flight) => flight.keep,
   good: (flight) => Math.min(0.97, flight.keep + 0.06),
@@ -591,7 +594,11 @@ const bounce = (
   fly(
     flight,
     at,
-    { x: hop.velocity.x * push, y: body.rise, z: hop.velocity.z * push },
+    {
+      x: hop.velocity.x * push,
+      y: body.rise * kick(flight, speed),
+      z: hop.velocity.z * push,
+    },
     time
   );
 };
@@ -665,14 +672,16 @@ export const land = (flight: Flight, tapAt: number | null) => {
   }
   const forward = speed * factor * (1 + (roll(flight) - 0.5) * 0.04);
   const scale = forward / speed;
+  const kicked = rise > 1 ? kick(flight, speed) : 1;
   fly(
     flight,
     at,
     {
       x: hop.velocity.x * scale,
       y:
-        Math.min(HOP * (1 + 0.06 * flight.combo), forward * flight.lift) *
+        Math.min(HOP, forward * flight.lift) *
         rise *
+        kicked *
         (1 + (roll(flight) - 0.5) * 0.2),
       z: hop.velocity.z * scale,
     },
