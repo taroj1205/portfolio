@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { axes } from "../_lib/cosmetics";
 import type { Axis } from "../_lib/cosmetics";
+import { reachOf } from "../_lib/simulate";
 import type { statsOf } from "../_lib/simulate";
 import { useLang } from "./lang";
 import { font, ink } from "./theme.stylex";
@@ -23,25 +24,12 @@ const point = (index: number, value: number) => {
   return [CENTER + Math.cos(angle) * reach, CENTER + Math.sin(angle) * reach];
 };
 
-const polygon = (stats: Stats, tier: number) =>
+const polygon = (stats: Stats) =>
   axes
-    .map(({ key }, index) => point(index, stats[key] / tier).join(","))
+    .map(({ key }, index) => point(index, reachOf(stats[key])).join(","))
     .join(" ");
 
-const tierOf = (...shown: Stats[]) =>
-  Math.max(
-    1,
-    Math.ceil(Math.max(...shown.flatMap((s) => axes.map(({ key }) => s[key]))))
-  );
-
 const styles = stylex.create({
-  rim: {
-    fill: GOLD,
-    fontFamily: font.mincho,
-    fontSize: 12,
-    fontVariantNumeric: "tabular-nums",
-    fontWeight: 700,
-  },
   grid: {
     fill: "none",
     stroke: "rgb(255 255 255 / 0.16)",
@@ -143,7 +131,6 @@ export const Radar = ({
 }) => {
   const lang = useLang();
   const [open, setOpen] = useState<Axis | null>(null);
-  const tier = tierOf(...(preview === null ? [stats] : [stats, preview]));
   return (
     <figure {...stylex.props(styles.figure)}>
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} {...stylex.props(styles.chart)}>
@@ -169,24 +156,10 @@ export const Radar = ({
             />
           );
         })}
-        <polygon points={polygon(stats, tier)} {...stylex.props(styles.area)} />
+        <polygon points={polygon(stats)} {...stylex.props(styles.area)} />
         {preview === null ? null : (
-          <polygon
-            points={polygon(preview, tier)}
-            {...stylex.props(styles.ghost)}
-          />
+          <polygon points={polygon(preview)} {...stylex.props(styles.ghost)} />
         )}
-        {tier > 1 ? (
-          <text
-            aria-hidden="true"
-            textAnchor="end"
-            x={SIZE - 4}
-            y={SIZE - 6}
-            {...stylex.props(styles.rim)}
-          >
-            ×{tier}
-          </text>
-        ) : null}
         {axes.map(({ key, label, note }, index) => {
           const [x = 0, y = 0] = point(index, 1.32);
           return (

@@ -42,6 +42,7 @@ import {
   propsIn,
   plain,
   qualityOf,
+  reachOf,
   shoreAt,
   statsOf,
   stoneAt,
@@ -330,6 +331,16 @@ describe("areas and skills", () => {
       assert.ok(statsAt(400)[key] > statsAt(200)[key], key);
     }
     assert.ok(statsAt(40).speed > 1);
+  });
+
+  test("the radar draws a stat past the ring a little further for every point", () => {
+    assert.equal(reachOf(0.6), 0.6);
+    assert.equal(reachOf(1), 1);
+    const drawn = [1.1, 1.45, 2.2, 4, 40].map(reachOf);
+    for (const [i, reach] of drawn.entries()) {
+      assert.ok(reach > (drawn[i - 1] ?? 1));
+      assert.ok(reach < 1.15);
+    }
   });
 });
 

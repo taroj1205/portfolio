@@ -277,6 +277,11 @@ const trained = (gear: Gear, traits: Traits): Traits => ({
   lift: traits.lift * (1 + 0.3 * earned(gear.lift)),
 });
 
+const HEADROOM = 0.15;
+
+export const reachOf = (stat: number) =>
+  stat <= 1 ? stat : 1 + (HEADROOM * (stat - 1)) / (stat - 1 + 0.5);
+
 export const statsOf = (gear: Gear, build: Traits) => {
   const traits = trained(gear, build);
   return {
