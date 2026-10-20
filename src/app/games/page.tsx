@@ -7,9 +7,11 @@ import { GameCard } from "./_components/game-card";
 import { MergeArt } from "./_components/merge-art";
 import { SkipArt } from "./_components/skip-art";
 import { Sky } from "./_components/sky";
+import { SparkArt } from "./_components/spark-art";
 import type { Text } from "./_lib/i18n";
 import { copy as hoshiai } from "./hoshiai/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
+import { copy as senko } from "./senko/_lib/copy";
 
 interface Game {
   href: string;
@@ -47,6 +49,20 @@ const GAMES: Game[] = [
       { en: "11 bodies", ja: "11の天体" },
     ],
     title: { en: hoshiai.en.name, ja: hoshiai.ja.name },
+  },
+  {
+    art: <SparkArt />,
+    blurb: {
+      en: "Hold the screen to keep a sparkler burning. Keep still so the fireball doesn't drop before the last sparks.",
+      ja: "押しているあいだだけ火がともる。火玉を落とさずに、散り菊まで持たせよう。",
+    },
+    href: "/games/senko",
+    tags: [
+      { en: "Press & hold", ja: "長押し" },
+      { en: "Timed to 0.01s", ja: "0.01秒を競う" },
+      { en: "Same-stick challenge", ja: "同じ一本で挑戦" },
+    ],
+    title: { en: senko.en.name, ja: senko.ja.name },
   },
 ];
 
