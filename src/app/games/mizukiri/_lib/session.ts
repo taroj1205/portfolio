@@ -25,6 +25,7 @@ import {
   land,
   launch,
   nextContact,
+  speedAt,
   stoneAt,
   zoneIndex,
   zones,
@@ -64,6 +65,7 @@ interface Listeners {
   end: (ending: Ending) => void;
   late: () => void;
   distance: (meters: number) => void;
+  speed: (metersPerSecond: number) => void;
   land: (landing: Landing) => void;
   save: (save: Save) => void;
 }
@@ -227,6 +229,11 @@ export const startSession = (
     }
     const z = Math.max(0, stoneAt(current, time)?.z ?? current.distance);
     on.distance(z);
+    on.speed(
+      current.ending !== null && time >= current.duration
+        ? 0
+        : speedAt(current, time)
+    );
     const zone = zoneIndex(z);
     if (zone > reached) {
       reached = zone;
