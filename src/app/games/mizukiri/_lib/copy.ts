@@ -25,7 +25,8 @@ export interface Copy {
     flat: string;
   };
   events: Record<Event, string>;
-  grades: Record<Exclude<Grade, "miss">, string>;
+  grades: Record<Grade, string>;
+  late: string;
   endings: Record<Ending, string>;
   result: {
     record: string;
@@ -84,7 +85,8 @@ export const copy: Record<Lang, Copy> = {
     },
     fallback:
       "A stone skipping game. Hold and flick up, or press and release Space, to throw. Tap or press Space as the stone touches the water to speed it up.",
-    grades: { early: "Early", good: "Nice", perfect: "Perfect" },
+    grades: { early: "Early", good: "Nice", miss: "Miss", perfect: "Perfect" },
+    late: "Late",
     hints: {
       aiming: "Wait for a good angle, then flick up",
       flying: "Tap as the ring closes!",
@@ -166,7 +168,13 @@ export const copy: Record<Lang, Copy> = {
     },
     fallback:
       "川に石を投げて、どこまで跳ねるかを競うゲーム。画面を押したまま上にはじくか、スペースキーを押して離すと投げられる。石が水面に着く瞬間にタップするか、スペースキーを押すと加速する。",
-    grades: { early: "はやい", good: "ナイス", perfect: "パーフェクト" },
+    grades: {
+      early: "はやい",
+      good: "ナイス",
+      miss: "ミス",
+      perfect: "パーフェクト",
+    },
+    late: "おそい",
     hints: {
       aiming: "いい角度で、上にはじく",
       flying: "輪が閉じる瞬間にタップ！",

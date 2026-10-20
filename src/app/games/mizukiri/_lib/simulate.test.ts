@@ -55,6 +55,20 @@ const play = (flight: Flight, lead: number | null) => {
   return flight;
 };
 
+const strike = (seed: number, lead: number | null) => {
+  const flight = launch(createRiver(seed), flat, bare);
+  const contact = nextContact(flight);
+  if (flight.pending === null || contact === null) {
+    return null;
+  }
+  land(flight, lead === null ? null : contact - lead);
+  const speed = Math.hypot(
+    flight.hops[1]?.velocity.x ?? 0,
+    flight.hops[1]?.velocity.z ?? 0
+  );
+  return { grade: flight.splashes.at(-1)?.grade, speed };
+};
+
 describe("flight", () => {
   test("the same river, throw and taps always play out the same way", () => {
     const river = createRiver(7);
@@ -92,6 +106,37 @@ describe("flight", () => {
     assert.equal(isLate(flight, landedAt, landedAt + grace / 2), true);
     assert.equal(isLate(flight, landedAt, landedAt + grace * 2), false);
     assert.equal(isLate(flight, landedAt, next - 0.01), false);
+  });
+
+  test("a tap before a duck or rock is graded like a touch, and bends the bounce", () => {
+    let struck = 0;
+    for (let seed = 1; seed <= 200; seed += 1) {
+      const perfect = strike(seed, 0.01);
+      if (perfect === null) {
+        continue;
+      }
+      struck += 1;
+      const early = strike(seed, 0.5);
+      const idle = strike(seed, null);
+      assert.equal(perfect.grade, "perfect");
+      assert.equal(early?.grade, "early");
+      assert.equal(idle?.grade, "miss");
+      assert.ok(perfect.speed > (early?.speed ?? Number.POSITIVE_INFINITY));
+    }
+    assert.ok(struck > 0);
+  });
+
+  test("a bounce does not count as a skip", () => {
+    for (let seed = 1; seed <= 60; seed += 1) {
+      const flight = play(launch(createRiver(seed), flat, bare), 0.01);
+      const bounces = flight.bumps.filter(
+        (bump) => bump.kind === "duck" || bump.kind === "rock"
+      ).length;
+      assert.equal(
+        flight.splashes.filter((splash) => splash.grade !== null).length,
+        flight.skips + bounces
+      );
+    }
   });
 
   test("a steep throw sinks sooner than a flat one", () => {
