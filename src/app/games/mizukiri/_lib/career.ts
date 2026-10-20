@@ -19,13 +19,13 @@ export interface Career {
 }
 
 export const careerOf = (save: Save): Career => ({
-  airtime: save.airtime,
+  airtime: save.tally.airtime,
   best: save.best,
   combo: save.combo,
   level: progressOf(save.xp).level,
   perfect: save.divine,
   runs: save.runs,
-  total: save.total,
+  total: save.tally.distance,
 });
 
 const labels = {

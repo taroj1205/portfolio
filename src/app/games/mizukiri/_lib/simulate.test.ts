@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, test, vi } from "vite-plus/test";
 
 import { careerOf, careerShare, readCareer } from "./career";
 import {
@@ -19,6 +19,7 @@ import {
   shareOf,
 } from "./result";
 import {
+  loadSave,
   pointsLeft,
   progressOf,
   seen,
@@ -361,7 +362,6 @@ describe("stones", () => {
 
 describe("save", () => {
   const empty: Save = {
-    airtime: 0,
     best: 0,
     combo: 0,
     divine: false,
@@ -370,7 +370,18 @@ describe("save", () => {
     look: firstLook,
     runs: 0,
     settings: { lang: null, muted: false },
-    total: 0,
+    tally: {
+      airtime: 0,
+      bestAirtime: 0,
+      bestSkips: 0,
+      distance: 0,
+      divineThrows: 0,
+      endings: {},
+      events: {},
+      grades: {},
+      quality: 0,
+      skips: 0,
+    },
     unseen: [],
     xp: 0,
   };
@@ -382,10 +393,40 @@ describe("save", () => {
     assert.equal(settled.record, true);
     assert.equal(settled.save.best, flight.distance);
     assert.equal(settled.save.runs, 1);
-    const again = settle(settled.save, flight);
-    assert.equal(again.save.total, flight.distance * 2);
-    assert.ok(flight.duration > 0);
-    assert.equal(again.save.airtime, flight.duration * 2);
+  });
+
+  test("every finished throw adds to the lifetime tally", () => {
+    const flight = play(launch(createRiver(9), flat, bare), 0.03);
+    const { tally } = settle(settle(empty, flight).save, flight).save;
+    const graded = flight.splashes.filter(({ grade }) => grade !== null);
+    assert.ok(flight.duration > 0 && graded.length > 0);
+    assert.equal(tally.distance, flight.distance * 2);
+    assert.equal(tally.airtime, flight.duration * 2);
+    assert.equal(tally.bestAirtime, flight.duration);
+    assert.equal(tally.skips, flight.skips * 2);
+    assert.equal(tally.bestSkips, flight.skips);
+    assert.equal(tally.quality, flight.quality * 2);
+    assert.equal(tally.endings[flight.ending ?? "sink"], 2);
+    assert.equal(
+      Object.values(tally.grades).reduce((sum, n) => sum + n, 0),
+      graded.length * 2
+    );
+  });
+
+  test("an older save loads with an empty tally that counts its best", () => {
+    const { tally: _, ...older } = { ...empty, best: 42.5, runs: 3 };
+    vi.stubGlobal("localStorage", {
+      getItem: () => JSON.stringify(older),
+    });
+    try {
+      const loaded = loadSave();
+      assert.equal(loaded.runs, 3);
+      assert.equal(loaded.tally.distance, 42.5);
+      assert.equal(loaded.tally.airtime, 0);
+      assert.deepEqual(loaded.tally.grades, {});
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   test("a shared record survives the link round trip", () => {
