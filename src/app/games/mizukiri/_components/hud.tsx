@@ -78,8 +78,6 @@ const throb = stylex.keyframes({
   "100%": { transform: "scale(1)" },
 });
 
-const hintOffset = "max(5vh, calc(env(safe-area-inset-bottom) + 1.5rem))";
-
 const styles = stylex.create({
   root: {
     color: ink.text,
@@ -261,15 +259,14 @@ const styles = stylex.create({
     animationFillMode: "forwards",
     animationName: { default: shout, [media.reduce]: drift },
     animationTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)",
-    bottom: `calc(${hintOffset} + 1.75rem)`,
     fontFamily: font.mincho,
     fontSize: "clamp(2.2rem, 11vw, 3.6rem)",
     fontWeight: 800,
     insetInline: 0,
-    margin: 0,
     position: "absolute",
     textAlign: "center",
     textShadow: shade.large,
+    top: "66%",
     WebkitTextStroke: "1px rgb(0 0 0 / 0.25)",
   },
   banner: {
@@ -334,7 +331,7 @@ const styles = stylex.create({
   },
   hint: {
     alignItems: "center",
-    bottom: hintOffset,
+    bottom: "max(5vh, calc(env(safe-area-inset-bottom) + 1.5rem))",
     display: "flex",
     flexDirection: "column",
     gap: "0.4rem",
