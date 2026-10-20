@@ -219,7 +219,9 @@ export const Game = ({
       </canvas>
       <Hud
         banner={banner}
-        challenge={thrown ? null : challenge}
+        challenge={
+          thrown || (save !== null && save.mode !== "duel") ? null : challenge
+        }
         onReset={() => session.current?.again()}
         onWorkshop={() => {
           setWorkshop(true);
