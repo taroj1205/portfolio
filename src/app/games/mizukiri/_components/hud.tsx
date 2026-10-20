@@ -252,7 +252,7 @@ const styles = stylex.create({
     position: "absolute",
     textAlign: "center",
     textShadow: shade.large,
-    top: "44%",
+    top: "24%",
     WebkitTextStroke: "1px rgb(0 0 0 / 0.25)",
   },
   banner: {
@@ -267,7 +267,7 @@ const styles = stylex.create({
     insetInline: 0,
     position: "absolute",
     textShadow: shade.large,
-    top: "30%",
+    top: "40%",
   },
   bannerRule: {
     backgroundImage:
