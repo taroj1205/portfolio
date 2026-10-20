@@ -266,7 +266,7 @@ const styles = stylex.create({
     position: "absolute",
     textAlign: "center",
     textShadow: shade.large,
-    top: "24%",
+    top: "66%",
     WebkitTextStroke: "1px rgb(0 0 0 / 0.25)",
   },
   banner: {
