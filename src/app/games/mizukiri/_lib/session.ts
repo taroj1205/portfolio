@@ -229,7 +229,6 @@ export const startSession = (
       shot: flight,
       tilt: aimFrom === null ? null : tiltAt((now - aimFrom) / 1000),
       time,
-      lite: save.settings.lite,
       look: save.look,
     });
     frame = requestAnimationFrame(tick);

@@ -27,9 +27,7 @@ const schema = z.object({
     trail: z.string(),
   }),
   runs: z.number().int().min(0),
-  settings: z
-    .object({ lite: z.boolean(), muted: z.boolean() })
-    .default({ lite: false, muted: false }),
+  settings: z.object({ muted: z.boolean() }).default({ muted: false }),
   unseen: z.array(z.string()).default([]),
   xp: z.number().min(0),
 });
@@ -46,7 +44,7 @@ const fresh: Save = {
   gear: { focus: 0, impact: 0, lift: 0, power: 0, stone: 0 },
   look: firstLook,
   runs: 0,
-  settings: { lite: false, muted: false },
+  settings: { muted: false },
   unseen: [],
   xp: 0,
 };

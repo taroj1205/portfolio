@@ -130,7 +130,6 @@ export interface Frame {
   clock: number;
   tilt: number | null;
   look: Look;
-  lite: boolean;
 }
 
 interface Camera {
@@ -1372,8 +1371,10 @@ const darken = (source: HTMLCanvasElement) => {
   canvas.height = source.height;
   const ctx = canvas.getContext("2d");
   if (ctx) {
-    ctx.filter = "brightness(0.32) saturate(0.8)";
     ctx.drawImage(source, 0, 0);
+    ctx.globalCompositeOperation = "source-atop";
+    ctx.fillStyle = "rgb(12 12 16 / 0.7)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
   return canvas;
 };
@@ -1777,27 +1778,6 @@ const paintStone = (
   ctx.rotate(pose.spin);
   ctx.drawImage(sprite, -len / 2, (-len * 0.625) / 2, len, len * 0.625);
   ctx.restore();
-  ctx.save();
-  ctx.translate(p.x, p.y);
-  ctx.rotate(pose.roll);
-  ctx.scale(1, face);
-  ctx.globalCompositeOperation = "lighter";
-  const sheen = ctx.createRadialGradient(
-    -len * 0.15,
-    -len * 0.12,
-    0,
-    -len * 0.15,
-    -len * 0.12,
-    len * 0.4
-  );
-  sheen.addColorStop(
-    0,
-    rgba(palette.glint, 0.55 * (0.4 + 0.6 * Math.abs(Math.sin(pose.spin))))
-  );
-  sheen.addColorStop(1, rgba(palette.glint, 0));
-  ctx.fillStyle = sheen;
-  ctx.fillRect(-len, -len, len * 2, len * 2);
-  ctx.restore();
   if (moving && time < 1.4) {
     const fade = Math.min(1, (1.4 - time) / 0.4);
     ctx.save();
@@ -1820,7 +1800,7 @@ const paintStone = (
 const paintHand = (
   ctx: CanvasRenderingContext2D,
   view: View,
-  sprite: HTMLCanvasElement,
+  { stone, edge }: Pick<Sprites, "stone" | "edge">,
   tilt: number | null,
   clock: number
 ) => {
@@ -1867,12 +1847,12 @@ const paintHand = (
   ctx.shadowBlur = 22;
   ctx.shadowOffsetY = 10;
   ctx.save();
-  ctx.scale(1, 0.24);
-  ctx.filter = "brightness(0.45)";
-  ctx.drawImage(sprite, -size / 2, -size * 0.3125 + 28, size, size * 0.625);
-  ctx.filter = "none";
-  ctx.shadowColor = "transparent";
-  ctx.drawImage(sprite, -size / 2, -size * 0.3125, size, size * 0.625);
+  ctx.scale(1, 0.42);
+  for (let k = 3; k >= 1; k -= 1) {
+    ctx.drawImage(edge, -size / 2, -size * 0.3125 + k * 5, size, size * 0.625);
+    ctx.shadowColor = "transparent";
+  }
+  ctx.drawImage(stone, -size / 2, -size * 0.3125, size, size * 0.625);
   ctx.restore();
   ctx.restore();
 };
@@ -2227,6 +2207,34 @@ const paintWorld = (
   }
 };
 
+const TIER_KEY = "mizukiri.quality";
+
+const guessTier = () => {
+  const cores = navigator.hardwareConcurrency || 4;
+  const memory =
+    "deviceMemory" in navigator ? Number(navigator.deviceMemory) : 4;
+  return cores <= 4 || memory <= 2 ? 1 : 2;
+};
+
+const startingTier = () => {
+  try {
+    const stored = localStorage.getItem(TIER_KEY);
+    const tier = Number(stored);
+    return stored !== null && [0, 1, 2].includes(tier) ? tier : guessTier();
+  } catch {
+    return guessTier();
+  }
+};
+
+const keepTier = (tier: number) => {
+  try {
+    localStorage.setItem(TIER_KEY, String(tier));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const createRenderer = (surfaces: {
   scene: HTMLCanvasElement;
   water: HTMLCanvasElement;
@@ -2246,22 +2254,32 @@ export const createRenderer = (surfaces: {
   let rig: Camera | null = null;
   let lastClock = 0;
   let lastShot: Flight | null = null;
-  let ceiling = 2;
+  let ceiling = startingTier();
   let pace = 1 / 60;
   let strain = 0;
+  let calm = 0;
   let frames = 0;
+
+  const settle = (next: number) => {
+    ceiling = next;
+    strain = 0;
+    calm = 0;
+    pace = 1 / 60;
+    keepTier(next);
+  };
 
   const measure = (dt: number) => {
     frames += 1;
-    if (dt <= 0 || frames < 120) {
+    if (dt <= 0 || frames < 45) {
       return;
     }
-    pace = pace * 0.95 + dt * 0.05;
-    strain = pace > 0.026 ? strain + 1 : Math.max(0, strain - 2);
-    if (strain > 90 && ceiling > 0) {
-      ceiling -= 1;
-      strain = 0;
-      pace = 1 / 60;
+    pace = pace * 0.9 + dt * 0.1;
+    strain = pace > 0.024 ? strain + 1 : Math.max(0, strain - 2);
+    calm = pace < 0.0185 ? calm + 1 : 0;
+    if (strain > 45 && ceiling > 0) {
+      settle(ceiling - 1);
+    } else if (calm > 1200 && ceiling < 2) {
+      settle(ceiling + 1);
     }
   };
 
@@ -2293,7 +2311,7 @@ export const createRenderer = (surfaces: {
     const dt = Math.min(0.1, Math.max(0, frame.clock - lastClock));
     lastClock = frame.clock;
     measure(dt);
-    const tier = frame.lite ? 0 : ceiling;
+    const tier = ceiling;
     const dpr = Math.min(window.devicePixelRatio || 1, [1, 1.5, 2][tier] ?? 2);
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
@@ -2354,7 +2372,7 @@ export const createRenderer = (surfaces: {
         camera,
         deep: mixHex(palette.water[2], tintColor, tintAmount),
         detail: tier / 2,
-        dpr: dpr * ([0.5, 0.75, 1][tier] ?? 1),
+        dpr: Math.min(dpr, [0.75, 1, 1.25][tier] ?? 1.25),
         focal: view.focal,
         height: h,
         horizon: view.horizon,
@@ -2390,7 +2408,7 @@ export const createRenderer = (surfaces: {
     paintWorld(ctx, view, frame, palette, sprites.set, water === null, tier);
     ctx.restore();
     if (!frame.shot) {
-      paintHand(ctx, view, sprites.set.stone, frame.tilt, frame.clock);
+      paintHand(ctx, view, sprites.set, frame.tilt, frame.clock);
     }
     paintFilm(ctx, view, tier > 0 ? pattern : null, frame.clock);
   };

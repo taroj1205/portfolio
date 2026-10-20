@@ -254,7 +254,7 @@ describe("save", () => {
     gear: bare,
     look: firstLook,
     runs: 0,
-    settings: { lite: false, muted: false },
+    settings: { muted: false },
     unseen: [],
     xp: 0,
   };

@@ -335,10 +335,7 @@ const TABS = [
   ["setting", "設定"],
 ] as const;
 
-const SETTINGS = [
-  ["muted", "音を消す", "効果音と川の音"],
-  ["lite", "軽量モード", "動きがカクつくときに"],
-] as const;
+const SETTINGS = [["muted", "音を消す", "効果音と川の音"]] as const;
 
 const closing = (status: string | undefined) =>
   status === "starting" || status === "ending";
