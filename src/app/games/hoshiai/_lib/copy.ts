@@ -19,6 +19,16 @@ interface Copy {
   found: (count: number, total: number) => string;
   challenge: { received: string; dare: string };
   over: string;
+  career: {
+    title: string;
+    open: string;
+    close: string;
+    runs: string;
+    merges: string;
+    chain: string;
+    galaxies: string;
+    summary: (runs: number, merges: number, chain: number) => string;
+  };
   result: ShareLabels & {
     record: string;
     galaxy: string;
@@ -33,6 +43,17 @@ export const copy: Record<Lang, Copy> = {
   en: {
     back: "Back to games",
     best: "Best",
+    career: {
+      chain: "Best chain",
+      close: "Close",
+      galaxies: "Milky Ways",
+      merges: "Merges",
+      open: "Open your stats",
+      runs: "Runs",
+      summary: (runs, merges, chain) =>
+        `${runs.toLocaleString("en-US")} ${runs === 1 ? "run" : "runs"} · ${merges.toLocaleString("en-US")} ${merges === 1 ? "merge" : "merges"} · best chain ${chain}`,
+      title: "Stats",
+    },
     chain: (count) => `${count} chain!`,
     challenge: { dare: "Can you beat it?", received: "Challenge" },
     danger: "Overflowing!",
@@ -72,6 +93,17 @@ export const copy: Record<Lang, Copy> = {
   ja: {
     back: "ゲーム一覧にもどる",
     best: "最高",
+    career: {
+      chain: "最大連鎖",
+      close: "閉じる",
+      galaxies: "天の川",
+      merges: "合体回数",
+      open: "戦績を開く",
+      runs: "プレイ回数",
+      summary: (runs, merges, chain) =>
+        `プレイ ${runs.toLocaleString("ja-JP")}回 · 合体 ${merges.toLocaleString("ja-JP")}回 · 最大 ${chain}連鎖`,
+      title: "戦績",
+    },
     chain: (count) => `${count}連鎖！`,
     challenge: { dare: "これ、超えられる？", received: "挑戦状" },
     danger: "あふれそう！",

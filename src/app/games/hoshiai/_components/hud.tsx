@@ -151,6 +151,20 @@ const styles = stylex.create({
     margin: 0,
     textShadow: shade.small,
   },
+  stats: {
+    alignItems: "center",
+    borderRadius: 999,
+    cursor: "pointer",
+    display: "flex",
+    fontFamily: "inherit",
+    gap: "0.4rem",
+    minHeight: "2.25rem",
+    paddingInline: "0.85rem",
+    pointerEvents: "auto",
+    transform: { default: null, ":active": "scale(0.95)" },
+    transitionDuration: "160ms",
+    transitionProperty: "transform",
+  },
   corner: {
     alignItems: "flex-end",
     display: "flex",
@@ -374,6 +388,18 @@ const Restart = () => (
   </svg>
 );
 
+const Bars = () => (
+  <svg aria-hidden="true" height="14" viewBox="0 0 24 24" width="14">
+    <path
+      d="M6 20V12M12 20V5M18 20v-5"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeWidth="3"
+    />
+  </svg>
+);
+
 interface HudProps {
   lang: Lang;
   score: number;
@@ -391,6 +417,8 @@ interface HudProps {
   onLang: () => void;
   onMute: () => void;
   onRestart: () => void;
+  onStats: () => void;
+  opener: RefObject<HTMLButtonElement | null>;
 }
 
 export const Hud = ({
@@ -410,6 +438,8 @@ export const Hud = ({
   onLang,
   onMute,
   onRestart,
+  onStats,
+  opener,
 }: HudProps) => {
   const words = copy[lang];
   const other: Lang = lang === "ja" ? "en" : "ja";
@@ -435,9 +465,16 @@ export const Hud = ({
               <span {...stylex.props(styles.unit)}>{words.points}</span>
             </p>
             {best > 0 ? (
-              <p {...stylex.props(styles.label)}>
+              <button
+                aria-label={`${words.career.open}: ${words.best} ${formatScore(best, lang)}`}
+                onClick={onStats}
+                ref={opener}
+                type="button"
+                {...stylex.props(glass.surface, styles.label, styles.stats)}
+              >
+                <Bars />
                 {words.best} {formatScore(best, lang)}
-              </p>
+              </button>
             ) : null}
           </div>
           <div {...stylex.props(styles.corner)}>

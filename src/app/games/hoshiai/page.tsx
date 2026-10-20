@@ -6,6 +6,7 @@ import { Sky } from "../_components/sky";
 import { langFrom, langFromHeader } from "../_lib/i18n";
 import type { Text } from "../_lib/i18n";
 import { Game } from "./_components/game";
+import { careerQuery, readCareer } from "./_lib/career";
 import { copy } from "./_lib/copy";
 import { queryOf, readResult, scoreText, titleOf } from "./_lib/result";
 
@@ -38,11 +39,17 @@ export const generateMetadata = async ({
   const params = await searchParams;
   const lang = await langOf(params.l);
   const shared = readResult(params);
-  const query = new URLSearchParams(shared ? queryOf(shared) : "");
+  const career = shared === null ? readCareer(params) : null;
+  let title = copy[lang].name;
+  let query = new URLSearchParams();
+  if (shared) {
+    title = `${titleOf(shared, lang)} · ${scoreText(shared.score, lang)} | ${copy[lang].name}`;
+    query = new URLSearchParams(queryOf(shared));
+  } else if (career) {
+    title = `${copy[lang].career.title} · ${titleOf(career, lang)} · ${scoreText(career.best, lang)} | ${copy[lang].name}`;
+    query = new URLSearchParams(careerQuery(career));
+  }
   query.set("l", lang);
-  const title = shared
-    ? `${titleOf(shared, lang)} · ${scoreText(shared.score, lang)} | ${copy[lang].name}`
-    : copy[lang].name;
   const image = {
     alt: title,
     height: 630,

@@ -12,6 +12,7 @@ import type { Save } from "../_lib/save";
 import { startSession } from "../_lib/session";
 import type { Ending } from "../_lib/session";
 import type { Merge } from "../_lib/world";
+import { CareerSheet } from "./career-sheet";
 import { Hud } from "./hud";
 import type { Shout } from "./hud";
 import { ResultSheet } from "./result-sheet";
@@ -54,6 +55,7 @@ export const Game = ({
   hint: Lang;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const opener = useRef<HTMLButtonElement>(null);
   const vignette = useRef<HTMLDivElement>(null);
   const session = useRef<ReturnType<typeof startSession> | null>(null);
   const shouts = useRef(0);
@@ -69,6 +71,7 @@ export const Game = ({
     null
   );
   const [ending, setEnding] = useState<Ending | null>(null);
+  const [careerOpen, setCareerOpen] = useState(false);
 
   const lang = settings?.lang ?? hint;
 
@@ -119,6 +122,10 @@ export const Game = ({
     };
   }, []);
 
+  useEffect(() => {
+    session.current?.pause(careerOpen);
+  }, [careerOpen]);
+
   const again = () => {
     setEnding(null);
     setShout(null);
@@ -156,6 +163,10 @@ export const Game = ({
           }
         }}
         onRestart={again}
+        onStats={() => {
+          setCareerOpen(true);
+        }}
+        opener={opener}
         playing={ending === null}
         reached={save?.top ?? -1}
         score={score}
@@ -165,6 +176,17 @@ export const Game = ({
       />
       {ending === null ? null : (
         <ResultSheet ending={ending} lang={lang} onAgain={again} />
+      )}
+      {save === null || save.runs === 0 || save.top < 0 ? null : (
+        <CareerSheet
+          lang={lang}
+          onClose={() => {
+            setCareerOpen(false);
+          }}
+          open={careerOpen}
+          opener={opener}
+          save={save}
+        />
       )}
     </>
   );
