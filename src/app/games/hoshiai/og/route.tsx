@@ -6,6 +6,7 @@ import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import { orbDefs, orbSvg } from "../_components/orb-svg";
 import { TIER, TOP, bodies } from "../_lib/bodies";
+import { readCareer } from "../_lib/career";
 import { copy } from "../_lib/copy";
 import { formatScore, readResult, titleOf } from "../_lib/result";
 
@@ -60,23 +61,46 @@ const heroRadius = (tier: number) => {
   return Math.min(175, 70 + tier * 12);
 };
 
+const cardOf = (params: Record<string, string>, lang: Lang) => {
+  const words = copy[lang];
+  const result = readResult(params);
+  if (result) {
+    return {
+      detail: words.result.stats(result.merges, result.chain),
+      galaxies: result.galaxies,
+      score: result.score,
+      tag: "",
+      top: result.top,
+    };
+  }
+  const career = readCareer(params);
+  if (career) {
+    return {
+      detail: words.career.summary(career.runs, career.merges, career.chain),
+      galaxies: career.galaxies,
+      score: career.best,
+      tag: `${words.career.title} · ${words.best}`,
+      top: career.top,
+    };
+  }
+  return null;
+};
+
 export const GET = async (request: NextRequest) => {
   const params = Object.fromEntries(request.nextUrl.searchParams);
-  const result = readResult(params);
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
   const words = copy[lang];
-  const hero = result?.top ?? TIER.saturn;
-  const reached = result?.top ?? TOP;
-  const { caption, detail } = result
-    ? {
-        caption: titleOf(result, lang),
-        detail: words.result.stats(result.merges, result.chain),
-      }
+  const card = cardOf(params, lang);
+  const hero = card?.top ?? TIER.saturn;
+  const reached = card?.top ?? TOP;
+  const { caption, detail } = card
+    ? { caption: titleOf(card, lang), detail: card.detail }
     : pitch[lang];
-  const headline = result ? formatScore(result.score, lang) : words.name;
-  const unit = result ? words.points : "";
+  const headline = card ? formatScore(card.score, lang) : words.name;
+  const unit = card ? words.points : "";
+  const tag = card?.tag ?? "";
   const font = await loadMincho(
-    `${headline}${unit}${caption}${detail}星合ほしあい`
+    `${headline}${unit}${caption}${detail}${tag}星合ほしあい`
   );
 
   return new ImageResponse(
@@ -177,7 +201,7 @@ export const GET = async (request: NextRequest) => {
           width: 640,
         }}
       >
-        {result ? (
+        {card ? (
           <div
             style={{
               alignItems: "center",
@@ -203,6 +227,19 @@ export const GET = async (request: NextRequest) => {
             >
               星
             </div>
+            {tag === "" ? null : (
+              <div
+                style={{
+                  color: ink.gold,
+                  display: "flex",
+                  fontSize: 24,
+                  letterSpacing: 4,
+                  marginLeft: 8,
+                }}
+              >
+                {tag}
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ color: ink.gold, fontSize: 30, letterSpacing: 14 }}>
@@ -213,8 +250,8 @@ export const GET = async (request: NextRequest) => {
           style={{
             alignItems: "baseline",
             display: "flex",
-            fontSize: result ? 168 : 150,
-            letterSpacing: result ? 0 : 24,
+            fontSize: card ? 168 : 150,
+            letterSpacing: card ? 0 : 24,
             lineHeight: 1,
             marginTop: 14,
           }}
@@ -226,8 +263,8 @@ export const GET = async (request: NextRequest) => {
         </div>
         <div
           style={{
-            color: result !== null && result.galaxies > 0 ? ink.gold : ink.star,
-            fontSize: result ? 50 : 44,
+            color: card !== null && card.galaxies > 0 ? ink.gold : ink.star,
+            fontSize: card ? 50 : 44,
             marginTop: 18,
           }}
         >

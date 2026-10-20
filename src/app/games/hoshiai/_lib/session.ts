@@ -58,6 +58,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   let slow = 0;
   let overAt: number | null = null;
   let ended = false;
+  let paused = false;
   let danger = 0;
   let warned = 0;
   let pending = 0;
@@ -231,7 +232,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   let frame = 0;
   const tick = (now: number) => {
-    const real = Math.min(0.05, (now - last) / 1000);
+    const real = paused ? 0 : Math.min(0.05, (now - last) / 1000);
     last = now;
     const rate = slow > 0 ? SLOW : 1;
     slow = Math.max(0, slow - real);
@@ -284,6 +285,9 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       pending = 0;
       on.score(0);
       on.queue(world.queue);
+    },
+    pause: (value: boolean) => {
+      paused = value;
     },
     settings: (next: Settings) => {
       settings = next;

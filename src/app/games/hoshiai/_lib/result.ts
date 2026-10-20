@@ -30,7 +30,9 @@ export const scoreText = (score: number, lang: Lang) =>
     ? `${formatScore(score, "en")} pts`
     : `${formatScore(score, "ja")}点`;
 
-export const titleOf = (result: Result, lang: Lang) => {
+type Reach = Pick<Result, "galaxies" | "top">;
+
+export const titleOf = (result: Reach, lang: Lang) => {
   if (result.galaxies > 0) {
     return lang === "en" ? "Made the Milky Way" : "天の川をつくった";
   }
@@ -38,10 +40,13 @@ export const titleOf = (result: Result, lang: Lang) => {
   return lang === "en" ? `Up to ${name.en}` : `${name.ja}まで`;
 };
 
-export const trailOf = (result: Result) =>
+export const trailOf = (result: Reach) =>
   bodies
     .map((kind, tier) => (tier <= result.top ? kind.emoji : "▫️"))
     .join("") + (result.galaxies > 0 ? "🌌" : "");
+
+export const hashtags = (lang: Lang) =>
+  lang === "en" ? "#星合 #Hoshiai" : "#星合";
 
 const shared = z.object({
   c: z.coerce.number().int().min(0).max(999).default(0),
@@ -92,11 +97,7 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   query.set("l", lang);
   return {
     image: `${origin}/games/hoshiai/og?${query.toString()}`,
-    text: [
-      lineOf(result, lang),
-      trailOf(result),
-      lang === "en" ? "#星合 #Hoshiai" : "#星合",
-    ].join("\n"),
+    text: [lineOf(result, lang), trailOf(result), hashtags(lang)].join("\n"),
     url: `${origin}/games/hoshiai?${query.toString()}`,
   };
 };

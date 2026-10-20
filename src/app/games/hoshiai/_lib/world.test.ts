@@ -4,6 +4,7 @@ import { describe, test } from "vite-plus/test";
 
 import { postUrl } from "../../_lib/share";
 import { TOP, kindOf } from "./bodies";
+import { careerShare, readCareer } from "./career";
 import { queryOf, readResult, resultOf, shareOf, trailOf } from "./result";
 import { discover, settle } from "./save";
 import type { Save } from "./save";
@@ -221,6 +222,48 @@ describe("results", () => {
     );
     assert.ok(english.text.includes("🕳️🌌"));
     assert.equal(new URL(postUrl(share)).hostname, "x.com");
+  });
+});
+
+describe("career", () => {
+  const career: Save = {
+    best: 12_340,
+    chain: 8,
+    galaxies: 1,
+    merges: 1203,
+    runs: 25,
+    top: 7,
+  };
+
+  test("round-trips through the share link", () => {
+    const share = careerShare(career, "https://x.y", "en");
+    const url = new URL(share.url);
+    assert.deepEqual(readCareer(Object.fromEntries(url.searchParams)), career);
+    assert.equal(readResult(Object.fromEntries(url.searchParams)), null);
+    assert.ok(share.image.startsWith("https://x.y/games/hoshiai/og?"));
+  });
+
+  test("is not mistaken for a shared result", () => {
+    const params = Object.fromEntries(
+      new URLSearchParams(
+        queryOf({ chain: 3, galaxies: 0, merges: 42, score: 3210, top: 7 })
+      )
+    );
+    assert.equal(readCareer(params), null);
+    assert.equal(readCareer({}), null);
+    assert.equal(readCareer({ ...params, b: "1", r: "0" }), null);
+  });
+
+  test("the share text shows the totals and the trail", () => {
+    assert.equal(
+      careerShare(career, "https://x.y", "en").text,
+      `My Hoshiai stats: best 12,340 pts\n25 runs · 1,203 merges · best chain 8\n${trailOf(career)}\n#星合 #Hoshiai`
+    );
+    assert.equal(
+      careerShare({ ...career, galaxies: 0, runs: 1 }, "https://x.y", "ja")
+        .text,
+      `星合の戦績：最高12,340点\nプレイ 1回 · 合体 1,203回 · 最大 8連鎖\n${trailOf({ galaxies: 0, top: 7 })}\n#星合`
+    );
   });
 });
 
