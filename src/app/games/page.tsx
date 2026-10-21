@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { BladeArt } from "./_components/blade-art";
 import { BrushArt } from "./_components/brush-art";
 import { CandyArt } from "./_components/candy-art";
+import { CutArt } from "./_components/cut-art";
 import type { Game } from "./_components/game-card";
 import { GamesIndex } from "./_components/games-index";
 import { MergeArt } from "./_components/merge-art";
@@ -14,6 +15,8 @@ import { langFromHeader } from "./_lib/i18n";
 import { copy as enso } from "./enso/_lib/copy";
 import { copy as hoshiai } from "./hoshiai/_lib/copy";
 import { copy as iai } from "./iai/_lib/copy";
+import { copy as itto } from "./itto/_lib/copy";
+import { kinds } from "./itto/_lib/foods";
 import { copy as katanuki } from "./katanuki/_lib/copy";
 import { copy as ma } from "./ma/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
@@ -117,6 +120,20 @@ const GAMES: Game[] = [
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
     title: { en: katanuki.en.name, ja: katanuki.ja.name },
+  },
+  {
+    art: <CutArt />,
+    blurb: {
+      en: "One piece of Japanese food, one straight swipe. The split is measured by area to 0.1%, from tofu and taiyaki to a skewer of dango, and now and then a rare one turns up.",
+      ja: "食べものをひとつ、まっすぐ一刀で真っ二つ。豆腐から鯛焼き、三色団子まで、面積の比を0.1%まで測る。たまにレアなものも出る。",
+    },
+    href: "/games/itto",
+    tags: [
+      { en: "One swipe", ja: "ひと振り" },
+      { en: `${kinds.length} foods`, ja: `${kinds.length}種の食べもの` },
+      { en: "Rare finds", ja: "たまにレア" },
+    ],
+    title: { en: itto.en.name, ja: itto.ja.name },
   },
 ];
 
