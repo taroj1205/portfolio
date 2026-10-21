@@ -465,6 +465,18 @@ export const startSession = (
     }
   };
 
+  const abandon = () => {
+    if (
+      mode === "solo" &&
+      rung > 0 &&
+      stage !== "title" &&
+      stage !== "result"
+    ) {
+      keep(settleRun(save, rung).save);
+      rung = 0;
+    }
+  };
+
   const interrupt = () => {
     if (stage !== "duel" || duel === null || duel.call !== null) {
       return;
@@ -537,6 +549,7 @@ export const startSession = (
     },
     start,
     stop: () => {
+      abandon();
       cancelAnimationFrame(frame);
       canvas.removeEventListener("pointerdown", down);
       canvas.removeEventListener("contextmenu", block);
@@ -548,9 +561,7 @@ export const startSession = (
       sound.close();
     },
     title: () => {
-      if (stage === "ready" && mode === "solo" && rung > 0) {
-        keep(settleRun(save, rung).save);
-      }
+      abandon();
       duel = null;
       clash = null;
       held = null;
