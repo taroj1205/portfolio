@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { media } from "../../styles/tokens.stylex";
+import { BladeArt } from "./_components/blade-art";
 import { BrushArt } from "./_components/brush-art";
 import { GameCard } from "./_components/game-card";
 import { MergeArt } from "./_components/merge-art";
@@ -14,6 +15,7 @@ import { StarLink } from "./_components/star-link";
 import type { Text } from "./_lib/i18n";
 import { copy as enso } from "./enso/_lib/copy";
 import { copy as hoshiai } from "./hoshiai/_lib/copy";
+import { copy as iai } from "./iai/_lib/copy";
 import { copy as ma } from "./ma/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
 import { copy as senko } from "./senko/_lib/copy";
@@ -96,6 +98,20 @@ const GAMES: Game[] = [
       { en: "Daily target", ja: "今日のお題" },
     ],
     title: { en: ma.en.name, ja: ma.ja.name },
+  },
+  {
+    art: <BladeArt />,
+    blurb: {
+      en: "Two samurai wait in silence. Draw the moment 「！」 appears, and don't fall for the cat. Solo against five, or two players on one screen.",
+      ja: "静寂のなか、「！」が出た瞬間に斬る。猫や落ち葉につられたらお手つき。ひとりで五人抜きか、ふたりで対決。",
+    },
+    href: "/games/iai",
+    tags: [
+      { en: "Reaction time", ja: "反射神経" },
+      { en: "Two players", ja: "ふたりで対決" },
+      { en: "Challenge a friend", ja: "友だちに挑戦" },
+    ],
+    title: { en: iai.en.name, ja: iai.ja.name },
   },
 ];
 
