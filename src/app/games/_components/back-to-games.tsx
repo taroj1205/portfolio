@@ -26,6 +26,7 @@ export const BackToGames = ({ label }: { label: string }) => (
   <Link
     aria-label={label}
     href="/games"
+    prefetch={false}
     {...stylex.props(glass.surface, styles.link)}
   >
     <svg

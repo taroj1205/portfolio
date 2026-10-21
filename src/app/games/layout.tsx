@@ -1,6 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
 import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Viewport } from "next";
 import { Shippori_Mincho } from "next/font/google";
 
@@ -35,7 +34,6 @@ const GamesLayout = ({ children }: LayoutProps<"/games">) => (
     <body {...stylex.props(styles.body)}>
       {children}
       <Analytics />
-      <SpeedInsights />
     </body>
   </html>
 );

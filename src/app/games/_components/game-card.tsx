@@ -152,7 +152,7 @@ interface GameCardProps {
 }
 
 export const GameCard = ({ href, art, title, blurb, tags }: GameCardProps) => (
-  <Link href={href} {...stylex.props(styles.card)}>
+  <Link href={href} prefetch={false} {...stylex.props(styles.card)}>
     <div {...stylex.props(styles.art)}>
       <div {...stylex.props(styles.artInner)}>{art}</div>
     </div>
