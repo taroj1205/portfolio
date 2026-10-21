@@ -1,6 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
 import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { notFound } from "next/navigation";
@@ -98,7 +97,6 @@ const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
           <p>© {new Date().getFullYear()} Shintaro Jokagi</p>
         </footer>
         <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   );

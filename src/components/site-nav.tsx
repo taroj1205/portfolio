@@ -520,6 +520,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
               href={href}
               hrefLang={code}
               key={code}
+              prefetch={false}
               lang={code}
               onNavigate={(event) => {
                 if (
