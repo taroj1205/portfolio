@@ -53,21 +53,23 @@ const cardOf = (poured: Glass | null, lang: Lang) => {
       fill: brimming,
       headline: words.name,
       label: "ます",
-      line: null,
+      numbers: null,
+      quip: null,
       size: 150,
       spill: null,
     };
   }
   const spilled = spilledOf(poured);
   return {
-    caption: `${rankOf(poured).name[lang]} · ${lineOf(poured, lang)}`,
+    caption: rankOf(poured).name[lang],
     detail: words.challenge.dare,
     fill: fillOf(poured.pour, poured.outcome.volume),
     headline: spilled ? words.spilled : percent(poured.outcome.tenths),
     label: words.tension,
-    line: spilled
+    numbers: spilled
       ? words.result.lost(poured.spilled)
       : words.result.stopped(signed(heightOf(poured)), poured.kept),
+    quip: lineOf(poured, lang),
     size: spilled ? 124 : 168,
     spill: spilled ? { ml: poured.spilled, seed: poured.pour.seed } : null,
   };
@@ -87,12 +89,10 @@ export const GET = async (request: NextRequest) => {
   const result = readResult(Object.fromEntries(request.nextUrl.searchParams));
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
   const poured = result === null ? null : glassOf(result);
-  const { caption, detail, fill, headline, label, line, size, spill } = cardOf(
-    poured,
-    lang
-  );
+  const { caption, detail, fill, headline, label, numbers, quip, size, spill } =
+    cardOf(poured, lang);
   const font = await loadMincho(
-    `${headline}${caption}${detail}${label}${line ?? ""}0123456789.%+−·枡ます`
+    `${headline}${caption}${detail}${label}${numbers ?? ""}${quip ?? ""}0123456789.%+−·枡ます`
   );
 
   return new ImageResponse(
@@ -132,7 +132,7 @@ export const GET = async (request: NextRequest) => {
       <svg
         height={560}
         style={{ left: 650, position: "absolute", top: 50 }}
-        viewBox="-70 -72 140 140"
+        viewBox={spill === null ? "-70 -72 140 140" : "-92 -82 184 184"}
         width={560}
       >
         {cupSvg({ fill, id: "og", spill })}
@@ -205,9 +205,21 @@ export const GET = async (request: NextRequest) => {
         >
           {caption}
         </div>
-        {line === null ? null : (
-          <div style={{ display: "flex", fontSize: 32, marginTop: 18 }}>
-            {line}
+        {quip === null ? null : (
+          <div style={{ display: "flex", fontSize: 32, marginTop: 10 }}>
+            {quip}
+          </div>
+        )}
+        {numbers === null ? null : (
+          <div
+            style={{
+              color: ink.dim,
+              display: "flex",
+              fontSize: 30,
+              marginTop: 18,
+            }}
+          >
+            {numbers}
           </div>
         )}
         <div
