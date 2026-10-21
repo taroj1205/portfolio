@@ -68,6 +68,8 @@ Parts that change with state pass `className` as a function and return the Style
 >
 ```
 
+Values inside `stylex.create` and `stylex.keyframes` can use constants from the same file or `defineConsts` from a `.stylex.ts` file (`src/app/games/_components/theme.stylex.ts`). Importing a plain constant from another module fails the build with "Could not resolve the path to the imported file". Share values such as animation delays through a `.stylex.ts` file, as `src/app/games/ma/_components/reveal.stylex.ts` does.
+
 Exit animations follow `state.transitionStatus` the same way (see the backdrop and popup in `workshop.tsx`), and `state.swiping` drives the drag style on `Drawer.Popup`. Keep a `prefers-reduced-motion` branch on any keyframe, as `language-picker.tsx` does with `media.reduce`.
 
 ### Focus returns to the opener
