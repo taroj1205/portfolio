@@ -7,12 +7,12 @@ import type { Lang } from "../../_lib/i18n";
 import { MARK, SignalMark, duelSvg } from "../_components/duel-svg";
 import type { Moment } from "../_components/duel-svg";
 import { copy } from "../_lib/copy";
+import { beatenBy, fakes } from "../_lib/duel";
 import {
-  formatMs,
-  isEarly,
+  headlineOf,
+  isFooled,
   lineOf,
   rankOf,
-  reachText,
   readResult,
 } from "../_lib/result";
 import type { Result } from "../_lib/result";
@@ -50,7 +50,17 @@ const momentOf = (result: Result | null): Moment => {
       slash: null,
     };
   }
-  if (result.end === "clear") {
+  if (isFooled(result)) {
+    return {
+      fake: fakes.find((kind) => kind === result.miss) ?? null,
+      left: "strike",
+      lunge: "left",
+      right: "stance",
+      signal: false,
+      slash: null,
+    };
+  }
+  if (beatenBy(result.reaction) > 0) {
     return {
       fake: null,
       left: "strike",
@@ -60,51 +70,42 @@ const momentOf = (result: Result | null): Moment => {
       slash: "left",
     };
   }
-  if (result.end === "slow") {
-    return {
-      fake: null,
-      left: "fallen",
-      lunge: "right",
-      right: "strike",
-      signal: false,
-      slash: "right",
-    };
-  }
   return {
-    fake: result.end === "early" ? null : result.end,
-    left: "strike",
-    lunge: "left",
-    right: "stance",
+    fake: null,
+    left: "fallen",
+    lunge: "right",
+    right: "strike",
     signal: false,
-    slash: null,
+    slash: "right",
   };
 };
 
 const sizes: Record<
   Lang,
-  Record<
-    "caption" | "dare" | "detail" | "gap" | "headline" | "spacing" | "stat",
-    number
-  >
+  Record<"caption" | "dare" | "detail" | "headline" | "spacing", number>
 > = {
   en: {
     caption: 36,
     dare: 24,
     detail: 22,
-    gap: 20,
     headline: 88,
     spacing: 8,
-    stat: 34,
   },
   ja: {
     caption: 44,
-    dare: 26,
-    detail: 24,
-    gap: 28,
+    dare: 24,
+    detail: 22,
     headline: 104,
     spacing: 24,
-    stat: 40,
   },
+};
+
+const dareOf = (result: Result, lang: Lang) => {
+  const words = copy[lang].challenge;
+  if (result.reaction !== null) {
+    return words.dare;
+  }
+  return isFooled(result) ? words.still : "";
 };
 
 const textOf = (result: Result | null, lang: Lang) => {
@@ -118,16 +119,22 @@ const textOf = (result: Result | null, lang: Lang) => {
       rank: null,
     };
   }
-  const rank = rankOf(result.reach);
-  const fooled = isEarly(result.end);
-  const reach = reachText(result.reach, lang);
+  const rank = rankOf(result.reaction);
+  const fooled = isFooled(result);
   return {
     caption: fooled ? lineOf(result, lang) : rank.name[lang],
-    dare: result.best === null ? words.challenge.still : words.challenge.dare,
-    detail: fooled ? reach : lineOf(result, lang),
-    headline: fooled ? words.verdict.early : reach,
+    dare: dareOf(result, lang),
+    detail: fooled ? "" : lineOf(result, lang),
+    headline: headlineOf(result, lang),
     rank: fooled ? null : rank,
   };
+};
+
+const bigOf = (result: Result | null, lang: Lang) => {
+  if (result === null) {
+    return 150;
+  }
+  return result.reaction === null ? sizes[lang].headline : 136;
 };
 
 const Caption = ({ text, size }: { text: string; size: number }) => {
@@ -147,21 +154,13 @@ export const GET = async (request: NextRequest) => {
   const params = Object.fromEntries(request.nextUrl.searchParams);
   const result = readResult(params);
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
-  const words = copy[lang];
   const { caption, dare, detail, headline, rank } = textOf(result, lang);
   const seal = rank?.seal ?? ["居", "合"];
   const font = await loadMincho(
-    `${headline}${caption}${detail}${dare}${seal.join("")}${words.result.fastest}${words.result.average}0123456789ms居合いあいIAI`
+    `${headline}${caption}${detail}${dare}${seal.join("")}居合いあいIAI`
   );
   const size = sizes[lang];
-  const big = result === null ? 150 : size.headline;
-  const stats =
-    result === null || result.best === null || result.average === null
-      ? []
-      : [
-          { label: words.result.fastest, value: result.best },
-          { label: words.result.average, value: result.average },
-        ];
+  const big = bigOf(result, lang);
 
   return new ImageResponse(
     <div
@@ -264,30 +263,19 @@ export const GET = async (request: NextRequest) => {
           )}
           <Caption size={size.caption} text={caption} />
         </div>
-        {stats.length === 0 ? null : (
-          <div style={{ display: "flex", gap: size.gap, marginTop: 22 }}>
-            {stats.map(({ label, value }) => (
-              <div
-                key={label}
-                style={{ alignItems: "baseline", display: "flex", gap: 10 }}
-              >
-                <span style={{ fontSize: 22, opacity: 0.75 }}>{label}</span>
-                <span style={{ fontSize: size.stat }}>{formatMs(value)}</span>
-              </div>
-            ))}
+        {detail === "" ? null : (
+          <div
+            style={{
+              display: "flex",
+              fontSize: size.detail,
+              lineHeight: 1.5,
+              marginTop: 18,
+              opacity: 0.82,
+            }}
+          >
+            {detail}
           </div>
         )}
-        <div
-          style={{
-            display: "flex",
-            fontSize: size.detail,
-            lineHeight: 1.5,
-            marginTop: 14,
-            opacity: 0.82,
-          }}
-        >
-          {detail}
-        </div>
         {dare === "" ? null : (
           <div
             style={{

@@ -8,9 +8,8 @@ import { font, ink, media, shade } from "../../_components/theme.stylex";
 import { langNames } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
-import { ladder } from "../_lib/duel";
 import type { Side } from "../_lib/duel";
-import { formatMs, rankOf, reachText } from "../_lib/result";
+import { formatMs, rankOf } from "../_lib/result";
 import type { Challenge } from "../_lib/result";
 import type { Save } from "../_lib/save";
 import { tints } from "../_lib/scene";
@@ -120,49 +119,6 @@ const styles = stylex.create({
     letterSpacing: "calc(0.08em * var(--track, 1))",
     paddingInline: "1rem",
     width: "auto",
-  },
-  status: {
-    alignItems: "center",
-    display: "flex",
-    justifyContent: "center",
-    minHeight: "1.5rem",
-  },
-  steps: {
-    alignItems: "center",
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "0.45rem",
-    justifyContent: "center",
-    listStyle: "none",
-    margin: 0,
-    padding: 0,
-  },
-  step: {
-    alignItems: "center",
-    color: "rgb(255 255 255 / 0.35)",
-    display: "flex",
-    fontFamily: font.mincho,
-    fontSize: "0.8rem",
-    fontWeight: 700,
-    gap: "0.45rem",
-    textShadow: shade.small,
-    transitionDuration: "400ms",
-    transitionProperty: "color",
-  },
-  stepDone: {
-    color: ink.soft,
-    textDecorationColor: VERMILION,
-    textDecorationLine: "line-through",
-    textDecorationThickness: 2,
-  },
-  stepNow: {
-    color: GOLD,
-  },
-  dot: {
-    backgroundColor: "rgb(255 255 255 / 0.25)",
-    borderRadius: 999,
-    height: 3,
-    width: 3,
   },
   middle: {
     alignItems: "center",
@@ -530,30 +486,6 @@ const Speaker = ({ muted }: { muted: boolean }) => (
   </svg>
 );
 
-const Steps = ({ lang, rung }: { lang: Lang; rung: number }) => {
-  const words = copy[lang];
-  return (
-    <ol aria-label={words.ladder} {...stylex.props(styles.steps)}>
-      {words.rivals.map((rival, index) => (
-        <li
-          aria-current={index === rung ? "step" : undefined}
-          key={rival.name}
-          {...stylex.props(
-            styles.step,
-            index < rung && styles.stepDone,
-            index === rung && styles.stepNow
-          )}
-        >
-          {index > 0 ? (
-            <span aria-hidden="true" {...stylex.props(styles.dot)} />
-          ) : null}
-          {rival.title}
-        </li>
-      ))}
-    </ol>
-  );
-};
-
 const Primary = ({
   label,
   onClick,
@@ -642,12 +574,7 @@ const Caption = ({ beat, lang }: { beat: Beat; lang: Lang }) => {
   );
 };
 
-const introOf = (
-  mode: Mode,
-  rung: number,
-  challenge: Challenge | null,
-  lang: Lang
-) => {
+const introOf = (mode: Mode, challenge: Challenge | null, lang: Lang) => {
   const words = copy[lang];
   if (mode === "versus") {
     return {
@@ -661,8 +588,7 @@ const introOf = (
       name: `${words.challenge.who} ${formatMs(challenge.best)}`,
     };
   }
-  const rival = words.rivals[Math.min(rung, ladder.length - 1)];
-  return { label: words.ordinal(rung), name: `${rival.title} ${rival.name}` };
+  return words.duel;
 };
 
 const Intro = ({ label, name }: { label: string; name: string }) => (
@@ -680,7 +606,7 @@ const ChallengeCard = ({
   lang: Lang;
 }) => {
   const words = copy[lang];
-  const rank = rankOf(challenge.reach);
+  const rank = rankOf(challenge.best);
   return (
     <div {...stylex.props(glass.surface, styles.card)}>
       <span aria-hidden="true" {...stylex.props(styles.seal)}>
@@ -690,8 +616,7 @@ const ChallengeCard = ({
       <p {...stylex.props(styles.cardText)}>
         <span {...stylex.props(styles.label)}>{words.challenge.received}</span>
         <span {...stylex.props(styles.cardTitle)}>
-          {formatMs(challenge.best)} · {rank.name[lang]} ·{" "}
-          {reachText(challenge.reach, lang)}
+          {formatMs(challenge.best)} · {rank.name[lang]}
         </span>
         <span {...stylex.props(styles.label)}>{words.challenge.dare}</span>
       </p>
@@ -708,13 +633,11 @@ interface TitleProps {
 
 const Title = ({ lang, challenge, save, onStart }: TitleProps) => {
   const words = copy[lang];
+  const best = save?.bestReaction ?? null;
   const record =
-    save !== null && save.runs > 0
-      ? words.record(
-          reachText(save.bestReach, lang),
-          save.bestReaction === null ? null : formatMs(save.bestReaction)
-        )
-      : null;
+    best === null
+      ? null
+      : words.record(formatMs(best), rankOf(best).name[lang]);
   return (
     <div {...stylex.props(styles.panel)}>
       {challenge === null ? null : (
@@ -775,16 +698,12 @@ const nextLabel = (mode: Mode, verdict: Verdict | null, lang: Lang) => {
   if (mode === "versus") {
     return words.rematch;
   }
-  if (verdict === null) {
-    return words.ready;
-  }
-  return verdict.call.kind === "draw" ? words.retry : words.next;
+  return verdict?.call.kind === "draw" ? words.retry : words.ready;
 };
 
 interface ReadyProps {
   lang: Lang;
   mode: Mode;
-  rung: number;
   tally: Record<Side, number>;
   verdict: Verdict | null;
   interrupted: boolean;
@@ -795,7 +714,6 @@ interface ReadyProps {
 const Ready = ({
   lang,
   mode,
-  rung,
   tally,
   verdict,
   interrupted,
@@ -803,18 +721,12 @@ const Ready = ({
   onQuit,
 }: ReadyProps) => {
   const words = copy[lang];
-  const rival = words.rivals[Math.min(rung, ladder.length - 1)];
   return (
     <div {...stylex.props(styles.panel)}>
       {verdict === null ? null : <Outcome lang={lang} verdict={verdict} />}
       {interrupted ? (
         <p aria-live="polite" {...stylex.props(styles.note)}>
           {words.interrupted}
-        </p>
-      ) : null}
-      {mode === "solo" ? (
-        <p {...stylex.props(styles.label)}>
-          {words.ordinal(rung)} · {rival.title} {rival.name}
         </p>
       ) : null}
       {mode === "versus" ? (
@@ -841,7 +753,6 @@ interface HudProps {
   lang: Lang;
   stage: Stage;
   mode: Mode;
-  rung: number;
   tally: Record<Side, number>;
   verdict: Verdict | null;
   beat: Beat;
@@ -861,7 +772,6 @@ export const Hud = ({
   lang,
   stage,
   mode,
-  rung,
   tally,
   verdict,
   beat,
@@ -880,7 +790,7 @@ export const Hud = ({
   const langOther: Lang = lang === "ja" ? "en" : "ja";
   const playing = stage === "duel" || stage === "cut";
   const versus = mode === "versus" && (playing || stage === "ready");
-  const intro = introOf(mode, rung, challenge, lang);
+  const intro = introOf(mode, challenge, lang);
 
   return (
     <>
@@ -925,12 +835,6 @@ export const Hud = ({
           </div>
         </header>
 
-        <div {...stylex.props(styles.status)}>
-          {mode === "solo" && (playing || stage === "ready") ? (
-            <Steps lang={lang} rung={rung} />
-          ) : null}
-        </div>
-
         <div {...stylex.props(styles.middle)}>
           {stage === "title" ? <Caption beat={beat} lang={lang} /> : null}
           {stage === "duel" ? (
@@ -955,7 +859,6 @@ export const Hud = ({
               mode={mode}
               onEngage={onEngage}
               onQuit={onQuit}
-              rung={rung}
               tally={tally}
               verdict={verdict}
             />

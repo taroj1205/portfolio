@@ -7,12 +7,13 @@ import { SheetLinks } from "../../_components/sheet-links";
 import { font, ink, media } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
+import { beatenBy, tiers } from "../_lib/duel";
 import {
   formatMs,
-  isEarly,
+  headlineOf,
   lineOf,
+  nextOf,
   rankOf,
-  reachText,
   shareOf,
 } from "../_lib/result";
 import type { Challenge, Result } from "../_lib/result";
@@ -171,28 +172,47 @@ const styles = stylex.create({
     margin: 0,
   },
   steps: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "0.35rem 0.6rem",
-    justifyContent: "center",
+    display: "grid",
+    gap: "0.35rem",
+    gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
     listStyle: "none",
     margin: 0,
     padding: 0,
   },
   step: {
+    alignItems: "center",
     color: "rgb(255 255 255 / 0.35)",
+    display: "flex",
+    flexDirection: "column",
+    gap: "0.1rem",
+    textAlign: "center",
+  },
+  tier: {
     fontFamily: font.mincho,
-    fontSize: "0.82rem",
+    fontSize: "0.8rem",
     fontWeight: 700,
+    lineHeight: 1.2,
+    textWrap: "balance",
+  },
+  draw: {
+    fontSize: "0.7rem",
+    fontVariantNumeric: "tabular-nums",
   },
   beaten: {
     color: ink.soft,
+  },
+  struck: {
     textDecorationColor: VERMILION,
-    textDecorationLine: "line-through",
     textDecorationThickness: 2,
   },
-  stopped: {
+  next: {
     color: GOLD,
+  },
+  gap: {
+    color: ink.soft,
+    fontSize: "0.8rem",
+    margin: 0,
+    textAlign: "center",
   },
   versus: {
     color: ink.soft,
@@ -275,29 +295,28 @@ const Stat = ({ label, value }: { label: string; value: number | null }) => (
   </p>
 );
 
-interface RunProps {
+interface SoloProps {
   lang: Lang;
   result: Result;
   fastest: boolean;
-  furthest: boolean;
   onAgain: () => void;
   onQuit: () => void;
   onSharing: (open: boolean) => void;
 }
 
-const Run = ({
+const Solo = ({
   lang,
   result,
   fastest,
-  furthest,
   onAgain,
   onQuit,
   onSharing,
-}: RunProps) => {
+}: SoloProps) => {
   const words = copy[lang];
-  const rank = rankOf(result.reach);
+  const rank = rankOf(result.reaction);
+  const beaten = beatenBy(result.reaction);
+  const next = result.reaction === null ? null : nextOf(result.reaction);
   const again = useFirstFocus();
-  const fooled = isEarly(result.end);
   return (
     <section
       aria-labelledby="iai-result"
@@ -306,53 +325,51 @@ const Run = ({
       <div {...stylex.props(styles.head)}>
         <span
           aria-hidden="true"
-          {...stylex.props(styles.seal, result.reach === 0 && styles.sealLost)}
+          {...stylex.props(styles.seal, beaten === 0 && styles.sealLost)}
         >
           <span>{rank.seal[0]}</span>
           <span>{rank.seal[1]}</span>
         </span>
         <div {...stylex.props(styles.titles)}>
-          {fastest || furthest ? (
+          {fastest ? (
             <div {...stylex.props(styles.badges)}>
-              {furthest ? (
-                <span {...stylex.props(styles.badge)}>
-                  {words.result.furthest}
-                </span>
-              ) : null}
-              {fastest ? (
-                <span {...stylex.props(styles.badge)}>
-                  {words.result.record}
-                </span>
-              ) : null}
+              <span {...stylex.props(styles.badge)}>{words.result.record}</span>
             </div>
           ) : null}
           <h2 id="iai-result" {...stylex.props(styles.reach)}>
-            {fooled && result.reach === 0
-              ? words.verdict.early
-              : reachText(result.reach, lang)}
+            {headlineOf(result, lang)}
           </h2>
           <span {...stylex.props(styles.rank)}>{rank.name[lang]}</span>
         </div>
       </div>
       <p {...stylex.props(styles.line)}>{lineOf(result, lang)}</p>
-      <div {...stylex.props(styles.stats)}>
-        <Stat label={words.result.fastest} value={result.best} />
-        <Stat label={words.result.average} value={result.average} />
-      </div>
-      <ol aria-label={words.ladder} {...stylex.props(styles.steps)}>
-        {words.rivals.map((rival, index) => (
-          <li
-            key={rival.name}
-            {...stylex.props(
-              styles.step,
-              index < result.reach && styles.beaten,
-              index === result.reach && styles.stopped
-            )}
-          >
-            {rival.title}
-          </li>
-        ))}
+      <ol aria-label={words.opponents} {...stylex.props(styles.steps)}>
+        {words.tiers.map((tier, index) => {
+          const Draw = index < beaten ? "s" : "span";
+          return (
+            <li
+              key={tier}
+              {...stylex.props(
+                styles.step,
+                index < beaten && styles.beaten,
+                index === beaten && styles.next
+              )}
+            >
+              <Draw
+                {...stylex.props(styles.draw, index < beaten && styles.struck)}
+              >
+                {formatMs(tiers[index])}
+              </Draw>
+              <span {...stylex.props(styles.tier)}>{tier}</span>
+            </li>
+          );
+        })}
       </ol>
+      {next === null ? null : (
+        <p {...stylex.props(styles.gap)}>
+          {words.gap(words.tiers[next.tier], formatMs(next.gap))}
+        </p>
+      )}
       <div {...stylex.props(styles.row)}>
         <button
           onClick={onAgain}
@@ -417,7 +434,7 @@ interface DuelProps {
   challenge: Challenge;
   fastest: boolean;
   onAgain: () => void;
-  onLadder: () => void;
+  onSolo: () => void;
   onQuit: () => void;
 }
 
@@ -427,7 +444,7 @@ const Duel = ({
   challenge,
   fastest,
   onAgain,
-  onLadder,
+  onSolo,
   onQuit,
 }: DuelProps) => {
   const words = copy[lang];
@@ -480,11 +497,11 @@ const Duel = ({
         <Quit lang={lang} onQuit={onQuit} />
       </div>
       <button
-        onClick={onLadder}
+        onClick={onSolo}
         type="button"
         {...stylex.props(styles.action, styles.secondary)}
       >
-        {words.challenge.ladder}
+        {words.challenge.solo}
       </button>
       <SheetLinks labels={words.result} lang={lang} />
     </section>
@@ -496,7 +513,7 @@ interface ResultSheetProps {
   ending: Ending;
   challenge: Challenge | null;
   onAgain: () => void;
-  onLadder: () => void;
+  onSolo: () => void;
   onQuit: () => void;
   onSharing: (open: boolean) => void;
 }
@@ -506,15 +523,14 @@ export const ResultSheet = ({
   ending,
   challenge,
   onAgain,
-  onLadder,
+  onSolo,
   onQuit,
   onSharing,
 }: ResultSheetProps) => {
   if (ending.mode === "solo") {
     return (
-      <Run
+      <Solo
         fastest={ending.fastest}
-        furthest={ending.furthest}
         lang={lang}
         onAgain={onAgain}
         onQuit={onQuit}
@@ -529,8 +545,8 @@ export const ResultSheet = ({
       fastest={ending.fastest}
       lang={lang}
       onAgain={onAgain}
-      onLadder={onLadder}
       onQuit={onQuit}
+      onSolo={onSolo}
       verdict={ending.verdict}
     />
   );

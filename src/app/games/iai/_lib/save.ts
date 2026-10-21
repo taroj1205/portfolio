@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { createStore } from "../../_lib/storage";
-import { ladder } from "./duel";
+import { tiers } from "./duel";
 import type { Call } from "./duel";
 
 const KEY = "iai.v1";
@@ -93,14 +93,11 @@ export const settleDuel = (
   };
 };
 
-export const settleRun = (save: Save, reach: number) => ({
-  record: save.runs > 0 && reach > save.bestReach,
-  save: {
-    ...save,
-    bestReach: Math.max(save.bestReach, reach),
-    clears: save.clears + (reach === ladder.length ? 1 : 0),
-    runs: save.runs + 1,
-  },
+export const settleRun = (save: Save, beaten: number): Save => ({
+  ...save,
+  bestReach: Math.max(save.bestReach, beaten),
+  clears: save.clears + (beaten === tiers.length ? 1 : 0),
+  runs: save.runs + 1,
 });
 
 export const settleVersus = (save: Save, at: number, seconds: number) => ({

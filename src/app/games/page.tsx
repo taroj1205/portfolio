@@ -93,12 +93,12 @@ const GAMES: Game[] = [
   {
     art: <BladeArt />,
     blurb: {
-      en: "Two samurai wait in silence. Draw the moment 「！」 appears, and don't fall for the cat. Solo against five, or two players on one screen.",
-      ja: "静寂のなか、「！」が出た瞬間に斬る。猫や落ち葉につられたらお手つき。ひとりで五人抜きか、ふたりで対決。",
+      en: "Two samurai wait in silence. Draw the moment 「！」 appears, and don't fall for the cat. Your time decides who you'd have cut down.",
+      ja: "静寂のなか、「！」が出た瞬間に斬る。猫や落ち葉につられたらお手つき。その速さで、誰を斬れたかが決まる。",
     },
     href: "/games/iai",
     tags: [
-      { en: "Reaction time", ja: "反射神経" },
+      { en: "One duel", ja: "一本勝負" },
       { en: "Two players", ja: "ふたりで対決" },
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],

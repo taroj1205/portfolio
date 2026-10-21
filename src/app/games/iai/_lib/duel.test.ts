@@ -3,19 +3,19 @@ import assert from "node:assert/strict";
 import { describe, test } from "vite-plus/test";
 
 import {
+  DUEL_FAKES,
   GRACE,
   TOO_FAST,
   TOO_LATE,
+  beatenBy,
   cueAt,
   decide,
   fakeLength,
-  ladder,
   planCues,
   planDuel,
   planWait,
   reactionOf,
-  rivalOf,
-  slowestOf,
+  tiers,
 } from "./duel";
 import type { Plan, Tap } from "./duel";
 
@@ -50,6 +50,13 @@ const at = (moment: {
     startedAt: START,
     taps: moment.taps,
     now: moment.now,
+  });
+
+const soloAt = (delay: number) =>
+  at({
+    now: SIGNAL + TOO_LATE,
+    plan: solo(tiers[0]),
+    taps: [{ at: SIGNAL + delay, side: "left" }],
   });
 
 describe("the wait before the signal", () => {
@@ -107,23 +114,45 @@ describe("the wait before the signal", () => {
   });
 });
 
-describe("the ladder", () => {
-  test("each opponent is faster than the one before", () => {
-    for (const [i, rung] of ladder.entries()) {
-      const next = ladder[i + 1];
-      if (next !== undefined) {
-        assert.ok(slowestOf(next) < rung.base - rung.spread);
-      }
+describe("the five opponents", () => {
+  test("each one draws faster than the one before", () => {
+    for (const [i, draw] of tiers.entries()) {
+      assert.ok(i === 0 || draw < tiers[i - 1]);
     }
+    assert.ok(Math.min(...tiers) > TOO_FAST && Math.max(...tiers) < TOO_LATE);
   });
 
-  test("an opponent's time stays inside its range", () => {
-    const random = seeded(3);
-    for (const rung of ladder) {
-      for (let i = 0; i < 200; i += 1) {
-        const time = rivalOf(rung, random);
-        assert.ok(time >= rung.base - rung.spread && time <= slowestOf(rung));
-        assert.equal(time, Math.round(time));
+  test("a reaction cuts down everyone who draws slower, and a tie is not a cut", () => {
+    for (const [i, draw] of tiers.entries()) {
+      assert.equal(beatenBy(draw - 1), i + 1, `${draw - 1}ms`);
+      assert.equal(beatenBy(draw), i, `${draw}ms`);
+    }
+    assert.equal(beatenBy(TOO_FAST), tiers.length);
+    assert.equal(beatenBy(TOO_LATE), 0);
+    assert.equal(beatenBy(null), 0);
+  });
+
+  test("solo is one duel against the slowest draw, so only being slower than all five loses", () => {
+    assert.deepEqual(soloAt(tiers[0] - 1), {
+      kind: "cut",
+      reaction: tiers[0] - 1,
+      side: "left",
+    });
+    assert.deepEqual(soloAt(tiers[0]), { kind: "draw", reaction: tiers[0] });
+    assert.deepEqual(soloAt(tiers[0] + 1), {
+      kind: "cut",
+      reaction: tiers[0],
+      side: "right",
+    });
+  });
+
+  test("every solo duel plans one or two fake-outs when the wait leaves room", () => {
+    const random = seeded(19);
+    for (let i = 0; i < 300; i += 1) {
+      const plan = planDuel(random, tiers[0], DUEL_FAKES);
+      assert.ok(plan.cues.length <= 2);
+      if (plan.wait > 5000) {
+        assert.ok(plan.cues.length >= 1, `wait ${plan.wait}`);
       }
     }
   });

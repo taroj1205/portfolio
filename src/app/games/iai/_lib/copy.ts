@@ -1,6 +1,5 @@
 import type { Lang } from "../../_lib/i18n";
 import type { ShareLabels } from "../../_lib/share";
-import { ladder } from "./duel";
 import type { Fake } from "./duel";
 
 interface Copy {
@@ -10,11 +9,12 @@ interface Copy {
   mute: string;
   rule: { lead: string; body: string; keys: string };
   modes: { solo: string; soloSub: string; versus: string; versusSub: string };
-  record: (reach: string, best: string | null) => string;
+  record: (best: string, rank: string) => string;
   demo: { hush: string; fake: string; signal: string; calm: string };
-  rivals: { title: string; name: string }[];
-  ordinal: (index: number) => string;
-  ladder: string;
+  duel: { label: string; name: string };
+  tiers: string[];
+  opponents: string;
+  gap: (tier: string, gap: string) => string;
   ready: string;
   hint: string;
   you: string;
@@ -31,7 +31,6 @@ interface Copy {
     none: string;
     wins: (player: string) => string;
   };
-  next: string;
   retry: string;
   rematch: string;
   quit: string;
@@ -48,13 +47,10 @@ interface Copy {
     tied: string;
     early: string;
     again: string;
-    ladder: string;
+    solo: string;
   };
   result: ShareLabels & {
-    fastest: string;
-    average: string;
     record: string;
-    furthest: string;
     again: string;
     games: string;
     maker: string;
@@ -70,7 +66,7 @@ export const copy: Record<Lang, Copy> = {
       again: "Try again",
       dare: "This opponent draws at that speed. Can you beat it?",
       early: "A false start. The challenge stands.",
-      ladder: "Take on the five",
+      solo: "Duel solo",
       lost: (gap) => `${gap} too slow for the challenge`,
       received: "Challenge",
       slow: "Cut down before you drew",
@@ -86,33 +82,29 @@ export const copy: Record<Lang, Copy> = {
       signal: "Now!",
     },
     fallback:
-      "A quick-draw duel. Two samurai face each other in silence. After a random wait a red 「！」 appears, and whoever draws first wins. Tap, click or press Space as soon as you see it. Drawing before the signal is a false start, and the cat, falling leaf, crow or gust of wind that sometimes passes by is not the signal. Solo mode is a ladder of five opponents who get faster. In two-player mode each player owns half of the screen, or presses F and J on a keyboard.",
+      "A quick-draw duel. Two samurai face each other in silence. After a random wait a red 「！」 appears, and whoever draws first wins. Tap, click or press Space as soon as you see it. Drawing before the signal is a false start, and the cat, falling leaf, crow or gust of wind that sometimes passes by is not the signal. Solo is one duel, and your reaction time decides which of five opponents, from a foot soldier to the sword saint, you would have cut down. In two-player mode each player owns half of the screen, or presses F and J on a keyboard.",
     hint: "Draw when 「！」 appears",
+    duel: { label: "One duel", name: "Foot soldier or sword saint?" },
+    gap: (tier, gap) => `${gap} faster to cut down the ${tier.toLowerCase()}`,
     interrupted: "Interrupted, so that duel didn't count",
-    ladder: "Opponents",
     modes: {
       solo: "Solo",
-      soloSub: "Beat five in a row",
+      soloSub: "One duel",
       versus: "Two players",
       versusSub: "On one screen",
     },
     mute: "Mute sound",
     name: "Iai",
-    next: "Next opponent",
-    ordinal: (index) => `Opponent ${index + 1} of ${ladder.length}`,
+    opponents: "Who you would cut down",
     players: { left: "Blue", right: "Red" },
     quit: "Quit",
     ready: "Take your stance",
     rematch: "Again",
-    record: (reach, best) =>
-      best === null ? `Best ${reach}` : `Best ${reach} · fastest ${best}`,
+    record: (best, rank) => `Fastest ${best} · ${rank}`,
     result: {
-      again: "Play again",
-      average: "Average",
+      again: "Duel again",
       copied: "Copied",
       copyLink: "Copy link",
-      fastest: "Fastest",
-      furthest: "Furthest yet",
       games: "More games",
       maker: "About the maker",
       postX: "Post on X",
@@ -125,18 +117,12 @@ export const copy: Record<Lang, Copy> = {
     },
     retry: "Draw again",
     rival: "Opponent",
-    rivals: [
-      { name: "Gonbei", title: "Foot soldier" },
-      { name: "Hanjirō", title: "Rōnin" },
-      { name: "Ryūsai", title: "Dojo master" },
-      { name: "Onimaru", title: "Hitokiri" },
-      { name: "Mumyō", title: "Sword saint" },
-    ],
     rule: {
       body: "Whoever draws first wins. A cat or a falling leaf is not the signal.",
       keys: "Space to draw · two players: F and J",
       lead: "When 「！」 appears, draw",
     },
+    tiers: ["Foot soldier", "Rōnin", "Dojo master", "Hitokiri", "Sword saint"],
     verdict: {
       draw: "Both blades landed",
       early: "False start",
@@ -162,7 +148,7 @@ export const copy: Record<Lang, Copy> = {
       again: "もう一度挑む",
       dare: "この速さで斬ってくる相手に、勝てる？",
       early: "お手つき。挑戦状はまだ破れていない",
-      ladder: "勝ち抜きに挑む",
+      solo: "ひとりで勝負",
       lost: (gap) => `挑戦状まで、あと${gap}`,
       received: "挑戦状",
       slow: "抜く前に斬られた",
@@ -178,34 +164,29 @@ export const copy: Record<Lang, Copy> = {
       signal: "今だ！",
     },
     fallback:
-      "居合の早抜きで勝負するゲーム。向かい合ったふたりの侍のあいだに、しばらく待つと赤い「！」が出る。先に斬った方の勝ち。見えたらすぐにタップかクリック、またはスペースキー。合図の前に抜くとお手つきで負け。ときどき通る猫や落ち葉、カラス、風は合図じゃない。ひとりで遊ぶと、だんだん速くなる五人と勝ち抜き。ふたりで遊ぶときは画面を半分ずつ使うか、キーボードのFとJで。",
+      "居合の早抜きで勝負するゲーム。向かい合ったふたりの侍のあいだに、しばらく待つと赤い「！」が出る。先に斬った方の勝ち。見えたらすぐにタップかクリック、またはスペースキー。合図の前に抜くとお手つきで負け。ときどき通る猫や落ち葉、カラス、風は合図じゃない。ひとりで遊ぶと一本勝負。反応の速さで、足軽から剣聖まで、五人のうち誰を斬れたかが決まる。ふたりで遊ぶときは画面を半分ずつ使うか、キーボードのFとJで。",
     hint: "「！」が出たら斬る",
+    duel: { label: "一本勝負", name: "足軽か、剣聖か" },
+    gap: (tier, gap) => `あと${gap}速ければ、${tier}を斬れた`,
     interrupted: "途中で止まったので、今の勝負はなしにした",
-    ladder: "相手",
     modes: {
       solo: "ひとりで",
-      soloSub: "五人勝ち抜き",
+      soloSub: "一本勝負",
       versus: "ふたりで",
       versusSub: "ひとつの画面で対決",
     },
     mute: "音を消す",
     name: "居合",
-    next: "次の相手へ",
-    ordinal: (index) =>
-      `${["一", "二", "三", "四", "五"][index] ?? index + 1}人目`,
+    opponents: "斬れる相手",
     players: { left: "藍", right: "朱" },
     quit: "やめる",
     ready: "構える",
     rematch: "もう一本",
-    record: (reach, best) =>
-      best === null ? `最高 ${reach}` : `最高 ${reach} · 最速 ${best}`,
+    record: (best, rank) => `最速 ${best} · ${rank}`,
     result: {
-      again: "もう一回",
-      average: "平均",
+      again: "もう一本",
       copied: "コピーした",
       copyLink: "リンクをコピー",
-      fastest: "最速",
-      furthest: "最高記録",
       games: "ほかのゲーム",
       maker: "つくった人",
       postX: "Xに投稿",
@@ -218,18 +199,12 @@ export const copy: Record<Lang, Copy> = {
     },
     retry: "仕切り直し",
     rival: "相手",
-    rivals: [
-      { name: "権兵衛", title: "足軽" },
-      { name: "半次郎", title: "浪人" },
-      { name: "柳斎", title: "道場主" },
-      { name: "鬼丸", title: "人斬り" },
-      { name: "無明", title: "剣聖" },
-    ],
     rule: {
       body: "先に斬った方の勝ち。猫や落ち葉は合図じゃない。",
       keys: "スペースキーで斬る · ふたりなら F と J",
       lead: "「！」が出たら、斬れ",
     },
+    tiers: ["足軽", "浪人", "道場主", "人斬り", "剣聖"],
     verdict: {
       draw: "相打ち",
       early: "お手つき",

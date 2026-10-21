@@ -1,17 +1,17 @@
 import { loadSettings, storeSettings } from "../../_lib/settings";
 import type { Settings } from "../../_lib/settings";
 import {
-  CHALLENGE_FAKES,
+  DUEL_FAKES,
   VERSUS_FAKES,
+  beatenBy,
   cueAt,
   decide,
   fakeLength,
   fakes,
-  ladder,
   other,
   planDuel,
   reactionOf,
-  rivalOf,
+  tiers,
 } from "./duel";
 import type { Call, Fake, Plan, Side, Tap } from "./duel";
 import { createRenderer } from "./render";
@@ -38,19 +38,17 @@ export type Beat = "hush" | "fake" | "signal" | "cut" | "calm" | null;
 export interface Verdict {
   call: Call;
   mode: Mode;
-  rung: number;
   left: number | null;
   right: number | null;
 }
 
 export type Ending =
-  | { mode: "solo"; result: Result; fastest: boolean; furthest: boolean }
+  | { mode: "solo"; result: Result; fastest: boolean }
   | { mode: "challenge"; verdict: Verdict; fastest: boolean };
 
 interface Listeners {
   stage: (stage: Stage) => void;
   mode: (mode: Mode) => void;
-  rung: (rung: number) => void;
   tally: (tally: Record<Side, number>) => void;
   verdict: (verdict: Verdict | null) => void;
   beat: (beat: Beat) => void;
@@ -100,10 +98,7 @@ export const startSession = (
   let settings = loadSettings();
   let stage: Stage = "title";
   let mode: Mode = "solo";
-  let rung = 0;
-  let reactions: number[] = [];
   let tally: Record<Side, number> = { left: 0, right: 0 };
-  let fastest = false;
   let duel: Duel | null = null;
   let clash: Clash | null = null;
   let held: Frame["cue"] = null;
@@ -145,11 +140,11 @@ export const startSession = (
     if (mode === "versus") {
       return planDuel(random, null, VERSUS_FAKES);
     }
-    if (mode === "challenge" && challenge !== null) {
-      return planDuel(random, challenge.best, CHALLENGE_FAKES);
-    }
-    const current = ladder[rung];
-    return planDuel(random, rivalOf(current, random), current.fakes);
+    return planDuel(
+      random,
+      mode === "challenge" && challenge !== null ? challenge.best : tiers[0],
+      DUEL_FAKES
+    );
   };
 
   const engage = () => {
@@ -178,28 +173,12 @@ export const startSession = (
 
   const start = (next: Mode) => {
     mode = next;
-    rung = 0;
-    reactions = [];
-    fastest = false;
     tally = { left: 0, right: 0 };
     played = 0;
     tell(null);
     on.mode(next);
-    on.rung(0);
     on.tally(tally);
     engage();
-  };
-
-  const finish = (end: Result["end"]) => {
-    const result = resultOf(rung, reactions, end);
-    const run = settleRun(save, rung);
-    keep(run.save);
-    if (end === "clear") {
-      sound.clear();
-      navigator.vibrate?.([20, 60, 30, 60, 60]);
-    }
-    enter("result");
-    on.over({ fastest, furthest: run.record, mode: "solo", result });
   };
 
   const conclude = (current: Duel, call: Call) => {
@@ -213,7 +192,7 @@ export const startSession = (
     if (mode === "versus" || call.kind === "draw") {
       right = reaction("right");
     }
-    const verdict: Verdict = { call, left, mode, right, rung };
+    const verdict: Verdict = { call, left, mode, right };
     duel = null;
 
     if (mode === "versus") {
@@ -239,33 +218,26 @@ export const startSession = (
       reaction: left,
       seconds: takeSeconds(),
     });
-    keep(settled.save);
-    fastest ||= settled.record;
-    if (left !== null) {
-      reactions.push(left);
+    if (mode === "solo" && call.kind !== "draw") {
+      const result = resultOf(call, left);
+      const beaten = beatenBy(result.reaction);
+      keep(settleRun(settled.save, beaten));
+      if (beaten === tiers.length) {
+        sound.clear();
+        navigator.vibrate?.([20, 60, 30, 60, 60]);
+      }
+      enter("result");
+      on.over({ fastest: settled.record, mode: "solo", result });
+      return;
     }
+    keep(settled.save);
     if (mode === "challenge") {
       enter("result");
-      on.over({ fastest, mode: "challenge", verdict });
+      on.over({ fastest: settled.record, mode: "challenge", verdict });
       return;
     }
-    if (call.kind === "draw") {
-      on.verdict(verdict);
-      enter("ready");
-      return;
-    }
-    if (call.kind === "cut" && call.side === "left") {
-      rung += 1;
-      if (rung === ladder.length) {
-        finish("clear");
-        return;
-      }
-      on.rung(rung);
-      on.verdict(verdict);
-      enter("ready");
-      return;
-    }
-    finish(call.kind === "early" ? (call.fake ?? "early") : "slow");
+    on.verdict(verdict);
+    enter("ready");
   };
 
   const strike = (current: Duel, call: Call, now: number) => {
@@ -465,18 +437,6 @@ export const startSession = (
     }
   };
 
-  const abandon = () => {
-    if (
-      mode === "solo" &&
-      rung > 0 &&
-      stage !== "title" &&
-      stage !== "result"
-    ) {
-      keep(settleRun(save, rung).save);
-      rung = 0;
-    }
-  };
-
   const interrupt = () => {
     if (stage !== "duel" || duel === null || duel.call !== null) {
       return;
@@ -549,7 +509,6 @@ export const startSession = (
     },
     start,
     stop: () => {
-      abandon();
       cancelAnimationFrame(frame);
       canvas.removeEventListener("pointerdown", down);
       canvas.removeEventListener("contextmenu", block);
@@ -561,7 +520,6 @@ export const startSession = (
       sound.close();
     },
     title: () => {
-      abandon();
       duel = null;
       clash = null;
       held = null;

@@ -44,7 +44,6 @@ export const Game = ({
   const [settings, setSettings] = useState<Settings | null>(null);
   const [stage, setStage] = useState<Stage>("title");
   const [mode, setMode] = useState<Mode>("solo");
-  const [rung, setRung] = useState(0);
   const [tally, setTally] = useState<Record<Side, number>>({
     left: 0,
     right: 0,
@@ -73,7 +72,6 @@ export const Game = ({
             },
             mode: setMode,
             over: setEnding,
-            rung: setRung,
             save: setSave,
             settings: setSettings,
             stage: (next) => {
@@ -122,7 +120,6 @@ export const Game = ({
         }}
         onQuit={() => session.current?.title()}
         onStart={(next) => session.current?.start(next)}
-        rung={rung}
         save={save}
         stage={stage}
         tally={tally}
@@ -134,7 +131,7 @@ export const Game = ({
           ending={ending}
           lang={lang}
           onAgain={() => session.current?.start(ending.mode)}
-          onLadder={() => session.current?.start("solo")}
+          onSolo={() => session.current?.start("solo")}
           onQuit={() => session.current?.title()}
           onSharing={(open) => session.current?.pause(open)}
         />

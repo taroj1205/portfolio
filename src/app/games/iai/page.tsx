@@ -8,11 +8,10 @@ import { Game } from "./_components/game";
 import { copy } from "./_lib/copy";
 import {
   challengeOf,
-  isEarly,
+  formatMs,
   lineOf,
   queryOf,
   rankOf,
-  reachText,
   readResult,
 } from "./_lib/result";
 import type { Result } from "./_lib/result";
@@ -31,10 +30,10 @@ const styles = stylex.create({
   },
 });
 
-const headlineOf = (shared: Result, lang: Lang) =>
-  isEarly(shared.end)
+const titleOf = (shared: Result, lang: Lang) =>
+  shared.reaction === null
     ? lineOf(shared, lang)
-    : `${reachText(shared.reach, lang)} · ${rankOf(shared.reach).name[lang]}`;
+    : `${formatMs(shared.reaction)} · ${rankOf(shared.reaction).name[lang]}`;
 
 const langOf = async (param: string | string[] | undefined) => {
   if (param !== undefined) {
@@ -55,7 +54,7 @@ export const generateMetadata = async ({
   const title =
     shared === null
       ? copy[lang].name
-      : `${headlineOf(shared, lang)} | ${copy[lang].name}`;
+      : `${titleOf(shared, lang)} | ${copy[lang].name}`;
   const image = {
     alt: title,
     height: 630,

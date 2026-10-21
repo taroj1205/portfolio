@@ -23,24 +23,13 @@ export const fakeLength: Record<Fake, number> = {
   wind: 1300,
 };
 
-export interface Rung {
-  base: number;
-  spread: number;
-  fakes: readonly [number, number];
-}
+export const tiers = [490, 405, 340, 285, 232] as const;
 
-export const ladder: readonly Rung[] = [
-  { base: 540, fakes: [0, 1], spread: 50 },
-  { base: 440, fakes: [1, 1], spread: 35 },
-  { base: 365, fakes: [1, 2], spread: 25 },
-  { base: 305, fakes: [1, 2], spread: 20 },
-  { base: 250, fakes: [2, 2], spread: 18 },
-];
+export const beatenBy = (reaction: number | null) =>
+  reaction === null ? 0 : tiers.filter((draw) => reaction < draw).length;
 
-export const CHALLENGE_FAKES = [1, 2] as const;
+export const DUEL_FAKES = [1, 2] as const;
 export const VERSUS_FAKES = [0, 2] as const;
-
-export const slowestOf = (rung: Rung) => rung.base + rung.spread;
 
 interface Cue {
   kind: Fake;
@@ -103,9 +92,6 @@ export const planDuel = (
   const count = fewest + Math.floor(random() * (most - fewest + 1));
   return { cues: planCues(random, wait, count), rival, wait };
 };
-
-export const rivalOf = (rung: Rung, random: Random) =>
-  Math.round(rung.base + (random() * 2 - 1) * rung.spread);
 
 const firstTaps = (taps: readonly Tap[], startedAt: number) => {
   const seen = new Map<Side, Tap>();

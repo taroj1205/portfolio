@@ -8,6 +8,7 @@ There are no accounts. Each game keeps its progress in `localStorage`, and a pro
 - `createStore` returns its fallback when the schema fails, and the next write replaces the old save. A new required field therefore wipes everyone's progress. Add every new field with `.default(...)` or `.prefault({})`, as `tally` does in `src/app/games/mizukiri/_lib/save.ts`. Bump the key only for an incompatible change, and copy the old save across once, as `loadProfiles` does for mizukiri and `inherited` does for settings.
 - Keep the save to plain data: counts, bests, flags and ids. No UI state, no text, nothing the code can recompute.
 - Keep identity out of saves and share links. No names or emails. Links carry only the totals.
+- Share links are posted publicly and can't be taken back. When a game changes what its links carry, keep reading the old keys and open them as something sensible, as `readResult` in `src/app/games/iai/_lib/result.ts` does for the five-opponent links.
 
 ## What a game keeps from its first release
 
