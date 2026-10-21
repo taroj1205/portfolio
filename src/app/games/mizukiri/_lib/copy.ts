@@ -88,7 +88,6 @@ export interface Copy {
     howto: string;
     steps: string[];
   };
-  pick: { title: string; note: string };
 }
 
 export const copy: Record<Lang, Copy> = {
@@ -122,10 +121,6 @@ export const copy: Record<Lang, Copy> = {
     },
     locale: "en-US",
     openWorkshop: "Open workshop",
-    pick: {
-      note: "You can change this later in Settings.",
-      title: "Choose your language",
-    },
     release: {
       close: (quality) => `${quality}% So close!`,
       divine: "Perfect throw",
@@ -238,10 +233,6 @@ export const copy: Record<Lang, Copy> = {
     },
     locale: "ja-JP",
     openWorkshop: "工房をひらく",
-    pick: {
-      note: "あとから設定で変えられます",
-      title: "言語をえらぶ",
-    },
     release: {
       close: (quality) => `${quality}% 惜しい！`,
       divine: "神投げ",

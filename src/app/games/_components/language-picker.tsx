@@ -1,10 +1,10 @@
 import { Dialog } from "@base-ui/react/dialog";
 import * as stylex from "@stylexjs/stylex";
 
-import { font, ink, media } from "../../_components/theme.stylex";
-import { langNames } from "../../_lib/i18n";
-import type { Lang } from "../../_lib/i18n";
-import { copy } from "../_lib/copy";
+import { langNames, langPrompt } from "../_lib/i18n";
+import type { Lang } from "../_lib/i18n";
+import type { Settings } from "../_lib/settings";
+import { font, ink, media } from "./theme.stylex";
 
 const GOLD = "#ffd27a";
 
@@ -96,13 +96,22 @@ const styles = stylex.create({
 });
 
 interface LanguagePickerProps {
-  open: boolean;
   lang: Lang;
-  onPick: (lang: Lang) => void;
+  settings: Settings | null;
+  onSettings: (settings: Settings) => void;
 }
 
-export const LanguagePicker = ({ open, lang, onPick }: LanguagePickerProps) => {
+export const LanguagePicker = ({
+  lang,
+  settings,
+  onSettings,
+}: LanguagePickerProps) => {
   const other: Lang = lang === "ja" ? "en" : "ja";
+  const onPick = (choice: Lang) => {
+    if (settings !== null) {
+      onSettings({ ...settings, lang: choice });
+    }
+  };
   return (
     <Dialog.Root
       onOpenChange={(next) => {
@@ -110,14 +119,14 @@ export const LanguagePicker = ({ open, lang, onPick }: LanguagePickerProps) => {
           onPick(lang);
         }
       }}
-      open={open}
+      open={settings?.lang === null}
     >
       <Dialog.Portal>
         <Dialog.Backdrop {...stylex.props(styles.backdrop)} />
         <Dialog.Popup {...stylex.props(styles.popup)}>
           <Dialog.Title {...stylex.props(styles.title)}>
-            <span>{copy[lang].pick.title}</span>
-            <span {...stylex.props(styles.sub)}>{copy[other].pick.title}</span>
+            <span>{langPrompt[lang].title}</span>
+            <span {...stylex.props(styles.sub)}>{langPrompt[other].title}</span>
           </Dialog.Title>
           <div {...stylex.props(styles.choices)}>
             {[lang, other].map((choice) => (
@@ -138,7 +147,7 @@ export const LanguagePicker = ({ open, lang, onPick }: LanguagePickerProps) => {
             ))}
           </div>
           <Dialog.Description {...stylex.props(styles.note)}>
-            {copy[lang].pick.note}
+            {langPrompt[lang].note}
           </Dialog.Description>
         </Dialog.Popup>
       </Dialog.Portal>
