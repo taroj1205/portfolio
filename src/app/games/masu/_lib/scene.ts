@@ -140,7 +140,7 @@ export const vessels: Record<Bottle, Vessel> = {
       [49, 398],
     ]),
     rest: 1.18,
-    drop: 66,
+    drop: 40,
     tip: 1.8,
     lean: 0.22,
     content: 1800,
@@ -163,7 +163,7 @@ export const vessels: Record<Bottle, Vessel> = {
       [60, 0],
     ],
     rest: 0.1,
-    drop: 44,
+    drop: 26,
     tip: 0.86,
     lean: 0.16,
     content: 450,
@@ -184,7 +184,7 @@ export const vessels: Record<Bottle, Vessel> = {
       [32, 152],
     ]),
     rest: 0.96,
-    drop: 54,
+    drop: 30,
     tip: 1.8,
     lean: 0.26,
     content: 540,
@@ -270,9 +270,11 @@ export const keepOut = {
 type KeepOut = (typeof keepOut)[keyof typeof keepOut];
 const HIGHEST = 47;
 const LOWEST = 56;
+export const IDLE_TEXT = 330;
 const SMALLEST = 50;
 const SWEEP = 24;
 const MOST_POURED = 300;
+const DEMO_SAMPLES = 200;
 
 const insidePolygon = (polygon: readonly Point[], at: Point) => {
   let inside = false;
@@ -351,13 +353,14 @@ const clearOf = (
   bottle: Bottle,
   size: number,
   at: Pick<Layout, "w" | "cx" | "cy" | "scale">,
-  zone: KeepOut
+  zone: KeepOut,
+  angles: readonly number[]
 ) => {
   const from = { x: at.w - zone.width, y: 0 };
   const to = { x: at.w, y: zone.height };
   const lip = lipOf({ bottle, cup: "masu" });
   const anchor = { x: at.cx + lip.x * at.scale, y: at.cy + lip.y * at.scale };
-  return sweepOf(bottle).every((angle) => {
+  return angles.every((angle) => {
     const outline = outlineAt(bottle, angle, size * at.scale, anchor);
     return (
       !insidePolygon(outline, { x: at.w - 1, y: 1 }) &&
@@ -368,23 +371,39 @@ const clearOf = (
   });
 };
 
-export const layoutOf = (w: number, h: number, demo: Bottle): Layout => {
+export interface Demo {
+  pour: Pour;
+  hold: number;
+}
+
+export const demoSweepOf = ({ pour, hold }: Demo) =>
+  Array.from({ length: DEMO_SAMPLES + 1 }, (_, i) =>
+    angleAt(pour, hold, ((hold + pour.trickle) * i) / DEMO_SAMPLES)
+  );
+
+export const layoutOf = (w: number, h: number, demo: Demo): Layout => {
   const scale = Math.min((w * 0.62) / 94, (h * 0.36) / 96);
   const at = (share: number) => ({ cx: w / 2, cy: h * share, scale, w });
-  const keepOutOf = (bottle: Bottle) =>
-    bottle === demo ? keepOut.idle : keepOut.playing;
+  const shown = demoSweepOf(demo);
+  const clear = (bottle: Bottle, size: number, share: number) =>
+    clearOf(bottle, size, at(share), keepOut.playing, sweepOf(bottle)) &&
+    (bottle !== demo.pour.bottle ||
+      clearOf(bottle, size, at(share), keepOut.idle, shown));
+  const foot = project(0, 0, box.outer).y * scale;
+  const room = Math.floor(((h - IDLE_TEXT - foot) / h) * 100);
+  const deepest = Math.max(HIGHEST, Math.min(LOWEST, room));
   const lowest = bottles.map((bottle) => {
-    for (let share = HIGHEST; share < LOWEST; share += 1) {
-      if (clearOf(bottle, 1, at(share / 100), keepOutOf(bottle))) {
+    for (let share = HIGHEST; share < deepest; share += 1) {
+      if (clear(bottle, 1, share / 100)) {
         return share / 100;
       }
     }
-    return LOWEST / 100;
+    return deepest / 100;
   });
   const share = Math.max(...lowest);
   const fits = (bottle: Bottle) => {
     for (let size = 100; size > SMALLEST; size -= 2) {
-      if (clearOf(bottle, size / 100, at(share), keepOutOf(bottle))) {
+      if (clear(bottle, size / 100, share)) {
         return size / 100;
       }
     }

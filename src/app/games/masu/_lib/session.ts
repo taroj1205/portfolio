@@ -104,7 +104,10 @@ export const startSession = (
 ) => {
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const demo = demoOf();
-  const render = createRenderer(canvas, calm, demo.pour.bottle);
+  const render = createRenderer(canvas, calm, {
+    hold: demo.hold / 1000,
+    pour: demo.pour,
+  });
   const sound = createSound();
   let save = loadSave();
   let settings = loadSettings();

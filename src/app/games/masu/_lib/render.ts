@@ -51,7 +51,7 @@ import {
   tumbler,
   vessels,
 } from "./scene";
-import type { Dome, Fill, Layout, Point } from "./scene";
+import type { Demo, Dome, Fill, Layout, Point } from "./scene";
 
 export interface Frame {
   pour: Pour;
@@ -1262,7 +1262,7 @@ const paintVessel = (
 export const createRenderer = (
   canvas: HTMLCanvasElement,
   calm: boolean,
-  demo: Pour["bottle"]
+  demo: Demo
 ) => {
   const context = canvas.getContext("2d");
   if (!context) {

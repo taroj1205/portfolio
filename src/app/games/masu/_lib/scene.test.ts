@@ -2,18 +2,22 @@ import assert from "node:assert/strict";
 
 import { describe, test } from "vite-plus/test";
 
-import { bottles, outcomeOf, pourOf } from "./pour";
+import { bottles, holdFor, outcomeOf, pourOf } from "./pour";
 import {
   AWAY,
+  IDLE_TEXT,
   angleAt,
   awayAt,
+  box,
+  demoSweepOf,
   keepOut,
   layoutOf,
   lipOf,
   outlineAt,
+  project,
   sweepOf,
 } from "./scene";
-import type { Point } from "./scene";
+import type { Demo, Layout, Point } from "./scene";
 
 const inside = (outline: readonly Point[], at: Point) => {
   let hit = false;
@@ -37,53 +41,81 @@ const viewports = [
   [1280, 577],
 ] as const;
 
-describe("the layout", () => {
-  test("no bottle reaches the mute button, and the demo bottle clears the language button too", () => {
-    for (const [w, h] of viewports) {
-      const layout = layoutOf(w, h, "tokkuri");
-      for (const bottle of bottles) {
-        const corner = bottle === "tokkuri" ? keepOut.idle : keepOut.playing;
-        const lip = lipOf({ bottle, cup: "masu" });
-        const anchor = {
-          x: layout.cx + lip.x * layout.scale,
-          y: layout.cy + lip.y * layout.scale,
-        };
-        for (const angle of sweepOf(bottle)) {
-          const outline = outlineAt(
-            bottle,
-            angle,
-            layout.size[bottle] * layout.scale,
-            anchor
-          );
-          for (let x = w - corner.width; x <= w; x += 2) {
-            for (let y = 0; y <= corner.height; y += 2) {
-              assert.ok(
-                !inside(outline, { x, y }),
-                `${bottle} at ${w}x${h} covers ${x},${y}`
-              );
-            }
-          }
+const demoPour = pourOf(13);
+const demo: Demo = {
+  hold:
+    holdFor(
+      demoPour,
+      (outcome) => outcome.spilledAt === null && outcome.tenths >= 970
+    ) / 1000,
+  pour: demoPour,
+};
+
+const covers = (
+  layout: Layout,
+  bottle: (typeof bottles)[number],
+  angles: readonly number[],
+  zone: { width: number; height: number }
+) => {
+  const lip = lipOf({ bottle, cup: "masu" });
+  const anchor = {
+    x: layout.cx + lip.x * layout.scale,
+    y: layout.cy + lip.y * layout.scale,
+  };
+  return angles.some((angle) => {
+    const outline = outlineAt(
+      bottle,
+      angle,
+      layout.size[bottle] * layout.scale,
+      anchor
+    );
+    for (let x = layout.w - zone.width; x <= layout.w; x += 2) {
+      for (let y = 0; y <= zone.height; y += 2) {
+        if (inside(outline, { x, y })) {
+          return true;
         }
       }
+    }
+    return false;
+  });
+};
+
+describe("the layout", () => {
+  test("no pour reaches the mute button, and the demo clears the language button too", () => {
+    for (const [w, h] of viewports) {
+      const layout = layoutOf(w, h, demo);
+      for (const bottle of bottles) {
+        assert.ok(
+          !covers(layout, bottle, sweepOf(bottle), keepOut.playing),
+          `${bottle} reaches the mute button at ${w}x${h}`
+        );
+      }
+      assert.ok(
+        !covers(layout, demoPour.bottle, demoSweepOf(demo), keepOut.idle),
+        `the demo reaches the language button at ${w}x${h}`
+      );
     }
   });
 
   test("bottles keep their full size unless the corner is too close", () => {
-    assert.deepEqual(layoutOf(390, 844, "tokkuri").size, {
-      isshobin: 1,
-      katakuchi: 1,
-      tokkuri: 1,
-    });
-    const small = layoutOf(360, 740, "tokkuri").size;
+    const phone = layoutOf(390, 844, demo).size;
+    assert.equal(phone.isshobin, 1);
+    assert.equal(phone.katakuchi, 1);
+    assert.ok(phone.tokkuri >= 0.95);
+    const small = layoutOf(360, 740, demo).size;
     assert.equal(small.isshobin, 1);
     assert.equal(small.katakuchi, 1);
-    assert.ok(small.tokkuri >= 0.75 && small.tokkuri < 1);
+    assert.ok(small.tokkuri >= 0.75);
   });
 
-  test("the cup stays in the middle band of the screen", () => {
-    for (const [w, h] of viewports) {
-      const { cy } = layoutOf(w, h, "tokkuri");
+  test("the cup only sits lower when the idle text leaves room under it", () => {
+    for (const [w, h] of [...viewports, [414, 896], [1920, 1080]] as const) {
+      const { cy, scale } = layoutOf(w, h, demo);
       assert.ok(cy >= h * 0.47 && cy <= h * 0.56);
+      if (cy > h * 0.47) {
+        const foot = cy + project(0, 0, box.outer).y * scale;
+        assert.ok(foot <= h - IDLE_TEXT);
+      }
     }
   });
 

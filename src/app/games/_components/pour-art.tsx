@@ -6,11 +6,11 @@ import {
   vesselPath,
   vesselTransform,
 } from "../masu/_components/cup-svg";
-import { LIFT, box, paint, project } from "../masu/_lib/scene";
+import { LIFT, box, lipOf, paint, project } from "../masu/_lib/scene";
 import type { Fill } from "../masu/_lib/scene";
 
 const fill: Fill = { dome: 3.4, glass: null, level: box.height };
-const lip = project(14, box.height + 54, 0);
+const lip = lipOf({ bottle: "tokkuri", cup: "masu" });
 const surface = project(-6, box.height + fill.dome * LIFT, 4);
 
 const BOKEH = [
