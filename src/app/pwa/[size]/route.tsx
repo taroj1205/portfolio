@@ -9,5 +9,5 @@ export const GET = async (
   { params }: RouteContext<"/pwa/[size]">
 ) => {
   const { size } = await params;
-  return appIcon(Number(size));
+  return await appIcon(Number(size));
 };
