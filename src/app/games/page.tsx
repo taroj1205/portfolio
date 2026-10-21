@@ -6,6 +6,7 @@ import { media } from "../../styles/tokens.stylex";
 import { BrushArt } from "./_components/brush-art";
 import { GameCard } from "./_components/game-card";
 import { MergeArt } from "./_components/merge-art";
+import { PauseArt } from "./_components/pause-art";
 import { SkipArt } from "./_components/skip-art";
 import { Sky } from "./_components/sky";
 import { SparkArt } from "./_components/spark-art";
@@ -13,6 +14,7 @@ import { StarLink } from "./_components/star-link";
 import type { Text } from "./_lib/i18n";
 import { copy as enso } from "./enso/_lib/copy";
 import { copy as hoshiai } from "./hoshiai/_lib/copy";
+import { copy as ma } from "./ma/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
 import { copy as senko } from "./senko/_lib/copy";
 
@@ -80,6 +82,20 @@ const GAMES: Game[] = [
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
     title: { en: enso.en.name, ja: enso.ja.name },
+  },
+  {
+    art: <PauseArt />,
+    blurb: {
+      en: "Stop the timer at exactly 10.00 seconds. It vanishes after 3, so the rest is down to your inner clock.",
+      ja: "10.00秒ぴったりで止める。タイマーは3秒で消えるから、あとは体内時計だけが頼り。",
+    },
+    href: "/games/ma",
+    tags: [
+      { en: "Press & stop", ja: "押して止める" },
+      { en: "Timed to 0.01s", ja: "0.01秒を競う" },
+      { en: "Daily target", ja: "今日のお題" },
+    ],
+    title: { en: ma.en.name, ja: ma.ja.name },
   },
 ];
 
