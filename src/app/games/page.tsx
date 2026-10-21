@@ -3,12 +3,14 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { media } from "../../styles/tokens.stylex";
+import { BrushArt } from "./_components/brush-art";
 import { GameCard } from "./_components/game-card";
 import { MergeArt } from "./_components/merge-art";
 import { SkipArt } from "./_components/skip-art";
 import { Sky } from "./_components/sky";
 import { SparkArt } from "./_components/spark-art";
 import type { Text } from "./_lib/i18n";
+import { copy as enso } from "./enso/_lib/copy";
 import { copy as hoshiai } from "./hoshiai/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
 import { copy as senko } from "./senko/_lib/copy";
@@ -63,6 +65,20 @@ const GAMES: Game[] = [
       { en: "Same-stick challenge", ja: "同じ一本で挑戦" },
     ],
     title: { en: senko.en.name, ja: senko.ja.name },
+  },
+  {
+    art: <BrushArt />,
+    blurb: {
+      en: "Draw a circle in one brush stroke. Let go, and see how close to perfect it is, to one decimal place.",
+      ja: "筆で一筆、まるを描く。離すと、真円にどれだけ近いかが小数1桁の％で出る。",
+    },
+    href: "/games/enso",
+    tags: [
+      { en: "One stroke", ja: "一筆書き" },
+      { en: "Ink & brush", ja: "墨と筆" },
+      { en: "Challenge a friend", ja: "友だちに挑戦" },
+    ],
+    title: { en: enso.en.name, ja: enso.ja.name },
   },
 ];
 
