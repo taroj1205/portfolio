@@ -55,7 +55,7 @@ const CLEAR = 520;
 const RACK = 900;
 const BALL_IN = 520;
 const DEAD = 10;
-const FLICK = { dead: 160, frame: 16, full: 1100, window: 90 };
+const BEND = { dead: 0.05, full: 0.22, shortest: 40 };
 const GHOST = 3200;
 const PACE = 0.62;
 const IMPACT = { pace: 0.2, span: 420 };
@@ -90,32 +90,35 @@ const pullOf = (client: Point, origin: Point) => {
   };
 };
 
-interface Sample {
-  t: number;
-  x: number;
-  y: number;
-}
-
-export const curlOf = (trail: readonly Sample[]) => {
-  const first = trail.at(0);
-  const last = trail.at(-1);
-  if (first === undefined || last === undefined || last.t - first.t < 8) {
+export const bendOf = (path: readonly Point[]) => {
+  const first = path.at(0);
+  const last = path.at(-1);
+  if (first === undefined || last === undefined) {
     return 0;
   }
-  const seconds = (last.t - first.t) / 1000;
-  const across = (last.x - first.x) / seconds;
-  const down = (last.y - first.y) / seconds;
-  const sideways =
-    Math.abs(across) >= FLICK.dead && Math.abs(across) > 2 * Math.abs(down);
-  return sideways ? clamp(across / FLICK.full, -1, 1) : 0;
-};
-
-const recent = (trail: Sample[], next: Sample) => {
-  const kept = trail.filter((sample) => next.t - sample.t <= FLICK.window);
-  const last = trail.at(-1);
-  return kept.length === 0 && last !== undefined
-    ? [{ ...last, t: next.t - FLICK.frame }, next]
-    : [...kept, next];
+  const chordX = last.x - first.x;
+  const chordY = last.y - first.y;
+  const length = Math.hypot(chordX, chordY);
+  if (length < BEND.shortest) {
+    return 0;
+  }
+  let deepest = 0;
+  for (const point of path) {
+    const side =
+      (chordY * (point.x - first.x) - chordX * (point.y - first.y)) / length;
+    if (Math.abs(side) > Math.abs(deepest)) {
+      deepest = side;
+    }
+  }
+  const bulge = deepest / length;
+  if (Math.abs(bulge) <= BEND.dead) {
+    return 0;
+  }
+  return clamp(
+    (bulge - Math.sign(bulge) * BEND.dead) / (BEND.full - BEND.dead),
+    -1,
+    1
+  );
 };
 
 export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
@@ -136,7 +139,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     id: number;
     origin: Point;
     x: number;
-    trail: Sample[];
+    path: Point[];
   } | null = null;
   let touched = false;
   let hit = false;
@@ -204,7 +207,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     pointer = {
       id: event.pointerId,
       origin: { x: event.clientX, y: event.clientY },
-      trail: [{ t: event.timeStamp, x: event.clientX, y: event.clientY }],
+      path: [{ x: event.clientX, y: event.clientY }],
       x,
     };
     place(world, x, 0);
@@ -216,17 +219,19 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (stage !== "aiming" || pointer?.id !== event.pointerId || aim === null) {
       return;
     }
-    pointer.trail = recent(pointer.trail, {
-      t: event.timeStamp,
-      x: event.clientX,
-      y: event.clientY,
-    });
-    const curl = curlOf(pointer.trail);
-    const pull =
-      curl === 0
-        ? pullOf({ x: event.clientX, y: event.clientY }, pointer.origin)
-        : { angle: aim.angle, power: aim.power };
-    aim = { ...aim, ...pull, curl, finger: localOf(event) };
+    const at = { x: event.clientX, y: event.clientY };
+    pointer.path = [
+      ...pointer.path.slice(0, 1),
+      ...pointer.path.slice(1).slice(-400),
+      at,
+    ];
+    const pull = pullOf(at, pointer.origin);
+    aim = {
+      ...aim,
+      ...pull,
+      curl: bendOf(pointer.path),
+      finger: localOf(event),
+    };
     place(world, pointer.x, pull.angle);
   };
 
@@ -242,13 +247,6 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       return;
     }
     const thrown = aim;
-    const curl = curlOf(
-      recent(pointer.trail, {
-        t: event.timeStamp,
-        x: event.clientX,
-        y: event.clientY,
-      })
-    );
     if (stage !== "aiming" || thrown === null || thrown.power < 0.06) {
       letGo(performance.now());
       return;
@@ -258,7 +256,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     hit = false;
     launch(world, {
       angle: thrown.angle,
-      curl,
+      curl: thrown.curl,
       power: thrown.power,
       x: thrown.x,
     });
@@ -365,10 +363,14 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       return null;
     }
     const at = render.screenOf(world.ball);
+    const arc = Math.floor(now / GHOST) % 2 === 1;
     return {
-      angle: -0.06 * ease,
-      curl: 0,
-      finger: { x: at.x + 12 * ease, y: at.y + 28 + 42 * ease },
+      angle: arc ? 0 : -0.06 * ease,
+      curl: arc ? 0.7 * ease : 0,
+      finger: {
+        x: at.x + (arc ? 26 * Math.sin(ease * Math.PI) : 12 * ease),
+        y: at.y + 28 + 42 * ease,
+      },
       power: 0.55 * ease,
       x: lastX,
     };

@@ -85,7 +85,7 @@ export const copy: Record<Lang, Copy> = {
       received: "Challenge",
     },
     fallback:
-      "Eraser bowling on two school desks pushed together. Touch where you want to start, pull back, and let go to flick your eraser at ten standing erasers at the far end. Ten frames, strikes and spares, and up to 300 points. Flick sideways as you let go and it curves, and pull a light eraser too hard and it hops. Design your own eraser in the workshop: its shape, how hard it is, and how it looks all change how it slides and hits.",
+      "Eraser bowling on two school desks pushed together. Touch where you want to start, pull back, and let go to flick your eraser at ten standing erasers at the far end. Ten frames, strikes and spares, and up to 300 points. Pull back in an arc and it curves, and pull a light eraser too hard and it hops. Design your own eraser in the workshop: its shape, how hard it is, and how it looks all change how it slides and hits.",
     frame: (n) => `Frame ${n}`,
     mute: "Mute sound",
     name: "Keshibo",
@@ -114,7 +114,7 @@ export const copy: Record<Lang, Copy> = {
       won: "You beat the challenge",
     },
     start: "Pull & flick",
-    tip: "Flick sideways as you let go to curve it",
+    tip: "Pull back in an arc to curve it",
     sheet: "Score sheet",
     total: "Total",
     workshop: {
@@ -164,7 +164,7 @@ export const copy: Record<Lang, Copy> = {
       received: "挑戦状",
     },
     fallback:
-      "机をくっつけてつくったレーンで、消しゴムボウリング。投げたい位置に指を置いて、うしろに引いて離すと、消しゴムがすべっていく。奥に立てた10個の消しゴムを倒す。10フレームで、ストライクとスペアありの最高300点。離す瞬間に指を横に振るとカーブして、軽い消しゴムを強く引きすぎると跳ねる。工房で自分の消しゴムをつくれる。形やかたさ、見た目で、すべり方と当たり方が変わる。",
+      "机をくっつけてつくったレーンで、消しゴムボウリング。投げたい位置に指を置いて、うしろに引いて離すと、消しゴムがすべっていく。奥に立てた10個の消しゴムを倒す。10フレームで、ストライクとスペアありの最高300点。弧を描くように引くとカーブして、軽い消しゴムを強く引きすぎると跳ねる。工房で自分の消しゴムをつくれる。形やかたさ、見た目で、すべり方と当たり方が変わる。",
     frame: (n) => `${n}フレーム`,
     mute: "音を消す",
     name: "消しボウ",
@@ -192,7 +192,7 @@ export const copy: Record<Lang, Copy> = {
       won: "挑戦状に勝った",
     },
     start: "引いて、はじく",
-    tip: "離す瞬間に指を横に振ると、カーブする",
+    tip: "弧を描くように引くと、カーブする",
     sheet: "スコア表",
     total: "合計",
     workshop: {

@@ -24,7 +24,7 @@ const LONGEST = 9;
 const ROUND = 0.8;
 const HOP = { keep: 0.7, least: 6, max: 36, per: 0.12, rebound: 0.3 };
 const TUMBLE = { drag: 180, flop: 8, max: 38, per: 0.16, settle: 6 };
-const CURL = { force: 400, fade: 60, skid: 520 };
+const CURL = { fade: 60, force: 0.6 };
 
 export interface Point {
   x: number;
@@ -439,9 +439,13 @@ const hook = (ball: Ball, dt: number) => {
   if (ball.curl === 0 || speed < 1) {
     return;
   }
-  const bite =
-    clamp(1 - speed / CURL.skid, 0.25, 1) * Math.min(1, speed / CURL.fade);
-  const push = CURL.force * ball.curl * (ball.grip / 0.24) * bite * dt;
+  const push =
+    CURL.force *
+    ball.curl *
+    (ball.grip / 0.24) *
+    speed *
+    Math.min(1, speed / CURL.fade) *
+    dt;
   const ux = ball.vx / speed;
   const uy = ball.vy / speed;
   ball.vx += uy * push;

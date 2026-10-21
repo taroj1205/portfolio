@@ -16,7 +16,7 @@ import {
   standingOf,
 } from "./physics";
 import type { Launch } from "./physics";
-import { curlOf } from "./session";
+import { bendOf } from "./session";
 
 const body = bodyOf(firstDesign);
 
@@ -135,18 +135,25 @@ describe("keshibo hops and curl", () => {
   });
 });
 
-const flick = (dx: number, dy = 0) =>
-  curlOf([
-    { t: 0, x: 100, y: 500 },
-    { t: 60, x: 100 + dx, y: 500 + dy },
-  ]);
+const pullWith = (bulge: number, depth = 140) =>
+  bendOf(
+    Array.from({ length: 11 }, (_, i) => ({
+      x: 200 + bulge * depth * Math.sin((i / 10) * Math.PI),
+      y: 600 + (depth * i) / 10,
+    }))
+  );
 
-describe("keshibo flick reading", () => {
-  test("a quick sideways flick at release becomes curl, a slow drift or a diagonal pull does not", () => {
-    assert.equal(flick(66), 1);
-    assert.equal(flick(-33), -0.5);
-    assert.equal(flick(6), 0);
-    assert.equal(flick(66, 40), 0);
-    assert.equal(curlOf([{ t: 0, x: 100, y: 500 }]), 0);
+describe("keshibo pull shape", () => {
+  test("a straight pull has no curl, and a curved one curls the way it bulges", () => {
+    assert.equal(pullWith(0), 0);
+    assert.equal(pullWith(0.3), 1);
+    assert.equal(pullWith(-0.3), -1);
+    assert.ok(Math.abs(pullWith(0.135) - 0.5) < 0.01);
+  });
+
+  test("a slightly wobbly pull and a tiny pull stay straight", () => {
+    assert.equal(pullWith(0.04), 0);
+    assert.equal(pullWith(0.3, 30), 0);
+    assert.equal(bendOf([{ x: 1, y: 1 }]), 0);
   });
 });
