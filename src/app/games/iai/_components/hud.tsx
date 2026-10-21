@@ -114,7 +114,7 @@ const styles = stylex.create({
     transitionProperty: "transform",
     width: "2.75rem",
   },
-  language: {
+  pill: {
     fontSize: "0.8rem",
     fontWeight: 700,
     letterSpacing: "calc(0.08em * var(--track, 1))",
@@ -903,12 +903,21 @@ export const Hud = ({
             >
               <Speaker muted={muted} />
             </Toggle>
+            {stage === "duel" ? (
+              <button
+                onClick={onQuit}
+                type="button"
+                {...stylex.props(glass.surface, styles.button, styles.pill)}
+              >
+                {words.quit}
+              </button>
+            ) : null}
             {playing ? null : (
               <button
                 lang={langOther}
                 onClick={onLang}
                 type="button"
-                {...stylex.props(glass.surface, styles.button, styles.language)}
+                {...stylex.props(glass.surface, styles.button, styles.pill)}
               >
                 {langNames[langOther]}
               </button>
