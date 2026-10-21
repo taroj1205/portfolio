@@ -78,7 +78,7 @@ export const copy: Record<Lang, Copy> = {
       return call.pins === 1 ? "1 pin" : `${call.pins} pins`;
     },
     challenge: {
-      borrow: "Bowl with this eraser",
+      borrow: "Borrow",
       borrowed: "Borrowed",
       dare: (score) =>
         score === PERFECT ? "Can you match it?" : "Can you bowl higher?",
@@ -157,7 +157,7 @@ export const copy: Record<Lang, Copy> = {
       return `${call.pins}本`;
     },
     challenge: {
-      borrow: "この消しゴムで投げる",
+      borrow: "借りる",
       borrowed: "借りた",
       dare: (score) =>
         score === PERFECT ? "これに並べる？" : "これより高く投げられる？",
