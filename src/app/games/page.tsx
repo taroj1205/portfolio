@@ -8,6 +8,7 @@ import { CutArt } from "./_components/cut-art";
 import type { Game } from "./_components/game-card";
 import { GamesIndex } from "./_components/games-index";
 import { MergeArt } from "./_components/merge-art";
+import { MochiArt } from "./_components/mochi-art";
 import { PauseArt } from "./_components/pause-art";
 import { SkipArt } from "./_components/skip-art";
 import { SparkArt } from "./_components/spark-art";
@@ -20,6 +21,7 @@ import { kinds } from "./itto/_lib/foods";
 import { copy as katanuki } from "./katanuki/_lib/copy";
 import { copy as ma } from "./ma/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
+import { copy as mochitsuki } from "./mochitsuki/_lib/copy";
 import { copy as senko } from "./senko/_lib/copy";
 
 const GAMES: Game[] = [
@@ -134,6 +136,20 @@ const GAMES: Game[] = [
       { en: "Rare finds", ja: "たまにレア" },
     ],
     title: { en: itto.en.name, ja: itto.ja.name },
+  },
+  {
+    art: <MochiArt />,
+    blurb: {
+      en: "Pound the mochi on the beat while your partner turns it. The tempo keeps rising, so don't hit their hand.",
+      ja: "拍に合わせて杵でつく。拍のあいだは相方が返す。どんどん速くなるなかで、手をつかずに何回つけるか。",
+    },
+    href: "/games/mochitsuki",
+    tags: [
+      { en: "Rhythm", ja: "リズム" },
+      { en: "Ever faster", ja: "どんどん速く" },
+      { en: "Challenge a friend", ja: "友だちに挑戦" },
+    ],
+    title: { en: mochitsuki.en.name, ja: mochitsuki.ja.name },
   },
 ];
 
