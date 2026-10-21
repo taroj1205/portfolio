@@ -9,6 +9,7 @@ const GOLD = "#ffd27a";
 
 const styles = stylex.create({
   art: {
+    aspectRatio: { default: null, [media.stack]: "16 / 10" },
     overflow: "hidden",
     position: "relative",
   },
@@ -29,25 +30,33 @@ const styles = stylex.create({
     color: "rgb(255 255 255 / 0.86)",
     display: "flex",
     flexDirection: "column",
-    fontSize: { default: "0.98rem", [media.stack]: "0.86rem" },
+    fontSize: {
+      default: "0.98rem",
+      [media.stack]: "0.86rem",
+      [media.narrow]: "0.76rem",
+    },
     gap: { default: "0.35rem", [media.stack]: "0.15rem" },
     lineHeight: { default: 1.7, [media.stack]: 1.55 },
     margin: 0,
   },
   blurbEn: {
     color: "rgb(255 255 255 / 0.66)",
-    fontSize: { default: "0.9rem", [media.stack]: "0.78rem" },
+    fontSize: {
+      default: "0.9rem",
+      [media.stack]: "0.78rem",
+      [media.narrow]: "0.7rem",
+    },
   },
   body: {
     display: "flex",
     flexDirection: "column",
     gap: { default: "1.15rem", [media.stack]: "0.55rem" },
-    justifyContent: "center",
+    justifyContent: { default: "center", [media.stack]: "flex-start" },
     minWidth: 0,
     padding: {
       default: "2.25rem",
-      [media.stack]: "1rem 1.1rem",
-      [media.narrow]: "0.8rem 0.9rem",
+      [media.stack]: "0.9rem 1rem 1.1rem",
+      [media.narrow]: "0.7rem 0.75rem 0.9rem",
     },
   },
   card: {
@@ -72,9 +81,10 @@ const styles = stylex.create({
     display: "grid",
     gridTemplateColumns: {
       default: "1.15fr 1fr",
-      [media.stack]: "minmax(0, 8rem) 1fr",
-      [media.narrow]: "minmax(0, 5.5rem) 1fr",
+      [media.stack]: "minmax(0, 1fr)",
     },
+    gridTemplateRows: { default: null, [media.stack]: "auto 1fr" },
+    height: { default: null, [media.stack]: "100%" },
     outlineColor: GOLD,
     outlineOffset: 4,
     overflow: "hidden",
@@ -94,14 +104,14 @@ const styles = stylex.create({
     borderRadius: 999,
     boxShadow: "0 10px 30px rgb(255 190 80 / 0.3)",
     color: "#1c1406",
-    display: { default: "inline-flex", [media.narrow]: "none" },
+    display: { default: "inline-flex", [media.stack]: "none" },
     fontFamily: "var(--font-mincho), serif",
-    fontSize: { default: "1.05rem", [media.stack]: "0.9rem" },
+    fontSize: "1.05rem",
     fontWeight: 700,
-    gap: { default: "0.6rem", [media.stack]: "0.45rem" },
+    gap: "0.6rem",
     letterSpacing: "0.12em",
-    minHeight: { default: "3rem", [media.stack]: "2.25rem" },
-    paddingInline: { default: "1.5rem", [media.stack]: "1.1rem" },
+    minHeight: "3rem",
+    paddingInline: "1.5rem",
   },
   ctaEn: {
     fontSize: "0.9rem",
@@ -135,7 +145,7 @@ const styles = stylex.create({
     fontFamily: "var(--font-mincho), serif",
     fontSize: {
       default: "clamp(2rem, 4.5vw, 2.8rem)",
-      [media.stack]: "clamp(1.4rem, 5vw, 1.9rem)",
+      [media.stack]: "clamp(1.2rem, 4vw, 1.7rem)",
     },
     fontWeight: 700,
     letterSpacing: { default: "0.1em", [media.stack]: "0.06em" },

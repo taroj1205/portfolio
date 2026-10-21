@@ -177,7 +177,11 @@ const styles = stylex.create({
     animationName: { default: rise, [media.reduce]: "none" },
     animationTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
     display: "grid",
-    gap: { default: "1.5rem", [media.stack]: "0.9rem" },
+    gap: { default: "1.5rem", [media.stack]: "0.75rem" },
+    gridTemplateColumns: {
+      default: null,
+      [media.stack]: "repeat(2, minmax(0, 1fr))",
+    },
     listStyle: "none",
     margin: 0,
     padding: 0,
