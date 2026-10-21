@@ -9,6 +9,7 @@ import { MergeArt } from "./_components/merge-art";
 import { SkipArt } from "./_components/skip-art";
 import { Sky } from "./_components/sky";
 import { SparkArt } from "./_components/spark-art";
+import { StarLink } from "./_components/star-link";
 import type { Text } from "./_lib/i18n";
 import { copy as enso } from "./enso/_lib/copy";
 import { copy as hoshiai } from "./hoshiai/_lib/copy";
@@ -162,6 +163,9 @@ const styles = stylex.create({
     overscrollBehavior: "contain",
     position: "absolute",
   },
+  starEn: {
+    color: "rgb(255 255 255 / 0.66)",
+  },
   title: {
     fontFamily: "var(--font-mincho), serif",
     fontSize: "clamp(3.2rem, 11vw, 6.5rem)",
@@ -197,6 +201,12 @@ const Page = () => (
             </li>
           ))}
         </ul>
+        <StarLink>
+          <span>GitHubでスター</span>
+          <span lang="en" {...stylex.props(styles.starEn)}>
+            Star on GitHub
+          </span>
+        </StarLink>
       </div>
     </main>
   </div>

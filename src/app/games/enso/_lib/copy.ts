@@ -18,6 +18,7 @@ interface Copy {
     again: string;
     games: string;
     maker: string;
+    star: string;
     top: string;
     next: (rank: string, gap: string) => string;
     won: (gap: string) => string;
@@ -57,7 +58,8 @@ export const copy: Record<Lang, Copy> = {
       },
       games: "More games",
       lost: (gap) => `${gap} short of the challenge`,
-      maker: "Made by",
+      maker: "About the maker",
+      star: "Star on GitHub",
       next: (rank, gap) => `${gap} to ${rank}`,
       postX: "Post on X",
       record: "New best",
@@ -100,6 +102,7 @@ export const copy: Record<Lang, Copy> = {
       games: "ほかのゲーム",
       lost: (gap) => `挑戦状まで、あと${gap}`,
       maker: "つくった人",
+      star: "GitHubでスター",
       next: (rank, gap) => `${rank}まで、あと${gap}`,
       postX: "Xに投稿",
       record: "自己ベスト更新",

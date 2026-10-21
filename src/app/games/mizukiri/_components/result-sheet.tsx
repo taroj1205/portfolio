@@ -1,8 +1,8 @@
 import * as stylex from "@stylexjs/stylex";
-import Link from "next/link";
 
 import { glass } from "../../_components/glass";
 import { ShareButton } from "../../_components/share-button";
+import { SheetLinks } from "../../_components/sheet-links";
 import { font, ink, media } from "../../_components/theme.stylex";
 import { parts } from "../_lib/cosmetics";
 import type { Part } from "../_lib/cosmetics";
@@ -311,14 +311,6 @@ const styles = stylex.create({
     backgroundColor: "#ffd27a",
     color: "#1c1406",
   },
-  maker: {
-    alignSelf: "center",
-    color: ink.soft,
-    fontSize: "0.75rem",
-    letterSpacing: "calc(0.12em * var(--track, 1))",
-    paddingBlock: "0.35rem",
-    textDecoration: "none",
-  },
 });
 
 const PART_NAMES = new Map(parts.map(({ part, name }) => [part, name]));
@@ -469,9 +461,7 @@ export const ResultSheet = ({
         </div>
       ) : null}
 
-      <Link href={`/${lang}`} {...stylex.props(styles.maker)}>
-        {copy.result.maker}
-      </Link>
+      <SheetLinks labels={copy.result} lang={lang} />
     </section>
   );
 };

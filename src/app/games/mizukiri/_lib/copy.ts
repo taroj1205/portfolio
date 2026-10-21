@@ -54,7 +54,9 @@ export interface Copy {
     copyLink: string;
     copied: string;
     workshop: string;
+    games: string;
     maker: string;
+    star: string;
   };
   workshop: {
     title: string;
@@ -132,7 +134,8 @@ export const copy: Record<Lang, Copy> = {
     result: {
       again: "Again",
       levelUp: "Level up",
-      maker: "Made by",
+      games: "More games",
+      maker: "About the maker",
       newPart: (part) => `New ${part.toLowerCase()}`,
       points: (count) => `Skill points +${count}`,
       copied: "Copied",
@@ -142,6 +145,7 @@ export const copy: Record<Lang, Copy> = {
       share: "Share",
       shareImage: "Share image",
       shareLink: "Share link",
+      star: "Star on GitHub",
       record: "New best",
       stats: (skips, combo, quality, kmh) =>
         `${skips} skips · best combo ×${combo} · throw ${quality}% · top\u00A0${kmh}\u00A0km/h`,
@@ -244,6 +248,7 @@ export const copy: Record<Lang, Copy> = {
     result: {
       again: "もう一回",
       levelUp: "レベルアップ",
+      games: "ほかのゲーム",
       maker: "つくった人",
       newPart: (part) => `新しい${part}`,
       points: (count) => `スキルポイント +${count}`,
@@ -254,6 +259,7 @@ export const copy: Record<Lang, Copy> = {
       share: "シェア",
       shareImage: "画像でシェア",
       shareLink: "リンクでシェア",
+      star: "GitHubでスター",
       record: "自己ベスト更新",
       stats: (skips, combo, quality, kmh) =>
         `${skips}回跳ねた · 最大コンボ ×${combo} · 投げの質 ${quality}% · 最高速度\u00A0${kmh}\u00A0km/h`,

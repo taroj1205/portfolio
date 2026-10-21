@@ -30,6 +30,7 @@ interface Copy {
     stats: (merges: number, chain: number) => string;
     games: string;
     maker: string;
+    star: string;
   };
 }
 
@@ -66,13 +67,14 @@ export const copy: Record<Lang, Copy> = {
       copyLink: "Copy link",
       galaxy: "Milky Way",
       games: "More games",
-      maker: "Made by",
+      maker: "About the maker",
       postX: "Post on X",
       record: "New best",
       saveImage: "Save image",
       share: "Share",
       shareImage: "Share image",
       shareLink: "Share link",
+      star: "Star on GitHub",
       stats: (merges, chain) =>
         `${merges} ${merges === 1 ? "merge" : "merges"} · best chain ${chain}`,
     },
@@ -117,6 +119,7 @@ export const copy: Record<Lang, Copy> = {
       share: "シェア",
       shareImage: "画像でシェア",
       shareLink: "リンクをシェア",
+      star: "GitHubでスター",
       stats: (merges, chain) => `合体 ${merges}回 · 最大 ${chain}連鎖`,
     },
     unmute: "音を出す",
