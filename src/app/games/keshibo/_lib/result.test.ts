@@ -55,9 +55,9 @@ describe("keshibo share links", () => {
     const result = { design: custom, rolls: game };
     const ja = shareOf(result, "https://example.com", "ja").text.split("\n");
     const en = shareOf(result, "https://example.com", "en").text.split("\n");
-    assert.equal(ja[0], "放課後ストライク");
-    assert.equal(ja.at(-1), "#放課後ストライク");
-    assert.equal(en[0], "After-School Strike");
-    assert.equal(en.at(-1), "#放課後ストライク #AfterSchoolStrike");
+    assert.equal(ja[0], "消しボウ");
+    assert.equal(ja.at(-1), "#消しボウ");
+    assert.equal(en[0], "Keshibo");
+    assert.equal(en.at(-1), "#消しボウ #Keshibo");
   });
 });

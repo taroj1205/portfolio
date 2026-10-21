@@ -4,8 +4,8 @@ A game's title and its hashtags are its identity on X, so neither is the bare wo
 
 ## Choosing a title
 
-- Give the game a title only it would have, in Japanese and English: 無音の十秒 / Ten Silent Seconds, 鞘走り / Sayabashiri, 半分こ道場 / Halving Dojo. Build it from what the player does or feels, not from the genre.
-- Coin or reword it so a search for the title finds our game. A title made of one common word is not enough.
+- Give the game a title only it would have, in Japanese and English: 無音の十秒 / Ten Silent Seconds, 鞘走り / Sayabashiri, 半分こ道場 / Halving Dojo. Build it from what the player does or feels, or coin a word. A coined word may come from the genre, as 消しボウ / Keshibo shortens 消しゴムボウリング; the bare genre word may not.
+- Coin or reword it so a search for the title finds our game. A title made of one common word is not enough. Before settling on one, search the exact title on the web and look at what the search engine corrects it to: if it turns into a well-known work, pick another (放課後ストライク came back as the song 放課後ストライド). Keep a title that already passes instead of trading it for a longer one.
 - Keep 星合 and 天の川水切り as they are. They already work.
 - Add the romanised name of a new title to `words` in `cspell.json`.
 

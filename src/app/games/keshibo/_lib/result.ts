@@ -145,9 +145,7 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
     image: `${origin}/games/keshibo/og?${query.toString()}`,
     text: [
       lineOf(result, lang),
-      lang === "en"
-        ? "#放課後ストライク #AfterSchoolStrike"
-        : "#放課後ストライク",
+      lang === "en" ? "#消しボウ #Keshibo" : "#消しボウ",
     ].join("\n"),
     url: `${origin}/games/keshibo?${query.toString()}`,
   };

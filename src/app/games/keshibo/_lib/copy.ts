@@ -88,9 +88,9 @@ export const copy: Record<Lang, Copy> = {
       "Eraser bowling on two school desks pushed together. Touch where you want to start, pull back, and let go to flick your eraser at ten standing erasers at the far end. Ten frames, strikes and spares, and up to 300 points. Pull back in an arc and it curves, and pull a light eraser too hard and it hops. Design your own eraser in the workshop: its shape, how hard it is, and how it looks all change how it slides and hits.",
     frame: (n) => `Frame ${n}`,
     mute: "Mute sound",
-    name: "After-School Strike",
+    name: "Keshibo",
     quit: "Quit",
-    reading: "After-School Strike",
+    reading: "Keshibo",
     result: {
       again: "Play again",
       change: "Change eraser",
@@ -167,9 +167,9 @@ export const copy: Record<Lang, Copy> = {
       "机をくっつけてつくったレーンで、消しゴムボウリング。投げたい位置に指を置いて、うしろに引いて離すと、消しゴムがすべっていく。奥に立てた10個の消しゴムを倒す。10フレームで、ストライクとスペアありの最高300点。弧を描くように引くとカーブして、軽い消しゴムを強く引きすぎると跳ねる。工房で自分の消しゴムをつくれる。形やかたさ、見た目で、すべり方と当たり方が変わる。",
     frame: (n) => `${n}フレーム`,
     mute: "音を消す",
-    name: "放課後ストライク",
+    name: "消しボウ",
     quit: "やめる",
-    reading: "ほうかごストライク",
+    reading: "けしボウ",
     result: {
       again: "もう1ゲーム",
       change: "消しゴムを変える",

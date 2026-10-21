@@ -121,10 +121,6 @@ const styles = stylex.create({
     margin: 0,
     padding: 0,
   },
-  snug: {
-    fontSize: { default: null, [media.stack]: "clamp(0.85rem, 4.1vw, 1.7rem)" },
-    letterSpacing: { default: null, [media.stack]: "0.02em" },
-  },
   title: {
     fontFamily: "var(--font-mincho), serif",
     fontSize: {
@@ -147,7 +143,6 @@ export interface Game {
   title: Text;
   blurb: Text;
   tags: Text[];
-  snug?: boolean;
 }
 
 export const GameCard = ({
@@ -156,7 +151,6 @@ export const GameCard = ({
   title,
   blurb,
   tags,
-  snug = false,
   lang,
 }: Game & { lang: Lang }) => (
   <Link href={href} prefetch={false} {...stylex.props(styles.card)}>
@@ -164,9 +158,7 @@ export const GameCard = ({
       <div {...stylex.props(styles.artInner)}>{art}</div>
     </div>
     <div {...stylex.props(styles.body)}>
-      <h2 {...stylex.props(styles.title, snug && styles.snug)}>
-        {title[lang]}
-      </h2>
+      <h2 {...stylex.props(styles.title)}>{title[lang]}</h2>
       <p {...stylex.props(styles.blurb)}>{blurb[lang]}</p>
       <ul {...stylex.props(styles.tags)}>
         {tags.map((tag) => (

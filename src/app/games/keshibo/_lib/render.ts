@@ -405,7 +405,7 @@ const fontReady = async (family: string) => {
   try {
     await document.fonts.load(
       `700 30px ${family}`,
-      "消しゴムボウリング大会めざせ３００点！月日日直"
+      "消しボウ大会めざせ３００点！月日日直"
     );
     return true;
   } catch {

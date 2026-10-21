@@ -160,7 +160,6 @@ const GAMES: Game[] = [
       ja: "机をくっつけて、消しゴムでボウリング。自分の消しゴムをつくって、10個の消しゴムをはじき倒す。",
     },
     href: "/games/keshibo",
-    snug: true,
     tags: [
       { en: "Pull & flick", ja: "引いてはじく" },
       { en: "Design an eraser", ja: "消しゴム工房" },
