@@ -57,7 +57,7 @@ export const copy: Record<Lang, Copy> = {
       },
       games: "More games",
       lost: (gap) => `${gap} short of the challenge`,
-      maker: "Made by",
+      maker: "About the maker",
       next: (rank, gap) => `${gap} to ${rank}`,
       postX: "Post on X",
       record: "New best",

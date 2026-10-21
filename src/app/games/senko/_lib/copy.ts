@@ -57,7 +57,7 @@ export const copy: Record<Lang, Copy> = {
       games: "More games",
       left: (time) => `This one had ${time}s left to burn`,
       lost: (time) => `${time}s short of the challenge`,
-      maker: "Made by",
+      maker: "About the maker",
       postX: "Post on X",
       record: "New best",
       saveImage: "Save image",

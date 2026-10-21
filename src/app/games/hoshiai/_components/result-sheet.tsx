@@ -243,10 +243,10 @@ export const ResultSheet = ({ lang, ending, onAgain }: ResultSheetProps) => {
       />
       <div {...stylex.props(styles.links)}>
         <Link href="/games" {...stylex.props(styles.link)}>
-          {words.result.games}
+          {words.result.games} <span aria-hidden="true">→</span>
         </Link>
         <Link href={`/${lang}`} {...stylex.props(styles.link)}>
-          {words.result.maker}
+          {words.result.maker} <span aria-hidden="true">→</span>
         </Link>
         <StarLink>{words.result.star}</StarLink>
       </div>

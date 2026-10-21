@@ -67,7 +67,7 @@ export const copy: Record<Lang, Copy> = {
       copyLink: "Copy link",
       galaxy: "Milky Way",
       games: "More games",
-      maker: "Made by",
+      maker: "About the maker",
       postX: "Post on X",
       record: "New best",
       saveImage: "Save image",

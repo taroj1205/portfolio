@@ -73,5 +73,6 @@ export const StarLink = ({ children }: { children: ReactNode }) => (
   >
     <StarMark />
     <span {...stylex.props(styles.label)}>{children}</span>
+    <span aria-hidden="true">↗</span>
   </a>
 );

@@ -477,7 +477,7 @@ export const ResultSheet = ({
 
       <div {...stylex.props(styles.links)}>
         <Link href={`/${lang}`} {...stylex.props(styles.maker)}>
-          {copy.result.maker}
+          {copy.result.maker} <span aria-hidden="true">→</span>
         </Link>
         <StarLink>{copy.result.star}</StarLink>
       </div>

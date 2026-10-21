@@ -138,7 +138,7 @@ export const copy: Record<Lang, Copy> = {
     result: {
       again: "Again",
       levelUp: "Level up",
-      maker: "Made by",
+      maker: "About the maker",
       newPart: (part) => `New ${part.toLowerCase()}`,
       points: (count) => `Skill points +${count}`,
       copied: "Copied",
