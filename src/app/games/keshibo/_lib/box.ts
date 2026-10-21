@@ -146,21 +146,24 @@ export const pinBox = (pin: Pin, lift: number, alpha: number): Box => {
 };
 
 export const ballBox = (
-  ball: Pick<Ball, "angle" | "d" | "h" | "w" | "x" | "y" | "z">,
+  ball: Pick<Ball, "angle" | "d" | "h" | "pitch" | "w" | "x" | "y" | "z">,
   look: Look,
   lift = 0,
   alpha = 1
 ): Box => {
   const cos = Math.cos(ball.angle);
   const sin = Math.sin(ball.angle);
+  const up = Math.cos(ball.pitch);
+  const tip = -Math.sin(ball.pitch);
+  const reach = (Math.abs(up) * ball.h + Math.abs(tip) * ball.d) / 2;
   return {
     alpha,
     axes: [
       { x: cos, y: -sin, z: 0 },
-      { x: sin, y: cos, z: 0 },
-      { x: 0, y: 0, z: 1 },
+      { x: sin * up, y: cos * up, z: tip },
+      { x: -sin * tip, y: -cos * tip, z: up },
     ],
-    center: { x: ball.x, y: ball.y, z: ball.z + ball.h / 2 + lift },
+    center: { x: ball.x, y: ball.y, z: ball.z + reach + lift },
     half: [ball.w / 2, ball.d / 2, ball.h / 2],
     long: 0,
     look,

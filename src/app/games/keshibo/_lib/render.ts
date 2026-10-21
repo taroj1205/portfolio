@@ -1,6 +1,6 @@
 import { ballBox, cornersOf, depthOf, paintBox, pinBox, project } from "./box";
 import type { Box, Look, Vec, View } from "./box";
-import { FLOOR, LANE, isDown } from "./physics";
+import { FLOOR, LANE, hopsAt, isDown } from "./physics";
 import type { Ball, Point, World } from "./physics";
 import {
   DESK,
@@ -23,6 +23,7 @@ export interface Aim {
   x: number;
   angle: number;
   power: number;
+  curl: number;
   finger: Point | null;
 }
 
@@ -63,6 +64,7 @@ const CEILING = "#2a2320";
 const SHADOW = "rgb(36 22 14 / 0.5)";
 const CONTACT = "rgb(24 14 8 / 0.55)";
 const CRUMB: Rgb = [214, 208, 198];
+const CURVE = 0.004;
 const GUIDE = "rgb(255 248 236 / 0.9)";
 const POWER: readonly Rgb[] = [
   [255, 246, 226],
@@ -564,20 +566,21 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const length = 16 + aim.power * 34;
     const along = { x: Math.sin(aim.angle), y: Math.cos(aim.angle) };
     const start = ball.d / 2 + 1.5;
+    const bend = aim.curl * CURVE * (1.4 - aim.power);
+    const at = (s: number) => {
+      const side = bend * (s - start) ** 2;
+      return project(view, {
+        x: ball.x + along.x * s + along.y * side,
+        y: ball.y + along.y * s - along.x * side,
+        z: 0.05,
+      });
+    };
     ctx.save();
     ctx.lineCap = "round";
     for (let s = start; s < start + length; s += 2.2) {
       const fade = 1 - (s - start) / length;
-      const a = project(view, {
-        x: ball.x + along.x * s,
-        y: ball.y + along.y * s,
-        z: 0.05,
-      });
-      const b = project(view, {
-        x: ball.x + along.x * (s + 1.1),
-        y: ball.y + along.y * (s + 1.1),
-        z: 0.05,
-      });
+      const a = at(s);
+      const b = at(s + 1.1);
       ctx.globalAlpha = 0.35 + fade * 0.65;
       ctx.strokeStyle = GUIDE;
       ctx.lineWidth = Math.max(2.5 * dpr, (0.5 * view.focal) / a.depth);
@@ -595,10 +598,8 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     }
     const center = project(view, { x: ball.x, y: ball.y, z: ball.h / 2 });
     const finger = { x: aim.finger.x * dpr, y: aim.finger.y * dpr };
-    const color =
-      aim.power < 0.5
-        ? css(POWER[0])
-        : css(aim.power < 0.85 ? POWER[1] : POWER[2]);
+    const hops = hopsAt(ball);
+    const safe = css(aim.power < 0.5 ? POWER[0] : POWER[1]);
     ctx.save();
     ctx.lineCap = "round";
     ctx.strokeStyle = "rgb(255 255 255 / 0.35)";
@@ -615,17 +616,39 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.beginPath();
     ctx.arc(finger.x, finger.y, radius, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 4 * dpr;
-    ctx.beginPath();
-    ctx.arc(
-      finger.x,
-      finger.y,
-      radius,
-      -Math.PI / 2,
-      -Math.PI / 2 + aim.power * Math.PI * 2
-    );
-    ctx.stroke();
+    const arc = (from: number, to: number, color: string) => {
+      if (to <= from) {
+        return;
+      }
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4 * dpr;
+      ctx.beginPath();
+      ctx.arc(
+        finger.x,
+        finger.y,
+        radius,
+        -Math.PI / 2 + from * Math.PI * 2,
+        -Math.PI / 2 + to * Math.PI * 2
+      );
+      ctx.stroke();
+    };
+    arc(0, Math.min(aim.power, hops), safe);
+    arc(hops, aim.power, css(POWER[2]));
+    if (hops < 1) {
+      const mark = -Math.PI / 2 + hops * Math.PI * 2;
+      ctx.strokeStyle = GUIDE;
+      ctx.lineWidth = 2.5 * dpr;
+      ctx.beginPath();
+      ctx.moveTo(
+        finger.x + Math.cos(mark) * (radius - 6 * dpr),
+        finger.y + Math.sin(mark) * (radius - 6 * dpr)
+      );
+      ctx.lineTo(
+        finger.x + Math.cos(mark) * (radius + 6 * dpr),
+        finger.y + Math.sin(mark) * (radius + 6 * dpr)
+      );
+      ctx.stroke();
+    }
     ctx.restore();
   };
 
@@ -741,6 +764,10 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     },
     shake: (amount: number) => {
       shake = Math.max(shake, amount);
+    },
+    screenOf: (at: Point): Point => {
+      const spot = project(view, { x: at.x, y: at.y, z: 0 });
+      return { x: spot.x / dpr, y: spot.y / dpr };
     },
     toLane: (client: Point): Point | null => {
       const rect = canvas.getBoundingClientRect();

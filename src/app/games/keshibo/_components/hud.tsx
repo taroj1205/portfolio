@@ -201,45 +201,19 @@ const styles = stylex.create({
     animationTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
     display: "flex",
     flexDirection: "column",
-    gap: "0.65rem",
-    marginInline: "auto",
-    maxWidth: "26rem",
-    textAlign: "center",
+    gap: "0.4rem",
     width: "100%",
-  },
-  rule: {
-    alignItems: "center",
-    borderRadius: 22,
-    paddingBlock: "0.85rem",
-    paddingInline: "1.2rem",
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.3rem",
-    margin: 0,
-  },
-  lead: {
-    fontFamily: font.mincho,
-    fontSize: "clamp(1.15rem, 5vw, 1.45rem)",
-    fontWeight: 700,
-    letterSpacing: "calc(0.1em * var(--track, 1))",
-    textShadow: shade.large,
-  },
-  body: {
-    color: ink.soft,
-    fontSize: "0.84rem",
-    lineHeight: 1.6,
-    textShadow: shade.small,
-    textWrap: "balance",
-    wordBreak: "keep-all",
   },
   start: {
     alignItems: "center",
+    borderRadius: 999,
     display: "flex",
-    fontSize: "0.92rem",
+    fontSize: "0.86rem",
     fontWeight: 700,
-    gap: "0.7rem",
-    letterSpacing: "calc(0.14em * var(--track, 1))",
-    marginTop: "0.15rem",
+    gap: "0.6rem",
+    letterSpacing: "calc(0.12em * var(--track, 1))",
+    minHeight: "2.75rem",
+    paddingInline: "0.7rem 0.9rem",
     textShadow: shade.small,
   },
   ring: {
@@ -247,10 +221,11 @@ const styles = stylex.create({
     borderRadius: 999,
     borderStyle: "solid",
     borderWidth: 2,
-    boxShadow: "0 0 18px rgb(255 210 122 / 0.55)",
-    height: "1.4rem",
+    boxShadow: "0 0 14px rgb(255 210 122 / 0.55)",
+    flexShrink: 0,
+    height: "1.1rem",
     position: "relative",
-    width: "1.4rem",
+    width: "1.1rem",
   },
   wave: {
     animationDuration: "2.2s",
@@ -281,13 +256,13 @@ const styles = stylex.create({
     fontFamily: font.mincho,
     fontSize: "0.92rem",
     fontWeight: 700,
-    gap: "0.55rem",
+    gap: "0.4rem",
     letterSpacing: "calc(0.1em * var(--track, 1))",
     minHeight: "2.75rem",
     outlineColor: GOLD,
     outlineOffset: 3,
     paddingBlock: "0.3rem",
-    paddingInline: "0.5rem 1rem",
+    paddingInline: "0.45rem 0.85rem",
     pointerEvents: "auto",
     transform: { default: null, ":active": "scale(0.96)" },
     transitionDuration: "160ms",
@@ -308,16 +283,17 @@ const styles = stylex.create({
   },
   challenge: {
     alignItems: "center",
-    borderBottomColor: "rgb(255 255 255 / 0.14)",
-    borderBottomStyle: "solid",
-    borderBottomWidth: 1,
+    alignSelf: "center",
+    animationDuration: "800ms",
+    animationName: { default: drift, [media.reduce]: "none" },
+    animationTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
+    borderRadius: 18,
     display: "flex",
-    gap: "0.8rem",
-    marginBottom: "0.35rem",
-    maxWidth: "19rem",
-    paddingBottom: "0.7rem",
+    gap: "0.65rem",
+    maxWidth: "24rem",
+    paddingBlock: "0.4rem",
+    paddingInline: "0.6rem 0.45rem",
     pointerEvents: "auto",
-    textAlign: "start",
     width: "100%",
   },
   challengeText: {
@@ -332,12 +308,20 @@ const styles = stylex.create({
     fontSize: "0.7rem",
     letterSpacing: "calc(0.14em * var(--track, 1))",
   },
+  clip: {
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
   challengeTitle: {
     fontFamily: font.mincho,
-    fontSize: "1.05rem",
+    fontSize: "0.95rem",
     fontVariantNumeric: "tabular-nums",
     fontWeight: 700,
     margin: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
   },
   borrow: {
     backgroundColor: "rgb(255 255 255 / 0.1)",
@@ -350,18 +334,17 @@ const styles = stylex.create({
     fontFamily: "inherit",
     fontSize: "0.72rem",
     fontWeight: 700,
-    marginTop: "0.3rem",
     opacity: { default: 1, ":disabled": 0.6 },
     outlineColor: GOLD,
     outlineOffset: 2,
     paddingBlock: "0.35rem",
     paddingInline: "0.75rem",
-    width: "fit-content",
+    flexShrink: 0,
   },
   challengeThumb: {
     flexShrink: 0,
-    height: "3rem",
-    width: "3.6rem",
+    height: "2.1rem",
+    width: "2.7rem",
   },
   call: {
     alignItems: "center",
@@ -554,7 +537,7 @@ export const ScoreSheet = ({
   );
 };
 
-const ChallengeCard = ({
+export const ChallengeChip = ({
   lang,
   challenge,
   borrowed,
@@ -568,27 +551,26 @@ const ChallengeCard = ({
   const words = copy[lang];
   const score = scoreOf(challenge.rolls);
   return (
-    <div {...stylex.props(styles.challenge)}>
+    <div {...stylex.props(glass.surface, styles.challenge)}>
       <span {...stylex.props(styles.challengeThumb)}>
         <EraserPicture design={challenge.design} />
       </span>
       <span {...stylex.props(styles.challengeText)}>
-        <span {...stylex.props(styles.label)}>{words.challenge.received}</span>
+        <span {...stylex.props(styles.label, styles.clip)}>
+          {words.challenge.received}
+        </span>
         <p {...stylex.props(styles.challengeTitle)}>
           {`${pointsText(score, lang)} · ${rankOf(score).name[lang]}`}
         </p>
-        <span {...stylex.props(styles.label)}>
-          {words.challenge.dare(score)}
-        </span>
-        <button
-          disabled={borrowed}
-          onClick={onBorrow}
-          type="button"
-          {...stylex.props(styles.borrow)}
-        >
-          {borrowed ? words.challenge.borrowed : words.challenge.borrow}
-        </button>
       </span>
+      <button
+        disabled={borrowed}
+        onClick={onBorrow}
+        type="button"
+        {...stylex.props(styles.borrow)}
+      >
+        {borrowed ? words.challenge.borrowed : words.challenge.borrow}
+      </button>
     </div>
   );
 };
@@ -596,55 +578,33 @@ const ChallengeCard = ({
 interface PromptProps {
   lang: Lang;
   design: Design;
-  challenge: Result | null;
-  borrowed: boolean;
   best: number;
   runs: number;
   opener: RefObject<HTMLButtonElement | null>;
   onWorkshop: () => void;
-  onBorrow: () => void;
 }
 
 export const Prompt = ({
   lang,
   design,
-  challenge,
-  borrowed,
   best,
   runs,
   opener,
   onWorkshop,
-  onBorrow,
 }: PromptProps) => {
   const words = copy[lang];
   return (
     <div {...stylex.props(styles.prompt)}>
-      <div {...stylex.props(glass.surface, styles.rule)}>
-        {challenge === null ? null : (
-          <ChallengeCard
-            borrowed={borrowed}
-            challenge={challenge}
-            lang={lang}
-            onBorrow={onBorrow}
-          />
-        )}
-        <span {...stylex.props(styles.lead)}>{words.rule.lead}</span>
-        {challenge === null ? (
-          <span {...stylex.props(styles.body)}>{words.rule.body}</span>
-        ) : null}
-        <span {...stylex.props(styles.start)}>
+      <p {...stylex.props(styles.stats)}>
+        {runs === 0 ? words.tip : `${words.tip} · ${words.best(best)}`}
+      </p>
+      <div {...stylex.props(styles.row)}>
+        <p {...stylex.props(glass.surface, styles.start)}>
           <span aria-hidden="true" {...stylex.props(styles.ring)}>
             <span {...stylex.props(styles.wave)} />
           </span>
-          {words.rule.start}
-        </span>
-        {runs === 0 ? null : (
-          <p {...stylex.props(styles.stats)}>
-            {`${words.best(best)} · ${words.runs(runs)}`}
-          </p>
-        )}
-      </div>
-      <div {...stylex.props(styles.row)}>
+          {words.start}
+        </p>
         <button
           onClick={onWorkshop}
           ref={opener}

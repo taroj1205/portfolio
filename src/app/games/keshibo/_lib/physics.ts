@@ -22,6 +22,9 @@ const LYING = { radius: 1.1, reach: PIN.d / 2 + PIN.h / 2 };
 const REST = 0.6;
 const LONGEST = 9;
 const ROUND = 0.8;
+const HOP = { keep: 0.7, least: 6, max: 36, per: 0.12, rebound: 0.3 };
+const TUMBLE = { drag: 180, flop: 8, max: 38, per: 0.16, settle: 6 };
+const CURL = { force: 400, fade: 60, skid: 520 };
 
 export interface Point {
   x: number;
@@ -32,6 +35,7 @@ export interface Launch {
   x: number;
   angle: number;
   power: number;
+  curl?: number;
 }
 
 export interface Ball extends Body {
@@ -44,6 +48,9 @@ export interface Ball extends Body {
   angle: number;
   spin: number;
   inertia: number;
+  pitch: number;
+  pitchRate: number;
+  curl: number;
   dropped: boolean;
 }
 
@@ -66,7 +73,8 @@ type Contact =
   | { type: "hit"; at: Point; strength: number; pin: number }
   | { type: "clack"; at: Point; strength: number }
   | { type: "topple"; at: Point; pin: number }
-  | { type: "drop"; at: Point; ball: boolean };
+  | { type: "drop"; at: Point; ball: boolean }
+  | { type: "land"; at: Point; strength: number };
 
 export interface World {
   ball: Ball;
@@ -116,8 +124,11 @@ export const createWorld = (body: Body, pins: Pin[]): World => ({
   ball: {
     ...body,
     angle: 0,
+    curl: 0,
     dropped: false,
     inertia: (body.mass * (body.w ** 2 + body.d ** 2)) / 12,
+    pitch: 0,
+    pitchRate: 0,
     spin: 0,
     vx: 0,
     vy: 0,
@@ -136,8 +147,14 @@ export const createWorld = (body: Body, pins: Pin[]): World => ({
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
+const pushOf = (body: Body, power: number) =>
+  (clamp(power, 0, 1) * IMPULSE) / body.mass;
+
 export const speedOf = (body: Body, power: number) =>
-  Math.min(TOP_SPEED, (clamp(power, 0, 1) * IMPULSE) / body.mass);
+  Math.min(TOP_SPEED, pushOf(body, power));
+
+export const hopsAt = (body: Body) =>
+  Math.min(1, (body.lift * body.mass) / IMPULSE);
 
 export const place = (world: World, x: number, angle: number) => {
   const { ball } = world;
@@ -145,12 +162,17 @@ export const place = (world: World, x: number, angle: number) => {
   ball.angle = clamp(angle, -MAX_ANGLE, MAX_ANGLE);
 };
 
-export const launch = (world: World, { x, angle, power }: Launch) => {
+export const launch = (world: World, { x, angle, power, curl = 0 }: Launch) => {
   place(world, x, angle);
   const { ball } = world;
   const speed = speedOf(ball, power);
+  const excess = Math.max(0, pushOf(ball, power) - ball.lift);
   ball.vx = Math.sin(ball.angle) * speed;
   ball.vy = Math.cos(ball.angle) * speed;
+  const lift = Math.min(HOP.max, excess * HOP.per);
+  ball.vz = lift < HOP.least ? 0 : lift;
+  ball.pitchRate = Math.min(TUMBLE.max, excess * TUMBLE.per);
+  ball.curl = clamp(curl, -1, 1);
   world.rolling = true;
   world.time = 0;
 };
@@ -378,16 +400,82 @@ const fall = (body: { z: number; vz: number }, dt: number) => {
   }
 };
 
-const tick = (world: World, dt: number) => {
+const land = (world: World) => {
+  const { ball } = world;
+  const impact = -ball.vz;
+  const keep = HOP.keep + (1 - HOP.keep) * ball.bounce;
+  ball.z = 0;
+  ball.vz = impact * HOP.rebound > HOP.least ? impact * HOP.rebound : 0;
+  ball.vx *= keep;
+  ball.vy *= keep;
+  ball.pitchRate *= 0.6;
+  world.contacts.push({
+    at: { x: ball.x, y: ball.y },
+    strength: impact,
+    type: "land",
+  });
+};
+
+const tumble = (ball: Ball, grounded: boolean, dt: number) => {
+  ball.pitch += ball.pitchRate * dt;
+  if (!grounded) {
+    return;
+  }
+  ball.pitchRate = Math.max(0, ball.pitchRate - TUMBLE.drag * dt);
+  if (ball.pitchRate > TUMBLE.flop) {
+    return;
+  }
+  ball.pitchRate = 0;
+  const flat = Math.round(ball.pitch / Math.PI) * Math.PI;
+  const gap = flat - ball.pitch;
+  ball.pitch =
+    Math.abs(gap) <= TUMBLE.settle * dt
+      ? flat
+      : ball.pitch + Math.sign(gap) * TUMBLE.settle * dt;
+};
+
+const hook = (ball: Ball, dt: number) => {
+  const speed = Math.hypot(ball.vx, ball.vy);
+  if (ball.curl === 0 || speed < 1) {
+    return;
+  }
+  const bite =
+    clamp(1 - speed / CURL.skid, 0.25, 1) * Math.min(1, speed / CURL.fade);
+  const push = CURL.force * ball.curl * (ball.grip / 0.24) * bite * dt;
+  const ux = ball.vx / speed;
+  const uy = ball.vy / speed;
+  ball.vx += uy * push;
+  ball.vy -= ux * push;
+  ball.angle += ball.curl * 1.5 * dt;
+};
+
+const moveBall = (world: World, dt: number) => {
   const { ball } = world;
   if (ball.dropped) {
     fall(ball, dt);
-  } else {
-    slow(ball, ball.grip * G, dt);
+    ball.pitch += ball.pitchRate * dt;
+    return;
+  }
+  const grounded = ball.z <= 0 && ball.vz <= 0;
+  if (grounded) {
+    slow(ball, ball.grip * G * (ball.pitchRate > 0 ? 1.8 : 1), dt);
     const spinDrag = (ball.grip * G * 4) / (ball.w + ball.d);
     ball.spin =
       Math.sign(ball.spin) * Math.max(0, Math.abs(ball.spin) - spinDrag * dt);
+    hook(ball, dt);
+  } else {
+    ball.vz -= G * dt;
+    ball.z += ball.vz * dt;
+    if (ball.z <= 0) {
+      land(world);
+    }
   }
+  tumble(ball, grounded, dt);
+};
+
+const tick = (world: World, dt: number) => {
+  const { ball } = world;
+  moveBall(world, dt);
   ball.x += ball.vx * dt;
   ball.y += ball.vy * dt;
   ball.angle += ball.spin * dt;
@@ -428,7 +516,12 @@ const still = (world: World) => {
   const { ball } = world;
   const ballStill = ball.dropped
     ? ball.z === FLOOR
-    : Math.hypot(ball.vx, ball.vy) < REST && Math.abs(ball.spin) < 0.05;
+    : Math.hypot(ball.vx, ball.vy) < REST &&
+      Math.abs(ball.spin) < 0.05 &&
+      ball.z === 0 &&
+      ball.vz === 0 &&
+      ball.pitchRate === 0 &&
+      ball.pitch === Math.round(ball.pitch / Math.PI) * Math.PI;
   return (
     ballStill &&
     world.pins.every((pin) =>

@@ -14,7 +14,7 @@ import type { Result } from "../_lib/result";
 import type { Save } from "../_lib/save";
 import { startSession } from "../_lib/session";
 import type { Call, Ending, Phase } from "../_lib/session";
-import { Callout, Hud, Prompt, ScoreSheet } from "./hud";
+import { Callout, ChallengeChip, Hud, Prompt, ScoreSheet } from "./hud";
 import { ResultSheet } from "./result-sheet";
 import { Workshop } from "./workshop";
 
@@ -56,18 +56,19 @@ const styles = stylex.create({
     pointerEvents: "none",
     position: "fixed",
   },
-  middle: {
-    alignItems: "center",
-    paddingBottom: "8vh",
-    display: "flex",
+  spacer: {
     flexGrow: 1,
-    justifyContent: "center",
-    minHeight: 0,
   },
 });
 
 const isBorrowed = (challenge: Result | null, design: Design) =>
   challenge !== null && codeOf(challenge.design) === codeOf(design);
+
+const screenOf = (phase: Phase, rolls: number[], over: boolean) => ({
+  playing:
+    !over && (phase === "aiming" || phase === "rolling" || rolls.length > 0),
+  start: !over && rolls.length === 0 && phase === "ready",
+});
 
 export const Game = ({
   challenge,
@@ -119,8 +120,7 @@ export const Game = ({
     session.current?.again();
   };
 
-  const playing = phase === "aiming" || phase === "rolling" || rolls.length > 0;
-  const before = rolls.length === 0 && phase === "ready";
+  const { playing, start } = screenOf(phase, rolls, ending !== null);
 
   return (
     <>
@@ -151,30 +151,32 @@ export const Game = ({
             setCall(null);
             session.current?.quit();
           }}
-          playing={playing && ending === null}
+          playing={playing}
         />
         <ScoreSheet lang={lang} rolls={rolls} />
-        <div {...stylex.props(styles.middle)}>
-          {before && ending === null ? (
-            <Prompt
-              best={save?.best ?? 0}
-              borrowed={isBorrowed(challenge, design)}
-              challenge={challenge}
-              design={design}
-              lang={lang}
-              onBorrow={() => {
-                if (challenge !== null) {
-                  session.current?.design(challenge.design);
-                }
-              }}
-              onWorkshop={() => {
-                setWorkshop(true);
-              }}
-              opener={opener}
-              runs={save?.runs ?? 0}
-            />
-          ) : null}
-        </div>
+        {start && challenge !== null ? (
+          <ChallengeChip
+            borrowed={isBorrowed(challenge, design)}
+            challenge={challenge}
+            lang={lang}
+            onBorrow={() => {
+              session.current?.design(challenge.design);
+            }}
+          />
+        ) : null}
+        <div {...stylex.props(styles.spacer)} />
+        {start ? (
+          <Prompt
+            best={save?.best ?? 0}
+            design={design}
+            lang={lang}
+            onWorkshop={() => {
+              setWorkshop(true);
+            }}
+            opener={opener}
+            runs={save?.runs ?? 0}
+          />
+        ) : null}
         {ending !== null && save !== null ? (
           <ResultSheet
             challenge={challenge}

@@ -28,11 +28,35 @@ export interface Size {
   h: number;
 }
 
-export const forms: Record<FormId, Size & { name: Text }> = {
-  cube: { d: 2.6, h: 2.6, name: { en: "Dice", ja: "サイコロ" }, w: 2.6 },
-  jumbo: { d: 3, h: 1.4, name: { en: "Jumbo", ja: "ジャンボ" }, w: 6 },
-  long: { d: 1.6, h: 1, name: { en: "Slim", ja: "ほそなが" }, w: 6.4 },
-  standard: { d: 2.2, h: 1.2, name: { en: "Classic", ja: "ふつう" }, w: 4.4 },
+export const forms: Record<FormId, Size & { name: Text; lift: number }> = {
+  cube: {
+    d: 2.6,
+    h: 2.6,
+    lift: 460,
+    name: { en: "Dice", ja: "サイコロ" },
+    w: 2.6,
+  },
+  jumbo: {
+    d: 3,
+    h: 1.4,
+    lift: 520,
+    name: { en: "Jumbo", ja: "ジャンボ" },
+    w: 6,
+  },
+  long: {
+    d: 1.6,
+    h: 1,
+    lift: 780,
+    name: { en: "Slim", ja: "ほそなが" },
+    w: 6.4,
+  },
+  standard: {
+    d: 2.2,
+    h: 1.2,
+    lift: 700,
+    name: { en: "Classic", ja: "ふつう" },
+    w: 4.4,
+  },
 };
 
 export const cores: Record<
@@ -134,6 +158,7 @@ export interface Body extends Size {
   mass: number;
   grip: number;
   bounce: number;
+  lift: number;
 }
 
 export const bodyOf = (design: Design): Body => {
@@ -144,6 +169,7 @@ export const bodyOf = (design: Design): Body => {
     d: size.d,
     grip: core.grip,
     h: size.h,
+    lift: size.lift,
     mass: size.w * size.d * size.h * core.density,
     w: size.w,
   };

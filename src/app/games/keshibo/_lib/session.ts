@@ -55,6 +55,7 @@ const CLEAR = 520;
 const RACK = 900;
 const BALL_IN = 520;
 const DEAD = 10;
+const FLICK = { dead: 160, frame: 16, full: 1100, window: 90 };
 const GHOST = 3200;
 const PACE = 0.62;
 const IMPACT = { pace: 0.2, span: 420 };
@@ -89,6 +90,34 @@ const pullOf = (client: Point, origin: Point) => {
   };
 };
 
+interface Sample {
+  t: number;
+  x: number;
+  y: number;
+}
+
+export const curlOf = (trail: readonly Sample[]) => {
+  const first = trail.at(0);
+  const last = trail.at(-1);
+  if (first === undefined || last === undefined || last.t - first.t < 8) {
+    return 0;
+  }
+  const seconds = (last.t - first.t) / 1000;
+  const across = (last.x - first.x) / seconds;
+  const down = (last.y - first.y) / seconds;
+  const sideways =
+    Math.abs(across) >= FLICK.dead && Math.abs(across) > 2 * Math.abs(down);
+  return sideways ? clamp(across / FLICK.full, -1, 1) : 0;
+};
+
+const recent = (trail: Sample[], next: Sample) => {
+  const kept = trail.filter((sample) => next.t - sample.t <= FLICK.window);
+  const last = trail.at(-1);
+  return kept.length === 0 && last !== undefined
+    ? [{ ...last, t: next.t - FLICK.frame }, next]
+    : [...kept, next];
+};
+
 export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const render = createRenderer(canvas, calm);
@@ -103,7 +132,12 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   let stageAt = performance.now();
   let lastX = 0;
   let aim: Aim | null = null;
-  let pointer: { id: number; origin: Point; x: number } | null = null;
+  let pointer: {
+    id: number;
+    origin: Point;
+    x: number;
+    trail: Sample[];
+  } | null = null;
   let touched = false;
   let hit = false;
   let slowUntil = 0;
@@ -170,10 +204,11 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     pointer = {
       id: event.pointerId,
       origin: { x: event.clientX, y: event.clientY },
+      trail: [{ t: event.timeStamp, x: event.clientX, y: event.clientY }],
       x,
     };
     place(world, x, 0);
-    aim = { angle: 0, finger: localOf(event), power: 0, x };
+    aim = { angle: 0, curl: 0, finger: localOf(event), power: 0, x };
     enter("aiming", event.timeStamp);
   };
 
@@ -181,8 +216,17 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (stage !== "aiming" || pointer?.id !== event.pointerId || aim === null) {
       return;
     }
-    const pull = pullOf({ x: event.clientX, y: event.clientY }, pointer.origin);
-    aim = { ...aim, ...pull, finger: localOf(event) };
+    pointer.trail = recent(pointer.trail, {
+      t: event.timeStamp,
+      x: event.clientX,
+      y: event.clientY,
+    });
+    const curl = curlOf(pointer.trail);
+    const pull =
+      curl === 0
+        ? pullOf({ x: event.clientX, y: event.clientY }, pointer.origin)
+        : { angle: aim.angle, power: aim.power };
+    aim = { ...aim, ...pull, curl, finger: localOf(event) };
     place(world, pointer.x, pull.angle);
   };
 
@@ -198,6 +242,13 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       return;
     }
     const thrown = aim;
+    const curl = curlOf(
+      recent(pointer.trail, {
+        t: event.timeStamp,
+        x: event.clientX,
+        y: event.clientY,
+      })
+    );
     if (stage !== "aiming" || thrown === null || thrown.power < 0.06) {
       letGo(performance.now());
       return;
@@ -205,7 +256,12 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     pointer = null;
     aim = null;
     hit = false;
-    launch(world, { angle: thrown.angle, power: thrown.power, x: thrown.x });
+    launch(world, {
+      angle: thrown.angle,
+      curl,
+      power: thrown.power,
+      x: thrown.x,
+    });
     sound.flick(thrown.power);
     navigator.vibrate?.(10);
     enter("rolling", performance.now());
@@ -233,6 +289,10 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         render.crumbs(contact.at, contact.strength * 0.6);
       } else if (contact.type === "topple") {
         sound.thud(60);
+      } else if (contact.type === "land") {
+        sound.thud(40 + contact.strength * 3);
+        render.shake(Math.min(3, contact.strength / 12));
+        render.crumbs(contact.at, contact.strength * 3);
       } else {
         sound.floor();
       }
@@ -304,13 +364,11 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (t > 0.82) {
       return null;
     }
-    const rect = canvas.getBoundingClientRect();
+    const at = render.screenOf(world.ball);
     return {
       angle: -0.06 * ease,
-      finger: {
-        x: rect.width / 2 + 18 * ease,
-        y: rect.height * 0.8 + 90 * ease,
-      },
+      curl: 0,
+      finger: { x: at.x + 12 * ease, y: at.y + 28 + 42 * ease },
       power: 0.55 * ease,
       x: lastX,
     };

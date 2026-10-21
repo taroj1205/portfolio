@@ -14,9 +14,9 @@ interface Copy {
   sheet: string;
   frame: (n: number) => string;
   total: string;
-  rule: { lead: string; body: string; start: string };
+  start: string;
+  tip: string;
   best: (score: number) => string;
-  runs: (runs: number) => string;
   call: (call: Call) => string;
   challenge: {
     received: string;
@@ -85,7 +85,7 @@ export const copy: Record<Lang, Copy> = {
       received: "Challenge",
     },
     fallback:
-      "Eraser bowling on two school desks pushed together. Touch where you want to start, pull back, and let go to flick your eraser at ten standing erasers at the far end. Ten frames, strikes and spares, and up to 300 points. Design your own eraser in the workshop: its shape, how hard it is, and how it looks all change how it slides and hits.",
+      "Eraser bowling on two school desks pushed together. Touch where you want to start, pull back, and let go to flick your eraser at ten standing erasers at the far end. Ten frames, strikes and spares, and up to 300 points. Flick sideways as you let go and it curves, and pull a light eraser too hard and it hops. Design your own eraser in the workshop: its shape, how hard it is, and how it looks all change how it slides and hits.",
     frame: (n) => `Frame ${n}`,
     mute: "Mute sound",
     name: "Keshibo",
@@ -113,12 +113,8 @@ export const copy: Record<Lang, Copy> = {
       top: "It doesn't get better than this",
       won: "You beat the challenge",
     },
-    rule: {
-      body: "Touch where to start, pull back, and let go to flick your eraser down the desks.",
-      lead: "Pull back, then flick",
-      start: "Pull to start",
-    },
-    runs: (runs) => `${runs} ${runs === 1 ? "game" : "games"}`,
+    start: "Pull & flick",
+    tip: "Flick sideways as you let go to curve it",
     sheet: "Score sheet",
     total: "Total",
     workshop: {
@@ -131,7 +127,7 @@ export const copy: Record<Lang, Copy> = {
         sleeve: "Sleeve",
       },
       locked: "You can swap erasers between games.",
-      note: "Shape and hardness change how it slides and how it hits. Heavy ones need a harder pull.",
+      note: "Form and hardness change how it slides, hits and hops. Pull a light one too hard and it hops; a heavy one needs a harder pull to reach.",
       open: "Eraser workshop",
       stats: {
         bounce: "Bounce",
@@ -168,7 +164,7 @@ export const copy: Record<Lang, Copy> = {
       received: "挑戦状",
     },
     fallback:
-      "机をくっつけてつくったレーンで、消しゴムボウリング。投げたい位置に指を置いて、うしろに引いて離すと、消しゴムがすべっていく。奥に立てた10個の消しゴムを倒す。10フレームで、ストライクとスペアありの最高300点。工房で自分の消しゴムをつくれる。形やかたさ、見た目で、すべり方と当たり方が変わる。",
+      "机をくっつけてつくったレーンで、消しゴムボウリング。投げたい位置に指を置いて、うしろに引いて離すと、消しゴムがすべっていく。奥に立てた10個の消しゴムを倒す。10フレームで、ストライクとスペアありの最高300点。離す瞬間に指を横に振るとカーブして、軽い消しゴムを強く引きすぎると跳ねる。工房で自分の消しゴムをつくれる。形やかたさ、見た目で、すべり方と当たり方が変わる。",
     frame: (n) => `${n}フレーム`,
     mute: "音を消す",
     name: "消しボウ",
@@ -195,12 +191,8 @@ export const copy: Record<Lang, Copy> = {
       top: "これ以上はない",
       won: "挑戦状に勝った",
     },
-    rule: {
-      body: "投げたい位置に指を置いて、うしろに引いて離すと、消しゴムがすべる。",
-      lead: "引いて、はじく",
-      start: "引いてスタート",
-    },
-    runs: (runs) => `${runs}ゲーム`,
+    start: "引いて、はじく",
+    tip: "離す瞬間に指を横に振ると、カーブする",
     sheet: "スコア表",
     total: "合計",
     workshop: {
@@ -213,7 +205,7 @@ export const copy: Record<Lang, Copy> = {
         sleeve: "スリーブ",
       },
       locked: "消しゴムはゲームの合間に変えられる",
-      note: "形とかたさで、すべり方と当たり方が変わる。重いほど強く引かないと届かない。",
+      note: "形とかたさで、すべり方、当たり方、跳ね方が変わる。軽いほど強く引きすぎると跳ねて、重いほど強く引かないと届かない。",
       open: "消しゴム工房",
       stats: {
         bounce: "はね返り",
