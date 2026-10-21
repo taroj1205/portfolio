@@ -43,7 +43,7 @@ export const copy: Record<Lang, Copy> = {
     miss: "Go all the way around",
     model: "Example",
     mute: "Mute sound",
-    name: "Ensō",
+    name: "One-Brush Moon",
     result: {
       again: "Draw again",
       copied: "Copied",
@@ -86,7 +86,7 @@ export const copy: Record<Lang, Copy> = {
     miss: "ぐるっと一周、描いてみて",
     model: "お手本",
     mute: "音を消す",
-    name: "円相",
+    name: "ひと筆の月",
     result: {
       again: "もう一回",
       copied: "コピーした",

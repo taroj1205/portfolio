@@ -190,7 +190,7 @@ describe("results", () => {
     const share = shareOf(result, "https://x.y", "ja");
     assert.equal(
       share.text,
-      `線香花火 ${(time / 100).toFixed(2)}秒 松葉まで\n🔴🌺🌲▫️▫️\n#線香花火`
+      `火玉の一生 ${(time / 100).toFixed(2)}秒 松葉まで\n🔴🌺🌲▫️▫️\n#火玉の一生`
     );
     assert.ok(share.url.startsWith("https://x.y/games/senko?s=11&t="));
     assert.ok(share.image.startsWith("https://x.y/games/senko/og?"));
@@ -204,7 +204,7 @@ describe("results", () => {
     assert.equal(titleOf(result, "ja"), "燃え尽きるまで");
     assert.ok(
       shareOf(result, "https://x.y", "en").text.startsWith(
-        `Senko Hanabi ${(result.time / 100).toFixed(2)}s, burned all the way down`
+        `An Ember's Life ${(result.time / 100).toFixed(2)}s, burned all the way down`
       )
     );
   });

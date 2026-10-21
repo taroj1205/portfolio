@@ -52,8 +52,8 @@ export const copy: Record<Lang, Copy> = {
       "A rhythm game about pounding mochi. Tap on the beat to bring the mallet down while your partner turns the mochi between beats. The tempo rises every eight beats. Tap while your partner's hand is in the mortar and it's over, and three missed beats end the run too. Pound as many times as you can.",
     meter: { lives: "Misses left", pounds: "Hits", tempo: "BPM" },
     mute: "Mute sound",
-    name: "Mochitsuki",
-    reading: "Mochitsuki",
+    name: "Mochi Master",
+    reading: "Mochi Master",
     result: {
       again: "Pound again",
       copied: "Copied",
@@ -97,8 +97,8 @@ export const copy: Record<Lang, Copy> = {
       "餅つきのリズムゲーム。拍に合わせてタップすると、杵が落ちる。拍と拍のあいだは、相方が餅を返している。そのときにつくと手をついて終わり。拍を3回のがしても終わる。8拍ごとにテンポが上がっていくなかで、何回つけるかを競う。",
     meter: { lives: "のこり", pounds: "回数", tempo: "BPM" },
     mute: "音を消す",
-    name: "餅つき",
-    reading: "もちつき",
+    name: "餅つきマスター",
+    reading: "もちつきマスター",
     result: {
       again: "もう一臼",
       copied: "コピーした",

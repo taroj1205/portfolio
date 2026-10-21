@@ -43,7 +43,7 @@ export const copy: Record<Lang, Copy> = {
       "A sparkler game. You hold the sparkler only while you press the screen. Moving your finger makes the fireball sway, and once the sway builds up it drops. Letting go drops it too. Hold on until it burns out to finish. You can also hold Space.",
     interrupted: "Interrupted, so that one didn't count",
     mute: "Mute sound",
-    name: "Senko Hanabi",
+    name: "An Ember's Life",
     phases: "Stages of the sparkler",
     result: {
       again: "Play again",
@@ -90,7 +90,7 @@ export const copy: Record<Lang, Copy> = {
       "線香花火を長く持たせるゲーム。画面を押しているあいだだけ花火を持っていられる。指が動くと火玉がゆれて、ゆれが溜まると落ちる。指を離しても落ちる。燃え尽きるまで持てば完走。スペースキーを押し続けても遊べる。",
     interrupted: "途中で止まったので、今のはなしにした",
     mute: "音を消す",
-    name: "線香花火",
+    name: "火玉の一生",
     phases: "線香花火の移り変わり",
     result: {
       again: "もう一回",

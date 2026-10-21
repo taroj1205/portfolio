@@ -130,7 +130,7 @@ describe("sharing a result", () => {
     const share = shareOf(run, "https://x.y", "ja");
     assert.equal(
       share.text,
-      "居合で4人抜き（剣豪）。最速231ms、平均274ms。\nこの速さ、斬れる？\n#居合"
+      "鞘走りで4人抜き（剣豪）。最速231ms、平均274ms。\nこの速さ、斬れる？\n#鞘走り"
     );
     assert.equal(
       share.url,
@@ -140,7 +140,7 @@ describe("sharing a result", () => {
     assert.equal(new URL(postUrl(share)).hostname, "x.com");
     assert.equal(
       shareOf(run, "https://x.y", "en").text,
-      "Iai, the quick-draw duel: Master swordsman, beat 4 of 5. Fastest 231ms, average 274ms.\nCan you draw faster?\n#居合 #Iai"
+      "Sayabashiri, the quick-draw duel: Master swordsman, beat 4 of 5. Fastest 231ms, average 274ms.\nCan you draw faster?\n#鞘走り #Sayabashiri"
     );
   });
 
@@ -148,27 +148,27 @@ describe("sharing a result", () => {
     const zero: Result = { average: null, best: null, end: "cat", reach: 0 };
     assert.equal(
       shareOf(zero, "https://x.y", "ja").text,
-      "居合で、猫に斬りかかった。\nあなたは、動かずにいられる？\n#居合"
+      "鞘走りで、猫に斬りかかった。\nあなたは、動かずにいられる？\n#鞘走り"
     );
     assert.equal(
       shareOf(zero, "https://x.y", "en").text,
-      "Iai, the quick-draw duel: drew on a cat.\nCould you keep still?\n#居合 #Iai"
+      "Sayabashiri, the quick-draw duel: drew on a cat.\nCould you keep still?\n#鞘走り #Sayabashiri"
     );
     const slow: Result = { average: 640, best: 610, end: "slow", reach: 0 };
     assert.ok(
       shareOf(slow, "https://x.y", "ja").text.startsWith(
-        "居合でひとり目に斬られた（素人）。最速610ms"
+        "鞘走りでひとり目に斬られた（素人）。最速610ms"
       )
     );
     const two: Result = { average: 400, best: 380, end: "leaf", reach: 2 };
     assert.ok(
       shareOf(two, "https://x.y", "ja").text.startsWith(
-        "居合で2人抜き、そして落ち葉を斬った。最速380ms、平均400ms。"
+        "鞘走りで2人抜き、そして落ち葉を斬った。最速380ms、平均400ms。"
       )
     );
     assert.ok(
       shareOf(two, "https://x.y", "en").text.startsWith(
-        "Iai, the quick-draw duel: beat 2 of 5, then cut down a falling leaf."
+        "Sayabashiri, the quick-draw duel: beat 2 of 5, then cut down a falling leaf."
       )
     );
   });

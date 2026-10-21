@@ -264,7 +264,7 @@ export const GET = async (request: NextRequest) => {
     faceOf(result, lang);
   const perfect = rank?.level === PERFECT;
   const font = await loadMincho(
-    `${headline}${unit}${caption}${detail}${dare}${tag}${side}${center}間まMa0123456789.+−±`
+    `${headline}${unit}${caption}${detail}${dare}${tag}${side}${center}${copy.ja.name}むおんのじゅうびょう${copy.en.name}0123456789.+−±`
   );
 
   return new ImageResponse(
@@ -341,9 +341,9 @@ export const GET = async (request: NextRequest) => {
             gap: 22,
           }}
         >
-          <span style={{ fontSize: 44 }}>間</span>
+          <span style={{ fontSize: 44 }}>{copy.ja.name}</span>
           <span style={{ color: ink.gold, fontSize: 26, letterSpacing: 6 }}>
-            {lang === "en" ? "Ma" : "ま"}
+            {lang === "en" ? copy.en.name : "むおんのじゅうびょう"}
           </span>
           <span style={{ color: ink.dim, fontSize: 26 }}>·</span>
           <span style={{ fontSize: 28, letterSpacing: 2 }}>{tag}</span>

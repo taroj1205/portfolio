@@ -103,7 +103,7 @@ export const GET = async (request: NextRequest) => {
     lang
   );
   const font = await loadMincho(
-    `${tag}${headline}${caption}${detail}${dare}餅つきもちつきMochitsuki0123456789BPM回·`
+    `${tag}${headline}${caption}${detail}${dare}${copy.ja.name}${copy.ja.reading}${copy.en.reading}0123456789BPM回·`
   );
 
   return new ImageResponse(
@@ -149,9 +149,9 @@ export const GET = async (request: NextRequest) => {
             gap: 20,
           }}
         >
-          <span style={{ fontSize: 44 }}>餅つき</span>
+          <span style={{ fontSize: 44 }}>{copy.ja.name}</span>
           <span style={{ color: ink.gold, fontSize: 24, letterSpacing: 4 }}>
-            {lang === "en" ? "Mochitsuki" : "もちつき"}
+            {copy[lang].reading}
           </span>
         </div>
         <div

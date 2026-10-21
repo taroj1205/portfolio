@@ -56,7 +56,7 @@ export const copy: Record<Lang, Copy> = {
     },
     hint: "Swipe straight across, end to end",
     mute: "Mute sound",
-    name: "Ittō",
+    name: "Halving Dojo",
     quit: "Quit",
     rare: "Rare",
     record: (off, cuts) =>
@@ -104,7 +104,7 @@ export const copy: Record<Lang, Copy> = {
     },
     hint: "端から端まで、まっすぐスワイプ",
     mute: "音を消す",
-    name: "一刀",
+    name: "半分こ道場",
     quit: "やめる",
     rare: "レア",
     record: (off, cuts) => `最高 ズレ${off}% · ${cuts}回切った`,

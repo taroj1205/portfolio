@@ -192,7 +192,7 @@ describe("sharing a circle", () => {
     assert.ok(share.image.includes("/games/enso/og?"));
     assert.match(share.text, /93\.7%/u);
     assert.match(share.text, /初段/u);
-    assert.match(share.text, /#円相/u);
+    assert.match(share.text, /#ひと筆の月/u);
   });
 
   test("the ink outline is a closed path of finite numbers", () => {

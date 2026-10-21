@@ -438,8 +438,8 @@ export const Hud = ({
           ) : (
             <div {...stylex.props(styles.titleBox)}>
               <h1 lang="ja" {...stylex.props(styles.title)}>
-                <span {...stylex.props(styles.lead)}>せんこうはなび</span>
-                線香花火
+                <span {...stylex.props(styles.lead)}>ひだまのいっしょう</span>
+                {copy.ja.name}
               </h1>
               <span aria-hidden="true" {...stylex.props(styles.seal)}>
                 火

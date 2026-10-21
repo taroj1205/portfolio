@@ -222,11 +222,11 @@ const shareLine = (result: Result, lang: Lang) => {
   if (lang === "en") {
     const dare =
       times === "" ? "Could you keep still?" : "Can you draw faster?";
-    return `Iai, the quick-draw duel: ${howEn(result)}${times}\n${dare}`;
+    return `Sayabashiri, the quick-draw duel: ${howEn(result)}${times}\n${dare}`;
   }
   const dare =
     times === "" ? "あなたは、動かずにいられる？" : "この速さ、斬れる？";
-  return `居合で${howJa(result)}${times}\n${dare}`;
+  return `鞘走りで${howJa(result)}${times}\n${dare}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
@@ -236,7 +236,7 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
     image: `${origin}/games/iai/og?${query.toString()}`,
     text: [
       shareLine(result, lang),
-      lang === "en" ? "#居合 #Iai" : "#居合",
+      lang === "en" ? "#鞘走り #Sayabashiri" : "#鞘走り",
     ].join("\n"),
     url: `${origin}/games/iai?${query.toString()}`,
   };
