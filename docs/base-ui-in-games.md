@@ -28,6 +28,7 @@ Do not write Base UI code from memory. Part names, props, and `data-*` attribute
 | Sections | `Tabs` | `src/app/games/mizukiri/_components/stone-tab.tsx`, `workshop.tsx` |
 | On/off setting | `Switch` | `src/app/games/mizukiri/_components/workshop.tsx` |
 | Pick one of a few | `ToggleGroup` with `Toggle` | `src/app/games/mizukiri/_components/workshop.tsx` |
+| Read-only value bar | `Meter` | `src/app/games/keshibo/_components/workshop.tsx` |
 
 Everything else Base UI ships (Tooltip, Slider, RadioGroup, Select, NumberField, Field, Toast) has no game example yet. Read its page in `node_modules/@base-ui/react/docs/react/components/` and add the first example to the table.
 
@@ -67,6 +68,8 @@ Parts that change with state pass `className` as a function and return the Style
   }
 >
 ```
+
+Only the class name survives that callback, so a dynamic StyleX style (a function in `stylex.create`) loses its value, and the lint rejects passing it through `style=`. For a colour that comes from data, draw it inside the part, such as an SVG `fill={colors[id].color}`, as the swatches in `src/app/games/keshibo/_components/workshop.tsx` do.
 
 Values inside `stylex.create` and `stylex.keyframes` can use constants from the same file or `defineConsts` from a `.stylex.ts` file (`src/app/games/_components/theme.stylex.ts`). Importing a plain constant from another module fails the build with "Could not resolve the path to the imported file". Share values such as animation delays through a `.stylex.ts` file, as `src/app/games/ma/_components/reveal.stylex.ts` does.
 

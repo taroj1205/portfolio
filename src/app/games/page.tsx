@@ -5,6 +5,7 @@ import { BladeArt } from "./_components/blade-art";
 import { BrushArt } from "./_components/brush-art";
 import { CandyArt } from "./_components/candy-art";
 import { CutArt } from "./_components/cut-art";
+import { EraserArt } from "./_components/eraser-art";
 import type { Game } from "./_components/game-card";
 import { GamesIndex } from "./_components/games-index";
 import { MergeArt } from "./_components/merge-art";
@@ -19,6 +20,7 @@ import { copy as iai } from "./iai/_lib/copy";
 import { copy as itto } from "./itto/_lib/copy";
 import { kinds } from "./itto/_lib/foods";
 import { copy as katanuki } from "./katanuki/_lib/copy";
+import { copy as keshibo } from "./keshibo/_lib/copy";
 import { copy as ma } from "./ma/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
 import { copy as mochitsuki } from "./mochitsuki/_lib/copy";
@@ -150,6 +152,20 @@ const GAMES: Game[] = [
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
     title: { en: mochitsuki.en.name, ja: mochitsuki.ja.name },
+  },
+  {
+    art: <EraserArt />,
+    blurb: {
+      en: "Bowling on two school desks pushed together. Design your own eraser, then flick it at ten standing ones.",
+      ja: "机をくっつけて、消しゴムでボウリング。自分の消しゴムをつくって、10個の消しゴムをはじき倒す。",
+    },
+    href: "/games/keshibo",
+    tags: [
+      { en: "Pull & flick", ja: "引いてはじく" },
+      { en: "Design an eraser", ja: "消しゴム工房" },
+      { en: "Challenge a friend", ja: "友だちに挑戦" },
+    ],
+    title: { en: keshibo.en.name, ja: keshibo.ja.name },
   },
 ];
 
