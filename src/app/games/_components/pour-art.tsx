@@ -6,12 +6,12 @@ import {
   vesselPath,
   vesselTransform,
 } from "../masu/_components/cup-svg";
-import { box, paint, project } from "../masu/_lib/scene";
+import { LIFT, box, paint, project } from "../masu/_lib/scene";
 import type { Fill } from "../masu/_lib/scene";
 
 const fill: Fill = { dome: 3.4, glass: null, level: box.height };
 const lip = project(14, box.height + 54, 0);
-const surface = project(-6, box.height + 3.2, 4);
+const surface = project(-6, box.height + fill.dome * LIFT, 4);
 
 const BOKEH = [
   [70, 60, 46, 0.16],
@@ -107,9 +107,9 @@ export const PourArt = () => (
     ))}
     <ellipse cx="320" cy="200" fill="url(#pour-art-lamp)" rx="260" ry="190" />
     <g transform="translate(296 244) scale(1.62)">
-      {cupSvg({ fill, id: "pour-art", spilled: false })}
+      {cupSvg({ fill, id: "pour-art", spill: null })}
       <path
-        d={`M${lip.x} ${lip.y}Q${lip.x - 4} ${lip.y + 14} ${surface.x} ${surface.y}L${surface.x + 1.4} ${surface.y}Q${lip.x - 2} ${lip.y + 14} ${lip.x + 2} ${lip.y}Z`}
+        d={`M${lip.x - 1} ${lip.y}Q${lip.x - 5} ${lip.y + 14} ${surface.x - 0.4} ${surface.y}L${surface.x + 1.4} ${surface.y}Q${lip.x - 2} ${lip.y + 14} ${lip.x + 2.4} ${lip.y}Z`}
         fill="url(#pour-art-stream)"
         {...stylex.props(styles.stream)}
       />
@@ -117,8 +117,8 @@ export const PourArt = () => (
         cx={surface.x}
         cy={surface.y}
         fill={paint.sheen}
-        rx="7"
-        ry="1.6"
+        rx="4.5"
+        ry="1"
         {...stylex.props(styles.glint)}
       />
       <g transform={vesselTransform("tokkuri", lip, 1)}>

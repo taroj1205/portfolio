@@ -6,11 +6,18 @@ import { langFrom, langFromHeader } from "../_lib/i18n";
 import type { Text } from "../_lib/i18n";
 import { Game } from "./_components/game";
 import { copy } from "./_lib/copy";
-import { percent, queryOf, rankOf, readResult, tallyOf } from "./_lib/result";
+import {
+  glassOf,
+  percent,
+  queryOf,
+  rankOf,
+  readResult,
+  spilledOf,
+} from "./_lib/result";
 
 const DESCRIPTION: Text = {
-  en: "Hold to pour sake into a wooden masu, and let go before it spills. It keeps trickling after you let go, so the surface tension dome is yours only if you stop early.",
-  ja: "押して枡に酒を注ぎ、こぼれる前に離す。離してもとくとく垂れるから、表面張力で盛り上がった一杯は、早めに止めた人だけのもの。",
+  en: "One pour of sake into a wooden masu. Hold to pour and let go once, before it spills. It keeps trickling after you let go, so the surface tension dome is yours only if you stop early.",
+  ja: "枡に酒を注ぐ、一杯勝負。押して注ぎ、こぼれる前に一度だけ離す。離してもとくとく垂れるから、表面張力で盛り上がった一杯は、早めに止めた人だけのもの。",
 };
 
 const styles = stylex.create({
@@ -38,11 +45,15 @@ export const generateMetadata = async ({
   const shared = readResult(params);
   const query = new URLSearchParams(shared ? queryOf(shared) : "");
   query.set("l", lang);
-  const average = shared === null ? null : tallyOf(shared).average;
+  const poured = shared === null ? null : glassOf(shared);
+  const score =
+    poured === null || spilledOf(poured)
+      ? copy[lang].spilled
+      : `${copy[lang].tension} ${percent(poured.outcome.tenths)}%`;
   const title =
-    average === null
+    poured === null
       ? copy[lang].name
-      : `${copy[lang].tension} ${percent(average)}% · ${rankOf(average).name[lang]} | ${copy[lang].name}`;
+      : `${score} · ${rankOf(poured).name[lang]} | ${copy[lang].name}`;
   const image = {
     alt: title,
     height: 630,

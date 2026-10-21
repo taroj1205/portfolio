@@ -172,14 +172,14 @@ const GAMES: Game[] = [
   {
     art: <PourArt />,
     blurb: {
-      en: "Hold to pour sake into a wooden masu, and let go early. It keeps trickling after you release, and the surface tension dome spills past a hidden limit.",
-      ja: "押して枡に酒を注ぎ、早めに離す。離してもとくとく垂れて、表面張力で盛り上がった酒は見えない限界でこぼれる。",
+      en: "One pour of sake into a wooden masu. Let go once, early: it keeps trickling after you release, and the surface tension dome spills past a hidden limit.",
+      ja: "枡に酒を注ぐ一杯勝負。離すのは一度だけ。離してもとくとく垂れて、表面張力で盛り上がった酒は見えない限界でこぼれる。",
     },
     href: "/games/masu",
     tags: [
       { en: "Hold & let go", ja: "押して離す" },
-      { en: "Surface tension", ja: "表面張力" },
-      { en: "Challenge a friend", ja: "友だちに挑戦" },
+      { en: "One pour", ja: "一杯勝負" },
+      { en: "Same pour for a friend", ja: "同じ一杯で挑戦" },
     ],
     title: { en: masu.en.name, ja: masu.ja.name },
   },

@@ -8,14 +8,16 @@ import { cupSvg } from "../_components/cup-svg";
 import { copy } from "../_lib/copy";
 import {
   brimful,
-  heroOf,
+  glassOf,
+  heightOf,
   lineOf,
   percent,
   rankOf,
   readResult,
-  tallyOf,
+  signed,
+  spilledOf,
 } from "../_lib/result";
-import type { Tally } from "../_lib/result";
+import type { Glass } from "../_lib/result";
 import { box, fillOf, paint } from "../_lib/scene";
 import type { Fill } from "../_lib/scene";
 
@@ -42,67 +44,55 @@ const pitch: Record<Lang, { caption: string; detail: string }> = {
 
 const brimming: Fill = { dome: 3.6, glass: null, level: box.height };
 
-const Pours = ({ tally, lang }: { tally: Tally; lang: Lang }) => (
-  <div style={{ display: "flex", gap: 14, marginTop: 30 }}>
-    {tally.glasses.map((glass, index) => {
-      const spilled = glass.outcome.spilledAt !== null;
-      const good = brimful(glass.outcome);
-      return (
-        <div
-          key={`${index}-${glass.outcome.hold}`}
-          style={{
-            alignItems: "center",
-            backgroundColor: "rgba(255,255,255,0.08)",
-            border: `2px solid ${good ? ink.gold : "rgba(255,255,255,0.16)"}`,
-            borderRadius: 18,
-            color: spilled ? ink.spill : ink.text,
-            display: "flex",
-            fontSize: 28,
-            height: 62,
-            justifyContent: "center",
-            width: 112,
-          }}
-        >
-          {spilled ? copy[lang].spill : percent(glass.outcome.tenths)}
-        </div>
-      );
-    })}
-  </div>
-);
-
-const cardOf = (tally: Tally | null, lang: Lang) => {
+const cardOf = (poured: Glass | null, lang: Lang) => {
   const words = copy[lang];
-  if (tally === null) {
+  if (poured === null) {
     return {
       caption: pitch[lang].caption,
       detail: pitch[lang].detail,
       fill: brimming,
       headline: words.name,
       label: "ます",
-      spilled: false,
+      line: null,
+      size: 150,
+      spill: null,
     };
   }
-  const hero = heroOf(tally);
+  const spilled = spilledOf(poured);
   return {
-    caption: `${rankOf(tally.average).name[lang]} · ${lineOf(tally, lang)}`,
+    caption: `${rankOf(poured).name[lang]} · ${lineOf(poured, lang)}`,
     detail: words.challenge.dare,
-    fill: fillOf(hero.pour, hero.outcome.volume),
-    headline: percent(tally.average),
-    label: words.result.average,
-    spilled: hero.outcome.spilledAt !== null,
+    fill: fillOf(poured.pour, poured.outcome.volume),
+    headline: spilled ? words.spilled : percent(poured.outcome.tenths),
+    label: words.tension,
+    line: spilled
+      ? words.result.lost(poured.spilled)
+      : words.result.stopped(signed(heightOf(poured)), poured.kept),
+    size: spilled ? 124 : 168,
+    spill: spilled ? { ml: poured.spilled, seed: poured.pour.seed } : null,
   };
+};
+
+const headColour = (poured: Glass | null) => {
+  if (poured === null) {
+    return ink.text;
+  }
+  if (spilledOf(poured)) {
+    return ink.spill;
+  }
+  return brimful(poured) ? ink.gold : ink.text;
 };
 
 export const GET = async (request: NextRequest) => {
   const result = readResult(Object.fromEntries(request.nextUrl.searchParams));
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
-  const tally = result === null ? null : tallyOf(result);
-  const { caption, detail, fill, headline, label, spilled } = cardOf(
-    tally,
+  const poured = result === null ? null : glassOf(result);
+  const { caption, detail, fill, headline, label, line, size, spill } = cardOf(
+    poured,
     lang
   );
   const font = await loadMincho(
-    `${headline}${caption}${detail}${label}${copy[lang].spill}0123456789.%枡ます`
+    `${headline}${caption}${detail}${label}${line ?? ""}0123456789.%+−·枡ます`
   );
 
   return new ImageResponse(
@@ -145,7 +135,7 @@ export const GET = async (request: NextRequest) => {
         viewBox="-70 -72 140 140"
         width={560}
       >
-        {cupSvg({ fill, id: "og", spilled })}
+        {cupSvg({ fill, id: "og", spill })}
       </svg>
       <div
         style={{
@@ -168,7 +158,7 @@ export const GET = async (request: NextRequest) => {
             letterSpacing: lang === "ja" ? 10 : 2,
           }}
         >
-          {tally === null ? null : (
+          {poured === null ? null : (
             <div
               style={{
                 alignItems: "center",
@@ -192,29 +182,34 @@ export const GET = async (request: NextRequest) => {
           style={{
             alignItems: "baseline",
             display: "flex",
-            fontSize: tally === null ? 150 : 168,
-            letterSpacing: tally === null && lang === "ja" ? 20 : 0,
+            color: headColour(poured),
+            fontSize: size,
+            letterSpacing: poured === null && lang === "ja" ? 20 : 0,
             lineHeight: 1,
             marginTop: 16,
           }}
         >
           {headline}
-          {tally === null ? null : (
-            <span style={{ fontSize: 72, marginLeft: 8 }}>%</span>
+          {poured === null || spill !== null ? null : (
+            <span style={{ fontSize: 64, marginLeft: 8 }}>%</span>
           )}
         </div>
         <div
           style={{
-            color: tally === null ? ink.text : ink.gold,
+            color: poured === null ? ink.text : ink.gold,
             display: "flex",
-            fontSize: tally === null ? 40 : 34,
+            fontSize: poured === null ? 40 : 34,
             lineHeight: 1.4,
             marginTop: 20,
           }}
         >
           {caption}
         </div>
-        {tally === null ? null : <Pours lang={lang} tally={tally} />}
+        {line === null ? null : (
+          <div style={{ display: "flex", fontSize: 32, marginTop: 18 }}>
+            {line}
+          </div>
+        )}
         <div
           style={{
             color: ink.dim,

@@ -1,40 +1,36 @@
 import { loadSettings, storeSettings } from "../../_lib/settings";
 import type { Settings } from "../../_lib/settings";
 import {
-  POURS,
   beatsBy,
-  domeOf,
+  flowAt,
   holdFor,
-  limitOf,
+  insideAt,
   longestHold,
   outcomeOf,
   pourOf,
-  rateAt,
-  volumeAt,
 } from "./pour";
 import type { Outcome, Pour } from "./pour";
 import { createRenderer } from "./render";
 import type { Frame } from "./render";
-import { glassOf, tallyOf } from "./result";
-import type { Glass, Result, Tally } from "./result";
-import { loadSave, settlePour, settleRun, storeSave } from "./save";
+import { glassOf } from "./result";
+import type { Glass, Result } from "./result";
+import { loadSave, settle, storeSave } from "./save";
 import type { Save } from "./save";
 import { aboveRim, fillOf } from "./scene";
 import { createSound } from "./sound";
 
-export type Stage = "idle" | "pouring" | "settled" | "ready" | "result";
+export type Stage = "idle" | "ready" | "pouring" | "result";
 
 export interface Ending {
   result: Result;
-  tally: Tally;
+  glass: Glass;
   record: boolean;
 }
 
 interface Listeners {
   stage: (stage: Stage) => void;
-  pour: (index: number, pour: Pour) => void;
+  pour: (pour: Pour) => void;
   reading: (mm: number) => void;
-  glass: (index: number, glass: Glass) => void;
   demo: (glass: Glass | null) => void;
   interrupted: () => void;
   over: (ending: Ending) => void;
@@ -47,18 +43,13 @@ interface Active {
   at: number;
   hold: number | null;
   outcome: Outcome | null;
+  broke: boolean;
 }
 
-const REVEAL = 1700;
-const SPILL_REVEAL = 2600;
-const RETURN = 0.45;
-const COLLAPSE = 0.5;
-const LATE = 0.2;
-const DEMO = { lead: 900, rest: 2600 };
-const DEMOS = [
-  { index: 0, seed: 13, spill: false },
-  { index: 0, seed: 7, spill: true },
-] as const;
+const LATE = 0.05;
+const SPILL_PAUSE = 1.1;
+const RISE = 7;
+const DEMO = { lead: 900, rest: 2800, seed: 13, tenths: 970 };
 
 const newSeed = () => crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
 
@@ -79,50 +70,32 @@ const block = (event: Event) => {
   event.preventDefault();
 };
 
-const ease = (t: number) => 1 - (1 - Math.min(1, Math.max(0, t))) ** 3;
-
-const demoOf = (turn: number) => {
-  const plan = DEMOS[turn % DEMOS.length] ?? DEMOS[0];
-  const pour = pourOf(plan.seed, plan.index);
-  const hold = holdFor(pour, (outcome) =>
-    plan.spill
-      ? outcome.spilledAt !== null
-      : outcome.spilledAt === null && outcome.tenths >= 970
+const demoOf = () => {
+  const pour = pourOf(DEMO.seed);
+  const hold = holdFor(
+    pour,
+    (outcome) => outcome.spilledAt === null && outcome.tenths >= DEMO.tenths
   );
   const outcome = outcomeOf(pour, hold);
-  return { glass: glassOf(pour, outcome), hold, outcome, pour };
+  return { glass: glassOf({ hold, seed: DEMO.seed }), hold, outcome, pour };
 };
+
+const shownAt = (outcome: Outcome) =>
+  outcome.spilledAt === null
+    ? outcome.settledAt
+    : Math.max(outcome.settledAt, outcome.spilledAt + SPILL_PAUSE);
 
 const frameOf = (
   pour: Pour,
   hold: number | null,
   outcome: Outcome | null,
   t: number
-): Omit<Frame, "clock" | "dt"> => {
-  const held = hold === null ? Infinity : hold / 1000;
-  const released = Math.min(t, held);
-  const spilledAt = outcome?.spilledAt ?? null;
-  const broke = spilledAt !== null && t >= spilledAt ? t - spilledAt : null;
-  const raw = volumeAt(pour, held, t);
-  const volume =
-    broke === null
-      ? raw
-      : 1 + (limitOf(pour) - 1) * Math.max(0, 1 - broke / COLLAPSE);
-  const tipped = ease(released / pour.lag);
-  const after = t - released;
-  const stream =
-    t <= held
-      ? rateAt(pour, t)
-      : rateAt(pour, held) * Math.max(0, 1 - after / pour.trickle) ** 2;
-  return {
-    broke,
-    pour,
-    strain: broke === null ? domeOf(pour, volume) : 0,
-    stream: stream / pour.flow,
-    tilt: t <= held ? tipped : tipped * (1 - ease(after / RETURN)),
-    volume,
-  };
-};
+): Omit<Frame, "clock" | "dt" | "raise"> => ({
+  hold: hold === null ? Infinity : hold / 1000,
+  pour,
+  spilledAt: outcome?.spilledAt ?? null,
+  t,
+});
 
 export const startSession = (
   canvas: HTMLCanvasElement,
@@ -132,23 +105,19 @@ export const startSession = (
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const render = createRenderer(canvas, calm);
   const sound = createSound();
+  const demo = demoOf();
   let save = loadSave();
   let settings = loadSettings();
   let stage: Stage = "idle";
   let seed = challenge?.seed ?? newSeed();
-  let index = 0;
-  let holds: number[] = [];
   let active: Active | null = null;
   let holder: number | "key" | null = null;
-  let settledAt = 0;
-  let spilled = false;
   let played = 0;
   let beats = 0;
-  let turn = 0;
-  let demo = demoOf(turn);
   let demoAt = performance.now();
   let caption: Glass | null = null;
   let last = performance.now();
+  let raise = 0;
   sound.mute(settings.muted);
   on.save(save);
   on.settings(settings);
@@ -171,30 +140,30 @@ export const startSession = (
     }
   };
 
-  const ready = (next: number) => {
-    index = next;
-    active = null;
-    on.pour(index, pourOf(seed, index));
-    enter("ready");
-  };
-
-  const begin = () => {
+  const ready = () => {
     seed = challenge?.seed ?? newSeed();
-    holds = [];
+    active = null;
     played = 0;
-    ready(0);
+    on.pour(pourOf(seed));
+    enter("ready");
   };
 
   const press = (at: number) => {
     if (stage === "idle") {
-      begin();
       tellDemo(null);
+      ready();
     }
     if (stage !== "ready") {
       return false;
     }
     sound.unlock();
-    active = { at, hold: null, outcome: null, pour: pourOf(seed, index) };
+    active = {
+      at,
+      broke: false,
+      hold: null,
+      outcome: null,
+      pour: pourOf(seed),
+    };
     beats = 0;
     navigator.vibrate?.(8);
     enter("pouring");
@@ -215,34 +184,20 @@ export const startSession = (
     return true;
   };
 
-  const settle = (pour: Pour, hold: number, outcome: Outcome, now: number) => {
-    const glass = glassOf(pour, outcome);
-    holds.push(hold);
-    keep(settlePour(save, { at: Date.now(), glass, seconds: played }));
-    played = 0;
-    spilled = outcome.spilledAt !== null;
-    settledAt = now;
-    if (spilled) {
-      sound.spill();
-      navigator.vibrate?.([40, 60, 90]);
-    } else {
+  const finish = (hold: number, outcome: Outcome) => {
+    const result: Result = { hold, seed };
+    const glass = glassOf(result);
+    const settled = settle(save, { at: Date.now(), glass, seconds: played });
+    keep(settled.save);
+    if (outcome.spilledAt === null) {
       sound.settle(outcome.tenths);
       navigator.vibrate?.(12);
     }
-    on.glass(index, glass);
-    enter("settled");
-  };
-
-  const finish = () => {
-    const result: Result = { holds: [...holds], seed };
-    const tally = tallyOf(result);
-    const run = settleRun(save, tally);
-    keep(run.save);
-    if (run.record) {
+    if (settled.record) {
       sound.record();
     }
     enter("result");
-    on.over({ record: run.record, result, tally });
+    on.over({ glass, record: settled.record, result });
   };
 
   const interrupt = () => {
@@ -325,83 +280,82 @@ export const startSession = (
     beats = count;
   };
 
-  const advance = (now: number) => {
-    if (active === null) {
-      return null;
+  const advance = (current: Active, now: number) => {
+    const t = (now - current.at) / 1000;
+    if (current.hold === null && t >= current.pour.brink + LATE) {
+      release(current.at + longestHold(current.pour));
     }
-    const t = (now - active.at) / 1000;
-    if (active.hold === null && t >= active.pour.brink + LATE) {
-      release(active.at + longestHold(active.pour));
-    }
-    if (stage === "pouring") {
-      listen(active, t);
+    const { hold, outcome } = current;
+    if (stage === "pouring" && hold !== null && outcome !== null) {
       if (
-        active.hold !== null &&
-        active.outcome !== null &&
-        t >= active.outcome.settledAt
+        !current.broke &&
+        outcome.spilledAt !== null &&
+        t >= outcome.spilledAt
       ) {
-        settle(active.pour, active.hold, active.outcome, now);
+        current.broke = true;
+        sound.spill();
+        navigator.vibrate?.([40, 60, 90]);
+      }
+      if (t >= shownAt(outcome)) {
+        finish(hold, outcome);
       }
     }
-    return frameOf(active.pour, active.hold, active.outcome, t);
+    if (stage === "pouring") {
+      listen(current, t);
+    }
+    return frameOf(current.pour, current.hold, current.outcome, t);
   };
 
   const demoFrame = (now: number) => {
+    const end = demo.outcome.settledAt;
     if (calm) {
       tellDemo(demo.glass);
-      return frameOf(
-        demo.pour,
-        demo.hold,
-        demo.outcome,
-        demo.outcome.settledAt + 3
-      );
+      return frameOf(demo.pour, demo.hold, demo.outcome, end + 3);
     }
-    const t = (now - demoAt - DEMO.lead) / 1000;
-    const end = demo.outcome.settledAt;
+    let t = (now - demoAt - DEMO.lead) / 1000;
     if (t > end + DEMO.rest / 1000) {
-      turn += 1;
-      demo = demoOf(turn);
       demoAt = now;
-      tellDemo(null);
-      return frameOf(demo.pour, demo.hold, demo.outcome, 0);
+      t = -DEMO.lead / 1000;
     }
     tellDemo(t >= end ? demo.glass : null);
     return frameOf(demo.pour, demo.hold, demo.outcome, Math.max(0, t));
   };
 
-  const progress = (now: number) => {
-    const wait = spilled ? SPILL_REVEAL : REVEAL;
-    if (stage !== "settled" || now - settledAt < wait) {
-      return;
-    }
-    if (index + 1 < POURS) {
-      ready(index + 1);
-    } else {
-      finish();
-    }
-  };
-
-  const shownFrame = (now: number): Omit<Frame, "clock" | "dt"> => {
+  const shownFrame = (now: number) => {
     if (stage === "idle") {
       return demoFrame(now);
     }
-    return advance(now) ?? frameOf(pourOf(seed, index), null, null, 0);
+    return active === null
+      ? frameOf(pourOf(seed), 0, null, 0)
+      : advance(active, now);
   };
 
   let frame = 0;
   const tick = (now: number) => {
     const dt = Math.min(0.05, Math.max(0, now - last) / 1000);
     last = now;
-    if (stage === "pouring" || stage === "settled" || stage === "ready") {
+    if (stage === "pouring" || stage === "ready") {
       played += dt;
     }
     const shown = shownFrame(now);
-    progress(now);
-    if (stage !== "idle" && shown.broke === null) {
-      on.reading(aboveRim(fillOf(shown.pour, shown.volume)));
+    const flow = flowAt(shown.pour, shown.hold, shown.t) / shown.pour.flow;
+    if (
+      stage === "pouring" &&
+      (shown.spilledAt === null || shown.t < shown.spilledAt)
+    ) {
+      on.reading(
+        aboveRim(
+          fillOf(
+            shown.pour,
+            insideAt(shown.pour, shown.hold, shown.spilledAt, shown.t)
+          )
+        )
+      );
     }
-    sound.flow(stage === "idle" ? 0 : shown.stream);
-    render.draw({ ...shown, clock: now / 1000, dt });
+    const raised = stage === "result" ? 1 : 0;
+    raise = calm ? raised : raise + (raised - raise) * Math.min(1, dt * RISE);
+    sound.flow(stage === "idle" ? 0 : flow);
+    render.draw({ ...shown, clock: now / 1000, dt, raise });
     frame = requestAnimationFrame(tick);
   };
   frame = requestAnimationFrame(tick);
@@ -409,7 +363,7 @@ export const startSession = (
   return {
     again: () => {
       if (stage === "result") {
-        begin();
+        ready();
       }
     },
     settings: (next: Settings) => {

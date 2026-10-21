@@ -2,41 +2,18 @@ import { z } from "zod";
 
 import type { Lang, Text } from "../../_lib/i18n";
 import type { Share } from "../../_lib/share";
-import {
-  POURS,
-  capacity,
-  limitOf,
-  longestHold,
-  outcomeOf,
-  pourOf,
-} from "./pour";
+import { capacity, longestHold, mlOf, outcomeOf, pourOf } from "./pour";
 import type { Outcome, Pour } from "./pour";
 import { aboveRim, fillOf } from "./scene";
 
-export type Verdict =
-  | "brink"
-  | "brimming"
-  | "room"
-  | "short"
-  | "held"
-  | "after";
-
 export interface Result {
   seed: number;
-  holds: readonly number[];
+  hold: number;
 }
 
 export interface Glass {
   pour: Pour;
   outcome: Outcome;
-  kept: number;
-  spilled: number;
-}
-
-export interface Tally {
-  glasses: Glass[];
-  average: number;
-  spills: number;
   kept: number;
   spilled: number;
 }
@@ -104,153 +81,75 @@ const ranks: readonly (Rank & { from: number })[] = [
   },
 ];
 
-const spillLines: Record<"some" | "all", Text> = {
-  all: {
-    en: "Spilled every one. The table is drunk.",
-    ja: "全部こぼした。テーブルが酔っぱらった。",
+const spillRanks: Record<"held" | "after", Rank> = {
+  after: {
+    line: {
+      en: "You let go in time. The trickle didn't.",
+      ja: "手は離した。とくとくは止まらなかった。",
+    },
+    name: { en: "One drop too many", ja: "あと一滴" },
+    seal: "滴",
   },
-  some: {
-    en: "The table drank more than you did.",
+  held: {
+    line: {
+      en: "A round for the whole counter.",
+      ja: "カウンターじゅうに、おごった。",
+    },
+    name: { en: "Generous pour", ja: "大盤振る舞い" },
+    seal: "溢",
+  },
+};
+
+const spillLines: readonly Text[] = [
+  { en: "The table had a drink.", ja: "テーブルが一杯やった。" },
+  { en: "Could we get a cloth over here?", ja: "おしぼり、ください。" },
+  {
+    en: "The surface tension finally gave up.",
+    ja: "表面張力が、ついに折れた。",
+  },
+  {
+    en: "The counter drank more than you did.",
     ja: "枡の外のほうが、よく飲んだ。",
   },
-};
+];
 
-export const rankOf = (average: number): Rank =>
-  ranks.findLast((rank) => average >= rank.from) ?? ranks[0];
+export const spilledOf = (glass: Glass) => glass.outcome.spilledAt !== null;
 
-const pourSet = (seed: number) =>
-  Array.from({ length: POURS }, (_, index) => pourOf(seed, index));
-
-export const glassOf = (pour: Pour, outcome: Outcome): Glass => {
-  const ml = capacity[pour.cup];
+export const glassOf = (result: Result): Glass => {
+  const pour = pourOf(result.seed);
+  const outcome = outcomeOf(pour, result.hold);
   return {
-    kept: Math.round((outcome.spilledAt === null ? outcome.volume : 1) * ml),
+    kept: Math.round(mlOf(pour, outcome.volume)),
     outcome,
     pour,
-    spilled:
-      outcome.spilledAt === null ? 0 : Math.round((limitOf(pour) - 1) * ml),
+    spilled: Math.round(mlOf(pour, 1 + outcome.spilled) - capacity[pour.cup]),
   };
 };
 
-export const tallyOf = (result: Result): Tally => {
-  const glasses = pourSet(result.seed).map((pour, index) =>
-    glassOf(pour, outcomeOf(pour, result.holds[index] ?? 0))
-  );
-  const sum = (pick: (glass: Glass) => number) =>
-    glasses.reduce((total, glass) => total + pick(glass), 0);
-  return {
-    average: Math.floor(sum((glass) => glass.outcome.tenths) / POURS),
-    glasses,
-    kept: sum((glass) => glass.kept),
-    spilled: sum((glass) => glass.spilled),
-    spills: glasses.filter((glass) => glass.outcome.spilledAt !== null).length,
-  };
+export const spillKind = (outcome: Outcome) =>
+  outcome.spilledAt !== null && outcome.spilledAt > outcome.hold
+    ? "after"
+    : "held";
+
+export const rankOf = (glass: Glass): Rank =>
+  spilledOf(glass)
+    ? spillRanks[spillKind(glass.outcome)]
+    : (ranks.findLast((rank) => glass.outcome.tenths >= rank.from) ?? ranks[0]);
+
+export const lineOf = (glass: Glass, lang: Lang) => {
+  if (!spilledOf(glass)) {
+    return rankOf(glass).line[lang];
+  }
+  const extra = glass.pour.seed % (spillLines.length + 1);
+  return (spillLines[extra] ?? rankOf(glass).line)[lang];
 };
 
-export const brimful = (outcome: Outcome) =>
-  outcome.spilledAt === null && outcome.tenths >= 900;
-
-export const verdictOf = (outcome: Outcome): Verdict => {
-  if (outcome.spilledAt !== null) {
-    return outcome.spilledAt > outcome.hold ? "after" : "held";
-  }
-  if (outcome.tenths >= 950) {
-    return "brink";
-  }
-  if (outcome.tenths >= 700) {
-    return "brimming";
-  }
-  return outcome.tenths > 0 ? "room" : "short";
-};
-
-export const lineOf = (tally: Tally, lang: Lang) => {
-  if (tally.spills === POURS) {
-    return spillLines.all[lang];
-  }
-  return tally.spills >= 3
-    ? spillLines.some[lang]
-    : rankOf(tally.average).line[lang];
-};
+export const brimful = (glass: Glass) =>
+  !spilledOf(glass) && glass.outcome.tenths >= 900;
 
 export const percent = (tenths: number) => (tenths / 10).toFixed(1);
 
-const trailOf = (tally: Tally) =>
-  tally.glasses
-    .map(({ outcome }) => {
-      if (outcome.spilledAt !== null) {
-        return "💦";
-      }
-      if (brimful(outcome)) {
-        return "🍶";
-      }
-      return outcome.tenths > 0 ? "🟡" : "⚪";
-    })
-    .join("");
-
-const holdPattern = "(?:0|[1-9]\\d{0,4})";
-
-const shared = z.object({
-  h: z
-    .string()
-    .regex(new RegExp(`^${holdPattern}(?:-${holdPattern}){${POURS - 1}}$`, "u"))
-    .transform((value) => value.split("-").map(Number)),
-  s: z
-    .string()
-    .regex(/^(?:0|[1-9]\d{0,9})$/u)
-    .transform(Number)
-    .pipe(z.number().int().max(0xff_ff_ff_ff)),
-});
-
-export const readResult = (
-  params: Record<string, string | string[] | undefined>
-): Result | null => {
-  const parsed = shared.safeParse(params);
-  if (!parsed.success) {
-    return null;
-  }
-  const { h, s } = parsed.data;
-  return h.every((hold, index) => hold <= longestHold(pourOf(s, index)))
-    ? { holds: h, seed: s }
-    : null;
-};
-
-export const queryOf = (result: Result) =>
-  new URLSearchParams({
-    h: result.holds.join("-"),
-    s: String(result.seed),
-  }).toString();
-
-const shareLine = (tally: Tally, lang: Lang) => {
-  const rank = rankOf(tally.average).name[lang];
-  const average = percent(tally.average);
-  if (lang === "en") {
-    const spills =
-      tally.spills === 0
-        ? "not a drop spilled"
-        : `${tally.spills} of ${POURS} spilled`;
-    return `Masu: surface tension ${average}% on average (${rank}), ${spills}.\nCan you pour it to the brim without spilling?`;
-  }
-  const spills =
-    tally.spills === 0
-      ? "一滴もこぼさず"
-      : `${POURS}杯中${tally.spills}杯こぼして`;
-  return `枡で表面張力 平均${average}%（${rank}）、${spills}。\nこぼさずに、なみなみ注げる？`;
-};
-
-export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
-  const tally = tallyOf(result);
-  const query = new URLSearchParams(queryOf(result));
-  query.set("l", lang);
-  return {
-    image: `${origin}/games/masu/og?${query.toString()}`,
-    text: [
-      shareLine(tally, lang),
-      trailOf(tally),
-      lang === "en" ? "#枡 #Masu" : "#枡",
-    ].join("\n"),
-    url: `${origin}/games/masu?${query.toString()}`,
-  };
-};
+export const seconds = (hold: number) => (hold / 1000).toFixed(2);
 
 export const heightOf = (glass: Glass) =>
   aboveRim(fillOf(glass.pour, glass.outcome.volume));
@@ -263,10 +162,68 @@ export const signed = (mm: number) => {
   return mm > 0 ? `+${size}` : `−${size}`;
 };
 
-const heroKey = (glass: Glass) =>
-  glass.outcome.spilledAt === null
-    ? glass.outcome.tenths + glass.outcome.volume / 1000
-    : -1;
+export const scoreOf = (glass: Glass) =>
+  spilledOf(glass) ? -1 : glass.outcome.tenths;
 
-export const heroOf = (tally: Tally) =>
-  tally.glasses.toSorted((a, b) => heroKey(b) - heroKey(a))[0];
+const whole = (digits: number) =>
+  z
+    .string()
+    .regex(new RegExp(`^(?:0|[1-9]\\d{0,${digits - 1}})$`, "u"))
+    .transform(Number);
+
+const shared = z.object({
+  h: whole(5),
+  s: whole(10).pipe(z.number().int().max(0xff_ff_ff_ff)),
+});
+
+export const readResult = (
+  params: Record<string, string | string[] | undefined>
+): Result | null => {
+  const parsed = shared.safeParse(params);
+  if (!parsed.success) {
+    return null;
+  }
+  const { h, s } = parsed.data;
+  return h <= longestHold(pourOf(s)) ? { hold: h, seed: s } : null;
+};
+
+export const queryOf = (result: Result) =>
+  new URLSearchParams({
+    h: String(result.hold),
+    s: String(result.seed),
+  }).toString();
+
+const shareLines = (glass: Glass, lang: Lang) => {
+  const rank = rankOf(glass).name[lang];
+  if (spilledOf(glass)) {
+    return lang === "en"
+      ? [`Masu: I spilled it (${rank})`, `${glass.spilled} ml on the table.`]
+      : [`枡で、こぼした（${rank}）`, `テーブルに ${glass.spilled}ml。`];
+  }
+  const tension = percent(glass.outcome.tenths);
+  const mm = signed(heightOf(glass));
+  return lang === "en"
+    ? [
+        `Masu: surface tension ${tension}% (${rank})`,
+        `Stopped at ${mm} mm from the rim.`,
+      ]
+    : [`枡 表面張力 ${tension}%（${rank}）`, `縁から ${mm}mm で止めた。`];
+};
+
+export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
+  const glass = glassOf(result);
+  const query = new URLSearchParams(queryOf(result));
+  query.set("l", lang);
+  return {
+    image: `${origin}/games/masu/og?${query.toString()}`,
+    text: [
+      ...shareLines(glass, lang),
+      lang === "en"
+        ? "Same pour, your turn. Can you fill it without spilling?"
+        : "同じ一杯で勝負。こぼさずに、なみなみ注げる？",
+      spilledOf(glass) ? "💦" : "🍶",
+      lang === "en" ? "#枡 #Masu" : "#枡",
+    ].join("\n"),
+    url: `${origin}/games/masu?${query.toString()}`,
+  };
+};

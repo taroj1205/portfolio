@@ -1,4 +1,5 @@
-import { domeOf } from "./pour";
+import { edgeOf } from "./liquid";
+import { domeOf, mlOf, rateAt, volumeAt } from "./pour";
 import type { Bottle, Pour } from "./pour";
 
 export interface Point {
@@ -18,7 +19,7 @@ export const tumbler = {
 const GLASS_SHARE = 0.6;
 const GLASS_SWELL = 0.03;
 const GLASS_RISE = 2.6;
-const LIFT = 3;
+export const LIFT = 2.2;
 const PITCH = 0.3;
 const DISTANCE = 520;
 const MIDDLE = 28;
@@ -40,6 +41,9 @@ export const paint = {
   innerDark: "#9c7444",
   sake: "#f3dc9a",
   sakeDeep: "#c99a45",
+  amber: "#9a6420",
+  straw: "#fbefc8",
+  wet: "#5e3c1c",
   mirror: "#4a2e12",
   sheen: "#fffbea",
   glass: "#eef6ff",
@@ -66,8 +70,6 @@ export const project = (x: number, y: number, z: number): Point => {
   const scale = DISTANCE / (DISTANCE - depth);
   return { x: x * scale, y: -up * scale };
 };
-
-const crown = (u: number) => Math.max(0, 1 - Math.abs(u) ** 6);
 
 export interface Fill {
   level: number;
@@ -100,21 +102,14 @@ export const fillOf = (pour: Pour, volume: number): Fill => {
 export const aboveRim = (fill: Fill) =>
   fill.dome > 0 ? fill.dome : fill.level - box.height;
 
-export const raised = (fill: Fill) => fill.dome * LIFT;
-
-export const surfaceOf = (fill: Fill) =>
-  fill.glass === null ? fill.level + raised(fill) : fill.glass.level;
-
-export const impactOf = (fill: Fill) => ({
-  x: fill.glass === null ? -6 : -3,
-  z: fill.glass === null ? 4 : 2,
-});
-
 interface Vessel {
   outline: readonly (readonly [number, number])[];
   lip: Point;
+  spout: Point;
   rest: number;
   tip: number;
+  lean: number;
+  content: number;
   drop: number;
 }
 
@@ -141,6 +136,9 @@ export const vessels: Record<Bottle, Vessel> = {
     rest: 1.18,
     drop: 66,
     tip: 1.98,
+    lean: 0.22,
+    content: 1800,
+    spout: { x: 0, y: -1 },
   },
   katakuchi: {
     lip: { x: 76, y: -7 },
@@ -161,6 +159,9 @@ export const vessels: Record<Bottle, Vessel> = {
     rest: 0.1,
     drop: 44,
     tip: 0.86,
+    lean: 0.16,
+    content: 450,
+    spout: { x: 0.73, y: -0.68 },
   },
   tokkuri: {
     lip: { x: 15, y: 0 },
@@ -179,8 +180,52 @@ export const vessels: Record<Bottle, Vessel> = {
     rest: 0.96,
     drop: 54,
     tip: 1.9,
+    lean: 0.26,
+    content: 540,
+    spout: { x: 0, y: -1 },
   },
 };
+
+const RETURN = 0.45;
+const JUDDER = 0.035;
+
+const ease = (t: number) => 1 - (1 - Math.min(1, Math.max(0, t))) ** 3;
+
+const tiltAt = (pour: Pour, hold: number, t: number) => {
+  const tipped = ease(Math.min(t, hold) / pour.lag);
+  return t <= hold ? tipped : tipped * (1 - ease((t - hold) / RETURN));
+};
+
+export const angleAt = (pour: Pour, hold: number, t: number) => {
+  const vessel = vessels[pour.bottle];
+  const tilt = tiltAt(pour, hold, t);
+  const emptied = Math.min(
+    1,
+    mlOf(pour, volumeAt(pour, hold, t)) / vessel.content
+  );
+  const glug = t <= hold ? rateAt(pour, t) / pour.flow - 1 : 0;
+  return (
+    vessel.rest +
+    (vessel.tip - vessel.rest + vessel.lean * emptied) * tilt +
+    JUDDER * glug * tilt
+  );
+};
+
+export const spoutAt = (bottle: Bottle, angle: number): Point => {
+  const { spout } = vessels[bottle];
+  const x = spout.x * Math.cos(angle) - spout.y * Math.sin(angle);
+  const y = spout.x * Math.sin(angle) + spout.y * Math.cos(angle);
+  const size = Math.hypot(x, y) || 1;
+  return { x: -x / size, y: y / size };
+};
+
+export const lipOf = (pour: Pour) =>
+  project(
+    14,
+    (pour.cup === "masu" ? box.height : box.floor + tumbler.height) +
+      vessels[pour.bottle].drop,
+    0
+  );
 
 const TAU = Math.PI * 2;
 const B = box.inner;
@@ -300,13 +345,28 @@ export const sideWalls = [-1, 1].map((x) =>
   ])
 );
 
+const REACH = 6.5;
+
+export const domeHeight = (
+  lift: number,
+  strain: number,
+  x: number,
+  z: number,
+  wave = 0
+) => {
+  const reach = REACH * (1 - 0.4 * strain);
+  const pinned =
+    edgeOf(B - Math.abs(x), reach) * edgeOf(B - Math.abs(z), reach);
+  return (lift * LIFT + wave) * pinned;
+};
+
 export const domeOutline = (
   height: number,
-  wave: (x: number, z: number) => number = () => 0
+  strain = 0,
+  wave: (x: number) => number = () => 0
 ) => {
-  const lift = height * LIFT;
   const surface = (x: number, z: number) =>
-    project(x, H + lift * crown(x / B) * crown(z / B) * (1 + wave(x, z)), z);
+    project(x, H + domeHeight(height, strain, x, z, wave(x)), z);
   const columns = Array.from(
     { length: SAMPLES + 1 },
     (_, i) => -B + (2 * B * i) / SAMPLES
@@ -322,35 +382,27 @@ export const domeOutline = (
     return top;
   });
   const lower = columns.toReversed().map((x) => project(x, H, B));
-  const crest = columns.map((x) => surface(x, B * 0.9));
+  const crest = columns.map((x) => surface(x, B - REACH * 0.9));
   return { crest, lower, outline: [...upper, ...lower], upper };
 };
 
 export type Dome = ReturnType<typeof domeOutline>;
 
-export const overflow = (
-  floor: number,
-  sway: (y: number, i: number) => number
-) =>
-  [0.55, 1.35, 2.25, 2.85].map((angle, i) => {
-    const points: Point[] = [];
-    for (let y = box.floor + tumbler.height; y >= floor; y -= 2) {
-      const r = radiusAt(y) + 0.6;
-      const a = angle + sway(y, i);
-      points.push(project(Math.cos(a) * r, y, Math.sin(a) * r));
-    }
-    return points;
+export const poolOutline = (radius: number, start: number, seed: number) => {
+  const phase = seed % 97;
+  const x = start * 0.4;
+  const z = A + radius * 0.35;
+  return Array.from({ length: 49 }, (_, i) => {
+    const a = (i / 48) * TAU;
+    const r =
+      radius *
+      (1 +
+        0.09 * Math.sin(3 * a + phase) +
+        0.05 * Math.sin(5 * a + phase * 1.7) +
+        0.03 * Math.sin(9 * a + phase * 0.3));
+    return project(x + Math.cos(a) * r * 1.25, 0, z + Math.sin(a) * r);
   });
-
-export const drips = (grow: number) =>
-  [-26, -15, -6, 5, 14, 24].map((x, i) => {
-    const reach = (0.45 + 0.55 * Math.abs(Math.sin(i * 2.3 + 1))) * grow;
-    return {
-      bottom: project(x, H - (H + 1) * reach, A + 0.5),
-      top: project(x, H, A + 0.5),
-      width: 2.2 + (i % 3) * 1.4,
-    };
-  });
+};
 
 export const vesselScale = 0.6;
 

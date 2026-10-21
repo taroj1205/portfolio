@@ -50,9 +50,7 @@ export const Game = ({
   const [save, setSave] = useState<Save | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [stage, setStage] = useState<Stage>("idle");
-  const [turn, setTurn] = useState(0);
   const [pour, setPour] = useState<Pour | null>(null);
-  const [glasses, setGlasses] = useState<Glass[]>([]);
   const [demo, setDemo] = useState<Glass | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [ending, setEnding] = useState<Ending | null>(null);
@@ -71,9 +69,6 @@ export const Game = ({
         ? null
         : startSession(canvas, challenge, {
             demo: setDemo,
-            glass: (index, glass) => {
-              setGlasses((before) => [...before.slice(0, index), glass]);
-            },
             interrupted: () => {
               ids.current += 1;
               setNotice({
@@ -82,13 +77,7 @@ export const Game = ({
               });
             },
             over: setEnding,
-            pour: (index, next) => {
-              setTurn(index);
-              setPour(next);
-              if (index === 0) {
-                setGlasses([]);
-              }
-            },
+            pour: setPour,
             reading: (mm) => {
               const text = signed(mm);
               if (reading.current && reading.current.textContent !== text) {
@@ -126,7 +115,6 @@ export const Game = ({
         best={save?.best ?? 0}
         challenge={challenge}
         demo={demo}
-        glasses={glasses}
         lang={lang}
         muted={settings?.muted ?? false}
         notice={notice}
@@ -144,10 +132,9 @@ export const Game = ({
           }
         }}
         pour={pour}
+        pours={save?.pours ?? 0}
         reading={reading}
-        runs={save?.runs ?? 0}
         stage={stage}
-        turn={turn}
       />
       {ending === null ? null : (
         <ResultSheet

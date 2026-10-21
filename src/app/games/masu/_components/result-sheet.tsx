@@ -9,29 +9,28 @@ import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
 import {
   brimful,
-  heroOf,
+  glassOf,
+  heightOf,
   lineOf,
   percent,
   rankOf,
+  scoreOf,
+  seconds,
   shareOf,
-  tallyOf,
+  signed,
+  spillKind,
+  spilledOf,
 } from "../_lib/result";
-import type { Result, Tally } from "../_lib/result";
-import { fillOf } from "../_lib/scene";
+import type { Glass, Result } from "../_lib/result";
 import type { Ending } from "../_lib/session";
-import { cupSvg } from "./cup-svg";
 
 const GOLD = "#ffd27a";
 const SPILL = "#ff8a6a";
+const WIDE = "@media (min-aspect-ratio: 1/1) and (min-width: 720px)";
 
 const rise = stylex.keyframes({
   "0%": { opacity: 0, transform: "translateY(28px) scale(0.98)" },
   "100%": { opacity: 1, transform: "translateY(0) scale(1)" },
-});
-
-const settle = stylex.keyframes({
-  "0%": { opacity: 0, transform: "translateY(10px) scale(0.92)" },
-  "100%": { opacity: 1, transform: "none" },
 });
 
 const styles = stylex.create({
@@ -40,60 +39,64 @@ const styles = stylex.create({
     animationName: { default: rise, [media.reduce]: "none" },
     animationTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
     borderRadius: 26,
-    bottom: "max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem))",
+    bottom: {
+      default: "max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem))",
+      [WIDE]: "50%",
+    },
     boxShadow: "0 24px 60px rgb(0 0 0 / 0.35)",
     color: ink.text,
     display: "flex",
     flexDirection: "column",
-    gap: "0.85rem",
-    insetInline: "1rem",
-    marginInline: "auto",
-    maxHeight: "min(86vh, 44rem)",
+    gap: "0.7rem",
+    insetInline: {
+      default: "1rem",
+      [WIDE]: "auto max(2rem, calc(env(safe-area-inset-right) + 1rem))",
+    },
+    marginInline: { default: "auto", [WIDE]: 0 },
+    maxHeight: { default: "min(60vh, 30rem)", [WIDE]: "calc(100vh - 2rem)" },
     maxWidth: "26rem",
     outline: "none",
     overflowY: "auto",
     overscrollBehavior: "contain",
-    padding: "1.25rem",
+    paddingBlock: "1.1rem 0.6rem",
+    paddingInline: "1.25rem",
     position: "fixed",
+    translate: { default: null, [WIDE]: "0 50%" },
+    width: { default: null, [WIDE]: "min(26rem, 40vw)" },
   },
   head: {
-    alignItems: "center",
+    alignItems: "flex-end",
+    columnGap: "1rem",
     display: "flex",
-    gap: "0.9rem",
-  },
-  art: {
-    animationDuration: "900ms",
-    animationName: { default: settle, [media.reduce]: "none" },
-    animationTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
-    flexShrink: 0,
-    height: "6.5rem",
-    width: "6.5rem",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    rowGap: "0.4rem",
   },
   titles: {
     display: "flex",
     flexDirection: "column",
-    gap: "0.25rem",
+    gap: "0.3rem",
     minWidth: 0,
   },
-  badges: {
+  label: {
+    alignItems: "center",
+    color: ink.soft,
     display: "flex",
-    flexWrap: "wrap",
-    gap: "0.35rem",
+    fontSize: "0.75rem",
+    gap: "0.5rem",
+    letterSpacing: "calc(0.14em * var(--track, 1))",
+    margin: 0,
+    whiteSpace: "nowrap",
   },
   badge: {
     backgroundImage: "linear-gradient(180deg, #fff1b8, #ffd27a 50%, #d9962a)",
     borderRadius: 999,
     color: "#2a1d05",
-    fontSize: "0.68rem",
+    fontSize: "0.66rem",
     fontWeight: 800,
     letterSpacing: "calc(0.1em * var(--track, 1))",
-    paddingBlock: "0.2rem",
-    paddingInline: "0.6rem",
-  },
-  label: {
-    color: ink.soft,
-    fontSize: "0.75rem",
-    letterSpacing: "calc(0.14em * var(--track, 1))",
+    paddingBlock: "0.15rem",
+    paddingInline: "0.55rem",
   },
   score: {
     alignItems: "baseline",
@@ -105,6 +108,15 @@ const styles = stylex.create({
     lineHeight: 1,
     margin: 0,
   },
+  gold: {
+    color: GOLD,
+  },
+  spill: {
+    color: SPILL,
+    fontSize: "clamp(2.1rem, 10vw, 2.8rem)",
+    letterSpacing: "calc(0.08em * var(--track, 1))",
+    whiteSpace: "nowrap",
+  },
   unit: {
     fontSize: "0.4em",
     marginInlineStart: "0.15em",
@@ -112,11 +124,13 @@ const styles = stylex.create({
   rank: {
     alignItems: "center",
     display: "flex",
+    flexShrink: 0,
     fontFamily: font.mincho,
-    fontSize: "1.15rem",
+    fontSize: "1.05rem",
     fontWeight: 700,
-    gap: "0.5rem",
+    gap: "0.45rem",
     margin: 0,
+    paddingBottom: "0.3rem",
   },
   seal: {
     alignItems: "center",
@@ -132,60 +146,29 @@ const styles = stylex.create({
   },
   line: {
     fontFamily: font.mincho,
-    fontSize: "1.02rem",
+    fontSize: "1rem",
     fontWeight: 700,
     lineHeight: 1.6,
     margin: 0,
-    textAlign: "center",
     textWrap: "balance",
-  },
-  pours: {
-    display: "grid",
-    gap: "0.4rem",
-    gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-    listStyle: "none",
-    margin: 0,
-    padding: 0,
-  },
-  pour: {
-    alignItems: "center",
-    backgroundColor: "rgb(255 255 255 / 0.06)",
-    borderRadius: 12,
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.1rem",
-    paddingBlock: "0.45rem",
-  },
-  pourIndex: {
-    color: ink.soft,
-    fontSize: "0.62rem",
-  },
-  pourValue: {
-    fontFamily: font.mincho,
-    fontSize: "0.95rem",
-    fontVariantNumeric: "tabular-nums",
-    fontWeight: 700,
-  },
-  gold: {
-    color: GOLD,
-  },
-  spill: {
-    color: SPILL,
-    fontSize: "0.78rem",
   },
   notes: {
     color: ink.soft,
     display: "flex",
     flexDirection: "column",
-    fontSize: "0.85rem",
-    gap: "0.25rem",
+    fontSize: "0.82rem",
+    fontVariantNumeric: "tabular-nums",
+    gap: "0.2rem",
     margin: 0,
-    textAlign: "center",
-    textWrap: "balance",
   },
   won: {
     color: GOLD,
     fontWeight: 700,
+  },
+  actions: {
+    display: "grid",
+    gap: "0.6rem",
+    gridTemplateColumns: "1.4fr 1fr",
   },
   action: {
     alignItems: "center",
@@ -194,12 +177,12 @@ const styles = stylex.create({
     cursor: "pointer",
     display: "flex",
     fontFamily: font.mincho,
-    fontSize: "1.05rem",
+    fontSize: "1rem",
     fontWeight: 700,
     gap: "0.5rem",
     justifyContent: "center",
-    letterSpacing: "calc(0.12em * var(--track, 1))",
-    minHeight: "3.2rem",
+    letterSpacing: "calc(0.1em * var(--track, 1))",
+    minHeight: "3.1rem",
     outlineColor: GOLD,
     outlineOffset: 3,
     transform: { default: null, ":active": "scale(0.97)" },
@@ -222,20 +205,26 @@ const styles = stylex.create({
 
 const Versus = ({
   lang,
-  tally,
+  poured,
   challenge,
 }: {
   lang: Lang;
-  tally: Tally;
+  poured: Glass;
   challenge: Result;
 }) => {
   const words = copy[lang].challenge;
-  const theirs = tallyOf(challenge).average;
-  const gap = percent(Math.abs(tally.average - theirs));
-  if (tally.average === theirs) {
-    return <span {...stylex.props(styles.won)}>{words.tied}</span>;
+  const theirs = glassOf(challenge);
+  const mine = scoreOf(poured);
+  const target = scoreOf(theirs);
+  const gap = percent(Math.abs(Math.max(0, mine) - Math.max(0, target)));
+  if (mine === target) {
+    return (
+      <span {...stylex.props(styles.won)}>
+        {spilledOf(theirs) ? words.bothSpilled : words.tied}
+      </span>
+    );
   }
-  return tally.average > theirs ? (
+  return mine > target ? (
     <span {...stylex.props(styles.won)}>{words.won(gap)}</span>
   ) : (
     <span>{words.lost(gap)}</span>
@@ -255,10 +244,10 @@ export const ResultSheet = ({
   challenge,
   onAgain,
 }: ResultSheetProps) => {
-  const { result, record, tally } = ending;
+  const { result, record, glass: poured } = ending;
   const words = copy[lang];
-  const rank = rankOf(tally.average);
-  const hero = heroOf(tally);
+  const rank = rankOf(poured);
+  const spilled = spilledOf(poured);
   const again = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     again.current?.focus({ preventScroll: true });
@@ -269,92 +258,60 @@ export const ResultSheet = ({
       {...stylex.props(glass.surface, styles.sheet)}
     >
       <div {...stylex.props(styles.head)}>
-        <svg
-          aria-hidden="true"
-          viewBox="-62 -66 124 124"
-          {...stylex.props(styles.art)}
-        >
-          {cupSvg({
-            fill: fillOf(hero.pour, hero.outcome.volume),
-            id: "masu-hero",
-            spilled: hero.outcome.spilledAt !== null,
-          })}
-        </svg>
         <div {...stylex.props(styles.titles)}>
-          {record || tally.spills === 0 ? (
-            <div {...stylex.props(styles.badges)}>
-              {record ? (
-                <span {...stylex.props(styles.badge)}>
-                  {words.result.record}
-                </span>
-              ) : null}
-              {tally.spills === 0 ? (
-                <span {...stylex.props(styles.badge)}>
-                  {words.result.clean}
-                </span>
-              ) : null}
-            </div>
-          ) : null}
           <h2 id="masu-result" {...stylex.props(styles.label)}>
-            {words.result.average}
+            {words.tension}
+            {record ? (
+              <span {...stylex.props(styles.badge)}>{words.result.record}</span>
+            ) : null}
           </h2>
-          <p {...stylex.props(styles.score)}>
-            {percent(tally.average)}
-            <span {...stylex.props(styles.unit)}>%</span>
-          </p>
-          <p {...stylex.props(styles.rank)}>
-            <span aria-hidden="true" {...stylex.props(styles.seal)}>
-              {rank.seal}
-            </span>
-            {rank.name[lang]}
-          </p>
+          {spilled ? (
+            <p {...stylex.props(styles.score, styles.spill)}>{words.spilled}</p>
+          ) : (
+            <p {...stylex.props(styles.score, brimful(poured) && styles.gold)}>
+              {percent(poured.outcome.tenths)}
+              <span {...stylex.props(styles.unit)}>%</span>
+            </p>
+          )}
         </div>
+        <p {...stylex.props(styles.rank)}>
+          <span aria-hidden="true" {...stylex.props(styles.seal)}>
+            {rank.seal}
+          </span>
+          {rank.name[lang]}
+        </p>
       </div>
-      <p {...stylex.props(styles.line)}>{lineOf(tally, lang)}</p>
-      <ol aria-label={words.pours} {...stylex.props(styles.pours)}>
-        {tally.glasses.map((each, index) => {
-          const spilled = each.outcome.spilledAt !== null;
-          return (
-            <li
-              key={`${index}-${each.outcome.hold}`}
-              {...stylex.props(styles.pour)}
-            >
-              <span {...stylex.props(styles.pourIndex)}>
-                {words.mark(index)}
-              </span>
-              <span
-                {...stylex.props(
-                  styles.pourValue,
-                  spilled && styles.spill,
-                  brimful(each.outcome) && styles.gold
-                )}
-              >
-                {spilled ? words.spill : `${percent(each.outcome.tenths)}%`}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
+      <p {...stylex.props(styles.line)}>{lineOf(poured, lang)}</p>
       <p {...stylex.props(styles.notes)}>
+        <span>
+          {spilled
+            ? words.result.lost(poured.spilled)
+            : words.result.stopped(signed(heightOf(poured)), poured.kept)}
+          {" · "}
+          {spilled && spillKind(poured.outcome) === "held"
+            ? words.result.overflowed(seconds(result.hold))
+            : words.result.released(seconds(result.hold))}
+        </span>
         {challenge === null ? null : (
-          <Versus challenge={challenge} lang={lang} tally={tally} />
+          <Versus challenge={challenge} lang={lang} poured={poured} />
         )}
-        <span>{words.result.poured(tally.kept, tally.spilled)}</span>
       </p>
-      <button
-        onClick={onAgain}
-        ref={again}
-        type="button"
-        {...stylex.props(styles.action, styles.primary)}
-      >
-        {words.result.again}
-      </button>
-      <ShareButton
-        fileName="masu.png"
-        labels={words.result}
-        share={shareOf(result, window.location.origin, lang)}
-        {...stylex.props(styles.action, styles.share)}
-      />
+      <div {...stylex.props(styles.actions)}>
+        <button
+          onClick={onAgain}
+          ref={again}
+          type="button"
+          {...stylex.props(styles.action, styles.primary)}
+        >
+          {words.result.again}
+        </button>
+        <ShareButton
+          fileName="masu.png"
+          labels={words.result}
+          share={shareOf(result, window.location.origin, lang)}
+          {...stylex.props(styles.action, styles.share)}
+        />
+      </div>
       <SheetLinks labels={words.result} lang={lang} />
     </section>
   );
