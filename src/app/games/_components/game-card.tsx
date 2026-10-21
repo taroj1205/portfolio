@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { media } from "../../../styles/tokens.stylex";
-import type { Text } from "../_lib/i18n";
+import type { Lang, Text } from "../_lib/i18n";
 
 const GOLD = "#ffd27a";
 
@@ -28,24 +28,13 @@ const styles = stylex.create({
   },
   blurb: {
     color: "rgb(255 255 255 / 0.86)",
-    display: "flex",
-    flexDirection: "column",
     fontSize: {
-      default: "0.98rem",
-      [media.stack]: "0.86rem",
-      [media.narrow]: "0.76rem",
+      default: "1.02rem",
+      [media.stack]: "0.9rem",
+      [media.narrow]: "0.8rem",
     },
-    gap: { default: "0.35rem", [media.stack]: "0.15rem" },
-    lineHeight: { default: 1.7, [media.stack]: 1.55 },
+    lineHeight: { default: 1.7, [media.stack]: 1.6 },
     margin: 0,
-  },
-  blurbEn: {
-    color: "rgb(255 255 255 / 0.66)",
-    fontSize: {
-      default: "0.9rem",
-      [media.stack]: "0.78rem",
-      [media.narrow]: "0.7rem",
-    },
   },
   body: {
     display: "flex",
@@ -113,11 +102,6 @@ const styles = stylex.create({
     minHeight: "3rem",
     paddingInline: "1.5rem",
   },
-  ctaEn: {
-    fontSize: "0.9rem",
-    letterSpacing: "0.04em",
-    opacity: 0.75,
-  },
   tag: {
     backgroundColor: "rgb(255 255 255 / 0.07)",
     borderColor: "rgb(255 255 255 / 0.14)",
@@ -128,10 +112,6 @@ const styles = stylex.create({
     fontSize: { default: "0.8rem", [media.stack]: "0.74rem" },
     paddingBlock: { default: "0.3rem", [media.stack]: "0.2rem" },
     paddingInline: { default: "0.8rem", [media.stack]: "0.65rem" },
-  },
-  tagEn: {
-    color: "rgb(255 255 255 / 0.62)",
-    marginInlineStart: "0.45em",
   },
   tags: {
     display: { default: "flex", [media.narrow]: "none" },
@@ -153,18 +133,11 @@ const styles = stylex.create({
     margin: 0,
     textShadow: "0 2px 24px rgb(255 190 120 / 0.25)",
   },
-  titleEn: {
-    color: GOLD,
-    display: "block",
-    fontFamily: "var(--font-mincho), serif",
-    fontSize: { default: "1rem", [media.stack]: "0.82rem" },
-    fontWeight: 500,
-    letterSpacing: { default: "0.14em", [media.stack]: "0.1em" },
-    marginBlockStart: { default: "0.6rem", [media.stack]: "0.2rem" },
-  },
 });
 
-interface GameCardProps {
+const PLAY: Text = { en: "Play", ja: "あそぶ" };
+
+export interface Game {
   href: string;
   art: ReactNode;
   title: Text;
@@ -172,39 +145,30 @@ interface GameCardProps {
   tags: Text[];
 }
 
-export const GameCard = ({ href, art, title, blurb, tags }: GameCardProps) => (
+export const GameCard = ({
+  href,
+  art,
+  title,
+  blurb,
+  tags,
+  lang,
+}: Game & { lang: Lang }) => (
   <Link href={href} prefetch={false} {...stylex.props(styles.card)}>
     <div {...stylex.props(styles.art)}>
       <div {...stylex.props(styles.artInner)}>{art}</div>
     </div>
     <div {...stylex.props(styles.body)}>
-      <h2 {...stylex.props(styles.title)}>
-        {title.ja}
-        <span lang="en" {...stylex.props(styles.titleEn)}>
-          {title.en}
-        </span>
-      </h2>
-      <p {...stylex.props(styles.blurb)}>
-        <span>{blurb.ja}</span>
-        <span lang="en" {...stylex.props(styles.blurbEn)}>
-          {blurb.en}
-        </span>
-      </p>
+      <h2 {...stylex.props(styles.title)}>{title[lang]}</h2>
+      <p {...stylex.props(styles.blurb)}>{blurb[lang]}</p>
       <ul {...stylex.props(styles.tags)}>
         {tags.map((tag) => (
           <li key={tag.en} {...stylex.props(styles.tag)}>
-            {tag.ja}
-            <span lang="en" {...stylex.props(styles.tagEn)}>
-              {tag.en}
-            </span>
+            {tag[lang]}
           </li>
         ))}
       </ul>
       <span {...stylex.props(styles.cta)}>
-        あそぶ
-        <span lang="en" {...stylex.props(styles.ctaEn)}>
-          Play
-        </span>
+        {PLAY[lang]}
         <span aria-hidden="true">→</span>
       </span>
     </div>
