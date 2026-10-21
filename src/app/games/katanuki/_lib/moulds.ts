@@ -6,12 +6,12 @@ export interface Point {
 }
 
 export const mouldIds = [
+  "umbrella",
   "circle",
   "triangle",
   "star",
   "sakura",
   "fish",
-  "umbrella",
 ] as const;
 
 export type MouldId = (typeof mouldIds)[number];

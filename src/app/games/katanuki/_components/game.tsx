@@ -105,7 +105,7 @@ const paintMeter = (
 };
 
 const firstMould = (challenge: Result | null): MouldId =>
-  challenge?.mould ?? "circle";
+  challenge?.mould ?? "umbrella";
 
 export const Game = ({
   challenge,
