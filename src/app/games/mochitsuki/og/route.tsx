@@ -93,8 +93,8 @@ const Art = ({ result }: { result: Result | null }) => (
       ],
       width: W,
     })}
-    <ellipse cx={890} cy={520} fill="url(#og-fire)" rx={360} ry={230} />
-    <g transform="translate(610 76) scale(560)">
+    <ellipse cx={920} cy={520} fill="url(#og-fire)" rx={360} ry={230} />
+    <g transform="translate(640 76) scale(560)">
       {scene({
         hurt: result?.ending === "hand",
         id: "og-scene",
