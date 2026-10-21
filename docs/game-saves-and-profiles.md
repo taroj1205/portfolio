@@ -16,7 +16,7 @@ There are no accounts. Each game keeps its progress in `localStorage`, and a pro
 - Lifetime totals of what the game is about (merges, distance, skips). Add to them, never overwrite.
 - The highest milestone and collection progress, such as 星合's `top` or mizukiri's `endings` and `grades` counts.
 - Rare achievements as a count or a flag (Milky Ways, perfect throws).
-- When and how long someone played: `firstPlayed` and `lastPlayed` (epoch ms) and total seconds played. Neither existing game records these yet, and they can't be filled in later.
+- When and how long someone played: `firstPlayed` and `lastPlayed` (epoch ms) and total seconds played. They can't be filled in later, so record them from the first release, as `settle` does in `src/app/games/enso/_lib/save.ts`.
 
 ## Stats card
 
