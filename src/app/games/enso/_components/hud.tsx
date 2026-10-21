@@ -26,16 +26,16 @@ const nudge = stylex.keyframes({
 const styles = stylex.create({
   top: {
     alignItems: "center",
-    display: "grid",
+    display: "flex",
+    flexWrap: "wrap",
     gap: "0.5rem",
-    gridTemplateColumns: "auto 1fr auto",
+    justifyContent: "space-between",
     position: "relative",
   },
   brand: {
     alignItems: "center",
     display: "flex",
     gap: "0.7rem",
-    justifySelf: "start",
   },
   title: {
     display: "flex",
@@ -59,9 +59,9 @@ const styles = stylex.create({
     alignItems: "baseline",
     display: "flex",
     gap: "0.6rem",
-    gridColumn: "1 / -1",
-    gridRow: 2,
+    flexBasis: "100%",
     justifyContent: "center",
+    order: 1,
     margin: 0,
     textAlign: "center",
     textShadow: shade.small,
@@ -81,8 +81,7 @@ const styles = stylex.create({
   corner: {
     display: "flex",
     gap: "0.45rem",
-    gridColumn: 3,
-    justifySelf: "end",
+    marginInlineStart: "auto",
   },
   button: {
     alignItems: "center",

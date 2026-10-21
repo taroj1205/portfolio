@@ -31,6 +31,7 @@ const styles = stylex.create({
   top: {
     alignItems: "flex-start",
     display: "flex",
+    flexWrap: "wrap",
     gap: "0.5rem",
     justifyContent: "space-between",
   },
@@ -60,6 +61,7 @@ const styles = stylex.create({
   corner: {
     display: "flex",
     gap: "0.45rem",
+    marginInlineStart: "auto",
   },
   button: {
     alignItems: "center",

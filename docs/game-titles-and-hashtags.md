@@ -11,7 +11,7 @@ A game's title and its hashtags are its identity on X, so neither is the bare wo
 
 ## Hashtags
 
-- Share text ends with `#<日本語タイトル>` in Japanese, and that plus `#<EnglishTitleInCamelCase>` in English (`#鞘走り #Sayabashiri`, `#無音の十秒 #TenSilentSeconds`).
+- Share text ends with `#<日本語タイトル>` in Japanese, and that plus `#<EnglishTitleInCamelCase>` in English (`#鞘走り #Sayabashiri`, `#無音の十秒 #TenSilentSeconds`). Drop a leading article and a possessive when keeping them makes the tag clumsy (`#EmberLife` for An Ember's Life).
 - If the title is still a common phrase, make the tag more specific, as 餅つきマスター uses `#ぺったんマスター #PettanMaster`. When a Japanese title is only a bare word, add `ゲーム` (`#星合ゲーム`).
 - Every share text for the game carries the same tags: the result, the stats card and any helper such as 星合's `hashtags` in `_lib/result.ts`. No two games share a tag.
 - Nobody owns a hashtag and X can't be searched from a script. Before a new tag ships, search it on X's Latest tab and swap it if the results are mostly unrelated posts. Say in the PR that you did or did not check.
