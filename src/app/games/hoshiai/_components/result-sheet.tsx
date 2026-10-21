@@ -156,7 +156,8 @@ const styles = stylex.create({
   },
   links: {
     display: "flex",
-    gap: "1.25rem",
+    flexWrap: "wrap",
+    gap: "0 1.25rem",
     justifyContent: "center",
   },
   link: {
@@ -240,7 +241,6 @@ export const ResultSheet = ({ lang, ending, onAgain }: ResultSheetProps) => {
         share={shareOf(result, window.location.origin, lang)}
         {...stylex.props(styles.action, styles.share)}
       />
-      <StarLink>{words.result.star}</StarLink>
       <div {...stylex.props(styles.links)}>
         <Link href="/games" {...stylex.props(styles.link)}>
           {words.result.games}
@@ -248,6 +248,7 @@ export const ResultSheet = ({ lang, ending, onAgain }: ResultSheetProps) => {
         <Link href={`/${lang}`} {...stylex.props(styles.link)}>
           {words.result.maker}
         </Link>
+        <StarLink>{words.result.star}</StarLink>
       </div>
     </section>
   );

@@ -312,8 +312,13 @@ const styles = stylex.create({
     backgroundColor: "#ffd27a",
     color: "#1c1406",
   },
+  links: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "0 1.25rem",
+    justifyContent: "center",
+  },
   maker: {
-    alignSelf: "center",
     color: ink.soft,
     fontSize: "0.75rem",
     letterSpacing: "calc(0.12em * var(--track, 1))",
@@ -470,10 +475,12 @@ export const ResultSheet = ({
         </div>
       ) : null}
 
-      <StarLink>{copy.result.star}</StarLink>
-      <Link href={`/${lang}`} {...stylex.props(styles.maker)}>
-        {copy.result.maker}
-      </Link>
+      <div {...stylex.props(styles.links)}>
+        <Link href={`/${lang}`} {...stylex.props(styles.maker)}>
+          {copy.result.maker}
+        </Link>
+        <StarLink>{copy.result.star}</StarLink>
+      </div>
     </section>
   );
 };

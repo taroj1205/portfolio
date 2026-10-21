@@ -165,7 +165,6 @@ const styles = stylex.create({
   },
   starEn: {
     color: "rgb(255 255 255 / 0.66)",
-    fontWeight: 600,
   },
   title: {
     fontFamily: "var(--font-mincho), serif",
@@ -203,7 +202,7 @@ const Page = () => (
           ))}
         </ul>
         <StarLink>
-          <span>GitHubでスターをつける</span>
+          <span>GitHubでスター</span>
           <span lang="en" {...stylex.props(styles.starEn)}>
             Star on GitHub
           </span>

@@ -119,7 +119,7 @@ export const copy: Record<Lang, Copy> = {
       share: "シェア",
       shareImage: "画像でシェア",
       shareLink: "リンクをシェア",
-      star: "GitHubでスターをつける",
+      star: "GitHubでスター",
       stats: (merges, chain) => `合体 ${merges}回 · 最大 ${chain}連鎖`,
     },
     unmute: "音を出す",

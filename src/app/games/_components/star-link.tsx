@@ -10,35 +10,26 @@ const GOLD = "#ffd27a";
 const styles = stylex.create({
   link: {
     alignItems: "center",
-    alignSelf: "center",
-    backdropFilter: "blur(14px)",
-    backgroundColor: {
-      default: "rgb(40 32 22 / 0.62)",
-      [media.hover]: { default: null, ":hover": "rgb(70 54 28 / 0.7)" },
+    alignSelf: "flex-start",
+    borderRadius: 6,
+    color: {
+      default: ink.soft,
+      [media.hover]: { default: null, ":hover": ink.text },
     },
-    borderColor: {
-      default: "rgb(255 210 122 / 0.4)",
-      [media.hover]: { default: null, ":hover": "rgb(255 210 122 / 0.75)" },
-    },
-    borderRadius: 999,
-    borderStyle: "solid",
-    borderWidth: 1,
-    color: ink.text,
     display: "inline-flex",
-    fontSize: "0.82rem",
-    fontWeight: 700,
-    gap: "0.5rem",
-    letterSpacing: "0.04em",
-    minHeight: "2.5rem",
+    fontSize: "0.78rem",
+    gap: "0.4rem",
+    letterSpacing: "0.06em",
     outlineColor: GOLD,
     outlineOffset: 3,
-    paddingInline: "1rem",
-    textAlign: "center",
-    textDecoration: "none",
-    transform: { default: null, ":active": "scale(0.97)" },
+    paddingBlock: "0.35rem",
+    textDecoration: {
+      default: "none",
+      [media.hover]: { default: null, ":hover": "underline" },
+    },
+    textUnderlineOffset: "0.2em",
     transitionDuration: "160ms",
-    transitionProperty: "transform, background-color, border-color",
-    WebkitBackdropFilter: "blur(14px)",
+    transitionProperty: "color",
   },
   star: {
     color: GOLD,
@@ -48,7 +39,7 @@ const styles = stylex.create({
     alignItems: "center",
     display: "flex",
     flexWrap: "wrap",
-    gap: "0.15rem 0.5rem",
+    gap: "0 0.5rem",
     justifyContent: "center",
   },
 });
@@ -56,9 +47,9 @@ const styles = stylex.create({
 const StarMark = () => (
   <svg
     aria-hidden="true"
-    height="16"
+    height="13"
     viewBox="0 0 24 24"
-    width="16"
+    width="13"
     {...stylex.props(styles.star)}
   >
     <path
@@ -68,7 +59,7 @@ const StarMark = () => (
       stroke="currentColor"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth="1.8"
+      strokeWidth="2"
     />
   </svg>
 );
