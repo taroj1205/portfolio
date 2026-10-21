@@ -16,7 +16,7 @@ import { glassOf } from "./result";
 import type { Glass, Result } from "./result";
 import { loadSave, settle, storeSave } from "./save";
 import type { Save } from "./save";
-import { aboveRim, fillOf } from "./scene";
+import { AWAY, aboveRim, fillOf } from "./scene";
 import { createSound } from "./sound";
 
 export type Stage = "idle" | "ready" | "pouring" | "result";
@@ -82,8 +82,8 @@ const demoOf = () => {
 
 const shownAt = (outcome: Outcome) =>
   outcome.spilledAt === null
-    ? outcome.settledAt
-    : Math.max(outcome.settledAt, outcome.spilledAt + SPILL_PAUSE);
+    ? outcome.settledAt + AWAY
+    : Math.max(outcome.settledAt + AWAY, outcome.spilledAt + SPILL_PAUSE);
 
 const frameOf = (
   pour: Pour,
@@ -103,9 +103,9 @@ export const startSession = (
   on: Listeners
 ) => {
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const render = createRenderer(canvas, calm);
-  const sound = createSound();
   const demo = demoOf();
+  const render = createRenderer(canvas, calm, demo.pour.bottle);
+  const sound = createSound();
   let save = loadSave();
   let settings = loadSettings();
   let stage: Stage = "idle";

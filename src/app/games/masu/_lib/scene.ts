@@ -1,5 +1,5 @@
 import { edgeOf } from "./liquid";
-import { domeOf, mlOf, rateAt, volumeAt } from "./pour";
+import { bottles, domeOf, mlOf, rateAt, volumeAt } from "./pour";
 import type { Bottle, Pour } from "./pour";
 
 export interface Point {
@@ -23,6 +23,12 @@ export const LIFT = 2.2;
 const PITCH = 0.3;
 const DISTANCE = 520;
 const MIDDLE = 28;
+
+export const camera = {
+  x: 0,
+  y: MIDDLE + DISTANCE * Math.sin(PITCH),
+  z: DISTANCE * Math.cos(PITCH),
+} as const;
 
 export const paint = {
   night: "#070403",
@@ -135,7 +141,7 @@ export const vessels: Record<Bottle, Vessel> = {
     ]),
     rest: 1.18,
     drop: 66,
-    tip: 1.98,
+    tip: 1.8,
     lean: 0.22,
     content: 1800,
     spout: { x: 0, y: -1 },
@@ -179,21 +185,31 @@ export const vessels: Record<Bottle, Vessel> = {
     ]),
     rest: 0.96,
     drop: 54,
-    tip: 1.9,
+    tip: 1.8,
     lean: 0.26,
     content: 540,
     spout: { x: 0, y: -1 },
   },
 };
 
+export const vesselScale = 0.6;
+
 const RETURN = 0.45;
 const JUDDER = 0.035;
+export const AWAY = 0.5;
 
-const ease = (t: number) => 1 - (1 - Math.min(1, Math.max(0, t))) ** 3;
+const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
+
+const ease = (t: number) => 1 - (1 - clamp01(t)) ** 3;
 
 const tiltAt = (pour: Pour, hold: number, t: number) => {
   const tipped = ease(Math.min(t, hold) / pour.lag);
   return t <= hold ? tipped : tipped * (1 - ease((t - hold) / RETURN));
+};
+
+export const awayAt = (pour: Pour, hold: number, t: number) => {
+  const p = clamp01((t - hold - pour.trickle) / AWAY);
+  return p * p * (3 - 2 * p);
 };
 
 export const angleAt = (pour: Pour, hold: number, t: number) => {
@@ -219,13 +235,171 @@ export const spoutAt = (bottle: Bottle, angle: number): Point => {
   return { x: -x / size, y: y / size };
 };
 
-export const lipOf = (pour: Pour) =>
+export const lipOf = (pour: Pick<Pour, "bottle" | "cup">) =>
   project(
     14,
     (pour.cup === "masu" ? box.height : box.floor + tumbler.height) +
       vessels[pour.bottle].drop,
     0
   );
+
+export const poseOf = (angle: number, size: number) => {
+  const s = vesselScale * size;
+  return {
+    a: -s * Math.cos(angle),
+    b: s * Math.sin(angle),
+    c: s * Math.sin(angle),
+    d: s * Math.cos(angle),
+  };
+};
+
+export interface Layout {
+  w: number;
+  h: number;
+  scale: number;
+  cx: number;
+  cy: number;
+  size: Record<Bottle, number>;
+}
+
+export const keepOut = {
+  idle: { height: 121, width: 125 },
+  playing: { height: 68, width: 68 },
+} as const;
+
+type KeepOut = (typeof keepOut)[keyof typeof keepOut];
+const HIGHEST = 47;
+const LOWEST = 56;
+const SMALLEST = 50;
+const SWEEP = 24;
+const MOST_POURED = 300;
+
+const insidePolygon = (polygon: readonly Point[], at: Point) => {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i, i += 1) {
+    const p = polygon[i] ?? at;
+    const q = polygon[j] ?? at;
+    if (
+      p.y > at.y !== q.y > at.y &&
+      at.x < ((q.x - p.x) * (at.y - p.y)) / (q.y - p.y) + p.x
+    ) {
+      inside = !inside;
+    }
+  }
+  return inside;
+};
+
+const crossesBox = (p: Point, q: Point, from: Point, to: Point) => {
+  let low = 0;
+  let high = 1;
+  const dx = q.x - p.x;
+  const dy = q.y - p.y;
+  for (const [step, gap] of [
+    [-dx, p.x - from.x],
+    [dx, to.x - p.x],
+    [-dy, p.y - from.y],
+    [dy, to.y - p.y],
+  ] as const) {
+    if (step === 0) {
+      if (gap < 0) {
+        return false;
+      }
+    } else if (step < 0) {
+      low = Math.max(low, gap / step);
+    } else {
+      high = Math.min(high, gap / step);
+    }
+  }
+  return low <= high;
+};
+
+export const frontOf = (points: readonly Point[]) => {
+  let front = points[0] ?? { x: 0, y: 0 };
+  for (const point of points) {
+    if (point.y > front.y) {
+      front = point;
+    }
+  }
+  return front;
+};
+
+export const outlineAt = (
+  bottle: Bottle,
+  angle: number,
+  size: number,
+  anchor: Point
+): Point[] => {
+  const vessel = vessels[bottle];
+  const { a, b, c, d } = poseOf(angle, size);
+  return vessel.outline.map(([x, y]) => {
+    const u = x - vessel.lip.x;
+    const v = y - vessel.lip.y;
+    return { x: anchor.x + a * u + c * v, y: anchor.y + b * u + d * v };
+  });
+};
+
+export const sweepOf = (bottle: Bottle) => {
+  const { rest, tip, lean, content } = vessels[bottle];
+  const most = tip + lean * Math.min(1, MOST_POURED / content) + JUDDER;
+  return Array.from(
+    { length: SWEEP + 1 },
+    (_, i) => rest + ((most - rest) * i) / SWEEP
+  );
+};
+
+const clearOf = (
+  bottle: Bottle,
+  size: number,
+  at: Pick<Layout, "w" | "cx" | "cy" | "scale">,
+  zone: KeepOut
+) => {
+  const from = { x: at.w - zone.width, y: 0 };
+  const to = { x: at.w, y: zone.height };
+  const lip = lipOf({ bottle, cup: "masu" });
+  const anchor = { x: at.cx + lip.x * at.scale, y: at.cy + lip.y * at.scale };
+  return sweepOf(bottle).every((angle) => {
+    const outline = outlineAt(bottle, angle, size * at.scale, anchor);
+    return (
+      !insidePolygon(outline, { x: at.w - 1, y: 1 }) &&
+      outline.every(
+        (p, i) => !crossesBox(p, outline[i + 1] ?? outline[0] ?? p, from, to)
+      )
+    );
+  });
+};
+
+export const layoutOf = (w: number, h: number, demo: Bottle): Layout => {
+  const scale = Math.min((w * 0.62) / 94, (h * 0.36) / 96);
+  const at = (share: number) => ({ cx: w / 2, cy: h * share, scale, w });
+  const keepOutOf = (bottle: Bottle) =>
+    bottle === demo ? keepOut.idle : keepOut.playing;
+  const lowest = bottles.map((bottle) => {
+    for (let share = HIGHEST; share < LOWEST; share += 1) {
+      if (clearOf(bottle, 1, at(share / 100), keepOutOf(bottle))) {
+        return share / 100;
+      }
+    }
+    return LOWEST / 100;
+  });
+  const share = Math.max(...lowest);
+  const fits = (bottle: Bottle) => {
+    for (let size = 100; size > SMALLEST; size -= 2) {
+      if (clearOf(bottle, size / 100, at(share), keepOutOf(bottle))) {
+        return size / 100;
+      }
+    }
+    return SMALLEST / 100;
+  };
+  return {
+    ...at(share),
+    h,
+    size: {
+      isshobin: fits("isshobin"),
+      katakuchi: fits("katakuchi"),
+      tokkuri: fits("tokkuri"),
+    },
+  };
+};
 
 const TAU = Math.PI * 2;
 const B = box.inner;
@@ -346,6 +520,11 @@ export const sideWalls = [-1, 1].map((x) =>
 );
 
 const REACH = 6.5;
+const CREST = REACH * 0.9;
+
+export const shoulderOf = (strain: number) => REACH * (1 - 0.4 * strain);
+
+export const crestOf = (strain: number) => edgeOf(CREST, shoulderOf(strain));
 
 export const domeHeight = (
   lift: number,
@@ -354,7 +533,7 @@ export const domeHeight = (
   z: number,
   wave = 0
 ) => {
-  const reach = REACH * (1 - 0.4 * strain);
+  const reach = shoulderOf(strain);
   const pinned =
     edgeOf(B - Math.abs(x), reach) * edgeOf(B - Math.abs(z), reach);
   return (lift * LIFT + wave) * pinned;
@@ -363,10 +542,10 @@ export const domeHeight = (
 export const domeOutline = (
   height: number,
   strain = 0,
-  wave: (x: number) => number = () => 0
+  wave: (x: number, z: number) => number = () => 0
 ) => {
   const surface = (x: number, z: number) =>
-    project(x, H + domeHeight(height, strain, x, z, wave(x)), z);
+    project(x, H + domeHeight(height, strain, x, z, wave(x, z)), z);
   const columns = Array.from(
     { length: SAMPLES + 1 },
     (_, i) => -B + (2 * B * i) / SAMPLES
@@ -382,29 +561,11 @@ export const domeOutline = (
     return top;
   });
   const lower = columns.toReversed().map((x) => project(x, H, B));
-  const crest = columns.map((x) => surface(x, B - REACH * 0.9));
+  const crest = columns.map((x) => surface(x, B - CREST));
   return { crest, lower, outline: [...upper, ...lower], upper };
 };
 
 export type Dome = ReturnType<typeof domeOutline>;
-
-export const poolOutline = (radius: number, start: number, seed: number) => {
-  const phase = seed % 97;
-  const x = start * 0.4;
-  const z = A + radius * 0.35;
-  return Array.from({ length: 49 }, (_, i) => {
-    const a = (i / 48) * TAU;
-    const r =
-      radius *
-      (1 +
-        0.09 * Math.sin(3 * a + phase) +
-        0.05 * Math.sin(5 * a + phase * 1.7) +
-        0.03 * Math.sin(9 * a + phase * 0.3));
-    return project(x + Math.cos(a) * r * 1.25, 0, z + Math.sin(a) * r);
-  });
-};
-
-export const vesselScale = 0.6;
 
 export const stamp = project(0, H * 0.46, A);
 

@@ -3,18 +3,21 @@ import assert from "node:assert/strict";
 import { describe, test } from "vite-plus/test";
 
 import {
+  POOL_DEPTH,
   createWave,
   edgeOf,
   pushWave,
   spillageOf,
   stepWave,
   streamOf,
+  tiltAt,
   waveAt,
 } from "./liquid";
 import type { Jet, Stream, Wave } from "./liquid";
 
 const SPAN = 73;
-const SPEED = 420;
+const SPEED = 380;
+const HALF = SPAN / 2;
 
 const energyOf = (wave: Wave) =>
   wave.height.reduce(
@@ -28,23 +31,42 @@ const meanOf = (wave: Wave) =>
 const finite = (wave: Wave) =>
   [...wave.height, ...wave.speed].every((value) => Number.isFinite(value));
 
+const grid = Array.from({ length: 39 }, (_, i) => -0.95 + i * 0.05);
+
+const steepestOf = (wave: Wave, most: number) =>
+  Math.max(
+    ...grid.flatMap((x) =>
+      grid.map((z) => {
+        const tilt = tiltAt(wave, x, z, HALF, most);
+        return Math.hypot(tilt.x, tilt.z);
+      })
+    )
+  );
+
 const stir = () => {
   const wave = createWave();
-  pushWave(wave, -0.3, -400);
-  pushWave(wave, 0.6, 250, 0.2);
+  pushWave(wave, -0.3, 0.1, -60);
+  pushWave(wave, 0.6, -0.4, 40, 0.2);
   return wave;
 };
 
+const pour = (wave: Wave, frames: number) => {
+  for (let i = 0; i < frames; i += 1) {
+    stepWave(wave, 1 / 60, SPAN);
+    pushWave(wave, -0.35, 0.08, (-90 * (1 + Math.sin(i * 1.7))) / 2, 0.11);
+  }
+};
+
 describe("the surface", () => {
-  test("a splash makes waves that slosh and then settle", () => {
+  test("a splash sends ripples out from where it lands, and they settle", () => {
     const wave = stir();
     stepWave(wave, 1 / 60, SPAN);
     const start = energyOf(wave);
-    assert.ok(start > 1e-3);
+    assert.ok(start > 1e-4);
     const crests = new Set<number>();
     for (let i = 0; i < 60; i += 1) {
       stepWave(wave, 1 / 60, SPAN);
-      crests.add(Math.sign(waveAt(wave, -0.9)));
+      crests.add(Math.sign(waveAt(wave, 0.9, 0.9)));
     }
     assert.ok(crests.has(1) && crests.has(-1));
     for (let i = 0; i < 60 * 8; i += 1) {
@@ -53,10 +75,26 @@ describe("the surface", () => {
     assert.ok(energyOf(wave) < start * 1e-3);
   });
 
+  test("ripples spread the same way in every direction", () => {
+    const wave = createWave(25);
+    pushWave(wave, 0, 0, -60);
+    for (let i = 0; i < 6; i += 1) {
+      stepWave(wave, 1 / 60, SPAN);
+    }
+    for (const [x, z] of [
+      [0.4, 0],
+      [0, 0.4],
+      [-0.4, 0],
+      [0, -0.4],
+    ] as const) {
+      assert.ok(Math.abs(waveAt(wave, x, z) - waveAt(wave, 0.4, 0)) < 1e-9);
+    }
+  });
+
   test("waves move sake around but never change how much is in the cup", () => {
     const wave = stir();
     for (let i = 0; i < 200; i += 1) {
-      pushWave(wave, Math.sin(i), -30);
+      pushWave(wave, Math.sin(i), Math.cos(i * 0.7), -30);
       stepWave(wave, 1 / 60, SPAN);
       assert.ok(Math.abs(meanOf(wave)) < 1e-9);
     }
@@ -64,18 +102,29 @@ describe("the surface", () => {
 
   test("a steady pour keeps the surface moving but smooth, never jagged", () => {
     const wave = createWave();
-    for (let i = 0; i < 600; i += 1) {
-      stepWave(wave, 1 / 60, SPAN);
-      pushWave(wave, -0.2, (-90 * (1 + Math.sin(i * 1.7))) / 2, 0.07);
-    }
-    const bends = [...wave.height].map((value, i, all) =>
-      i === 0 || i === all.length - 1
-        ? 0
-        : Math.abs((all[i - 1] ?? 0) - 2 * value + (all[i + 1] ?? 0))
-    );
-    assert.ok(Math.max(...wave.height.map(Math.abs)) < 3);
-    assert.ok(Math.max(...bends) < 1);
+    pour(wave, 600);
     assert.ok(energyOf(wave) > 1e-4);
+    assert.ok(Math.max(...wave.height.map(Math.abs)) <= 1.6);
+    assert.ok(steepestOf(wave, 1e9) < 0.2);
+  });
+
+  test("the slopes used for highlights are capped and change smoothly across the surface", () => {
+    const wave = createWave();
+    pour(wave, 240);
+    for (let i = 0; i < 40; i += 1) {
+      pushWave(wave, 0, 0, 1e6, 0.05);
+    }
+    assert.ok(steepestOf(wave, 0.3) <= 0.3);
+    for (const z of grid) {
+      for (const [index, x] of grid.entries()) {
+        const next = grid[index + 1];
+        if (next !== undefined) {
+          const here = tiltAt(wave, x, z, HALF, 0.3);
+          const there = tiltAt(wave, next, z, HALF, 0.3);
+          assert.ok(Math.abs(here.x - there.x) < 0.15);
+        }
+      }
+    }
   });
 
   test("a long frame or a tab coming back from sleep cannot blow it up", () => {
@@ -83,14 +132,14 @@ describe("the surface", () => {
     for (const dt of [0.05, 0.5, 30, 1e9]) {
       stepWave(wave, dt, SPAN);
       assert.ok(finite(wave));
-      assert.ok(wave.height.every((value) => Math.abs(value) <= 6));
+      assert.ok(wave.height.every((value) => Math.abs(value) <= 1.6));
     }
     for (let i = 0; i < 40; i += 1) {
-      pushWave(wave, 0, 1e9);
+      pushWave(wave, 0, 0, 1e9);
       stepWave(wave, 0.05, SPAN);
     }
     assert.ok(finite(wave));
-    assert.ok(wave.height.every((value) => Math.abs(value) <= 6));
+    assert.ok(wave.height.every((value) => Math.abs(value) <= 1.6));
   });
 
   test("nonsense steps and pushes leave it alone", () => {
@@ -100,7 +149,7 @@ describe("the surface", () => {
       stepWave(wave, dt, SPAN);
     }
     stepWave(wave, 1 / 60, 0);
-    pushWave(wave, 0, Number.NaN);
+    pushWave(wave, 0, 0, Number.NaN);
     assert.deepEqual([...wave.height], before);
   });
 
@@ -215,24 +264,45 @@ describe("the spill", () => {
     );
   });
 
-  test("runs down the front, and the pool grows to the size of what spilled", () => {
-    let pool = 0;
+  test("runs down the front in thin films that vary in width", () => {
     for (let since = 0; since < 4; since += 0.1) {
-      const spillage = spillageOf(7, spilt, since, 50, 44);
-      assert.ok(spillage.pool >= pool - 1e-9);
-      ({ pool } = spillage);
-      for (const rivulet of spillage.rivulets) {
+      for (const rivulet of spillageOf(7, spilt, since, 50, 44).rivulets) {
         assert.ok(rivulet.front <= 50);
         assert.ok(
-          rivulet.path.every((bead) => Math.abs(bead.x) < 60 && bead.r >= 0)
+          rivulet.path.every(
+            (bead) =>
+              Math.abs(bead.x) < 60 &&
+              bead.r >= 0 &&
+              bead.r <= 1.3 &&
+              bead.wet > 0
+          )
         );
       }
     }
+    const running = spillageOf(7, spilt, 0.5, 50, 44).rivulets[0]?.path ?? [];
+    const widths = running.map((bead) => bead.r).filter((r) => r > 0);
+    assert.ok(Math.max(...widths) > Math.min(...widths) * 1.3);
+  });
+
+  test("the pool grows to cover what spilled at a puddle's depth", () => {
+    let area = 0;
+    for (let since = 0; since < 4; since += 0.1) {
+      const { pool } = spillageOf(7, spilt, since, 50, 44);
+      assert.ok(pool.area >= area - 1e-6);
+      ({ area } = pool);
+    }
     const settled = spillageOf(7, spilt, 60, 50, 44);
-    assert.ok(
-      Math.abs(settled.pool - Math.sqrt((ml * 1000) / (Math.PI * 2.6))) < 1e-9
-    );
+    const expected = (ml * 1000) / POOL_DEPTH;
+    assert.ok(Math.abs(settled.pool.area - expected) < expected * 1e-3);
+    assert.ok(settled.pool.area < 88 * 88);
+    assert.ok(settled.pool.outline.every((spot) => spot.z > 0));
     assert.ok(settled.rivulets.every((rivulet) => rivulet.flux === 0));
-    assert.equal(spillageOf(7, spilt, 1e9, 50, 44).pool, settled.pool);
+    assert.deepEqual(spillageOf(7, spilt, 1e9, 50, 44).pool, settled.pool);
+  });
+
+  test("there is no pool before anything reaches the counter", () => {
+    const { pool } = spillageOf(7, spilt, 0.1, 50, 44);
+    assert.equal(pool.area, 0);
+    assert.deepEqual(pool.outline, []);
   });
 });

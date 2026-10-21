@@ -1,4 +1,5 @@
 import { spillageOf } from "../_lib/liquid";
+import type { Run } from "../_lib/liquid";
 import type { Bottle } from "../_lib/pour";
 import {
   LIFT,
@@ -7,11 +8,11 @@ import {
   crestMark,
   domeOutline,
   face,
+  frontOf,
   grain,
   joints,
   level,
   paint,
-  poolOutline,
   project,
   radiusAt,
   rimOf,
@@ -42,7 +43,7 @@ const pathOf = (points: readonly Point[], close = true) =>
 const curveOf = ([from, mid, to]: readonly [Point, Point, Point]) =>
   `M${round(from.x)} ${round(from.y)}Q${round(mid.x)} ${round(mid.y)} ${round(to.x)} ${round(to.y)}`;
 
-export interface Spill {
+interface Spill {
   seed: number;
   ml: number;
 }
@@ -85,16 +86,6 @@ const glassSvg = (id: string, fill: Fill) => {
             fill={paint.amber}
             fillOpacity="0.62"
           />
-          <path
-            d={pathOf(
-              ring(glass.level + glass.dome * 0.6, r, 0, Math.PI),
-              false
-            )}
-            fill="none"
-            stroke={paint.sheen}
-            strokeOpacity="0.85"
-            strokeWidth="0.4"
-          />
         </>
       ) : null}
       {glass.over ? (
@@ -113,23 +104,31 @@ const glassSvg = (id: string, fill: Fill) => {
         />
       ) : null}
       <path
-        d={pathOf(ring(GLASS_TOP, tumbler.top))}
+        d={pathOf(ring(GLASS_TOP, tumbler.top, Math.PI, TAU), false)}
         fill="none"
         stroke={paint.glass}
-        strokeOpacity="0.7"
-        strokeWidth="0.55"
+        strokeOpacity="0.28"
+        strokeWidth="0.3"
+      />
+      <path
+        d={pathOf(ring(GLASS_TOP, tumbler.top, 0, Math.PI), false)}
+        fill="none"
+        stroke={paint.glass}
+        strokeOpacity="0.5"
+        strokeWidth="0.32"
       />
       <path
         d={pathOf(
           [
-            project(-(tumbler.top - 2.5), GLASS_TOP - 4, 2),
-            project(-(tumbler.bottom - 2), box.floor + 8, 2),
+            project(-(tumbler.top - 1.6), GLASS_TOP - 2, 8),
+            project(-(tumbler.bottom - 1.2), box.floor + 8, 8),
           ],
           false
         )}
         stroke={paint.glass}
-        strokeOpacity="0.5"
-        strokeWidth="1.4"
+        strokeLinecap="round"
+        strokeOpacity="0.22"
+        strokeWidth="1.1"
       />
     </>
   );
@@ -219,11 +218,11 @@ const defsSvg = (id: string, top: number) => {
         y1={top}
         y2={project(0, box.floor, box.inner).y}
       >
-        <stop offset="0" stopColor={paint.sheen} stopOpacity="0.85" />
-        <stop offset="0.04" stopColor={paint.mirror} stopOpacity="0.72" />
-        <stop offset="0.3" stopColor={paint.amber} stopOpacity="0.72" />
-        <stop offset="0.7" stopColor={paint.sakeDeep} stopOpacity="0.7" />
-        <stop offset="1" stopColor={paint.amber} stopOpacity="0.82" />
+        <stop offset="0" stopColor={paint.amber} stopOpacity="0.95" />
+        <stop offset="0.06" stopColor={paint.sakeDeep} stopOpacity="0.92" />
+        <stop offset="0.14" stopColor={paint.sake} stopOpacity="0.88" />
+        <stop offset="0.24" stopColor={paint.sakeDeep} stopOpacity="0.92" />
+        <stop offset="1" stopColor={paint.amber} stopOpacity="0.95" />
       </linearGradient>
       <linearGradient id={`${id}-glass`} x1="0" x2="1" y1="0" y2="0">
         <stop offset="0" stopColor={paint.glass} stopOpacity="0.2" />
@@ -232,11 +231,12 @@ const defsSvg = (id: string, top: number) => {
         <stop offset="1" stopColor={paint.glass} stopOpacity="0.05" />
       </linearGradient>
       <linearGradient id={`${id}-band`} x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0" stopColor={paint.sheen} stopOpacity="0.95" />
-        <stop offset="0.15" stopColor={paint.straw} stopOpacity="0.6" />
-        <stop offset="0.5" stopColor={paint.sake} stopOpacity="0.5" />
-        <stop offset="0.88" stopColor={paint.sakeDeep} stopOpacity="0.72" />
-        <stop offset="1" stopColor={paint.amber} stopOpacity="0.92" />
+        <stop offset="0" stopColor={paint.amber} stopOpacity="0" />
+        <stop offset="0.16" stopColor={paint.sakeDeep} stopOpacity="0.85" />
+        <stop offset="0.3" stopColor={paint.sheen} stopOpacity="0.8" />
+        <stop offset="0.46" stopColor={paint.sake} stopOpacity="0.9" />
+        <stop offset="0.82" stopColor={paint.sakeDeep} stopOpacity="0.95" />
+        <stop offset="1" stopColor={paint.amber} stopOpacity="1" />
       </linearGradient>
       <radialGradient id={`${id}-glint`}>
         <stop offset="0" stopColor={paint.sheen} stopOpacity="0.75" />
@@ -251,8 +251,8 @@ const defsSvg = (id: string, top: number) => {
         y1={face[3]?.y}
         y2={(face[3]?.y ?? 0) + ((face[3]?.y ?? 0) - (face[0]?.y ?? 0)) * 0.8}
       >
-        <stop offset="0" stopColor={paint.woodLight} stopOpacity="0.45" />
-        <stop offset="0.45" stopColor={paint.wood} stopOpacity="0.28" />
+        <stop offset="0" stopColor={paint.woodLight} stopOpacity="0.32" />
+        <stop offset="0.45" stopColor={paint.wood} stopOpacity="0.16" />
         <stop offset="1" stopColor={paint.wood} stopOpacity="0" />
       </linearGradient>
     </defs>
@@ -278,18 +278,10 @@ const liquidSvg = (id: string, fill: Fill) => {
         cx={round(glint.x)}
         cy={round(glint.y)}
         fill={`url(#${id}-glint)`}
-        rx="26"
-        ry="2.6"
+        fillOpacity="0.7"
+        rx="15"
+        ry="1.8"
       />
-      {dome === null ? null : (
-        <path
-          d={pathOf(dome.upper, false)}
-          fill="none"
-          stroke={paint.sheen}
-          strokeOpacity="0.75"
-          strokeWidth="0.4"
-        />
-      )}
     </>
   );
 };
@@ -300,46 +292,23 @@ const domeFrontSvg = (id: string, fill: Fill) => {
   }
   const dome = domeOutline(fill.dome);
   return (
-    <>
-      <path
-        d={pathOf([...dome.crest, ...dome.lower])}
-        fill={`url(#${id}-band)`}
-      />
-      <path
-        d={pathOf(dome.crest, false)}
-        fill="none"
-        stroke={paint.sheen}
-        strokeOpacity="0.95"
-        strokeWidth="0.4"
-      />
-      <path
-        d={pathOf(dome.lower, false)}
-        fill="none"
-        stroke={paint.straw}
-        strokeOpacity="0.55"
-        strokeWidth="0.9"
-      />
-    </>
+    <path
+      d={pathOf([...dome.crest, ...dome.lower])}
+      fill={`url(#${id}-band)`}
+    />
   );
 };
 
-const poolSvg = (
-  id: string,
-  spillage: ReturnType<typeof spillageOf>,
-  spill: Spill
-) => {
-  const outline = poolOutline(spillage.pool, spillage.start, spill.seed);
-  const shine = project(
-    spillage.start * 0.4 - spillage.pool * 0.3,
-    0,
-    box.outer + spillage.pool * 0.7
-  );
+const poolSvg = (id: string, spillage: ReturnType<typeof spillageOf>) => {
+  const outline = spillage.pool.outline.map(({ x, z }) => project(x, 0, z));
+  const foot = project(0, 0, box.outer).y;
+  const front = frontOf(outline);
   return (
     <>
       <clipPath id={`${id}-pool`}>
         <path d={pathOf(outline)} />
       </clipPath>
-      <path d={pathOf(outline)} fill={paint.amber} fillOpacity="0.3" />
+      <path d={pathOf(outline)} fill={paint.shadow} fillOpacity="0.42" />
       <g clipPath={`url(#${id}-pool)`}>
         <rect
           fill={`url(#${id}-mirror)`}
@@ -349,22 +318,28 @@ const poolSvg = (
           y={round(face[3]?.y ?? 0)}
         />
         <ellipse
-          cx={round(shine.x)}
-          cy={round(shine.y)}
+          cx={round(front.x * 0.35 - 6)}
+          cy={round(foot + (front.y - foot) * 0.62)}
           fill={`url(#${id}-glint)`}
-          rx={round(spillage.pool * 0.9 + 6)}
-          ry={round(spillage.pool * 0.1 + 0.7)}
+          rx="12"
+          ry="1.5"
         />
       </g>
-      <path
-        d={pathOf(outline.slice(3, 22), false)}
-        fill="none"
-        stroke={paint.sheen}
-        strokeOpacity="0.7"
-        strokeWidth="0.45"
-      />
     </>
   );
+};
+
+const trailOf = (path: readonly Run[]) => {
+  const points = path.map((bead) => ({
+    ...project(bead.x, bead.y, box.outer + 0.3),
+    wet: bead.wet,
+  }));
+  return pathOf([
+    ...points.map((point) => ({ x: point.x - point.wet, y: point.y })),
+    ...points
+      .toReversed()
+      .map((point) => ({ x: point.x + point.wet, y: point.y })),
+  ]);
 };
 
 export const cupSvg = ({ id, fill, spill }: CupProps) => {
@@ -387,9 +362,7 @@ export const cupSvg = ({ id, fill, spill }: CupProps) => {
         rx="78"
         ry="33"
       />
-      {spillage === null || spill === null
-        ? null
-        : poolSvg(id, spillage, spill)}
+      {spillage === null ? null : poolSvg(id, spillage)}
       {rimSvg(id, -1)}
       <path d={pathOf(level(box.floor))} fill={paint.innerDark} />
       {sideWalls.map((wall) => (
@@ -446,18 +419,10 @@ export const cupSvg = ({ id, fill, spill }: CupProps) => {
         ? null
         : spillage.rivulets.map((rivulet) => (
             <path
-              d={pathOf(
-                rivulet.path.map((bead) =>
-                  project(bead.x, bead.y, box.outer + 0.3)
-                ),
-                false
-              )}
-              fill="none"
+              d={trailOf(rivulet.path)}
+              fill={paint.woodShade}
+              fillOpacity="0.26"
               key={rivulet.x}
-              stroke={paint.woodShade}
-              strokeLinecap="round"
-              strokeOpacity="0.3"
-              strokeWidth={round(1.5 + 3 * rivulet.share)}
             />
           ))}
     </>

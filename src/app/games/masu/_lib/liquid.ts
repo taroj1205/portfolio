@@ -1,4 +1,5 @@
 export interface Wave {
+  size: number;
   height: Float64Array;
   speed: Float64Array;
 }
@@ -7,6 +8,10 @@ export interface Bead {
   x: number;
   y: number;
   r: number;
+}
+
+export interface Run extends Bead {
+  wet: number;
 }
 
 export interface Jet {
@@ -36,16 +41,16 @@ interface Rivulet {
   flux: number;
   share: number;
   x: number;
-  path: Bead[];
+  path: Run[];
 }
 
-const COLUMNS = 40;
-const SPEED = 420;
-const DAMPING = 1.6;
-const VISCOSITY = 7;
+const CELLS = 24;
+const SPEED = 380;
+const DAMPING = 2.4;
+const VISCOSITY = 9;
 const MOST = 40;
-const BOUND = 6;
-const RUSH = 3000;
+const BOUND = 1.6;
+const RUSH = 900;
 const GRAVITY = 9810;
 const SAMPLES = 40;
 const BREAK = 0.42;
@@ -53,16 +58,20 @@ const DROP_ML = 0.05;
 const DROP_R = 1.3;
 const STREAM_R = 2.7;
 const WOBBLE = 9;
-const FILM = 1.05;
+const FILM = 0.62;
+const THICKEST = 1.3;
 const RUN_SPEED: readonly [number, number] = [70, 125];
 const SHEET_SPEED = 160;
-const POOL_DEPTH = 2.6;
+export const POOL_DEPTH = 2.6;
+const POOL_SAMPLES = 64;
+const WRAP = 0.55;
 
 const finite = (value: number) => (Number.isFinite(value) ? value : 0);
 
-export const createWave = (columns = COLUMNS): Wave => ({
-  height: new Float64Array(columns),
-  speed: new Float64Array(columns),
+export const createWave = (size = CELLS): Wave => ({
+  height: new Float64Array(size * size),
+  size,
+  speed: new Float64Array(size * size),
 });
 
 const centre = (values: Float64Array, bound: number) => {
@@ -86,71 +95,104 @@ const centre = (values: Float64Array, bound: number) => {
 
 export const pushWave = (
   wave: Wave,
-  at: number,
+  x: number,
+  z: number,
   impulse: number,
-  spread = 0.08
+  spread = 0.12
 ) => {
-  const { speed } = wave;
-  const last = speed.length - 1;
+  const { size, speed } = wave;
+  const last = size - 1;
   const strength = finite(impulse);
   if (strength === 0 || last < 1) {
     return;
   }
-  for (let i = 0; i <= last; i += 1) {
-    const u = (i / last) * 2 - 1;
-    speed[i] =
-      (speed[i] ?? 0) + strength * Math.exp(-(((u - at) / spread) ** 2));
+  for (let j = 0; j <= last; j += 1) {
+    const v = (j / last) * 2 - 1 - z;
+    for (let i = 0; i <= last; i += 1) {
+      const u = (i / last) * 2 - 1 - x;
+      const k = j * size + i;
+      speed[k] =
+        (speed[k] ?? 0) + strength * Math.exp(-(u * u + v * v) / spread ** 2);
+    }
   }
   centre(speed, RUSH);
 };
 
-const spreadOf = (values: Float64Array, i: number) => {
-  const middle = values[i] ?? 0;
-  const left = values[Math.max(0, i - 1)] ?? middle;
-  const right = values[Math.min(values.length - 1, i + 1)] ?? middle;
-  return left + right - 2 * middle;
+const spreadOf = (values: Float64Array, size: number, k: number) => {
+  const i = k % size;
+  const middle = values[k] ?? 0;
+  const left = values[i > 0 ? k - 1 : k] ?? middle;
+  const right = values[i < size - 1 ? k + 1 : k] ?? middle;
+  const back = values[k >= size ? k - size : k] ?? middle;
+  const front = values[k < values.length - size ? k + size : k] ?? middle;
+  return left + right + back + front - 4 * middle;
 };
 
 export const stepWave = (wave: Wave, dt: number, span: number) => {
-  const { height, speed } = wave;
-  const last = height.length - 1;
+  const { height, size, speed } = wave;
+  const last = size - 1;
   if (!(dt > 0) || !(span > 0) || last < 1) {
     return;
   }
   const dx = span / last;
   const step = Math.min(
     1 / 240,
-    (0.6 * dx) / SPEED,
-    (0.2 * dx * dx) / VISCOSITY
+    (0.45 * dx) / SPEED,
+    (0.12 * dx * dx) / VISCOSITY
   );
   const count = Math.min(MOST, Math.ceil(dt / step));
   const tension = (SPEED * SPEED) / (dx * dx);
   const smear = VISCOSITY / (dx * dx);
   const pull = new Float64Array(height.length);
   for (let n = 0; n < count; n += 1) {
-    for (let i = 0; i <= last; i += 1) {
-      pull[i] =
-        tension * spreadOf(height, i) +
-        smear * spreadOf(speed, i) -
-        DAMPING * (speed[i] ?? 0);
+    for (let k = 0; k < height.length; k += 1) {
+      pull[k] =
+        tension * spreadOf(height, size, k) +
+        smear * spreadOf(speed, size, k) -
+        DAMPING * (speed[k] ?? 0);
     }
-    for (let i = 0; i <= last; i += 1) {
-      speed[i] = (speed[i] ?? 0) + (pull[i] ?? 0) * step;
-      height[i] = (height[i] ?? 0) + (speed[i] ?? 0) * step;
+    for (let k = 0; k < height.length; k += 1) {
+      speed[k] = (speed[k] ?? 0) + (pull[k] ?? 0) * step;
+      height[k] = (height[k] ?? 0) + (speed[k] ?? 0) * step;
     }
   }
   centre(height, BOUND);
   centre(speed, RUSH);
 };
 
-export const waveAt = (wave: Wave, u: number) => {
-  const { height } = wave;
-  const last = height.length - 1;
+const cellOf = (last: number, u: number) => {
   const at = Math.min(last, Math.max(0, ((u + 1) / 2) * last));
-  const low = Math.floor(at);
-  const high = Math.min(last, low + 1);
-  const mix = at - low;
-  return (height[low] ?? 0) * (1 - mix) + (height[high] ?? 0) * mix;
+  const low = Math.min(last - 1, Math.floor(at));
+  return { low, mix: at - low };
+};
+
+export const waveAt = (wave: Wave, x: number, z: number) => {
+  const { height, size } = wave;
+  const across = cellOf(size - 1, x);
+  const along = cellOf(size - 1, z);
+  const k = along.low * size + across.low;
+  const back =
+    (height[k] ?? 0) * (1 - across.mix) + (height[k + 1] ?? 0) * across.mix;
+  const front =
+    (height[k + size] ?? 0) * (1 - across.mix) +
+    (height[k + size + 1] ?? 0) * across.mix;
+  return back * (1 - along.mix) + front * along.mix;
+};
+
+export const tiltAt = (
+  wave: Wave,
+  x: number,
+  z: number,
+  half: number,
+  most: number
+) => {
+  const step = 2 / (wave.size - 1);
+  const run = 2 * step * half;
+  const cap = (slope: number) => most * Math.tanh(slope / most);
+  return {
+    x: cap((waveAt(wave, x + step, z) - waveAt(wave, x - step, z)) / run),
+    z: cap((waveAt(wave, x, z + step) - waveAt(wave, x, z - step)) / run),
+  };
 };
 
 export const edgeOf = (inset: number, reach: number) =>
@@ -276,6 +318,69 @@ const unit = (seed: number, salt: number) => {
   return value - Math.floor(value);
 };
 
+interface Lobe {
+  x: number;
+  weight: number;
+}
+
+const reachOf = (lobes: readonly Lobe[], size: number, x: number) =>
+  Math.sqrt(
+    lobes.reduce(
+      (sum, lobe) =>
+        sum + Math.max(0, size * size * lobe.weight - (x - lobe.x) ** 2),
+      0
+    )
+  );
+
+const poolOf = (lobes: readonly Lobe[], area: number, wall: number) => {
+  const total = lobes.reduce((sum, lobe) => sum + lobe.weight, 0);
+  if (!(area > 0) || !(total > 0)) {
+    return { area: 0, outline: [] };
+  }
+  const puddleOf = (size: number) => {
+    const from = Math.min(
+      ...lobes.map((lobe) => lobe.x - size * Math.sqrt(lobe.weight))
+    );
+    const to = Math.max(
+      ...lobes.map((lobe) => lobe.x + size * Math.sqrt(lobe.weight))
+    );
+    const step = (to - from) / POOL_SAMPLES;
+    const rows = Array.from({ length: POOL_SAMPLES + 1 }, (_, i) => {
+      const x = from + i * step;
+      const reach = reachOf(lobes, size, x);
+      return { back: Math.abs(x) > wall ? reach * WRAP : 0, reach, x };
+    });
+    const seen = rows.reduce(
+      (sum, row, i) =>
+        sum +
+        (i === 0 || i === POOL_SAMPLES ? 0.5 : 1) * (row.reach + row.back),
+      0
+    );
+    return { rows, seen: seen * step };
+  };
+  let low = 0;
+  let high = Math.sqrt(area / total) * 4;
+  for (let i = 0; i < 40; i += 1) {
+    const mid = (low + high) / 2;
+    if (puddleOf(mid).seen < area) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  const { rows, seen } = puddleOf((low + high) / 2);
+  return {
+    area: seen,
+    outline: [
+      ...rows.map((row) => ({ x: row.x, z: wall + row.reach })),
+      ...rows.toReversed().map((row) => ({
+        x: row.x,
+        z: wall - Math.max(row.back, Math.abs(row.x) > wall ? 0 : wall * 0.2),
+      })),
+    ],
+  };
+};
+
 export const spillageOf = (
   seed: number,
   spilt: (since: number) => number,
@@ -292,7 +397,7 @@ export const spillageOf = (
   const total = weights.reduce((sum, weight) => sum + weight, 0);
   const flux = (at: number) =>
     Math.max(0, (spilt(at) - spilt(at - 0.04)) / 0.04);
-  let pooled = 0;
+  const lobes: Lobe[] = [];
   const rivulets: Rivulet[] = weights.map((weight, i) => {
     const x = -span + ((i + 0.3 + unit(seed, 20 + i) * 0.4) / count) * span * 2;
     const delay = Math.abs(x - start) / SHEET_SPEED;
@@ -306,18 +411,28 @@ export const spillageOf = (
       swing *
       (Math.sin(d * turn + phase) +
         0.45 * Math.sin(d * turn * 2.7 + phase * 1.9));
+    const pinch = (d: number) =>
+      0.72 +
+      0.2 * Math.sin(d * (0.21 + turn) + phase * 2.3) +
+      0.12 * Math.sin(d * 0.63 + phase * 0.7);
     const share = weight / total;
+    const trail = 0.45 + 1.6 * share;
     const front = Math.min(height, Math.max(0, (since - delay) * pace));
-    const path: Bead[] = [];
+    const path: Run[] = [];
     const gap = Math.min(2, Math.max(0.5, front / 24));
     for (let d = 0; d <= front + 1e-9; d += gap) {
+      const film = FILM * Math.cbrt(flux(since - delay - d / pace) * share);
       path.push({
-        r: FILM * Math.cbrt((flux(since - delay - d / pace) * share) / 2),
+        r: Math.min(THICKEST, film) * pinch(d),
+        wet: trail * pinch(d * 0.7 + 3),
         x: x + bend(d) - bend(0) + slant * d,
         y: height - d,
       });
     }
-    pooled += share * Math.max(0, spilt(since - delay - height / pace));
+    lobes.push({
+      weight: share * Math.max(0, spilt(since - delay - height / pace)),
+      x: x + bend(height) - bend(0) + slant * height,
+    });
     return {
       flux: flux(since - delay - front / pace) * share,
       front,
@@ -326,8 +441,9 @@ export const spillageOf = (
       x,
     };
   });
+  const pooled = lobes.reduce((sum, lobe) => sum + lobe.weight, 0);
   return {
-    pool: Math.sqrt((pooled * 1000) / (Math.PI * POOL_DEPTH)),
+    pool: poolOf(lobes, (pooled * 1000) / POOL_DEPTH, span),
     rivulets,
     sheet: Math.min(span * 2, Math.max(0, since) * SHEET_SPEED),
     start,
