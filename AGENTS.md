@@ -18,4 +18,5 @@ Do not leave comments in code unless explicitly stated.
 
 - Before adding or changing interactive UI in `src/app/games` (overlays, sheets, menus, tabs, switches, toggles, other controls), read `docs/base-ui-in-games.md` in full. It names the Base UI package docs to read for the primitive; do not write Base UI code from memory.
 - Before adding a game, or changing what a game saves, in `src/app/games`, read `docs/game-saves-and-profiles.md`. Every game keeps the data a future player profile would want, and save changes must not reset existing saves.
+- Before running the checks for a game in `src/app/games`, or playing one in a headless browser, read `docs/checking-games.md`.
 - When you lose time on something these notes should have told you, such as a wrong guess, a stale instruction, or a failure that took several tries, or when the user corrects you, read `docs/keeping-instructions-current.md` and update the notes in the same change.
