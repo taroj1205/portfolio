@@ -64,6 +64,23 @@ describe("carving", () => {
     assert.equal(scratch(carving, at, at, 0)[0]?.type, "warn");
   });
 
+  test("carving the last notch cuts the shape out even if that stroke rushed", () => {
+    const carving = createCarving(moulds.circle);
+    const { outline } = carving.mould;
+    carving.carved.fill(true, 0, NOTCHES - 1);
+    carving.count = NOTCHES - 1;
+    carving.tension = 0.95;
+    const snaps = scratch(
+      carving,
+      outline[NOTCHES - 2],
+      outline[NOTCHES - 1],
+      0
+    );
+    assert.equal(carving.tension >= 1, true);
+    assert.deepEqual(snaps.at(-1), { type: "clear" });
+    assert.equal(percentOf(carving), 100);
+  });
+
   test("a finished carving ignores more scratches", () => {
     const { carving } = trace(SAFE * 3);
     assert.deepEqual(scratch(carving, { x: 0, y: 0 }, { x: 1, y: 1 }, 0), []);

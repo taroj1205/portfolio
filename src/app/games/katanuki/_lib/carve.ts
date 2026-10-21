@@ -84,13 +84,13 @@ export const scratch = (
     }
   }
   warnings(carving, to, snaps);
-  if (carving.tension >= 1) {
+  if (carving.count === NOTCHES) {
+    carving.over = true;
+    snaps.push({ type: "clear" });
+  } else if (carving.tension >= 1) {
     carving.tension = 1;
     carving.over = true;
     snaps.push({ at: to, type: "break" });
-  } else if (carving.count === NOTCHES) {
-    carving.over = true;
-    snaps.push({ type: "clear" });
   }
   return snaps;
 };
