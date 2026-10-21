@@ -1,32 +1,21 @@
-import * as stylex from "@stylexjs/stylex";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
+import { headers } from "next/headers";
 
-import { media } from "../../styles/tokens.stylex";
 import { BladeArt } from "./_components/blade-art";
 import { BrushArt } from "./_components/brush-art";
-import { GameCard } from "./_components/game-card";
+import type { Game } from "./_components/game-card";
+import { GamesIndex } from "./_components/games-index";
 import { MergeArt } from "./_components/merge-art";
 import { PauseArt } from "./_components/pause-art";
 import { SkipArt } from "./_components/skip-art";
-import { Sky } from "./_components/sky";
 import { SparkArt } from "./_components/spark-art";
-import { StarLink } from "./_components/star-link";
-import type { Text } from "./_lib/i18n";
+import { langFromHeader } from "./_lib/i18n";
 import { copy as enso } from "./enso/_lib/copy";
 import { copy as hoshiai } from "./hoshiai/_lib/copy";
 import { copy as iai } from "./iai/_lib/copy";
 import { copy as ma } from "./ma/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
 import { copy as senko } from "./senko/_lib/copy";
-
-interface Game {
-  href: string;
-  art: ReactNode;
-  title: Text;
-  blurb: Text;
-  tags: Text[];
-}
 
 const GAMES: Game[] = [
   {
@@ -123,125 +112,14 @@ export const metadata: Metadata = {
   title: "ゲーム · Games",
 };
 
-const rise = stylex.keyframes({
-  "0%": { opacity: 0, transform: "translateY(18px)" },
-  "100%": { opacity: 1, transform: "none" },
-});
-
-const styles = stylex.create({
-  eyebrow: {
-    color: "#ffd27a",
-    fontSize: "0.8rem",
-    fontWeight: 600,
-    letterSpacing: "0.32em",
-    margin: 0,
-    textTransform: "uppercase",
-  },
-  header: {
-    animationDuration: "900ms",
-    animationFillMode: "backwards",
-    animationName: { default: rise, [media.reduce]: "none" },
-    animationTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.9rem",
-  },
-  inner: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "clamp(2rem, 5vw, 3.5rem)",
-    marginInline: "auto",
-    maxWidth: "72rem",
-    paddingBlock:
-      "calc(clamp(2.5rem, 8vw, 5.5rem) + env(safe-area-inset-top)) calc(2.5rem + env(safe-area-inset-bottom))",
-    paddingInline: "max(1.25rem, env(safe-area-inset-left))",
-  },
-  intro: {
-    color: "rgb(255 255 255 / 0.82)",
-    display: "flex",
-    flexDirection: "column",
-    fontSize: "1.05rem",
-    gap: "0.2rem",
-    lineHeight: 1.7,
-    margin: 0,
-    maxWidth: "36rem",
-  },
-  introEn: {
-    color: "rgb(255 255 255 / 0.62)",
-    fontSize: "0.95rem",
-  },
-  list: {
-    animationDelay: "150ms",
-    animationDuration: "1000ms",
-    animationFillMode: "backwards",
-    animationName: { default: rise, [media.reduce]: "none" },
-    animationTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
-    display: "grid",
-    gap: "1.5rem",
-    listStyle: "none",
-    margin: 0,
-    padding: 0,
-  },
-  page: {
-    backgroundImage:
-      "linear-gradient(180deg, #060912 0%, #0d1330 52%, #1b1737 100%)",
-    inset: 0,
-    overflow: "hidden",
-    position: "fixed",
-  },
-  scroll: {
-    inset: 0,
-    overflowY: "auto",
-    overscrollBehavior: "contain",
-    position: "absolute",
-  },
-  starEn: {
-    color: "rgb(255 255 255 / 0.66)",
-  },
-  title: {
-    fontFamily: "var(--font-mincho), serif",
-    fontSize: "clamp(3.2rem, 11vw, 6.5rem)",
-    fontWeight: 700,
-    letterSpacing: "0.12em",
-    lineHeight: 1.05,
-    margin: 0,
-    textShadow: "0 4px 40px rgb(255 190 120 / 0.28)",
-  },
-});
-
-const Page = () => (
-  <div {...stylex.props(styles.page)}>
-    <Sky />
-    <main {...stylex.props(styles.scroll)}>
-      <div {...stylex.props(styles.inner)}>
-        <header {...stylex.props(styles.header)}>
-          <p lang="en" {...stylex.props(styles.eyebrow)}>
-            Games
-          </p>
-          <h1 {...stylex.props(styles.title)}>ゲーム</h1>
-          <p {...stylex.props(styles.intro)}>
-            <span>ブラウザですぐ遊べる、小さなゲーム。</span>
-            <span lang="en" {...stylex.props(styles.introEn)}>
-              Small games that play right in your browser.
-            </span>
-          </p>
-        </header>
-        <ul {...stylex.props(styles.list)}>
-          {GAMES.map((game) => (
-            <li key={game.href}>
-              <GameCard {...game} />
-            </li>
-          ))}
-        </ul>
-        <StarLink>
-          <span>GitHubでスター</span>
-          <span lang="en" {...stylex.props(styles.starEn)}>
-            Star on GitHub
-          </span>
-        </StarLink>
-      </div>
-    </main>
-  </div>
-);
+const Page = async () => {
+  const incoming = await headers();
+  return (
+    <GamesIndex
+      games={GAMES}
+      hint={langFromHeader(incoming.get("accept-language"))}
+    />
+  );
+};
 
 export default Page;
