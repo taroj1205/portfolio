@@ -7,6 +7,7 @@ import { Shippori_Mincho } from "next/font/google";
 import "./games.css";
 
 const mincho = Shippori_Mincho({
+  preload: false,
   subsets: ["latin"],
   variable: "--font-mincho",
   weight: ["500", "700"],
