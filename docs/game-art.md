@@ -1,7 +1,9 @@
 # Game art
 
-Art that a game draws on canvas and also shows in its OG image and games-list card is described once and drawn by two small interpreters, as 餅つき does: shape data in `src/app/games/mochitsuki/_lib/art.ts`, canvas drawing in `_lib/paint.ts`, SVG drawing in `_components/art.tsx`.
+Art that a game draws on canvas and also shows in its OG image and games-list card is written once as SVG strings, as 餅つき does in `src/app/games/mochitsuki/_lib/art.ts`. Each part is a sprite (an SVG body and its box in a 1000-unit scene), so filters such as `feTurbulence` wood grain, masks and blurs look the same everywhere.
 
-- `next/og` (satori) ignores `x` and `y` on a nested `<svg>` and draws it at the origin. Place a group with `<g transform="translate(x y) scale(s)">` in OG routes.
-- In the browser, CSS `transform-origin` on an SVG group inside a scaled `<g>` resolves against the outer viewBox. When a card animates parts of shared art, wrap the art in a nested `<svg viewBox="0 0 1 1">` so origins like `1.007px 0.342px` stay in the art's own units.
-- Write fills as `{ solid }`, `{ linear }` or `{ radial }` objects and branch with `in`. The lint rejects `typeof` checks.
+- Canvas: `_lib/atlas.ts` rasterizes each sprite once per scale through an `<img>` with a data URI and keeps the bitmaps. The renderer only moves and blends bitmaps each frame. Re-rasterize only when the scale changes by more than a few percent, never per frame.
+- OG: `next/og` (satori) renders filters, masks and blurs inside a data-URI SVG. Pass the whole scene from `sceneDoc` as a `backgroundImage` on a `div`, so the route needs no `<img>` lint exception. Satori ignores `x` and `y` on a nested `<svg>`, so place groups with `transform`.
+- Games-list card: the card's layers are served as static SVG from `art/[layer]/route.ts` (`dynamicParams = false`, cached daily in `next.config.ts`) and stacked as `<image>` elements, so the list page doesn't inline about 100 KB of SVG. CSS `transform-origin` on those layers is in the card's viewBox units.
+- Keep every gradient, filter and clip id unique across sprites, because a composed document holds them all. `art.test.ts` checks that ids don't repeat and that every `url(#…)` points at a defined id.
+- When the layout moves the scene (a result sheet shrinking the stage), ease the frame and draw the backdrop bitmap mapped from the frame it was rendered for. Fading between two backdrops rendered for different frames shows a ghost edge.

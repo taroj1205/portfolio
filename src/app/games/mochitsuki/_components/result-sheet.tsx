@@ -57,6 +57,7 @@ const styles = stylex.create({
     overflowY: "auto",
     overscrollBehavior: "contain",
     padding: "1.15rem 1.25rem",
+    pointerEvents: "auto",
     width: "100%",
   },
   head: {

@@ -4,7 +4,7 @@ import * as stylex from "@stylexjs/stylex";
 import { useEffect, useRef, useState } from "react";
 
 import { LanguagePicker } from "../../_components/language-picker";
-import { ink, media } from "../../_components/theme.stylex";
+import { ink } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
 import type { Settings } from "../../_lib/settings";
 import { LIVES, START_BPM } from "../_lib/beat";
@@ -17,11 +17,6 @@ import { Hud, Meter, Prompt } from "./hud";
 import { ResultSheet } from "./result-sheet";
 
 const WIDE = "@media (min-width: 900px)";
-
-const rise = stylex.keyframes({
-  "0%": { opacity: 0, transform: "translateY(16px) scale(0.97)" },
-  "100%": { opacity: 1, transform: "none" },
-});
 
 const styles = stylex.create({
   root: {
@@ -51,12 +46,13 @@ const styles = stylex.create({
     maxWidth: { default: null, [WIDE]: "68rem" },
     width: "100%",
   },
+  main: {
+    pointerEvents: "none",
+    position: "relative",
+    zIndex: 1,
+  },
   stage: {
-    alignItems: "center",
-    containerType: "size",
-    display: "flex",
     flexGrow: 1,
-    justifyContent: "center",
     minHeight: "12rem",
     minWidth: 0,
   },
@@ -72,23 +68,18 @@ const styles = stylex.create({
     position: "absolute",
   },
   canvas: {
-    animationDuration: "900ms",
-    animationName: { default: rise, [media.reduce]: "none" },
-    animationTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
-    aspectRatio: "1",
     cursor: "pointer",
     display: "block",
-    maskComposite: "intersect",
-    maskImage: [
-      "linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent)",
-      "linear-gradient(180deg, transparent, #000 5%)",
-    ].join(", "),
+    height: "100%",
+    inset: 0,
+    position: "absolute",
     touchAction: "none",
     userSelect: "none",
     WebkitTapHighlightColor: "transparent",
     WebkitTouchCallout: "none",
     WebkitUserSelect: "none",
-    width: "min(100cqmin, 34rem)",
+    width: "100%",
+    zIndex: 0,
   },
 });
 
@@ -102,6 +93,7 @@ export const Game = ({
   hint: Lang;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const session = useRef<ReturnType<typeof startSession> | null>(null);
   const [save, setSave] = useState<Save | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -121,13 +113,17 @@ export const Game = ({
     session.current =
       canvas === null
         ? null
-        : startSession(canvas, {
-            over: setEnding,
-            phase: setPhase,
-            save: setSave,
-            settings: setSettings,
-            stats: setStats,
-          });
+        : startSession(
+            canvas,
+            () => stageRef.current?.getBoundingClientRect() ?? null,
+            {
+              over: setEnding,
+              phase: setPhase,
+              save: setSave,
+              settings: setSettings,
+              stats: setStats,
+            }
+          );
     return () => {
       session.current?.stop();
       session.current = null;
@@ -145,6 +141,9 @@ export const Game = ({
 
   return (
     <div {...stylex.props(styles.root)}>
+      <canvas ref={canvasRef} {...stylex.props(styles.canvas)}>
+        {copy[lang].fallback}
+      </canvas>
       <Hud
         lang={lang}
         muted={settings?.muted ?? false}
@@ -163,12 +162,14 @@ export const Game = ({
         }}
         playing={playing}
       />
-      <main {...stylex.props(styles.body, ending !== null && styles.bodyDone)}>
-        <div {...stylex.props(styles.stage)}>
-          <canvas ref={canvasRef} {...stylex.props(styles.canvas)}>
-            {copy[lang].fallback}
-          </canvas>
-        </div>
+      <main
+        {...stylex.props(
+          styles.body,
+          styles.main,
+          ending !== null && styles.bodyDone
+        )}
+      >
+        <div ref={stageRef} {...stylex.props(styles.stage)} />
         {ending !== null && save !== null ? (
           <ResultSheet
             challenge={challenge}

@@ -92,9 +92,13 @@ const viewOf = (run: Run, now: number): View => {
   };
 };
 
-export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
+export const startSession = (
+  canvas: HTMLCanvasElement,
+  stage: () => DOMRect | null,
+  on: Listeners
+) => {
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const render = createRenderer(canvas, calm);
+  const render = createRenderer(canvas, stage, calm);
   const sound = createSound();
   let save = loadSave();
   let settings = loadSettings();

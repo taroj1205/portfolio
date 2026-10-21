@@ -4,7 +4,6 @@ import { headers } from "next/headers";
 
 import { langFrom, langFromHeader } from "../_lib/i18n";
 import type { Lang, Text } from "../_lib/i18n";
-import { backdrop } from "./_components/art";
 import { Game } from "./_components/game";
 import { copy } from "./_lib/copy";
 import {
@@ -33,15 +32,6 @@ const styles = stylex.create({
     inset: 0,
     overflow: "hidden",
     position: "fixed",
-  },
-  banner: {
-    height: "clamp(9rem, 26vh, 15rem)",
-    insetInline: 0,
-    maskImage: "linear-gradient(180deg, #000 55%, transparent)",
-    pointerEvents: "none",
-    position: "absolute",
-    top: 0,
-    width: "100%",
   },
 });
 
@@ -95,24 +85,6 @@ const Page = async ({ searchParams }: PageProps<"/games/mochitsuki">) => {
   const params = await searchParams;
   return (
     <div {...stylex.props(styles.page)}>
-      <svg
-        aria-hidden="true"
-        preserveAspectRatio="xMidYMin slice"
-        viewBox="0 0 1200 260"
-        {...stylex.props(styles.banner)}
-      >
-        {backdrop({
-          drape: 120,
-          flakes: 50,
-          height: 260,
-          id: "mochitsuki-back",
-          lanterns: [
-            { size: 40, x: 430, y: 172 },
-            { size: 40, x: 770, y: 172 },
-          ],
-          width: 1200,
-        })}
-      </svg>
       <Game challenge={readResult(params)} hint={await langOf(params.l)} />
     </div>
   );

@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
-import { backdrop, scene } from "../_components/art";
+import { dataUri, sceneDoc } from "../_lib/art";
 import { START_BPM } from "../_lib/beat";
 import { copy } from "../_lib/copy";
 import {
@@ -20,9 +20,10 @@ import type { Result } from "../_lib/result";
 const W = 1200;
 const H = 630;
 const ink = {
-  dim: "rgba(255,246,240,0.6)",
-  fire: "#ff9a52",
+  dim: "rgba(255,246,240,0.66)",
   gold: "#ffd27a",
+  scrim:
+    "linear-gradient(90deg, rgba(6,5,24,0.92) 0%, rgba(6,5,24,0.78) 38%, rgba(6,5,24,0) 62%)",
   text: "#fffaf3",
 };
 
@@ -69,41 +70,28 @@ const faceOf = (result: Result | null, lang: Lang): Face => {
   };
 };
 
+const FRAME = { size: 560, x: 640, y: 76 };
+
 const Art = ({ result }: { result: Result | null }) => (
-  <svg
-    height={H}
-    style={{ left: 0, position: "absolute", top: 0 }}
-    viewBox={`0 0 ${W} ${H}`}
-    width={W}
-  >
-    <defs>
-      <radialGradient id="og-fire">
-        <stop offset="0" stopColor={ink.fire} stopOpacity="0.42" />
-        <stop offset="1" stopColor={ink.fire} stopOpacity="0" />
-      </radialGradient>
-    </defs>
-    {backdrop({
-      drape: 118,
-      flakes: 70,
+  <div
+    style={{
+      backgroundImage: `url(${dataUri(
+        sceneDoc(W, H, FRAME, {
+          hurt: result?.ending === "hand",
+          lift: result === null ? 0.7 : 0,
+          reach: result?.ending === "hand" ? 1 : 0,
+          smooth: result === null ? 1 : smoothness(result.pounds),
+        })
+      )})`,
+      backgroundSize: `${W}px ${H}px`,
+      display: "flex",
       height: H,
-      id: "og-back",
-      lanterns: [
-        { size: 44, x: 640, y: 168 },
-        { size: 44, x: 1130, y: 168 },
-      ],
+      left: 0,
+      position: "absolute",
+      top: 0,
       width: W,
-    })}
-    <ellipse cx={920} cy={520} fill="url(#og-fire)" rx={360} ry={230} />
-    <g transform="translate(640 76) scale(560)">
-      {scene({
-        hurt: result?.ending === "hand",
-        id: "og-scene",
-        lift: result === null ? 0.7 : 0,
-        reach: result?.ending === "hand" ? 1 : 0,
-        smooth: result === null ? 1 : smoothness(result.pounds),
-      })}
-    </g>
-  </svg>
+    }}
+  />
 );
 
 export const GET = async (request: NextRequest) => {
@@ -132,6 +120,16 @@ export const GET = async (request: NextRequest) => {
       }}
     >
       <Art result={result} />
+      <div
+        style={{
+          backgroundImage: ink.scrim,
+          height: H,
+          left: 0,
+          position: "absolute",
+          top: 0,
+          width: W,
+        }}
+      />
       <div
         style={{
           display: "flex",

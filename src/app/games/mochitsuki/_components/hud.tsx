@@ -36,6 +36,9 @@ const styles = stylex.create({
     display: "flex",
     gap: "0.5rem",
     justifyContent: "space-between",
+    pointerEvents: "none",
+    position: "relative",
+    zIndex: 1,
   },
   brand: {
     alignItems: "center",
