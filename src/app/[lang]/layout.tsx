@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { Pointer } from "@/components/pointer";
 import { Reveal } from "@/components/reveal";
 import { Scroll } from "@/components/scroll";
+import { ServiceWorker } from "@/components/service-worker";
 import { SiteNav } from "@/components/site-nav";
 import { getTranslator, isLocale } from "@/lib/i18n";
 import { shared } from "@/styles/shared";
@@ -97,6 +98,7 @@ const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
           <p>© {new Date().getFullYear()} Shintaro Jokagi</p>
         </footer>
         <Analytics />
+        <ServiceWorker />
       </body>
     </html>
   );

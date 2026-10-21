@@ -3,6 +3,8 @@ import { Analytics } from "@vercel/analytics/next";
 import type { Viewport } from "next";
 import { Shippori_Mincho } from "next/font/google";
 
+import { ServiceWorker } from "@/components/service-worker";
+
 import "./games.css";
 
 const mincho = Shippori_Mincho({
@@ -34,6 +36,7 @@ const GamesLayout = ({ children }: LayoutProps<"/games">) => (
     <body {...stylex.props(styles.body)}>
       {children}
       <Analytics />
+      <ServiceWorker />
     </body>
   </html>
 );
