@@ -15,3 +15,6 @@
 - A canvas game that swaps the prompt for an in-play HUD must keep the stage the same size. If the canvas moves when play starts, every input after the first lands off target. Keep the prompt mounted and hidden, as 型抜き does in `src/app/games/katanuki/_components/game.tsx`.
 - In mizukiri, a robot that taps perfectly never loses the stone, so a test that taps until the flight ends can run forever. Pass `play` a throw cap (it defaults to 400) and keep seeds few, because a hop of several km costs about 6ms to simulate.
 - To tune mizukiri's difficulty, run `launch` and `land` from a `bun` script and tap with a Gaussian lead around 10ms. A tap spread of 5ms, 12ms and 20ms should end in Milky Way, Snow village and Maple gorge; `reachOf` in `simulate.test.ts` holds the same check.
+- After a StyleX "Could not resolve the path to the imported file" error, `next dev` keeps showing it once fixed. Stop the server, delete `.next/dev`, and start it again.
+- `agent-browser reload` can keep serving the previous bundle. Open the URL again with a throwaway query (`?fresh=123`) to load the latest code.
+- `next/og` accepts only intrinsic elements inside `<svg>`. Build shared SVG art as plain functions that return elements, as `sparklerParts` (senko) and `cupSvg` (masu) do, and check the image with `curl` on `/games/<game>/og`.
