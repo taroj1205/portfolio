@@ -103,6 +103,50 @@ const grain = (
 const weave = (id: string, box: Box, frequency: number, strength: number) =>
   `<filter id="${id}" filterUnits="userSpaceOnUse" x="${n(box.x)}" y="${n(box.y)}" width="${n(box.w)}" height="${n(box.h)}"><feTurbulence type="fractalNoise" baseFrequency="${frequency}" numOctaves="2" seed="5" result="noise"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 ${strength} 0 ${n(-strength * 0.5)}" result="speck"/><feComposite in="speck" in2="SourceAlpha" operator="in" result="speckIn"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="speckIn"/></feMerge></filter>`;
 
+interface Relief {
+  blur: number;
+  depth: number;
+  shine: number;
+  sharp: number;
+  skin?: number;
+  light?: string;
+  ambient?: number;
+  only?: boolean;
+}
+
+const relief = (
+  id: string,
+  box: Box,
+  {
+    blur: soft,
+    depth,
+    shine,
+    sharp,
+    skin = 0.05,
+    light = "#fff2e0",
+    ambient = 0.34,
+    only = false,
+  }: Relief
+) => {
+  const sun = `<feDistantLight azimuth="235" elevation="50"/>`;
+  const lit = only
+    ? ""
+    : `<feDiffuseLighting in="height" surfaceScale="${depth}" diffuseConstant="1" lighting-color="${light}" result="diffuse">${sun}</feDiffuseLighting><feComposite in="SourceGraphic" in2="diffuse" operator="arithmetic" k1="${n(1.12 - ambient)}" k2="${ambient}" result="lit"/><feComposite in="lit" in2="specIn" operator="arithmetic" k2="1" k3="1" result="all"/><feComposite in="all" in2="SourceAlpha" operator="in"/>`;
+  return `<filter id="${id}" filterUnits="userSpaceOnUse" x="${n(box.x)}" y="${n(box.y)}" width="${n(box.w)}" height="${n(box.h)}" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="${soft}" result="soft"/><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="3" result="noise"/><feComposite in="soft" in2="noise" operator="arithmetic" k2="1" k3="${skin}" k4="${n(-skin / 2)}" result="height"/><feSpecularLighting in="height" surfaceScale="${depth}" specularConstant="${shine}" specularExponent="${sharp}" lighting-color="#fffaf2" result="spec">${sun}</feSpecularLighting><feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>${lit}</filter>`;
+};
+
+const curve = (points: readonly Point[]) => {
+  const at = (i: number) => points[Math.max(0, Math.min(points.length - 1, i))];
+  const parts = [`M${n(points[0].x)} ${n(points[0].y)}`];
+  for (let i = 0; i < points.length - 1; i += 1) {
+    const [a, b, c, d] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
+    parts.push(
+      `C${n(b.x + (c.x - a.x) / 6)} ${n(b.y + (c.y - a.y) / 6)} ${n(c.x - (d.x - b.x) / 6)} ${n(c.y - (d.y - b.y) / 6)} ${n(c.x)} ${n(c.y)}`
+    );
+  }
+  return parts.join("");
+};
+
 const ellipse = (
   cx: number,
   cy: number,
@@ -158,18 +202,38 @@ const ropeAt = (u: number): Point => ({
 });
 
 const rope = () => {
-  const twists = Array.from({ length: 32 }, (_, i) => {
-    const u = (i + 0.5) / 32;
-    const { x, y } = ropeAt(u);
-    const fore = Math.max(0.35, Math.sin(Math.PI * u));
-    return ellipse(
-      x,
-      y,
-      5 + 13 * fore,
-      13,
-      `transform="rotate(-38 ${n(x)} ${n(y)})" fill="url(#${i % 2 === 0 ? "usu-rope-red" : "usu-rope-white"})" stroke="#3a0a0a" stroke-opacity="0.35" stroke-width="1.2"`
+  const bands = 46;
+  const half = 15;
+  const lean = 9;
+  const spine = curve(Array.from({ length: 25 }, (_, i) => ropeAt(i / 24)));
+  const strands = Array.from({ length: bands }, (_, i) => {
+    if (i % 2 === 1) {
+      return "";
+    }
+    const from = ropeAt(i / bands);
+    const to = ropeAt((i + 1) / bands);
+    const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
+    const along = { x: (to.x - from.x) / length, y: (to.y - from.y) / length };
+    const across = { x: -along.y, y: along.x };
+    const corner = (base: Point, side: number) => ({
+      x: base.x + across.x * half * side + along.x * lean * side,
+      y: base.y + across.y * half * side + along.y * lean * side,
+    });
+    return path(
+      `M${n(corner(from, -1).x)} ${n(corner(from, -1).y)}L${n(corner(to, -1).x)} ${n(corner(to, -1).y)}L${n(corner(to, 1).x)} ${n(corner(to, 1).y)}L${n(corner(from, 1).x)} ${n(corner(from, 1).y)}Z`,
+      `fill="#c8232f"`
     );
   }).join("");
+  const twists = [
+    `<clipPath id="usu-rope-clip"><path d="${spine}" fill="none" stroke="#000" stroke-width="${half * 2}"/></clipPath>`,
+    `<g filter="url(#usu-rope-volume)">`,
+    path(
+      spine,
+      `fill="none" stroke="#f2eadf" stroke-width="${half * 2}" stroke-linecap="round"`
+    ),
+    `<g clip-path="url(#usu-rope-clip)">${strands}</g>`,
+    "</g>",
+  ].join("");
   const knot = ropeAt(0.28);
   const tassel = (dx: number, fill: string) =>
     path(
@@ -291,6 +355,14 @@ export const usu: Sprite = {
       [1, "#94877a"],
     ]),
     grain("usu-grain", USU_BOX, [0.07, 0.0028], 7),
+    relief("usu-rope-volume", USU_BOX, {
+      ambient: 0.2,
+      blur: 5,
+      depth: 6,
+      sharp: 20,
+      shine: 0.5,
+      skin: 0.03,
+    }),
     blur("usu-soft", 5),
     "</defs>",
     path(usuOutline(), `fill="url(#usu-side)" filter="url(#usu-grain)"`),
@@ -367,89 +439,191 @@ export const lip: Sprite = {
   box: USU_BOX,
 };
 
-const MOCHI_BOX: Box = { h: 150, w: 460, x: 270, y: 560 };
+const MOCHI_BOX: Box = { h: 190, w: 480, x: 260, y: 530 };
 
-const dome = () => {
-  const { rx, h, y } = MOCHI;
-  return `M${USU.cx - rx} ${y}A${rx} ${h} 0 0 1 ${USU.cx + rx} ${y}A${rx} 40 0 0 1 ${USU.cx - rx} ${y}Z`;
-};
+const lumpTop = Array.from({ length: 17 }, (_, i) => {
+  const t = -1 + (2 * i) / 16;
+  const swell =
+    1 + 0.07 * Math.sin(3.1 * t + 0.4) + 0.04 * Math.sin(7.3 * t + 1.1);
+  return {
+    x: USU.cx + MOCHI.rx * t,
+    y: MOCHI.y - (MOCHI.h + 6) * (1 - t * t) ** 0.62 * swell,
+  };
+});
+
+const lump = `${curve(lumpTop)}A${MOCHI.rx} 36 0 0 1 ${USU.cx - MOCHI.rx} ${MOCHI.y}Z`;
+
+const flapTop: Point[] = [
+  { x: 506, y: 668 },
+  { x: 532, y: 632 },
+  { x: 584, y: 608 },
+  { x: 644, y: 606 },
+  { x: 688, y: 628 },
+  { x: 700, y: 664 },
+];
+
+const flap = `${curve(flapTop)}A98 22 0 0 1 506 668Z`;
+
+const mochiDefs = [
+  radial(
+    "mochi-flesh",
+    [470, 600, 260],
+    [
+      [0, "#fbf8f2"],
+      [0.45, "#efe8dc"],
+      [0.8, "#ddd2bf"],
+      [1, "#b9aa8f"],
+    ],
+    [430, 580]
+  ),
+  radial(
+    "mochi-dimple",
+    [488, 604, 64],
+    [
+      [0, "#a89478", 0.32],
+      [0.6, "#a89478", 0.12],
+      [1, "#a89478", 0],
+    ]
+  ),
+  relief("mochi-volume", MOCHI_BOX, {
+    ambient: 0.16,
+    blur: 18,
+    depth: 16,
+    sharp: 20,
+    shine: 0.55,
+    skin: 0.006,
+  }),
+  relief("mochi-fold", MOCHI_BOX, {
+    ambient: 0.16,
+    blur: 10,
+    depth: 12,
+    sharp: 22,
+    shine: 0.6,
+    skin: 0.006,
+  }),
+  `<filter id="mochi-dust" filterUnits="userSpaceOnUse" x="${MOCHI_BOX.x}" y="${MOCHI_BOX.y}" width="${MOCHI_BOX.w}" height="${MOCHI_BOX.h}"><feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="1" seed="9" result="noise"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 7 -3.6" result="dots"/><feComposite in="dots" in2="SourceAlpha" operator="in"/></filter>`,
+  radial(
+    "mochi-powder",
+    [0, 0, 1],
+    [
+      [0, "#ffffff", 0.9],
+      [1, "#ffffff", 0],
+    ]
+  ),
+  blur("mochi-soft", 6),
+  blur("mochi-crease", 5),
+  `<clipPath id="mochi-clip"><path d="${lump}"/><path d="${flap}"/></clipPath>`,
+];
+
+const powder = (x: number, y: number, rx: number, ry: number) =>
+  `<g transform="translate(${x} ${y}) scale(${rx} ${ry})"><circle r="1" fill="url(#mochi-powder)" filter="url(#mochi-dust)"/></g>`;
 
 export const mochiBody: Sprite = {
   body: [
     "<defs>",
-    radial(
-      "mochi-body",
-      [480, 610, 250],
-      [
-        [0, "#ffffff"],
-        [0.4, "#fcf8f1"],
-        [0.75, "#ece1cf"],
-        [1, "#c7b598"],
-      ],
-      [440, 596]
-    ),
-    blur("mochi-soft", 5),
+    ...mochiDefs,
     "</defs>",
     ellipse(
       500,
-      678,
-      214,
-      42,
-      `fill="#000" fill-opacity="0.45" filter="url(#mochi-soft)"`
+      680,
+      218,
+      44,
+      `fill="#000" fill-opacity="0.5" filter="url(#mochi-soft)"`
     ),
-    path(dome(), `fill="url(#mochi-body)"`),
+    path(lump, `fill="url(#mochi-flesh)" filter="url(#mochi-volume)"`),
+    ellipse(488, 606, 64, 15, `fill="url(#mochi-dimple)"`),
     path(
-      dome(),
-      `fill="none" stroke="#d6c4a2" stroke-opacity="0.55" stroke-width="2"`
+      "M432 610Q488 628 548 608",
+      `fill="none" stroke="#fffaf0" stroke-opacity="0.55" stroke-width="2.4" stroke-linecap="round" filter="url(#mochi-crease)"`
     ),
+    `<g clip-path="url(#mochi-clip)">`,
+    path(
+      flap,
+      `fill="#6e5a40" fill-opacity="0.45" filter="url(#mochi-crease)" transform="translate(-10 6)"`
+    ),
+    "</g>",
+    path(flap, `fill="url(#mochi-flesh)" filter="url(#mochi-fold)"`),
+    `<g clip-path="url(#mochi-clip)">`,
+    powder(330, 652, 40, 14),
+    powder(668, 650, 34, 12),
+    powder(600, 612, 30, 7),
+    powder(400, 618, 22, 6),
+    "</g>",
   ].join(""),
   box: MOCHI_BOX,
 };
 
 const grainRoll = seeded(2026);
 
+const ricePoints = Array.from({ length: 300 }, () => {
+  const u = grainRoll() * 2 - 1;
+  const v = grainRoll() ** 0.8;
+  const x = USU.cx + u * MOCHI.rx * 0.97;
+  const y = MOCHI.y + 8 - (MOCHI.h + 14) * (1 - u * u) ** 0.62 * v;
+  return { turn: n(grainRoll() * 180), x, y };
+});
+
 export const mochiGrains: Sprite = {
-  body: Array.from({ length: 84 }, () => {
-    const u = grainRoll() * 1.7 - 0.85;
-    const v = 0.1 + grainRoll() * 0.82;
-    const lift = Math.sqrt(Math.max(0, 1 - (u / 0.9) ** 2));
-    const x = USU.cx + u * MOCHI.rx * 0.92;
-    const y = MOCHI.y - MOCHI.h * lift * v;
-    const turn = n(grainRoll() * 180);
-    return ellipse(
-      x,
-      y,
-      8,
-      3.6,
-      `transform="rotate(${turn} ${n(x)} ${n(y)})" fill="#efe4cf" stroke="#ad9470" stroke-opacity="0.6" stroke-width="0.9"`
-    );
-  }).join(""),
+  body: [
+    "<defs>",
+    `<radialGradient id="rice-grain" cx="0.4" cy="0.32" r="0.7"><stop offset="0" stop-color="#fffdf7"/><stop offset="0.55" stop-color="#f1e9da"/><stop offset="1" stop-color="#cdbfa6"/></radialGradient>`,
+    `<clipPath id="rice-clip"><path d="${lump}"/><path d="${flap}"/></clipPath>`,
+    "</defs>",
+    `<g clip-path="url(#rice-clip)">`,
+    path(lump, `fill="#b8a888" fill-opacity="0.55"`),
+    path(flap, `fill="#b8a888" fill-opacity="0.45"`),
+    ...ricePoints.map(({ x, y, turn }) =>
+      [
+        ellipse(
+          x + 1.6,
+          y + 2.4,
+          8.8,
+          4,
+          `transform="rotate(${turn} ${n(x + 1.6)} ${n(y + 2.4)})" fill="#6e5c40" fill-opacity="0.4"`
+        ),
+        ellipse(
+          x,
+          y,
+          8.8,
+          4,
+          `transform="rotate(${turn} ${n(x)} ${n(y)})" fill="url(#rice-grain)"`
+        ),
+      ].join("")
+    ),
+    "</g>",
+  ].join(""),
   box: MOCHI_BOX,
 };
 
 export const mochiGloss: Sprite = {
   body: [
     "<defs>",
+    relief("mochi-wet", MOCHI_BOX, {
+      blur: 14,
+      depth: 14,
+      only: true,
+      sharp: 34,
+      shine: 2.2,
+      skin: 0.004,
+    }),
     radial(
       "gloss-spot",
-      [435, 612, 74],
+      [0, 0, 1],
       [
         [0, "#ffffff", 0.95],
         [1, "#ffffff", 0],
       ]
     ),
     "</defs>",
-    ellipse(
-      435,
-      612,
-      74,
-      20,
-      `fill="url(#gloss-spot)" transform="rotate(-12 435 612)"`
-    ),
-    ellipse(405, 606, 13, 5, `fill="#fff" transform="rotate(-12 405 606)"`),
+    `<g filter="url(#mochi-wet)">`,
+    path(lump, `fill="#fff"`),
+    path(flap, `fill="#fff"`),
+    "</g>",
+    `<g transform="translate(424 600) rotate(-14) scale(62 13)"><circle r="1" fill="url(#gloss-spot)"/></g>`,
+    `<g transform="translate(604 616) rotate(-8) scale(38 8)"><circle r="1" fill="url(#gloss-spot)"/></g>`,
     path(
-      "M640 622A200 78 0 0 1 698 664",
-      `fill="none" stroke="#c8d4ff" stroke-opacity="0.45" stroke-width="3"`
+      "M644 626Q690 640 698 664",
+      `fill="none" stroke="#c8d4ff" stroke-opacity="0.4" stroke-width="2.4" stroke-linecap="round"`
     ),
   ].join(""),
   box: MOCHI_BOX,
@@ -663,6 +837,8 @@ export const sleeve: Sprite = {
 };
 
 const SKIN = "#7a3e26";
+const FOREARM_BOX: Box = { h: 84, w: 250, x: -25, y: -42 };
+const HAND_BOX: Box = { h: 112, w: 165, x: -12, y: -62 };
 
 export const forearm: Sprite = {
   body: [
@@ -676,21 +852,24 @@ export const forearm: Sprite = {
         [1, "#cc875e"],
       ]
     ),
+    relief("arm-volume", FOREARM_BOX, {
+      ambient: 0.22,
+      blur: 9,
+      depth: 10,
+      sharp: 14,
+      shine: 0.3,
+    }),
     "</defs>",
     path(
       `M0 -27C70 -26 140 -22 ${FOREARM} -18Q${FOREARM + 10} 0 ${FOREARM} 18C140 22 70 27 0 28Q-10 0 0 -27Z`,
-      `fill="url(#arm-skin)" stroke="${SKIN}" stroke-opacity="0.55" stroke-width="2.2"`
+      `fill="url(#arm-skin)" filter="url(#arm-volume)"`
     ),
     path(
-      "M20 -15Q100 -18 180 -10",
-      `fill="none" stroke="#fff4ea" stroke-opacity="0.55" stroke-width="4" stroke-linecap="round"`
-    ),
-    path(
-      "M20 20Q100 24 180 14",
-      `fill="none" stroke="#a8684a" stroke-opacity="0.35" stroke-width="3" stroke-linecap="round"`
+      `M0 -27C70 -26 140 -22 ${FOREARM} -18Q${FOREARM + 10} 0 ${FOREARM} 18C140 22 70 27 0 28Q-10 0 0 -27Z`,
+      `fill="none" stroke="${SKIN}" stroke-opacity="0.22" stroke-width="1.4"`
     ),
   ].join(""),
-  box: { h: 84, w: 250, x: -25, y: -42 },
+  box: FOREARM_BOX,
 };
 
 const FINGERS = [
@@ -722,20 +901,24 @@ export const hand: Sprite = {
       [0.5, "#f6cfae"],
       [1, "#cc8860"],
     ]),
+    relief("hand-volume", HAND_BOX, {
+      ambient: 0.22,
+      blur: 4,
+      depth: 6,
+      sharp: 16,
+      shine: 0.35,
+    }),
     "</defs>",
+    `<g filter="url(#hand-volume)">`,
     path(
       "M-2 -24C24 -30 50 -32 72 -29C80 -18 80 18 72 28C50 31 24 30 -2 25Q-6 0 -2 -24Z",
-      `fill="url(#hand-skin)" stroke="${SKIN}" stroke-opacity="0.55" stroke-width="2.2"`
-    ),
-    path(
-      "M10 -10L58 -14M12 4L60 4",
-      `stroke="#fff3e8" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"`
+      `fill="url(#hand-skin)" stroke="${SKIN}" stroke-opacity="0.25" stroke-width="1.6"`
     ),
     ...FINGERS.map(({ len, y }) =>
       [
         path(
           fingerPath(len, y),
-          `fill="url(#hand-finger)" stroke="${SKIN}" stroke-opacity="0.6" stroke-width="2"`
+          `fill="url(#hand-finger)" stroke="${SKIN}" stroke-opacity="0.3" stroke-width="1.4"`
         ),
         ellipse(
           68 + len - 9,
@@ -752,11 +935,12 @@ export const hand: Sprite = {
     ),
     path(
       "M18 -24C34 -40 56 -48 78 -45Q86 -42 82 -36C66 -36 46 -30 30 -18Z",
-      `fill="url(#hand-finger)" stroke="${SKIN}" stroke-opacity="0.6" stroke-width="2"`
+      `fill="url(#hand-finger)" stroke="${SKIN}" stroke-opacity="0.3" stroke-width="1.4"`
     ),
     ellipse(75, -41, 5, 3.4, `fill="#fde4d8" transform="rotate(-8 75 -41)"`),
+    "</g>",
   ].join(""),
-  box: { h: 112, w: 165, x: -12, y: -62 },
+  box: HAND_BOX,
 };
 
 export const bruise: Sprite = {

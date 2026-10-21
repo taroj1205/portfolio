@@ -9,8 +9,21 @@ import {
   USU,
   armPose,
   kinePose,
+  bruise,
+  forearm,
+  hand,
+  kine,
+  lip,
+  mat,
+  mochiBody,
+  mochiGloss,
+  mochiGrains,
   sceneDoc,
+  sleeve,
+  spriteDoc,
   toWorld,
+  tub,
+  usu,
 } from "./art";
 import { cardDoc, cardLayers } from "./card";
 
@@ -62,6 +75,20 @@ describe("the svg", () => {
       }
     ),
     ...cardLayers.map(cardDoc),
+    ...[
+      mat,
+      tub,
+      usu,
+      mochiBody,
+      mochiGrains,
+      mochiGloss,
+      lip,
+      sleeve,
+      forearm,
+      hand,
+      bruise,
+      kine,
+    ].map((sprite) => spriteDoc(sprite, 1)),
   ];
 
   test("never repeats an id inside one document", () => {
