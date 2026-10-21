@@ -1,7 +1,7 @@
+import { dayOf } from "../../_lib/day";
 import { loadSettings, storeSettings } from "../../_lib/settings";
 import type { Settings } from "../../_lib/settings";
 import type { Void } from "./copy";
-import { dayOf } from "./daily";
 import {
   LONGEST,
   PERFECT,

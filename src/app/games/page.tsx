@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 
 import { BladeArt } from "./_components/blade-art";
 import { BrushArt } from "./_components/brush-art";
+import { CandyArt } from "./_components/candy-art";
 import type { Game } from "./_components/game-card";
 import { GamesIndex } from "./_components/games-index";
 import { MergeArt } from "./_components/merge-art";
@@ -13,6 +14,7 @@ import { langFromHeader } from "./_lib/i18n";
 import { copy as enso } from "./enso/_lib/copy";
 import { copy as hoshiai } from "./hoshiai/_lib/copy";
 import { copy as iai } from "./iai/_lib/copy";
+import { copy as katanuki } from "./katanuki/_lib/copy";
 import { copy as ma } from "./ma/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
 import { copy as senko } from "./senko/_lib/copy";
@@ -101,6 +103,20 @@ const GAMES: Game[] = [
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
     title: { en: iai.en.name, ja: iai.ja.name },
+  },
+  {
+    art: <CandyArt />,
+    blurb: {
+      en: "Trace the pressed line on a festival candy with a needle to cut the shape out. Too fast, or off the line, and it cracks.",
+      ja: "お祭りの型抜きを、針でなぞって抜く。速すぎても、はみ出しても割れる。",
+    },
+    href: "/games/katanuki",
+    tags: [
+      { en: "Trace", ja: "なぞる" },
+      { en: "Daily shape", ja: "今日の型" },
+      { en: "Challenge a friend", ja: "友だちに挑戦" },
+    ],
+    title: { en: katanuki.en.name, ja: katanuki.ja.name },
   },
 ];
 

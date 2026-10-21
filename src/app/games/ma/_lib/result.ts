@@ -1,8 +1,9 @@
 import { z } from "zod";
 
+import { LAST_DAY } from "../../_lib/day";
 import type { Lang } from "../../_lib/i18n";
 import type { Share } from "../../_lib/share";
-import { LAST_DAY, dailyTarget } from "./daily";
+import { dailyTarget } from "./daily";
 import {
   LONGEST,
   SHOWN,
