@@ -1,7 +1,12 @@
 import * as stylex from "@stylexjs/stylex";
 
 import { media } from "../../../styles/tokens.stylex";
-import { cutSvg, layersOf, pieceSvg } from "../itto/_components/food-svg";
+import {
+  cutSvg,
+  layersOf,
+  pieceSvg,
+  tagAt,
+} from "../itto/_components/food-svg";
 import { knifeSvg } from "../itto/_components/knife-svg";
 import { woodSvg } from "../itto/_components/wood-svg";
 import { reachOf } from "../itto/_lib/cut";
@@ -18,7 +23,7 @@ const LOOP = "5.6s";
 const SIZE = 300;
 const demo = demoOf(9);
 const { split } = demo;
-const reach = reachOf(demo.food.outline, demo.cut);
+const reach = reachOf(demo.food.parts, demo.cut);
 const scale = SIZE / SPAN;
 
 const whole = stylex.keyframes({
@@ -107,7 +112,7 @@ export const CutArt = () => (
       </g>
       {split === null
         ? null
-        : layersOf(split).map(({ faces, key, side }) => (
+        : layersOf(split).map(({ faces, half, key, side }) => (
             <g
               key={key}
               {...stylex.props(
@@ -117,10 +122,11 @@ export const CutArt = () => (
               )}
             >
               {pieceSvg({
+                chunks: side.chunks,
                 faces,
                 food: demo.food,
+                half,
                 id: `cut-art-${key}`,
-                points: side.points,
                 split,
               })}
             </g>
@@ -150,8 +156,7 @@ export const CutArt = () => (
       {split === null
         ? null
         : split.sides.map((side, index) => {
-            const x = side.centre.x + side.push.x * 2.2;
-            const y = side.centre.y + side.push.y * 2.2;
+            const { x, y } = tagAt(side, 1.4);
             return (
               <g
                 key={index === 0 ? "plus" : "minus"}

@@ -2,16 +2,17 @@ import { loadSettings, storeSettings } from "../../_lib/settings";
 import type { Settings } from "../../_lib/settings";
 import { judgeSwipe, reachOf, splitBy, steer } from "./cut";
 import type { Cut, Split } from "./cut";
-import { RUN, SEED_MAX, SPAN, runOf } from "./foods";
+import { SPAN, dishOf, kindOf } from "./foods";
 import type { Food } from "./foods";
 import type { Point } from "./geometry";
-import { demoOf, scoreOf } from "./result";
-import type { Piece, Result, Scored } from "./result";
-import { loadSave, settleCut, settleMiss, settleRun, storeSave } from "./save";
+import { SEED_MAX } from "./random";
+import { demoOf } from "./result";
+import type { Piece, Result } from "./result";
+import { loadSave, settleCut, settleMiss, storeSave } from "./save";
 import type { Save } from "./save";
 import { createSound } from "./sound";
 
-type Stage = "title" | "play" | "cut" | "result";
+type Stage = "title" | "play" | "result";
 
 export type Beat = "show" | "slice" | "split" | "clear";
 
@@ -26,8 +27,7 @@ export interface View {
   stage: Stage;
   food: Food;
   split: Split | null;
-  index: number;
-  pieces: Piece[];
+  serving: number;
   beat: Beat | null;
   knife: Slash | null;
   aim: Cut | null;
@@ -36,7 +36,7 @@ export interface View {
 
 export interface Ending {
   result: Result;
-  scored: Scored;
+  piece: Piece;
   record: boolean;
   challenged: boolean;
 }
@@ -63,7 +63,7 @@ const NEXT: Record<Beat, Beat> = {
   split: "clear",
 };
 
-const newSeed = () =>
+const randomSeed = () =>
   1 + ((crypto.getRandomValues(new Uint32Array(1))[0] ?? 0) % SEED_MAX);
 
 const block = (event: Event) => {
@@ -80,10 +80,7 @@ export const startSession = (
   const sound = createSound();
   let save = loadSave();
   let settings = loadSettings();
-  let seed = newSeed();
-  let foods = runOf(seed);
-  let cuts: Cut[] = [];
-  let pieces: Piece[] = [];
+  let seed = 0;
   let challenged = false;
   let round = 0;
   let demo = demoOf(0);
@@ -91,10 +88,9 @@ export const startSession = (
     aim: null,
     beat: null,
     fumble: null,
-    index: 0,
-    knife: null,
-    pieces: [],
     food: demo.food,
+    knife: null,
+    serving: 0,
     split: null,
     stage: "title",
   };
@@ -141,8 +137,9 @@ export const startSession = (
     }
     show({
       beat: next,
-      knife: next === "show" ? null : reachOf(demo.food.outline, demo.cut),
       food: demo.food,
+      knife: next === "show" ? null : reachOf(demo.food.parts, demo.cut),
+      serving: round,
       split: next === "split" || next === "clear" ? demo.split : null,
     });
     timer = window.setTimeout(() => {
@@ -159,11 +156,10 @@ export const startSession = (
     show({
       aim: null,
       beat: calm ? "split" : "show",
-      fumble: null,
-      index: 0,
-      knife: calm ? reachOf(demo.food.outline, demo.cut) : null,
-      pieces: [],
       food: demo.food,
+      fumble: null,
+      knife: calm ? reachOf(demo.food.parts, demo.cut) : null,
+      serving: 0,
       split: calm ? demo.split : null,
       stage: "title",
     });
@@ -185,31 +181,32 @@ export const startSession = (
     };
   };
 
-  const serve = (index: number) => {
-    show({
-      aim: null,
-      beat: null,
-      fumble: null,
-      index,
-      knife: null,
-      pieces,
-      food: foods[index],
-      split: null,
-      stage: "play",
-    });
-    clock(true);
+  const freshSeed = () => {
+    const last = view.stage === "title" ? null : view.food.kind;
+    let next = randomSeed();
+    while (kindOf(next) === last) {
+      next = randomSeed();
+    }
+    return next;
   };
 
   const start = (fromChallenge: boolean) => {
     clearTimeout(timer);
     sound.unlock();
     challenged = fromChallenge && challenge !== null;
-    seed = challenged && challenge !== null ? challenge.seed : newSeed();
-    foods = runOf(seed);
-    cuts = [];
-    pieces = [];
+    seed = challenged && challenge !== null ? challenge.seed : freshSeed();
     played = 0;
-    serve(0);
+    show({
+      aim: null,
+      beat: null,
+      food: dishOf(seed),
+      fumble: null,
+      knife: null,
+      serving: view.serving + 1,
+      split: null,
+      stage: "play",
+    });
+    clock(true);
   };
 
   const fumble = (kind: Fumble, slash: Slash | null) => {
@@ -225,54 +222,30 @@ export const startSession = (
   };
 
   const slice = (cut: Cut) => {
-    const food = foods[view.index];
-    const split = splitBy(food.outline, cut);
-    const knife = reachOf(food.outline, cut);
+    const { food } = view;
+    const split = splitBy(food.parts, cut);
+    const knife = reachOf(food.parts, cut);
     if (split === null) {
       fumble("miss", knife);
       return;
     }
-    cuts.push(cut);
-    pieces = [...pieces, { cut, food, split }];
-    keep(
-      settleCut(save, {
-        at: Date.now(),
-        kind: food.kind,
-        seconds: takeSeconds(),
-        small: split.small,
-      })
-    );
+    const settled = settleCut(save, {
+      at: Date.now(),
+      challenged,
+      kind: food.kind,
+      seconds: takeSeconds(),
+      small: split.small,
+    });
+    keep(settled.save);
     sound.cut(split.small);
     navigator.vibrate?.(split.small === 500 ? [16, 50, 16, 50, 40] : 16);
-    show({ aim: null, fumble: null, knife, pieces, split, stage: "cut" });
-  };
-
-  const finish = () => {
-    const result = { cuts, seed };
-    const scored = scoreOf(result);
-    if (scored === null) {
-      return;
-    }
-    const run = settleRun(save, scored.total, challenged);
-    keep(run.save);
-    show({
-      knife: null,
-      food: scored.best.food,
-      split: scored.best.split,
-      stage: "result",
+    show({ aim: null, fumble: null, knife, split, stage: "result" });
+    on.over({
+      challenged,
+      piece: { cut, food, split },
+      record: settled.record,
+      result: { cut, seed },
     });
-    on.over({ challenged, record: run.record, result, scored });
-  };
-
-  const next = () => {
-    if (view.stage !== "cut") {
-      return;
-    }
-    if (view.index + 1 >= RUN) {
-      finish();
-      return;
-    }
-    serve(view.index + 1);
   };
 
   const down = (event: PointerEvent) => {
@@ -320,7 +293,7 @@ export const startSession = (
       event.type === "pointerup" ? (toObject(event) ?? active.to) : active.to;
     active = null;
     on.trail(null);
-    const swipe = judgeSwipe(view.food.outline, from, to);
+    const swipe = judgeSwipe(view.food.parts, from, to);
     if (swipe.kind === "cut") {
       slice(swipe.cut);
       return;
@@ -380,7 +353,6 @@ export const startSession = (
   toTitle();
 
   return {
-    next,
     settings: (chosen: Settings) => {
       settings = chosen;
       storeSettings(settings);

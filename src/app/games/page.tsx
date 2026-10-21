@@ -16,6 +16,7 @@ import { copy as enso } from "./enso/_lib/copy";
 import { copy as hoshiai } from "./hoshiai/_lib/copy";
 import { copy as iai } from "./iai/_lib/copy";
 import { copy as itto } from "./itto/_lib/copy";
+import { kinds } from "./itto/_lib/foods";
 import { copy as katanuki } from "./katanuki/_lib/copy";
 import { copy as ma } from "./ma/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
@@ -123,14 +124,14 @@ const GAMES: Game[] = [
   {
     art: <CutArt />,
     blurb: {
-      en: "Cut tofu, yōkan, taiyaki and more with one straight swipe. The split is measured by area, so you see how close to half you got, to 0.1%.",
-      ja: "豆腐も羊羹も鯛焼きも、まっすぐ一刀で真っ二つ。面積の比を0.1%まで測って、どれだけ半分に近いかを出す。",
+      en: "One piece of Japanese food, one straight swipe. The split is measured by area to 0.1%, from tofu and taiyaki to a skewer of dango, and now and then a rare one turns up.",
+      ja: "食べものをひとつ、まっすぐ一刀で真っ二つ。豆腐から鯛焼き、三色団子まで、面積の比を0.1%まで測る。たまにレアなものも出る。",
     },
     href: "/games/itto",
     tags: [
       { en: "One swipe", ja: "ひと振り" },
-      { en: "12 foods", ja: "12種の食べもの" },
-      { en: "Challenge a friend", ja: "友だちに挑戦" },
+      { en: `${kinds.length} foods`, ja: `${kinds.length}種の食べもの` },
+      { en: "Rare finds", ja: "たまにレア" },
     ],
     title: { en: itto.en.name, ja: itto.ja.name },
   },

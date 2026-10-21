@@ -8,27 +8,15 @@ import { font, ink, media, shade } from "../../_components/theme.stylex";
 import { langNames } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
-import { errorOf } from "../_lib/cut";
-import { RUN } from "../_lib/foods";
-import {
-  gradeOf,
-  kindTitle,
-  rankOf,
-  ratioText,
-  scoreOf,
-  tenths,
-  verdictOf,
-} from "../_lib/result";
+import { isRare } from "../_lib/foods";
+import { pieceOf, kindTitle, ratioText, tenths } from "../_lib/result";
 import type { Result } from "../_lib/result";
 import type { Save } from "../_lib/save";
 import type { View } from "../_lib/session";
 import { CutThumb } from "./cut-thumb";
 
 const GOLD = "#ffd27a";
-const VERMILION = "#e0503c";
 const FINE = "@media (hover: hover) and (pointer: fine)";
-
-const marks = ["#62b86f", "#f2c94c", "#f2994a", "#e5534b"] as const;
 
 const drift = stylex.keyframes({
   "0%": { opacity: 0, transform: "translateY(10px)" },
@@ -40,11 +28,6 @@ const nudge = stylex.keyframes({
   "20%": { transform: "translateX(-6px)" },
   "45%": { transform: "translateX(5px)" },
   "70%": { transform: "translateX(-3px)" },
-});
-
-const land = stylex.keyframes({
-  "0%": { filter: "blur(10px)", opacity: 0, transform: "scale(1.35)" },
-  "100%": { filter: "blur(0)", opacity: 1, transform: "scale(1)" },
 });
 
 const styles = stylex.create({
@@ -103,42 +86,6 @@ const styles = stylex.create({
     paddingInline: "1rem",
     width: "auto",
   },
-  progress: {
-    alignItems: "center",
-    display: "flex",
-    gap: "0.75rem",
-    justifyContent: "center",
-    margin: 0,
-    minHeight: "1.5rem",
-  },
-  count: {
-    color: ink.soft,
-    fontFamily: font.mincho,
-    fontSize: "0.9rem",
-    fontVariantNumeric: "tabular-nums",
-    fontWeight: 700,
-    letterSpacing: "calc(0.1em * var(--track, 1))",
-    textShadow: shade.small,
-  },
-  dots: {
-    display: "flex",
-    gap: "0.4rem",
-    listStyle: "none",
-    margin: 0,
-    padding: 0,
-  },
-  dot: {
-    backgroundColor: "rgb(255 255 255 / 0.18)",
-    borderRadius: 999,
-    height: 10,
-    transitionDuration: "300ms",
-    transitionProperty: "background-color, box-shadow",
-    width: 10,
-  },
-  dotNow: {
-    boxShadow: `0 0 0 2px ${GOLD}`,
-  },
-  tint: (colour: string) => ({ backgroundColor: colour }),
   panel: {
     alignItems: "center",
     animationDuration: "500ms",
@@ -239,39 +186,6 @@ const styles = stylex.create({
     animationName: { default: nudge, [media.reduce]: "none" },
     color: GOLD,
   },
-  verdict: {
-    alignItems: "center",
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.15rem",
-    margin: 0,
-  },
-  ratio: {
-    animationDuration: "520ms",
-    animationName: { default: land, [media.reduce]: "none" },
-    animationTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)",
-    fontFamily: font.mincho,
-    fontSize: "clamp(2.6rem, 13vw, 3.6rem)",
-    fontVariantNumeric: "tabular-nums",
-    fontWeight: 700,
-    letterSpacing: "0.02em",
-    lineHeight: 1,
-    textShadow: shade.large,
-    whiteSpace: "nowrap",
-  },
-  even: {
-    color: GOLD,
-  },
-  call: {
-    color: GOLD,
-    fontFamily: font.mincho,
-    fontSize: "1.05rem",
-    fontWeight: 700,
-    letterSpacing: "calc(0.18em * var(--track, 1))",
-  },
-  off: {
-    color: VERMILION,
-  },
   card: {
     alignItems: "center",
     borderRadius: 18,
@@ -294,14 +208,23 @@ const styles = stylex.create({
     margin: 0,
     minWidth: 0,
   },
+  rare: {
+    backgroundImage: "linear-gradient(180deg, #fff1b8, #ffd27a 50%, #d9962a)",
+    borderRadius: 999,
+    color: "#2a1d05",
+    fontSize: "0.66rem",
+    fontWeight: 800,
+    marginInlineStart: "0.5rem",
+    paddingBlock: "0.15rem",
+    paddingInline: "0.5rem",
+    verticalAlign: "middle",
+  },
   cardTitle: {
     fontFamily: font.mincho,
     fontSize: "1.05rem",
     fontWeight: 700,
   },
 });
-
-export const markOf = (small: number) => marks[gradeOf(small)];
 
 const Speaker = ({ muted }: { muted: boolean }) => (
   <svg
@@ -395,29 +318,6 @@ export const Header = ({
   );
 };
 
-export const Progress = ({ view, lang }: { view: View; lang: Lang }) => (
-  <div {...stylex.props(styles.progress)}>
-    <span {...stylex.props(styles.count)}>
-      {copy[lang].round(view.index, RUN)} · {kindTitle(view.food.kind, lang)}
-    </span>
-    <ol aria-hidden="true" {...stylex.props(styles.dots)}>
-      {Array.from({ length: RUN }, (_, index) => {
-        const done = view.pieces[index];
-        return (
-          <li
-            key={index}
-            {...stylex.props(
-              styles.dot,
-              done !== undefined && styles.tint(markOf(done.split.small)),
-              done === undefined && index === view.index && styles.dotNow
-            )}
-          />
-        );
-      })}
-    </ol>
-  </div>
-);
-
 const Primary = ({
   label,
   onClick,
@@ -453,18 +353,20 @@ const ChallengeCard = ({
   lang: Lang;
 }) => {
   const words = copy[lang];
-  const scored = scoreOf(challenge);
-  if (scored === null) {
+  const piece = pieceOf(challenge);
+  if (piece === null) {
     return null;
   }
   return (
     <div {...stylex.props(glass.surface, styles.card)}>
-      <CutThumb piece={scored.best} xstyle={styles.thumb} />
+      <CutThumb piece={piece} xstyle={styles.thumb} />
       <p {...stylex.props(styles.cardText)}>
         <span {...stylex.props(styles.label)}>{words.challenge.received}</span>
         <span {...stylex.props(styles.cardTitle)}>
-          {words.result.off} {tenths(scored.total)}% ·{" "}
-          {rankOf(scored.total).name[lang]}
+          {ratioText(piece.split.small)} · {kindTitle(piece.food.kind, lang)}
+          {isRare(piece.food.kind) ? (
+            <span {...stylex.props(styles.rare)}>✦ {words.rare}</span>
+          ) : null}
         </span>
         <span {...stylex.props(styles.label)}>{words.challenge.dare}</span>
       </p>
@@ -479,8 +381,6 @@ interface PanelProps {
   challenge: Result | null;
   returning: boolean;
   onStart: (challenged: boolean) => void;
-  onNext: () => void;
-  onQuit: () => void;
 }
 
 export const Panel = ({
@@ -490,8 +390,6 @@ export const Panel = ({
   challenge,
   returning,
   onStart,
-  onNext,
-  onQuit,
 }: PanelProps) => {
   const words = copy[lang];
   if (view.stage === "title") {
@@ -534,9 +432,9 @@ export const Panel = ({
             </>
           )}
         </div>
-        {save !== null && save.bestRun !== null ? (
+        {save !== null && save.bestCut !== null ? (
           <p {...stylex.props(styles.label)}>
-            {words.record(tenths(save.bestRun), save.runs)}
+            {words.record(tenths(save.bestCut), save.cuts)}
           </p>
         ) : null}
       </div>
@@ -554,41 +452,6 @@ export const Panel = ({
           {fumble === undefined ? words.hint : words.fumble[fumble]}
         </p>
         <p {...stylex.props(styles.keys)}>{words.rule.keys}</p>
-      </div>
-    );
-  }
-  if (view.stage === "cut" && view.split !== null) {
-    const last = view.index + 1 >= RUN;
-    const even = view.split.small === 500;
-    return (
-      <div {...stylex.props(styles.panel)}>
-        <p aria-live="polite" {...stylex.props(styles.verdict)}>
-          <span {...stylex.props(styles.ratio, even && styles.even)}>
-            {ratioText(view.split.small)}
-          </span>
-          <span
-            {...stylex.props(
-              styles.call,
-              errorOf(view.split.small) > 80 && styles.off
-            )}
-          >
-            {verdictOf(view.split.small, lang)}
-          </span>
-        </p>
-        <div {...stylex.props(styles.row)}>
-          <Primary
-            focus
-            label={last ? words.finish : words.next}
-            onClick={onNext}
-          />
-          <button
-            onClick={onQuit}
-            type="button"
-            {...stylex.props(styles.action, styles.secondary)}
-          >
-            {words.quit}
-          </button>
-        </div>
       </div>
     );
   }

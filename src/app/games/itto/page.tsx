@@ -6,11 +6,18 @@ import { langFrom, langFromHeader } from "../_lib/i18n";
 import type { Text } from "../_lib/i18n";
 import { Game } from "./_components/game";
 import { copy } from "./_lib/copy";
-import { queryOf, rankOf, ratioText, readResult, scoreOf } from "./_lib/result";
+import {
+  kindTitle,
+  pieceOf,
+  queryOf,
+  rankOf,
+  ratioText,
+  readResult,
+} from "./_lib/result";
 
 const DESCRIPTION: Text = {
-  en: "Cut tofu, yōkan, taiyaki and more in one straight swipe, and see how close to exactly half you got, to 0.1%.",
-  ja: "豆腐も羊羹も鯛焼きも、まっすぐ一刀で真っ二つ。どれだけぴったり半分に切れたか、0.1%まで測る。",
+  en: "One piece of Japanese food, one straight swipe. See how close to exactly half you got, to 0.1%, and send a friend the same piece.",
+  ja: "食べものをひとつ、まっすぐ一刀で真っ二つ。どれだけぴったり半分に切れたかを0.1%まで測って、同じものを友だちに送れる。",
 };
 
 const styles = stylex.create({
@@ -38,13 +45,13 @@ export const generateMetadata = async ({
   const params = await searchParams;
   const lang = await langOf(params.l);
   const shared = readResult(params);
-  const scored = shared === null ? null : scoreOf(shared);
+  const piece = shared === null ? null : pieceOf(shared);
   const query = new URLSearchParams(shared === null ? "" : queryOf(shared));
   query.set("l", lang);
   const title =
-    scored === null
+    piece === null
       ? copy[lang].name
-      : `${ratioText(scored.best.split.small)} · ${rankOf(scored.total).name[lang]} | ${copy[lang].name}`;
+      : `${ratioText(piece.split.small)} · ${kindTitle(piece.food.kind, lang)} · ${rankOf(piece.split.small).name[lang]} | ${copy[lang].name}`;
   const image = {
     alt: title,
     height: 630,

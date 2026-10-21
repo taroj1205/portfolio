@@ -1,4 +1,4 @@
-import { seeded } from "../_lib/foods";
+import { seeded } from "../_lib/random";
 
 const wood = {
   base: ["#f2ddb2", "#e8cb97", "#efd6a8"],

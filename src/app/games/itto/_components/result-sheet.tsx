@@ -1,5 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 
 import { glass } from "../../_components/glass";
 import { ShareButton } from "../../_components/share-button";
@@ -7,11 +7,19 @@ import { SheetLinks } from "../../_components/sheet-links";
 import { font, ink, media } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
-import { kindTitle, rankOf, scoreOf, shareOf, tenths } from "../_lib/result";
+import { errorOf } from "../_lib/cut";
+import { isRare } from "../_lib/foods";
+import {
+  kindTitle,
+  pieceOf,
+  rankOf,
+  ratioText,
+  shareOf,
+  tenths,
+} from "../_lib/result";
 import type { Result } from "../_lib/result";
+import type { Save } from "../_lib/save";
 import type { Ending } from "../_lib/session";
-import { CutThumb } from "./cut-thumb";
-import { markOf } from "./hud";
 
 const GOLD = "#ffd27a";
 const VERMILION = "#c8352b";
@@ -28,6 +36,16 @@ const stamp = stylex.keyframes({
   "100%": { opacity: 1, transform: "scale(1) rotate(-5deg)" },
 });
 
+const land = stylex.keyframes({
+  "0%": { filter: "blur(10px)", opacity: 0, transform: "scale(1.25)" },
+  "100%": { filter: "blur(0)", opacity: 1, transform: "scale(1)" },
+});
+
+const shine = stylex.keyframes({
+  "0%": { backgroundPosition: "160% 0" },
+  "100%": { backgroundPosition: "-60% 0" },
+});
+
 const styles = stylex.create({
   sheet: {
     alignSelf: { default: "stretch", [WIDE]: "center" },
@@ -40,14 +58,18 @@ const styles = stylex.create({
     display: "flex",
     flexDirection: "column",
     flexShrink: 0,
-    gap: "0.8rem",
+    gap: "0.75rem",
     marginInline: "auto",
-    maxHeight: { default: "62svh", [WIDE]: "100%" },
+    maxHeight: { default: "52svh", [WIDE]: "100%" },
     maxWidth: "27rem",
     overflowY: "auto",
     overscrollBehavior: "contain",
-    padding: "1.15rem",
+    padding: "1.1rem",
     width: "100%",
+  },
+  rare: {
+    boxShadow:
+      "0 0 0 1px rgb(255 210 122 / 0.55), 0 0 40px rgb(255 190 80 / 0.25), 0 24px 60px rgb(0 0 0 / 0.35)",
   },
   head: {
     alignItems: "center",
@@ -81,11 +103,15 @@ const styles = stylex.create({
   titles: {
     display: "flex",
     flexDirection: "column",
-    gap: "0.2rem",
+    gap: "0.25rem",
     minWidth: 0,
   },
+  badges: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "0.35rem",
+  },
   badge: {
-    alignSelf: "flex-start",
     backgroundImage: "linear-gradient(180deg, #fff1b8, #ffd27a 50%, #d9962a)",
     borderRadius: 999,
     color: "#2a1d05",
@@ -95,24 +121,30 @@ const styles = stylex.create({
     paddingBlock: "0.2rem",
     paddingInline: "0.6rem",
   },
-  total: {
-    alignItems: "baseline",
-    display: "flex",
-    flexWrap: "wrap",
+  rareBadge: {
+    animationDuration: "2.4s",
+    animationIterationCount: "infinite",
+    animationName: { default: shine, [media.reduce]: "none" },
+    animationTimingFunction: "ease-in-out",
+    backgroundImage:
+      "linear-gradient(110deg, #d9962a 20%, #fff6cf 45%, #ffd27a 55%, #d9962a 80%)",
+    backgroundSize: "250% 100%",
+  },
+  ratio: {
+    animationDuration: "520ms",
+    animationName: { default: land, [media.reduce]: "none" },
+    animationTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)",
     fontFamily: font.mincho,
-    fontWeight: 700,
-    gap: "0.2rem 0.5rem",
-    margin: 0,
-  },
-  totalLabel: {
-    color: ink.soft,
-    fontSize: "0.85rem",
-    letterSpacing: "calc(0.12em * var(--track, 1))",
-  },
-  totalValue: {
-    fontSize: "clamp(2rem, 9vw, 2.6rem)",
+    fontSize: "clamp(2.2rem, 11vw, 3rem)",
     fontVariantNumeric: "tabular-nums",
+    fontWeight: 700,
+    letterSpacing: "0.02em",
     lineHeight: 1,
+    margin: 0,
+    whiteSpace: "nowrap",
+  },
+  even: {
+    color: GOLD,
   },
   rank: {
     color: GOLD,
@@ -121,70 +153,35 @@ const styles = stylex.create({
     fontWeight: 700,
     letterSpacing: "calc(0.14em * var(--track, 1))",
   },
+  kind: {
+    color: ink.soft,
+    fontSize: "0.85rem",
+    fontWeight: 600,
+    letterSpacing: "calc(0.06em * var(--track, 1))",
+  },
   line: {
     color: ink.soft,
     fontSize: "0.88rem",
     lineHeight: 1.5,
     margin: 0,
   },
-  cuts: {
+  facts: {
     borderColor: "rgb(255 255 255 / 0.12)",
     borderStyle: "solid",
     borderWidth: "1px 0",
-    display: "grid",
-    gap: "0.3rem",
-    gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
-    listStyle: "none",
-    margin: 0,
-    paddingBlock: "0.7rem",
-    paddingInline: 0,
-  },
-  cut: {
-    alignItems: "center",
-    borderRadius: 12,
+    color: ink.soft,
     display: "flex",
-    flexDirection: "column",
-    gap: "0.15rem",
-    minWidth: 0,
-    paddingBlock: "0.25rem",
-    position: "relative",
-  },
-  best: {
-    backgroundColor: "rgb(255 210 122 / 0.12)",
-    boxShadow: "inset 0 0 0 1px rgb(255 210 122 / 0.45)",
-  },
-  thumb: {
-    aspectRatio: "1",
-    width: "100%",
-  },
-  kind: {
-    color: ink.soft,
-    fontSize: "0.66rem",
-    maxWidth: "100%",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  },
-  ratio: {
-    fontFamily: font.mincho,
-    fontSize: "clamp(0.62rem, 2.6vw, 0.74rem)",
+    flexWrap: "wrap",
+    fontSize: "0.8rem",
     fontVariantNumeric: "tabular-nums",
+    gap: "0.3rem 1rem",
+    margin: 0,
+    paddingBlock: "0.6rem",
+  },
+  fact: {
+    color: ink.text,
     fontWeight: 700,
-    whiteSpace: "nowrap",
   },
-  colon: {
-    color: ink.soft,
-    marginInline: "0.12em",
-  },
-  mark: {
-    borderRadius: 999,
-    height: 7,
-    insetBlockStart: 6,
-    insetInlineEnd: 6,
-    position: "absolute",
-    width: 7,
-  },
-  tint: (colour: string) => ({ backgroundColor: colour }),
   versus: {
     color: ink.soft,
     fontSize: "0.9rem",
@@ -237,13 +234,13 @@ const styles = stylex.create({
   },
 });
 
-const versusOf = (total: number, challenge: Result, lang: Lang) => {
-  const theirs = scoreOf(challenge);
+const versusOf = (small: number, challenge: Result, lang: Lang) => {
+  const theirs = pieceOf(challenge);
   if (theirs === null) {
     return null;
   }
   const words = copy[lang].challenge;
-  const gap = theirs.total - total;
+  const gap = errorOf(theirs.split.small) - errorOf(small);
   if (gap > 0) {
     return { text: words.won(tenths(gap)), won: true };
   }
@@ -253,33 +250,36 @@ const versusOf = (total: number, challenge: Result, lang: Lang) => {
 interface ResultSheetProps {
   lang: Lang;
   ending: Ending;
+  save: Save | null;
   challenge: Result | null;
   onAgain: () => void;
-  onQuit: () => void;
+  onRetry: () => void;
 }
 
 export const ResultSheet = ({
   lang,
   ending,
+  save,
   challenge,
   onAgain,
-  onQuit,
+  onRetry,
 }: ResultSheetProps) => {
   const words = copy[lang];
-  const { scored, result, record, challenged } = ending;
-  const rank = rankOf(scored.total);
+  const { piece, result, record, challenged } = ending;
+  const { small } = piece.split;
+  const rank = rankOf(small);
+  const rare = isRare(piece.food.kind);
   const versus =
-    challenged && challenge !== null
-      ? versusOf(scored.total, challenge, lang)
-      : null;
+    challenged && challenge !== null ? versusOf(small, challenge, lang) : null;
+  const id = useId();
   const again = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     again.current?.focus({ preventScroll: true });
   }, []);
   return (
     <section
-      aria-labelledby="itto-result"
-      {...stylex.props(glass.surface, styles.sheet)}
+      aria-labelledby={`${id}-ratio`}
+      {...stylex.props(glass.surface, styles.sheet, rare && styles.rare)}
     >
       <div {...stylex.props(styles.head)}>
         <span aria-hidden="true" {...stylex.props(styles.seal)}>
@@ -287,54 +287,53 @@ export const ResultSheet = ({
           <span>{rank.seal[1]}</span>
         </span>
         <div {...stylex.props(styles.titles)}>
-          {record ? (
-            <span {...stylex.props(styles.badge)}>{words.result.record}</span>
-          ) : null}
-          <h2 id="itto-result" {...stylex.props(styles.total)}>
-            <span {...stylex.props(styles.totalLabel)}>{words.result.off}</span>
-            <span {...stylex.props(styles.totalValue)}>
-              {tenths(scored.total)}%
+          {rare || record ? (
+            <span {...stylex.props(styles.badges)}>
+              {rare ? (
+                <span {...stylex.props(styles.badge, styles.rareBadge)}>
+                  ✦ {words.rare}
+                </span>
+              ) : null}
+              {record ? (
+                <span {...stylex.props(styles.badge)}>
+                  {words.result.record}
+                </span>
+              ) : null}
             </span>
+          ) : null}
+          <h2
+            id={`${id}-ratio`}
+            {...stylex.props(styles.ratio, small === 500 && styles.even)}
+          >
+            {ratioText(small)}
           </h2>
-          <span {...stylex.props(styles.rank)}>{rank.name[lang]}</span>
+          <span id={`${id}-rank`}>
+            <span {...stylex.props(styles.rank)}>{rank.name[lang]}</span>{" "}
+            <span {...stylex.props(styles.kind)}>
+              · {kindTitle(piece.food.kind, lang)}
+            </span>
+          </span>
         </div>
       </div>
-      <p {...stylex.props(styles.line)}>{rank.line[lang]}</p>
+      <p id={`${id}-line`} {...stylex.props(styles.line)}>
+        {rank.line[lang]}
+      </p>
+      <p {...stylex.props(styles.facts)}>
+        <span {...stylex.props(styles.fact)}>
+          {words.result.off(tenths(errorOf(small)))}
+        </span>
+        {save !== null && save.bestCut !== null ? (
+          <span>{words.record(tenths(save.bestCut), save.cuts)}</span>
+        ) : null}
+      </p>
       {versus === null ? null : (
-        <p
-          aria-live="polite"
-          {...stylex.props(styles.versus, versus.won && styles.won)}
-        >
+        <p {...stylex.props(styles.versus, versus.won && styles.won)}>
           {versus.text}
         </p>
       )}
-      <ol aria-label={words.result.cuts} {...stylex.props(styles.cuts)}>
-        {scored.pieces.map((piece, index) => (
-          <li
-            key={`${piece.food.kind}-${index}`}
-            {...stylex.props(styles.cut, piece === scored.best && styles.best)}
-          >
-            <span
-              aria-hidden="true"
-              {...stylex.props(
-                styles.mark,
-                styles.tint(markOf(piece.split.small))
-              )}
-            />
-            <CutThumb piece={piece} xstyle={styles.thumb} />
-            <span {...stylex.props(styles.ratio)}>
-              {tenths(piece.split.small)}
-              <span {...stylex.props(styles.colon)}>:</span>
-              {tenths(1000 - piece.split.small)}
-            </span>
-            <span {...stylex.props(styles.kind)}>
-              {kindTitle(piece.food.kind, lang)}
-            </span>
-          </li>
-        ))}
-      </ol>
       <div {...stylex.props(styles.row)}>
         <button
+          aria-describedby={`${id}-ratio ${id}-rank ${id}-line`}
           onClick={onAgain}
           ref={again}
           type="button"
@@ -342,20 +341,22 @@ export const ResultSheet = ({
         >
           {words.result.again}
         </button>
+        <ShareButton
+          fileName="itto.png"
+          labels={words.result}
+          share={shareOf(result, piece, window.location.origin, lang)}
+          {...stylex.props(styles.action, styles.secondary)}
+        />
+      </div>
+      {challenged ? (
         <button
-          onClick={onQuit}
+          onClick={onRetry}
           type="button"
           {...stylex.props(styles.action, styles.secondary)}
         >
-          {words.quit}
+          {words.challenge.retry}
         </button>
-      </div>
-      <ShareButton
-        fileName="itto.png"
-        labels={words.result}
-        share={shareOf(result, scored, window.location.origin, lang)}
-        {...stylex.props(styles.action, styles.secondary)}
-      />
+      ) : null}
       <SheetLinks labels={words.result} lang={lang} />
     </section>
   );

@@ -8,12 +8,14 @@ import { ink } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
 import type { Settings } from "../../_lib/settings";
 import { copy } from "../_lib/copy";
+import { isRare } from "../_lib/foods";
+import { kindTitle } from "../_lib/result";
 import type { Result } from "../_lib/result";
 import type { Save } from "../_lib/save";
 import { startSession } from "../_lib/session";
 import type { Ending, Slash, View } from "../_lib/session";
 import { Board } from "./board";
-import { Header, Panel, Progress } from "./hud";
+import { Header, Panel } from "./hud";
 import { ResultSheet } from "./result-sheet";
 
 const WIDE = "@media (min-width: 900px) and (min-aspect-ratio: 1/1)";
@@ -127,7 +129,7 @@ export const Game = ({
     session.current?.title();
   };
 
-  const playing = stage === "play" || stage === "cut";
+  const playing = stage === "play";
 
   return (
     <div {...stylex.props(styles.root)}>
@@ -150,7 +152,6 @@ export const Game = ({
         onQuit={quit}
         playing={playing}
       />
-      {view !== null && playing ? <Progress lang={lang} view={view} /> : null}
       <main
         {...stylex.props(styles.body, stage === "result" && styles.bodyDone)}
       >
@@ -160,7 +161,16 @@ export const Game = ({
             {view === null ? null : (
               <Board
                 boxRef={boxRef}
-                demo={words.demo}
+                rare={
+                  view.stage !== "title" && isRare(view.food.kind)
+                    ? words.rare
+                    : null
+                }
+                tag={
+                  view.stage === "title"
+                    ? words.demo
+                    : kindTitle(view.food.kind, lang)
+                }
                 trail={trail}
                 view={view}
               />
@@ -174,9 +184,13 @@ export const Game = ({
             lang={lang}
             onAgain={() => {
               setEnding(null);
-              session.current?.start(ending.challenged);
+              session.current?.start(false);
             }}
-            onQuit={quit}
+            onRetry={() => {
+              setEnding(null);
+              session.current?.start(true);
+            }}
+            save={save}
           />
         ) : (
           <div {...stylex.props(styles.panel)}>
@@ -184,8 +198,6 @@ export const Game = ({
               <Panel
                 challenge={challenge}
                 lang={lang}
-                onNext={() => session.current?.next()}
-                onQuit={quit}
                 onStart={(challenged) => session.current?.start(challenged)}
                 returning={returning}
                 save={save}

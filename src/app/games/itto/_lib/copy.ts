@@ -8,32 +8,29 @@ interface Copy {
   back: string;
   mute: string;
   demo: string;
+  rare: string;
   rule: { lead: string; body: string; keys: string };
   start: string;
-  record: (total: string, runs: number) => string;
+  record: (off: string, cuts: number) => string;
   hint: string;
   fumble: Record<Fumble, string>;
-  round: (index: number, total: number) => string;
-  next: string;
-  finish: string;
   quit: string;
   challenge: {
     received: string;
     dare: string;
     accept: string;
+    retry: string;
     won: (gap: string) => string;
     lost: (gap: string) => string;
     tied: string;
   };
   result: ShareLabels & {
-    off: string;
-    closest: string;
+    off: (off: string) => string;
     record: string;
     again: string;
     games: string;
     maker: string;
     star: string;
-    cuts: string;
   };
 }
 
@@ -41,17 +38,17 @@ export const copy: Record<Lang, Copy> = {
   en: {
     back: "Back to games",
     challenge: {
-      accept: "Cut the same five",
-      dare: "Same shapes, same board. Can you cut closer to half?",
+      accept: "Cut the same piece",
+      dare: "Same piece, same board. Can you cut it closer to half?",
       lost: (gap) => `${gap}% further off than the challenge`,
       received: "Challenge",
+      retry: "Try that piece again",
       tied: "Exactly as close as the challenge",
       won: (gap) => `${gap}% closer than the challenge`,
     },
     demo: "Demo",
     fallback:
-      "A cutting game. Swipe one straight line across a piece of Japanese food to cut it in two, and try to make both pieces exactly the same size. The split is measured by area to one decimal place, so a perfect cut is 50.0 : 50.0. A run is five pieces, from tofu and yōkan to taiyaki and persimmon, and the shapes are different every time.",
-    finish: "See the result",
+      "A cutting game. Swipe one straight line across a piece of Japanese food to cut it in two, and try to make both pieces exactly the same size. The split is measured by area to one decimal place, so a perfect cut is 50.0 : 50.0. There are over thirty foods, from tofu and taiyaki to a skewer of dango, every piece is shaped a little differently, and now and then a rare one turns up.",
     fumble: {
       miss: "Missed. Swipe across the food",
       partial: "Not all the way through. Swipe from one side to the other",
@@ -60,19 +57,17 @@ export const copy: Record<Lang, Copy> = {
     hint: "Swipe straight across, end to end",
     mute: "Mute sound",
     name: "Ittō",
-    next: "Next",
     quit: "Quit",
-    record: (total, runs) =>
-      `Best ${total}% off · ${runs} ${runs === 1 ? "run" : "runs"}`,
+    rare: "Rare",
+    record: (off, cuts) =>
+      `Best ${off}% off · ${cuts} ${cuts === 1 ? "cut" : "cuts"}`,
     result: {
       again: "Cut again",
-      closest: "Closest",
       copied: "Copied",
       copyLink: "Copy link",
-      cuts: "Your cuts",
       games: "More games",
       maker: "About the maker",
-      off: "off in total",
+      off: (off) => `${off}% off half`,
       postX: "Post on X",
       record: "New best",
       saveImage: "Save image",
@@ -81,28 +76,27 @@ export const copy: Record<Lang, Copy> = {
       shareLink: "Share link",
       star: "Star on GitHub",
     },
-    round: (index, total) => `${index + 1} of ${total}`,
     rule: {
       body: "One straight swipe. Measured by area, to 0.1%.",
       keys: "Keyboard: Enter shows the knife, the arrow keys aim it, Enter cuts",
       lead: "Cut it exactly in half",
     },
-    start: "Start cutting",
+    start: "Cut one",
   },
   ja: {
     back: "ゲーム一覧にもどる",
     challenge: {
-      accept: "同じ5つを切る",
+      accept: "同じものを切る",
       dare: "同じ形、同じまな板。もっと半分に近づける？",
       lost: (gap) => `挑戦状より${gap}%ずれた`,
       received: "挑戦状",
+      retry: "同じものをもう一回",
       tied: "挑戦状とまったく同じズレ",
       won: (gap) => `挑戦状より${gap}%半分に近い`,
     },
     demo: "見本",
     fallback:
-      "まっすぐ一刀で、食べものを半分に切るゲーム。豆腐や羊羹、鯛焼き、柿などの端から端までスワイプして、ふたつの大きさをそろえる。面積の比を小数1桁まで測るので、ぴったりなら50.0 : 50.0。5つ切って1回で、形は毎回ちがう。",
-    finish: "結果を見る",
+      "まっすぐ一刀で、食べものを半分に切るゲーム。豆腐や鯛焼き、三色団子などの端から端までスワイプして、ふたつの大きさをそろえる。面積の比を小数1桁まで測るので、ぴったりなら50.0 : 50.0。食べものは30種類以上あって形は毎回すこしちがい、たまにレアなものも出る。",
     fumble: {
       miss: "空振り。食べものの上を通して",
       partial: "切れてない。端から端まで",
@@ -111,18 +105,16 @@ export const copy: Record<Lang, Copy> = {
     hint: "端から端まで、まっすぐスワイプ",
     mute: "音を消す",
     name: "一刀",
-    next: "次へ",
     quit: "やめる",
-    record: (total, runs) => `最高 ズレ${total}% · ${runs}回`,
+    rare: "レア",
+    record: (off, cuts) => `最高 ズレ${off}% · ${cuts}回切った`,
     result: {
-      again: "もう一回",
-      closest: "いちばん半分",
+      again: "もう一回切る",
       copied: "コピーした",
       copyLink: "リンクをコピー",
-      cuts: "切ったもの",
       games: "ほかのゲーム",
       maker: "つくった人",
-      off: "ズレ合計",
+      off: (off) => `半分からのズレ ${off}%`,
       postX: "Xに投稿",
       record: "最高記録",
       saveImage: "画像を保存",
@@ -131,12 +123,11 @@ export const copy: Record<Lang, Copy> = {
       shareLink: "リンクをシェア",
       star: "GitHubでスター",
     },
-    round: (index, total) => `${index + 1} / ${total}`,
     rule: {
       body: "まっすぐ一刀。面積を0.1%まで測る。",
       keys: "キーボード: Enterで包丁を出し、矢印キーで狙って、Enterで切る",
       lead: "ぴったり半分に、切る",
     },
-    start: "切りはじめる",
+    start: "切ってみる",
   },
 };

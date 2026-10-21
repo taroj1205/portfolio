@@ -10,12 +10,13 @@ import type { Food } from "../_lib/foods";
 import { pointOn } from "../_lib/geometry";
 import { tenths } from "../_lib/result";
 import type { Slash, View } from "../_lib/session";
-import { cutSvg, layersOf, pieceSvg } from "./food-svg";
+import { cutSvg, layersOf, pieceSvg, tagAt } from "./food-svg";
 import { knifeSvg } from "./knife-svg";
 import { woodSvg } from "./wood-svg";
 
 const SUMI = "#2a1a10";
 const VERMILION = "#c8352b";
+const GOLD = "#ffd27a";
 const SPRING = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 const VIEW = `${-SPAN / 2} ${-SPAN / 2} ${SPAN} ${SPAN}`;
 
@@ -48,6 +49,11 @@ const flash = stylex.keyframes({
 const fade = stylex.keyframes({
   "0%, 40%": { opacity: 1 },
   "100%": { opacity: 0 },
+});
+
+const drop = stylex.keyframes({
+  "0%": { opacity: 0, transform: "translateY(-6px)" },
+  "100%": { opacity: 1, transform: "none" },
 });
 
 const leave = stylex.keyframes({
@@ -147,7 +153,13 @@ const styles = stylex.create({
   },
   at: (left: string, top: string) => ({ left, top }),
   tag: {
+    alignItems: "center",
+    animationDuration: "420ms",
+    animationName: { default: drop, [media.reduce]: "none" },
+    animationTimingFunction: SPRING,
     backgroundColor: "rgb(42 26 16 / 0.82)",
+    display: "flex",
+    gap: "0.5rem",
     borderRadius: 6,
     color: "#fff3df",
     fontFamily: font.mincho,
@@ -161,6 +173,20 @@ const styles = stylex.create({
     paddingInline: "0.6rem",
     pointerEvents: "none",
     position: "absolute",
+  },
+  rareTag: {
+    backgroundImage: "linear-gradient(135deg, #3a2608, #6b4510 55%, #3a2608)",
+    boxShadow:
+      "0 0 0 1px rgb(255 210 122 / 0.7), 0 6px 22px rgb(255 190 80 / 0.35)",
+    color: GOLD,
+  },
+  rareMark: {
+    backgroundImage: "linear-gradient(180deg, #fff1b8, #ffd27a 50%, #d9962a)",
+    borderRadius: 4,
+    color: "#2a1d05",
+    fontSize: "0.68rem",
+    paddingBlock: "0.05rem",
+    paddingInline: "0.35rem",
   },
 });
 
@@ -193,7 +219,7 @@ const Parts = ({
   const scene = useId().replaceAll(":", "");
   return (
     <>
-      {layersOf(split).map(({ faces, key, side, turn }) => (
+      {layersOf(split).map(({ faces, half, key, side, turn }) => (
         <svg
           aria-hidden="true"
           key={key}
@@ -211,29 +237,30 @@ const Parts = ({
           )}
         >
           {pieceSvg({
+            chunks: side.chunks,
             faces,
-            id: `${scene}-${key}`,
-            points: side.points,
             food,
+            half,
+            id: `${scene}-${key}`,
             split,
           })}
         </svg>
       ))}
-      {split.sides.map((side, index) => (
-        <span
-          key={index === 0 ? "plus" : "minus"}
-          {...stylex.props(
-            styles.label,
-            split.small === 500 && styles.even,
-            styles.at(
-              percent(side.centre.x + side.push.x * 1.6),
-              percent(side.centre.y + side.push.y * 1.6)
-            )
-          )}
-        >
-          {tenths(side.share)}%
-        </span>
-      ))}
+      {split.sides.map((side, index) => {
+        const tag = tagAt(side, 1);
+        return (
+          <span
+            key={index === 0 ? "plus" : "minus"}
+            {...stylex.props(
+              styles.label,
+              split.small === 500 && styles.even,
+              styles.at(percent(tag.x), percent(tag.y))
+            )}
+          >
+            {tenths(side.share)}%
+          </span>
+        );
+      })}
     </>
   );
 };
@@ -275,7 +302,7 @@ const line = (slash: Slash) =>
   `M${slash.from.x.toFixed(4)} ${slash.from.y.toFixed(4)}L${slash.to.x.toFixed(4)} ${slash.to.y.toFixed(4)}`;
 
 const aimSlash = (food: Food, aim: Cut): Slash => {
-  const reach = reachOf(food.outline, aim);
+  const reach = reachOf(food.parts, aim);
   const hit =
     Math.hypot(reach.to.x - reach.from.x, reach.to.y - reach.from.y) > 0.7;
   if (hit) {
@@ -288,15 +315,16 @@ const aimSlash = (food: Food, aim: Cut): Slash => {
 interface BoardProps {
   view: View;
   trail: Slash | null;
-  demo: string;
+  tag: string;
+  rare: string | null;
   boxRef: Ref<HTMLDivElement>;
 }
 
-export const Board = ({ view, trail, demo, boxRef }: BoardProps) => {
+export const Board = ({ view, trail, tag, rare, boxRef }: BoardProps) => {
   const scene = useId().replaceAll(":", "");
   const leaving = view.beat === "clear";
   const aim = view.aim === null ? null : aimSlash(view.food, view.aim);
-  const key = `${view.stage === "title" ? "demo" : view.index}-${view.food.kind}-${view.food.place.turn}`;
+  const key = `${view.stage === "title" ? "demo" : "dish"}-${view.serving}`;
   return (
     <div {...stylex.props(styles.board)}>
       <svg
@@ -307,11 +335,15 @@ export const Board = ({ view, trail, demo, boxRef }: BoardProps) => {
       >
         {woodSvg(scene, 900, 900)}
       </svg>
-      {view.stage === "title" ? (
-        <p aria-hidden="true" {...stylex.props(styles.tag)}>
-          {demo}
-        </p>
-      ) : null}
+      <p
+        key={`tag-${key}`}
+        {...stylex.props(styles.tag, rare !== null && styles.rareTag)}
+      >
+        {rare === null ? null : (
+          <span {...stylex.props(styles.rareMark)}>✦ {rare}</span>
+        )}
+        {tag}
+      </p>
       <div ref={boxRef} {...stylex.props(styles.box)}>
         {view.split === null ? (
           <Whole key={key} leaving={leaving} food={view.food} />
@@ -327,9 +359,7 @@ export const Board = ({ view, trail, demo, boxRef }: BoardProps) => {
           {view.beat === "slice" && view.knife !== null ? (
             <Sweep slash={view.knife} />
           ) : null}
-          {view.split !== null &&
-          view.knife !== null &&
-          view.stage !== "result" ? (
+          {view.split !== null && view.knife !== null ? (
             <path
               d={line(view.knife)}
               key={`slash-${key}`}

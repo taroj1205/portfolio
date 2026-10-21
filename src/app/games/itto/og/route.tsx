@@ -3,28 +3,32 @@ import type { NextRequest } from "next/server";
 
 import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
-import { cutSvg } from "../_components/food-svg";
+import type { Lang } from "../../_lib/i18n";
+import { cutSvg, tagAt } from "../_components/food-svg";
 import { woodSvg } from "../_components/wood-svg";
 import { copy } from "../_lib/copy";
+import { errorOf } from "../_lib/cut";
 import type { Split } from "../_lib/cut";
-import { SPAN } from "../_lib/foods";
-import type { Food } from "../_lib/foods";
+import { SPAN, isRare } from "../_lib/foods";
 import {
   demoOf,
   kindTitle,
+  pieceOf,
   rankOf,
   ratioText,
   readResult,
-  scoreOf,
   tenths,
 } from "../_lib/result";
+import type { Piece } from "../_lib/result";
 
 const ink = {
   counter: "#1a110b",
   gold: "#ffd27a",
+  goldDeep: "#d9962a",
   label: "#2a1a10",
   paper: "#fff4ec",
   pill: "rgba(255,252,244,0.95)",
+  rareInk: "#2a1d05",
   seal: "#c8352b",
   soft: "rgba(255,250,243,0.78)",
   text: "#fffaf3",
@@ -38,83 +42,81 @@ const APART = 1.6;
 
 const at = (value: number) => ((value + SPAN / 2) / SPAN) * BOARD + INSET;
 
+const Label = ({
+  side,
+  small,
+}: {
+  side: Split["sides"][number];
+  small: number;
+}) => {
+  const tag = tagAt(side, APART);
+  return (
+    <div
+      style={{
+        backgroundColor: small === 500 ? ink.seal : ink.pill,
+        borderRadius: 999,
+        boxShadow: "0 6px 18px rgba(60,30,10,0.35)",
+        color: small === 500 ? ink.paper : ink.label,
+        display: "flex",
+        fontSize: 30,
+        left: at(tag.x) - 62,
+        padding: "4px 18px",
+        position: "absolute",
+        top: at(tag.y) - 24,
+      }}
+    >
+      {tenths(side.share)}%
+    </div>
+  );
+};
+
 const Labels = ({ split }: { split: Split }) => (
   <>
     {split.sides.map((side, index) => (
-      <div
+      <Label
         key={index === 0 ? "plus" : "minus"}
-        style={{
-          backgroundColor: split.small === 500 ? ink.seal : ink.pill,
-          borderRadius: 999,
-          boxShadow: "0 6px 18px rgba(60,30,10,0.35)",
-          color: split.small === 500 ? ink.paper : ink.label,
-          display: "flex",
-          fontSize: 30,
-          left: at(side.centre.x + side.push.x * APART * 1.4) - 62,
-          padding: "4px 18px",
-          position: "absolute",
-          top: at(side.centre.y + side.push.y * APART * 1.4) - 24,
-        }}
-      >
-        {tenths(side.share)}%
-      </div>
+        side={side}
+        small={split.small}
+      />
     ))}
   </>
 );
 
-const Mini = ({
-  food,
-  split,
-  id,
-}: {
-  food: Food;
-  split: Split;
-  id: string;
-}) => (
-  <div
-    style={{
-      alignItems: "center",
-      display: "flex",
-      flexDirection: "column",
-      gap: 2,
-      width: 92,
-    }}
-  >
-    <svg
-      height={84}
-      viewBox={`${-SPAN / 2} ${-SPAN / 2} ${SPAN} ${SPAN}`}
-      width={84}
-    >
-      {cutSvg(id, food, split, APART)}
-    </svg>
-    <span style={{ color: ink.text, fontSize: 17 }}>
-      {ratioText(split.small)}
-    </span>
-  </div>
-);
+const textOf = (piece: Piece | null, lang: Lang) => {
+  const words = copy[lang];
+  if (piece === null) {
+    return {
+      detail: words.rule.body,
+      lead: null,
+      name: "",
+      rare: false,
+      seal: ["一", "刀"] as const,
+      title: words.rule.lead,
+    };
+  }
+  const rank = rankOf(piece.split.small);
+  return {
+    detail: words.result.off(tenths(errorOf(piece.split.small))),
+    lead: rank.line[lang],
+    name: kindTitle(piece.food.kind, lang),
+    rare: isRare(piece.food.kind),
+    seal: rank.seal,
+    title: rank.name[lang],
+  };
+};
 
 export const GET = async (request: NextRequest) => {
   const params = Object.fromEntries(request.nextUrl.searchParams);
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
   const words = copy[lang];
   const shared = readResult(params);
-  const scored = shared === null ? null : scoreOf(shared);
-  const demo = demoOf(0);
-  const hero = scored?.best ?? demo;
-  const rank = scored === null ? null : rankOf(scored.total);
-  const caption =
-    scored === null
-      ? words.rule.lead
-      : `${words.result.closest} · ${kindTitle(scored.best.food.kind, lang)}`;
-  const detail =
-    scored === null
-      ? words.rule.body
-      : `${words.result.off} ${tenths(scored.total)}% · ${rank?.name[lang] ?? ""}`;
-  const seal = rank?.seal ?? ["一", "刀"];
-  const font = await loadMincho(
-    `${caption}${detail}${seal.join("")}${rank?.line[lang] ?? ""}${words.challenge.dare}0123456789.:%·一刀いっとうITTŌ`
-  );
+  const piece = shared === null ? null : pieceOf(shared);
+  const hero = piece ?? demoOf(0);
   const ratio = hero.split === null ? "" : ratioText(hero.split.small);
+  const { detail, lead, name, rare, seal, title } = textOf(piece, lang);
+  const font = await loadMincho(
+    `${name}${detail}${title}${lead ?? ""}${seal.join("")}${words.rare}${words.challenge.dare}0123456789.:%·一刀いっとうITTŌ`
+  );
 
   return new ImageResponse(
     <div
@@ -133,7 +135,9 @@ export const GET = async (request: NextRequest) => {
       <div
         style={{
           borderRadius: 28,
-          boxShadow: "0 10px 0 #b0834a, 0 30px 60px rgba(0,0,0,0.55)",
+          boxShadow: rare
+            ? `0 0 0 4px ${ink.gold}, 0 0 60px rgba(255,190,80,0.55), 0 10px 0 #b0834a`
+            : "0 10px 0 #b0834a, 0 30px 60px rgba(0,0,0,0.55)",
           display: "flex",
           height: BOARD,
           left: INSET,
@@ -156,6 +160,36 @@ export const GET = async (request: NextRequest) => {
         {cutSvg("og", hero.food, hero.split, APART)}
       </svg>
       {hero.split === null ? null : <Labels split={hero.split} />}
+      {piece === null ? null : (
+        <div
+          style={{
+            alignItems: "center",
+            backgroundColor: rare ? ink.gold : "rgba(42,26,16,0.85)",
+            borderRadius: 8,
+            color: rare ? ink.rareInk : ink.paper,
+            display: "flex",
+            fontSize: 24,
+            gap: 10,
+            left: INSET + 20,
+            padding: "6px 14px",
+            position: "absolute",
+            top: INSET + 16,
+          }}
+        >
+          {rare ? (
+            <span style={{ alignItems: "center", display: "flex", gap: 6 }}>
+              <svg height={18} viewBox="-1 -1 2 2" width={18}>
+                <path
+                  d="M0-1Q0.12-0.12 1 0Q0.12 0.12 0 1Q-0.12 0.12-1 0Q-0.12-0.12 0-1Z"
+                  fill={ink.rareInk}
+                />
+              </svg>
+              {words.rare}
+            </span>
+          ) : null}
+          <span>{name}</span>
+        </div>
+      )}
       <div
         style={{
           display: "flex",
@@ -186,10 +220,10 @@ export const GET = async (request: NextRequest) => {
         <div
           style={{
             display: "flex",
-            fontSize: 92,
+            fontSize: 96,
             letterSpacing: 1,
             lineHeight: 1.05,
-            marginTop: 10,
+            marginTop: 12,
           }}
         >
           {ratio}
@@ -198,64 +232,62 @@ export const GET = async (request: NextRequest) => {
           style={{
             alignItems: "center",
             display: "flex",
-            fontSize: 30,
-            gap: 16,
-            marginTop: 14,
+            fontSize: 32,
+            gap: 18,
+            marginTop: 18,
           }}
         >
-          {rank === null ? null : (
-            <div
-              style={{
-                alignItems: "center",
-                backgroundColor: ink.seal,
-                borderRadius: 6,
-                color: ink.paper,
-                display: "flex",
-                flexDirection: "column",
-                flexShrink: 0,
-                fontSize: 22,
-                height: 56,
-                justifyContent: "center",
-                lineHeight: 1.05,
-                transform: "rotate(-4deg)",
-                width: 56,
-              }}
-            >
-              <span>{seal[0]}</span>
-              <span>{seal[1]}</span>
-            </div>
-          )}
-          <span style={{ color: ink.gold }}>{caption}</span>
+          <div
+            style={{
+              alignItems: "center",
+              backgroundColor: ink.seal,
+              borderRadius: 6,
+              color: ink.paper,
+              display: "flex",
+              flexDirection: "column",
+              flexShrink: 0,
+              fontSize: 24,
+              height: 62,
+              justifyContent: "center",
+              lineHeight: 1.05,
+              transform: "rotate(-4deg)",
+              width: 62,
+            }}
+          >
+            <span>{seal[0]}</span>
+            <span>{seal[1]}</span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
+              maxWidth: W - BOARD - INSET * 7 - 80,
+            }}
+          >
+            <span style={{ color: ink.gold }}>{title}</span>
+            <span style={{ color: ink.soft, fontSize: 24 }}>{detail}</span>
+          </div>
         </div>
-        <div
-          style={{
-            color: ink.soft,
-            display: "flex",
-            fontSize: 26,
-            marginTop: 14,
-          }}
-        >
-          {detail}
-        </div>
-        {scored === null ? null : (
-          <div style={{ display: "flex", gap: 4, marginTop: 26 }}>
-            {scored.pieces.map((piece, index) => (
-              <Mini
-                food={piece.food}
-                id={`og-mini-${index}`}
-                key={`${piece.food.kind}-${piece.cut.angle}`}
-                split={piece.split}
-              />
-            ))}
+        {lead === null ? null : (
+          <div
+            style={{
+              color: ink.text,
+              display: "flex",
+              fontSize: 28,
+              marginTop: 26,
+            }}
+          >
+            {lead}
           </div>
         )}
-        {scored === null ? null : (
+        {piece === null ? null : (
           <div
             style={{
               color: ink.soft,
               display: "flex",
               fontSize: 22,
-              marginTop: 22,
+              marginTop: 18,
             }}
           >
             {words.challenge.dare}
