@@ -115,7 +115,7 @@ export const GET = async (request: NextRequest) => {
   const ratio = hero.split === null ? "" : ratioText(hero.split.small);
   const { detail, lead, name, rare, seal, title } = textOf(piece, lang);
   const font = await loadMincho(
-    `${name}${detail}${title}${lead ?? ""}${seal.join("")}${words.rare}${words.challenge.dare}0123456789.:%·一刀いっとうITTŌ`
+    `${name}${detail}${title}${lead ?? ""}${seal.join("")}${words.rare}${words.challenge.dare}0123456789.:%·${copy.ja.name}はんぶんこどうじょう${copy.en.name}`
   );
 
   return new ImageResponse(
@@ -212,9 +212,9 @@ export const GET = async (request: NextRequest) => {
             letterSpacing: 10,
           }}
         >
-          一刀
+          {copy.ja.name}
           <span style={{ fontSize: 20, letterSpacing: 4 }}>
-            {lang === "en" ? "ITTŌ" : "いっとう"}
+            {lang === "en" ? copy.en.name : "はんぶんこどうじょう"}
           </span>
         </div>
         <div

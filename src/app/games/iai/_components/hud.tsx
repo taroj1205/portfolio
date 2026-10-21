@@ -67,6 +67,7 @@ const styles = stylex.create({
   top: {
     alignItems: "center",
     display: "flex",
+    flexWrap: "wrap",
     gap: "0.6rem",
     justifyContent: "space-between",
     position: "relative",
@@ -96,6 +97,7 @@ const styles = stylex.create({
   corner: {
     display: "flex",
     gap: "0.45rem",
+    marginInlineStart: "auto",
   },
   button: {
     alignItems: "center",
@@ -890,8 +892,8 @@ export const Hud = ({
           <div {...stylex.props(styles.brand)}>
             <BackToGames label={words.back} />
             <h1 lang="ja" {...stylex.props(styles.title)}>
-              <span {...stylex.props(styles.lead)}>いあい</span>
-              居合
+              <span {...stylex.props(styles.lead)}>さやばしり</span>
+              {copy.ja.name}
             </h1>
           </div>
           <div {...stylex.props(styles.corner)}>

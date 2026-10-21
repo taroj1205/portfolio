@@ -50,8 +50,8 @@ export const copy: Record<Lang, Copy> = {
     meter: { carved: "Carved", stress: "Stress" },
     moulds: "Shape",
     mute: "Mute sound",
-    name: "Katanuki",
-    reading: "Katanuki",
+    name: "Breathless Carve",
+    reading: "Breathless Carve",
     result: {
       again: "Play again",
       copied: "Copied",
@@ -93,8 +93,8 @@ export const copy: Record<Lang, Copy> = {
     meter: { carved: "削り", stress: "ひび" },
     moulds: "型",
     mute: "音を消す",
-    name: "型抜き",
-    reading: "かたぬき",
+    name: "息止め型抜き",
+    reading: "いきどめかたぬき",
     result: {
       again: "もう一枚",
       copied: "コピーした",

@@ -109,8 +109,8 @@ const lineOf = (result: Result, lang: Lang) => {
   const score = formatScore(result.score);
   const rank = rankOf(result.score).name[lang];
   return lang === "en"
-    ? `I drew a ${score} circle in one stroke on Ensō (${rank}).\nCan you draw a rounder one?`
-    : `円相で、一筆で${score}の円を描いた（${rank}）\nこれより丸く描ける？`;
+    ? `I drew a ${score} circle in one stroke on One-Brush Moon (${rank}).\nCan you draw a rounder one?`
+    : `ひと筆の月で、${score}の円を描いた（${rank}）\nこれより丸く描ける？`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
@@ -118,9 +118,10 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   query.set("l", lang);
   return {
     image: `${origin}/games/enso/og?${query.toString()}`,
-    text: [lineOf(result, lang), lang === "en" ? "#円相 #Enso" : "#円相"].join(
-      "\n"
-    ),
+    text: [
+      lineOf(result, lang),
+      lang === "en" ? "#ひと筆の月 #OneBrushMoon" : "#ひと筆の月",
+    ].join("\n"),
     url: `${origin}/games/enso?${query.toString()}`,
   };
 };

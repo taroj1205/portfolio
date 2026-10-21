@@ -207,7 +207,7 @@ export const GET = async (request: NextRequest) => {
     lang
   );
   const font = await loadMincho(
-    `${tag}${headline}${caption}${detail}${dare}型抜きかたぬきKatanuki0123456789.%秒s#·`
+    `${tag}${headline}${caption}${detail}${dare}${copy.ja.name}${copy.ja.reading}${copy.en.reading}0123456789.%秒s#·`
   );
   const accent = clear ? ink.gold : ink.text;
 
@@ -244,9 +244,9 @@ export const GET = async (request: NextRequest) => {
             gap: 20,
           }}
         >
-          <span style={{ fontSize: 44 }}>型抜き</span>
+          <span style={{ fontSize: 44 }}>{copy.ja.name}</span>
           <span style={{ color: ink.gold, fontSize: 24, letterSpacing: 4 }}>
-            {lang === "en" ? "Katanuki" : "かたぬき"}
+            {copy[lang].reading}
           </span>
         </div>
         <div

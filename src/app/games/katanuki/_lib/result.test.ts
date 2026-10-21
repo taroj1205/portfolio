@@ -113,7 +113,7 @@ describe("share text", () => {
     const share = shareOf(broke(87), "https://x.y", "ja");
     assert.equal(
       share.text,
-      "型抜き 星\n87%で割れた · 惜しい\n🟧🟧🟧🟧🟧🟧🟧🟧💥⬜\n割らずに抜ける？\n#型抜き"
+      "息止め型抜き 星\n87%で割れた · 惜しい\n🟧🟧🟧🟧🟧🟧🟧🟧💥⬜\n割らずに抜ける？\n#息止め型抜き"
     );
     assert.equal(share.url, "https://x.y/games/katanuki?m=star&c=87&l=ja");
     assert.equal(share.image, "https://x.y/games/katanuki/og?m=star&c=87&l=ja");
@@ -127,8 +127,14 @@ describe("share text", () => {
       "en"
     );
     assert.ok(
-      text.startsWith(`Katanuki ${moulds.umbrella.name.en}\nCut out in 300.0s`)
+      text.startsWith(
+        `Breathless Carve ${moulds.umbrella.name.en}\nCut out in 300.0s`
+      )
     );
-    assert.ok(text.endsWith("Can you cut it out faster?\n#型抜き #Katanuki"));
+    assert.ok(
+      text.endsWith(
+        "Can you cut it out faster?\n#息止め型抜き #BreathlessCarve"
+      )
+    );
   });
 });

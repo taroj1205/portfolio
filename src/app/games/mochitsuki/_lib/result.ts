@@ -151,10 +151,10 @@ const lineOf = (result: Result, lang: Lang) => {
       result.ending === "hand"
         ? "then hit my partner's hand"
         : "then lost the beat";
-    return `Mochitsuki: ${poundsText(result.pounds, lang)} · ${rank}\nUp to ${tempo}, ${how}\n${bar}\nCan you pound more?`;
+    return `Mochi Master: ${poundsText(result.pounds, lang)} · ${rank}\nUp to ${tempo}, ${how}\n${bar}\nCan you pound more?`;
   }
   const how = result.ending === "hand" ? "相方の手をついた" : "リズムが崩れた";
-  return `餅つき ${poundsText(result.pounds, lang)} · ${rank}\n最高${tempo}で${how}\n${bar}\nこれより多くつける？`;
+  return `餅つきマスター ${poundsText(result.pounds, lang)} · ${rank}\n最高${tempo}で${how}\n${bar}\nこれより多くつける？`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
@@ -164,7 +164,7 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
     image: `${origin}/games/mochitsuki/og?${query.toString()}`,
     text: [
       lineOf(result, lang),
-      lang === "en" ? "#餅つき #Mochitsuki" : "#餅つき",
+      lang === "en" ? "#ぺったんマスター #PettanMaster" : "#ぺったんマスター",
     ].join("\n"),
     url: `${origin}/games/mochitsuki?${query.toString()}`,
   };

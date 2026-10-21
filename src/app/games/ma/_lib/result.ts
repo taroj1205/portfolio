@@ -84,13 +84,13 @@ const lineOf = (result: Result, lang: Lang) => {
   const moons = moonsOf(rank.level);
   if (result.day !== null) {
     return lang === "en"
-      ? `Ma daily #${result.day}\n${off} · ${rank.name.en}\n${moons}`
-      : `間 お題 #${result.day}\n${off} · ${rank.name.ja}\n${moons}`;
+      ? `Ten Silent Seconds daily #${result.day}\n${off} · ${rank.name.en}\n${moons}`
+      : `無音の十秒 お題 #${result.day}\n${off} · ${rank.name.ja}\n${moons}`;
   }
   const time = secondsText(formatTime(result.time), lang);
   return lang === "en"
-    ? `Ma 10.00s challenge\n${time} (${formatGap(gap)}) · ${rank.name.en}\n${moons}\nThe timer vanishes after 3s. Can you stop at exactly 10.00?`
-    : `間 10.00秒チャレンジ\n${time}（${formatGap(gap)}）· ${rank.name.ja}\n${moons}\nタイマーが消えても、10.00秒ぴったりで止められる？`;
+    ? `Ten Silent Seconds: 10.00s challenge\n${time} (${formatGap(gap)}) · ${rank.name.en}\n${moons}\nThe timer vanishes after 3s. Can you stop at exactly 10.00?`
+    : `無音の十秒 10.00秒チャレンジ\n${time}（${formatGap(gap)}）· ${rank.name.ja}\n${moons}\nタイマーが消えても、10.00秒ぴったりで止められる？`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
@@ -98,7 +98,10 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   query.set("l", lang);
   return {
     image: `${origin}/games/ma/og?${query.toString()}`,
-    text: [lineOf(result, lang), lang === "en" ? "#間 #Ma" : "#間"].join("\n"),
+    text: [
+      lineOf(result, lang),
+      lang === "en" ? "#無音の十秒 #TenSilentSeconds" : "#無音の十秒",
+    ].join("\n"),
     url: `${origin}/games/ma?${query.toString()}`,
   };
 };

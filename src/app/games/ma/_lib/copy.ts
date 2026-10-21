@@ -88,7 +88,7 @@ export const copy: Record<Lang, Copy> = {
       standard: "10.00s",
     },
     mute: "Mute sound",
-    name: "Ma",
+    name: "Ten Silent Seconds",
     result: {
       again: "Play again",
       copied: "Copied",
@@ -161,7 +161,7 @@ export const copy: Record<Lang, Copy> = {
       standard: "10.00秒",
     },
     mute: "音を消す",
-    name: "間",
+    name: "無音の十秒",
     result: {
       again: "もう一回",
       copied: "コピーした",
