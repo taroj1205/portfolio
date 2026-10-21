@@ -128,6 +128,7 @@ export interface Flight {
   skips: number;
   combo: number;
   bestCombo: number;
+  streak: number;
   ending: Ending | null;
   duration: number;
   distance: number;
@@ -439,6 +440,7 @@ export const launch = (
     roll: seedOf(river.seed + 7919),
     skips: 0,
     splashes: [],
+    streak: 0,
     tilt: input.tilt,
     top: traits.top,
   };
@@ -455,8 +457,11 @@ export const launch = (
   return flight;
 };
 
+const NARROWEST = 3.6;
+
 export const windowFor = (flight: Flight) => {
-  const shrink = (1 + flight.skips * 0.06) / flight.focusScale;
+  const shrink =
+    Math.min(NARROWEST, 1 + flight.skips * 0.06) / flight.focusScale;
   return { good: flight.good / shrink, perfect: flight.perfect / shrink };
 };
 
@@ -492,14 +497,37 @@ const fade = (flight: Flight, speed: number, factor: number) =>
 const kick = (flight: Flight, speed: number) =>
   Math.max(1, Math.sqrt(speed / flight.top));
 
+export const surges = [
+  { boost: 1.06, ceiling: 800, from: 5 },
+  { boost: 1.1, ceiling: 2500, from: 12 },
+  { boost: 1.14, ceiling: 6000, from: 24 },
+];
+
+export const surgeTier = (streak: number) =>
+  surges.filter((entry) => streak >= entry.from).length;
+
+const surge = (flight: Flight, speed: number) => {
+  const tier = surges[surgeTier(flight.streak) - 1];
+  return tier === undefined
+    ? 1
+    : Math.max(1, Math.min(tier.boost, tier.ceiling / speed));
+};
+
 const GAIN: Record<Grade, (flight: Flight, speed: number) => number> = {
   early: (flight) => flight.keep,
   good: (flight) => Math.min(0.97, flight.keep + 0.06),
   miss: (flight) => flight.keep,
-  perfect: (flight, speed) => fade(flight, speed, 1.05),
+  perfect: (flight, speed) => fade(flight, speed, 1.05) * surge(flight, speed),
 };
 
 const rate = (flight: Flight, grade: Grade, forgiving = false) => {
+  if (grade === "perfect") {
+    flight.streak += 1;
+  } else if (grade === "good") {
+    flight.streak = Math.floor(flight.streak / 2);
+  } else if (!(forgiving && grade === "miss")) {
+    flight.streak = 0;
+  }
   if (grade === "perfect" || grade === "good") {
     flight.combo += 1;
   } else if (!forgiving) {
