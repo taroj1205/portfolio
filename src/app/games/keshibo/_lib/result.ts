@@ -133,9 +133,9 @@ const lineOf = (result: Result, lang: Lang) => {
   const rank = rankOf(score).name[lang];
   const sheet = sheetLine(result.rolls);
   if (lang === "en") {
-    return `Keshibo, eraser bowling\n${score} · ${rank}\n${sheet}\n${copy.en.challenge.dare(score)}`;
+    return `${copy.en.name}\n${score} · ${rank}\n${sheet}\n${copy.en.challenge.dare(score)}`;
   }
-  return `消しボウ\n${score}点 · ${rank}\n${sheet}\n${copy.ja.challenge.dare(score)}`;
+  return `${copy.ja.name}\n${score}点 · ${rank}\n${sheet}\n${copy.ja.challenge.dare(score)}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
@@ -145,7 +145,9 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
     image: `${origin}/games/keshibo/og?${query.toString()}`,
     text: [
       lineOf(result, lang),
-      lang === "en" ? "#消しボウ #Keshibo" : "#消しボウ",
+      lang === "en"
+        ? "#放課後ストライク #AfterSchoolStrike"
+        : "#放課後ストライク",
     ].join("\n"),
     url: `${origin}/games/keshibo?${query.toString()}`,
   };

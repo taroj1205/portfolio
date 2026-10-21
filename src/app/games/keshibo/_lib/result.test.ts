@@ -4,7 +4,7 @@ import { describe, test } from "vite-plus/test";
 
 import { codeOf, designFrom, firstDesign } from "./eraser";
 import type { Design } from "./eraser";
-import { queryOf, rankOf, readResult } from "./result";
+import { queryOf, rankOf, readResult, shareOf } from "./result";
 
 const params = (query: string) =>
   Object.fromEntries(new URLSearchParams(query));
@@ -49,5 +49,15 @@ describe("keshibo share links", () => {
     assert.equal(rankOf(119).level, 2);
     assert.equal(rankOf(299).level, 6);
     assert.equal(rankOf(300).level, 7);
+  });
+
+  test("share text starts with the title and ends with the game's own tags", () => {
+    const result = { design: custom, rolls: game };
+    const ja = shareOf(result, "https://example.com", "ja").text.split("\n");
+    const en = shareOf(result, "https://example.com", "en").text.split("\n");
+    assert.equal(ja[0], "放課後ストライク");
+    assert.equal(ja.at(-1), "#放課後ストライク");
+    assert.equal(en[0], "After-School Strike");
+    assert.equal(en.at(-1), "#放課後ストライク #AfterSchoolStrike");
   });
 });

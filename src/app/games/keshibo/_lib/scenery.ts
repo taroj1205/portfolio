@@ -485,7 +485,7 @@ const boardWriting = (
   chalk.textAlign = "center";
   chalk.textBaseline = "middle";
   chalk.fillStyle = "rgb(246 244 234 / 0.9)";
-  write("消しボウ大会", -10, mid + 22, 30);
+  write("消しゴムボウリング大会", -10, mid + 22, 26);
   chalk.fillStyle = "rgb(255 214 120 / 0.88)";
   write("めざせ ３００点！", -10, mid - 14, 13);
   chalk.fillStyle = "rgb(246 244 234 / 0.82)";

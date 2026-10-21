@@ -47,6 +47,7 @@ const styles = stylex.create({
   top: {
     alignItems: "flex-start",
     display: "flex",
+    flexWrap: "wrap",
     gap: "0.5rem",
     justifyContent: "space-between",
   },
@@ -57,12 +58,13 @@ const styles = stylex.create({
     pointerEvents: "auto",
   },
   title: {
-    alignItems: "baseline",
     display: "flex",
+    flexDirection: "column",
     fontFamily: font.mincho,
-    fontSize: "1.65rem",
+    fontSize: "1.45rem",
     fontWeight: 700,
-    gap: "0.5rem",
+    gap: "0.35rem",
+    letterSpacing: "0.08em",
     lineHeight: 1,
     margin: 0,
     textShadow: shade.small,
@@ -76,6 +78,7 @@ const styles = stylex.create({
   corner: {
     display: "flex",
     gap: "0.45rem",
+    marginInlineStart: "auto",
   },
   button: {
     alignItems: "center",
@@ -439,9 +442,9 @@ export const Hud = ({
     <header {...stylex.props(styles.top)}>
       <div {...stylex.props(styles.brand)}>
         <BackToGames label={words.back} />
-        <h1 {...stylex.props(styles.title)}>
-          <span lang="ja">消しボウ</span>
+        <h1 lang="ja" {...stylex.props(styles.title)}>
           <span {...stylex.props(styles.reading)}>{copy.ja.reading}</span>
+          {copy.ja.name}
         </h1>
       </div>
       <div {...stylex.props(styles.corner)}>

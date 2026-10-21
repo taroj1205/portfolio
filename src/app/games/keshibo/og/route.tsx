@@ -148,7 +148,7 @@ export const GET = async (request: NextRequest) => {
   const caption = rank === null ? pitch[lang].detail : rank.name[lang];
   const dare = score === null ? "" : copy[lang].challenge.dare(score);
   const font = await loadMincho(
-    `${headline}${caption}${dare}${copy.ja.name}${copy.en.reading}けしボウ0123456789X/-点`
+    `${headline}${caption}${dare}${copy.ja.name}${copy.ja.reading}${copy.en.reading}0123456789X/-点`
   );
 
   return new ImageResponse(
@@ -168,9 +168,18 @@ export const GET = async (request: NextRequest) => {
     >
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <div style={{ display: "flex", flexDirection: "column", width: 640 }}>
-          <div style={{ alignItems: "center", display: "flex", gap: 20 }}>
-            <span style={{ fontSize: 44 }}>{copy.ja.name}</span>
-            <span style={{ color: ink.gold, fontSize: 24, letterSpacing: 4 }}>
+          <div style={{ alignItems: "center", display: "flex", gap: 16 }}>
+            <span style={{ fontSize: 38, whiteSpace: "nowrap" }}>
+              {copy.ja.name}
+            </span>
+            <span
+              style={{
+                color: ink.gold,
+                fontSize: 20,
+                letterSpacing: 2,
+                whiteSpace: "nowrap",
+              }}
+            >
               {lang === "en" ? copy.en.reading : copy.ja.reading}
             </span>
           </div>
