@@ -24,7 +24,7 @@ const ink = {
 
 const pitch: Record<Lang, { headline: string; detail: string }> = {
   en: {
-    detail: "Flick your own eraser down the desks.",
+    detail: "Flick your eraser down the desks.",
     headline: "Eraser bowling",
   },
   ja: {
@@ -178,14 +178,20 @@ export const GET = async (request: NextRequest) => {
             style={{
               color: score === PERFECT ? ink.gold : ink.text,
               display: "flex",
-              fontSize: score === null ? 72 : 132,
+              fontSize: score === null ? 60 : 132,
               lineHeight: 1,
               marginTop: 18,
             }}
           >
             {headline}
           </div>
-          <div style={{ display: "flex", fontSize: 44, marginTop: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              fontSize: score === null ? 34 : 44,
+              marginTop: 12,
+            }}
+          >
             {caption}
           </div>
           {dare === "" ? null : (
