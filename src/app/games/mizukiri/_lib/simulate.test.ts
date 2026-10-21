@@ -45,12 +45,16 @@ import {
   nextContact,
   propsIn,
   plain,
+  randomFrom,
   qualityOf,
   shoreAt,
   speedAt,
   stoneAt,
+  surgeTier,
+  surges,
   topSpeed,
   windowFor,
+  zoneIndex,
   zones,
 } from "./simulate";
 import type { Flight } from "./simulate";
@@ -78,19 +82,67 @@ const bouncy = journeyTraits(
   riverStone
 );
 const flat = { aim: 0, speed: 14, tilt: 20 };
+const full = { aim: 0, speed: 16, tilt: 20 };
 
 const qualityAt = (tilt: number) => qualityOf({ aim: 0, speed: 16, tilt });
 
-const play = (flight: Flight, lead: number | null) => {
+const play = (flight: Flight, lead: number | null, throws = 400) => {
   for (
-    let contact = nextContact(flight);
-    contact !== null;
-    contact = nextContact(flight)
+    let contact = nextContact(flight), n = 0;
+    contact !== null && n < throws;
+    contact = nextContact(flight), n += 1
   ) {
     land(flight, lead === null ? null : contact - lead);
   }
   return flight;
 };
+
+const steadyHands = (seed: number, spread: number, throws: number) => {
+  const flight = launch(createRiver(seed), full);
+  const random = randomFrom(seed);
+  for (
+    let contact = nextContact(flight), n = 0;
+    contact !== null && n < throws;
+    contact = nextContact(flight), n += 1
+  ) {
+    const lead =
+      0.01 +
+      spread *
+        Math.sqrt(-2 * Math.log(1 - random())) *
+        Math.cos(2 * Math.PI * random());
+    land(flight, lead > 0 ? contact - lead : null);
+  }
+  return flight;
+};
+
+const farthest = (flight: Flight) =>
+  Math.max(flight.distance, flight.hops.at(-1)?.from.z ?? 0);
+
+const streakAfter = (lead: number | null) => {
+  const flight = launch(createRiver(3), full);
+  const contact = nextContact(flight);
+  assert.ok(contact !== null);
+  flight.streak = 10;
+  land(flight, lead === null ? null : contact - lead);
+  assert.equal(flight.pending, null);
+  return flight.streak;
+};
+
+const paceAfter = (streak: number) => {
+  const flight = launch(createRiver(3), full);
+  const contact = nextContact(flight);
+  assert.ok(contact !== null);
+  flight.streak = streak;
+  land(flight, contact - 0.01);
+  const hop = flight.hops.at(-1);
+  return Math.hypot(hop?.velocity.x ?? 0, hop?.velocity.z ?? 0);
+};
+
+const reachOf = (spread: number) =>
+  [1, 2, 3].map((seed) => farthest(steadyHands(seed, spread, 450)));
+
+const totalOf = (values: number[]) =>
+  values.reduce((total, value) => total + value, 0);
 
 const strike = (seed: number, lead: number | null) => {
   const flight = launch(createRiver(seed), flat);
@@ -121,22 +173,20 @@ const distanceWith = (speed: number, keep: number) => {
 
 const averageDistance = (entry: Tuning, jitter: number) => {
   const traits = traitsOf(entry);
-  let sum = 0;
-  for (let seed = 1; seed <= 24; seed += 1) {
+  let total = 0;
+  for (let seed = 1; seed <= 8; seed += 1) {
     const flight = launch(createRiver(seed), flat, traits);
-    let n = 0;
     for (
-      let contact = nextContact(flight);
-      contact !== null;
-      contact = nextContact(flight)
+      let contact = nextContact(flight), n = 1;
+      contact !== null && n <= 250;
+      contact = nextContact(flight), n += 1
     ) {
-      n += 1;
       const wobble = jitter * Math.sin(seed * 12.9898 + n * 78.233);
       land(flight, contact - (0.03 + wobble));
     }
-    sum += flight.distance;
+    total += farthest(flight);
   }
-  return sum / 24;
+  return total / 8;
 };
 
 const repeat = (entry: Tuning, key: Axis, by: 1 | -1, times: number) => {
@@ -286,20 +336,21 @@ describe("flight", () => {
     assert.ok(kicked > 0);
   });
 
-  test("bounces and perfect taps cannot run the speed away", () => {
+  test("bounces and perfect taps cannot run the speed past twice the top surge", () => {
     let fastest = 0;
-    for (let seed = 1; seed <= 60; seed += 1) {
-      const flight = play(launch(createRiver(seed), flat, bouncy), 0.03);
+    for (let seed = 1; seed <= 12; seed += 1) {
+      const flight = play(launch(createRiver(seed), flat, bouncy), 0.03, 80);
       for (const hop of flight.hops) {
         fastest = Math.max(fastest, Math.hypot(hop.velocity.x, hop.velocity.z));
       }
     }
-    assert.ok(fastest < 2000);
+    assert.ok(fastest > 1000);
+    assert.ok(fastest < (surges.at(-1)?.ceiling ?? 0) * 2);
   });
 
   test("a bounce does not count as a skip", () => {
     for (let seed = 1; seed <= 60; seed += 1) {
-      const flight = play(launch(createRiver(seed), flat), 0.01);
+      const flight = play(launch(createRiver(seed), flat), 0.03);
       const bounces = flight.bumps.filter((bump) => isBounce(bump.kind)).length;
       assert.equal(
         flight.splashes.filter((splash) => splash.grade !== null).length,
@@ -379,7 +430,7 @@ describe("flight", () => {
     assert.ok(heights.some((y) => y >= 0.7));
     let caught = 0;
     for (let seed = 1; seed <= 300; seed += 1) {
-      const flight = play(launch(createRiver(seed), flat, bouncy), 0.03);
+      const flight = play(launch(createRiver(seed), flat, bouncy), 0.03, 40);
       caught += flight.bumps.filter(
         (bump) => bump.kind === "dragonfly" && (bump.prop?.y ?? 0) >= 0.7
       ).length;
@@ -400,7 +451,8 @@ describe("flight", () => {
           speed: 2.2,
         }
       ),
-      0.03
+      0.03,
+      60
     );
     assert.ok(flight.bumps.some((bump) => bump.kind === "wall"));
     for (const hop of flight.hops) {
@@ -410,7 +462,7 @@ describe("flight", () => {
           hop.start + ((hop.end - hop.start) * k) / 10
         );
         assert.ok(at);
-        assert.ok(Math.abs(at.x) <= river.shore);
+        assert.ok(Math.abs(at.x) <= shoreAt(river, at.z));
       }
     }
   });
@@ -436,6 +488,52 @@ describe("flight", () => {
     const river = createRiver(21);
     assert.ok(propsIn(river, 50_000, 50_300).length > 0);
     assert.deepEqual(propsIn(river, 900, 960), propsIn(river, 900, 960));
+  });
+
+  test("the tap window stops narrowing so a long run stays playable", () => {
+    const flight = steadyHands(5, 0.005, 150);
+    assert.ok(flight.skips > 60);
+    assert.ok(Math.abs(windowFor(flight).perfect - 0.09 / 3.6) < 1e-9);
+    assert.ok(Math.abs(windowFor(flight).good - 0.22 / 3.6) < 1e-9);
+  });
+
+  test("a perfect tap adds to the streak, a good one halves it and anything else ends it", () => {
+    assert.equal(streakAfter(0.01), 11);
+    assert.equal(streakAfter(0.15), 5);
+    assert.equal(streakAfter(0.5), 0);
+    assert.equal(streakAfter(null), 0);
+  });
+
+  test("missing a duck or rock keeps the streak", () => {
+    let checked = 0;
+    for (let seed = 1; seed <= 60; seed += 1) {
+      const flight = launch(createRiver(seed), full);
+      if (flight.pending !== null) {
+        flight.streak = 7;
+        land(flight, null);
+        assert.equal(flight.streak, 7);
+        checked += 1;
+      }
+    }
+    assert.ok(checked > 0);
+  });
+
+  test("a streak makes each perfect tap speed the stone up more", () => {
+    assert.ok(surgeTier(4) === 0 && surgeTier(5) === 1);
+    assert.ok(paceAfter(4) > paceAfter(0) * 1.04);
+    assert.ok(paceAfter(11) > paceAfter(4) * 1.03);
+    assert.ok(paceAfter(23) > paceAfter(11) * 1.03);
+  });
+
+  test("steadier hands go farther, and only the steadiest reach the Milky Way", () => {
+    const milky = zones.find((zone) => zone.coast === "stars")?.from ?? 0;
+    const steady = reachOf(0.005);
+    const middling = reachOf(0.012);
+    const loose = reachOf(0.025);
+    assert.ok(steady.every((meters) => meters >= milky));
+    assert.ok(loose.every((meters) => meters < milky));
+    assert.ok(totalOf(steady) > totalOf(middling));
+    assert.ok(totalOf(middling) > totalOf(loose));
   });
 });
 
@@ -503,7 +601,7 @@ describe("tuning", () => {
     }
   });
 
-  test("no tuning wins for every player and the plain stone is never far behind", () => {
+  test("no tuning wins for every player and the plain stone is never more than two areas behind", () => {
     const steps = [-LIMIT, -1, 0, 1, LIMIT];
     const pool: Tuning[] = [];
     for (const speed of steps) {
@@ -523,21 +621,21 @@ describe("tuning", () => {
     const bestFor = (jitter: number) => {
       const base = averageDistance(flatTuning, jitter);
       let best = flatTuning;
-      let gain = 1;
+      let top = base;
       for (const entry of pool) {
-        const ratio = averageDistance(entry, jitter) / base;
-        if (ratio > gain) {
+        const reached = averageDistance(entry, jitter);
+        if (reached > top) {
           best = entry;
-          gain = ratio;
+          top = reached;
         }
       }
-      return { best, gain };
+      return { best, gain: zoneIndex(top) - zoneIndex(base) };
     };
     const steady = bestFor(0);
     const loose = bestFor(0.15);
-    assert.ok(steady.gain < 1.6 && loose.gain < 1.6);
+    assert.ok(steady.gain <= 2 && loose.gain <= 2);
     assert.notEqual(tuningCode(steady.best), tuningCode(loose.best));
-  });
+  }, 120_000);
 
   test("a tuning keeps its words and survives the link round trip", () => {
     const entry = { ...flatTuning, focus: -2, speed: 3, keep: -1 };

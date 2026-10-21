@@ -7,6 +7,7 @@ import {
   shoreAt,
   speedAt,
   stoneAt,
+  surgeTier,
   windowFor,
   openWater,
   zoneIndex,
@@ -1734,12 +1735,14 @@ const paintTrail = (
   palette: Palette,
   time: number
 ) => {
-  const hot = flight.combo >= 3;
+  const tier = surgeTier(flight.streak);
+  const hot = flight.combo >= 3 || tier > 0;
+  const reach = 12 + 6 * tier;
   const speck = SPECKS.get(trail);
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
   ctx.lineCap = "round";
-  for (let k = 1; k <= 12; k += 1) {
+  for (let k = 1; k <= reach; k += 1) {
     const a = stoneAt(flight, time - (k - 1) * 0.02);
     const b = stoneAt(flight, time - k * 0.02);
     const pa = a ? project(view, a) : null;
@@ -1747,11 +1750,11 @@ const paintTrail = (
     if (!pa || !pb) {
       continue;
     }
-    const fade = 1 - k / 13;
+    const fade = 1 - k / (reach + 1);
     const tone = lineColor(trail, k, time);
-    ctx.globalAlpha = (hot ? 0.5 : 0.3) * fade;
+    ctx.globalAlpha = Math.min(1, (hot ? 0.5 : 0.3) + 0.1 * tier) * fade;
     ctx.strokeStyle = tone ?? (hot ? GOLD : palette.ring);
-    ctx.lineWidth = Math.max(1, STONE * 0.35 * pa.s * fade);
+    ctx.lineWidth = Math.max(1, STONE * 0.35 * (1 + 0.5 * tier) * pa.s * fade);
     ctx.beginPath();
     ctx.moveTo(pa.x, pa.y);
     ctx.lineTo(pb.x, pb.y);
