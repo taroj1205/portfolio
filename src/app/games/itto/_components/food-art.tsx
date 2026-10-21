@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { Art, Kind, Stick } from "../_lib/foods";
 import type { Point } from "../_lib/geometry";
 import { TAU, bend } from "../_lib/outline";
+import { CAP_AT } from "../_lib/recipes";
 import {
   makiFillings,
   nerikiriTints,
@@ -1166,16 +1167,23 @@ const takenokoArt = (art: Art) => {
   const sheaths = art.variant;
   return (
     <>
-      {Array.from({ length: sheaths }, (_, k) => {
+      {Array.from({ length: sheaths }, (_, i) => {
+        const k = sheaths - 1 - i;
         const x = -L * 0.95 + (k / sheaths) * L * 1.7;
-        const reach = L * 0.42;
-        const side = k % 2 === 0 ? 1 : -1;
+        const reach = L * 0.5;
+        const tip = (k % 2 === 0 ? 1 : -1) * fat * 0.18;
+        const edge = (side: number) =>
+          run(
+            0,
+            1,
+            (t) => tip + (side * fat * 1.2 - tip) * (1 - t ** 1.5),
+            12
+          ).map(({ x: t, y }) => ({ x: x + reach * t, y }));
         const d = `${curved(curl, [
-          { x: x - 0.3, y: -fat * 1.2 },
-          { x: x + reach * 0.35, y: -fat * 1.2 },
-          { x: x + reach, y: side * fat * 0.15 },
-          { x: x + reach * 0.35, y: fat * 1.2 },
-          { x: x - 0.3, y: fat * 1.2 },
+          { x: x - 0.6, y: -fat * 1.2 },
+          ...edge(-1),
+          ...edge(1).toReversed(),
+          { x: x - 0.6, y: fat * 1.2 },
         ])}Z`;
         return (
           <g key={k}>
@@ -1739,15 +1747,13 @@ const fujiArt = (art: Art, id: string) => {
         x={-L * 1.2}
         y={-tall - 0.1}
       />
-      {red ? null : (
-        <path
-          d={`M${n(-L * edge - 0.1)} ${n(-tall - 0.2)}H${n(L * edge + 0.1)}V${n(-tall * snow)}${teeth
-            .toReversed()
-            .map((p) => `L${n(p.x)} ${n(p.y)}`)
-            .join("")}Z`}
-          fill={paint.white}
-        />
-      )}
+      <path
+        d={`M${n(-L * edge - 0.1)} ${n(-tall - 0.2)}H${n(L * edge + 0.1)}V${n(-tall * snow)}${teeth
+          .toReversed()
+          .map((p) => `L${n(p.x)} ${n(p.y)}`)
+          .join("")}Z`}
+        fill={paint.white}
+      />
       <path
         d={`M${n(-L * 1.2)} 0.06Q${n(-L * 0.5)} -0.06 0 0.04T${n(L * 1.2)} 0.02V0.3H${n(-L * 1.2)}Z`}
         fill={paint.light}
@@ -1883,14 +1889,16 @@ const matsutakeArt = (art: Art, id: string) => {
   const curl = art.phase;
   const L = art.w;
   const cap = art.h;
-  const margin = at(curl, L * 0.42, 0);
-  const reach = L * 0.58;
+  const margin = at(curl, L * CAP_AT, 0);
+  const reach = L * (1 - CAP_AT);
+  const dome = (k: number) =>
+    `M0 ${n(-cap * k)}A${n(reach * k)} ${n(cap * k)} 0 0 1 0 ${n(cap * k)}`;
   return (
     <>
       <defs>
-        <radialGradient cx="0.25" cy="0.35" id={`${id}-cap`} r="0.85">
-          <stop offset="0" stopColor={paint.fibre} />
-          <stop offset="0.45" stopColor={paint.cap} />
+        <radialGradient cx="0.1" cy="0.4" id={`${id}-cap`} r="0.9">
+          <stop offset="0" stopColor={paint.cap} />
+          <stop offset="0.6" stopColor={paint.cap} />
           <stop offset="1" stopColor={paint.capDeep} />
         </radialGradient>
       </defs>
@@ -1907,38 +1915,36 @@ const matsutakeArt = (art: Art, id: string) => {
         />
       ))}
       <g
-        transform={`translate(${n(margin.x)} ${n(margin.y)}) rotate(${spin(curl, L * 0.42)})`}
+        transform={`translate(${n(margin.x)} ${n(margin.y)}) rotate(${spin(curl, L * CAP_AT)})`}
       >
         <rect
           fill={paint.capDeep}
           height={cap * 2.2}
           opacity={0.3}
-          width={0.14}
-          x={-0.16}
+          width={0.12}
+          x={-0.14}
           y={-cap * 1.1}
         />
-        <path
-          d={`M-0.02 ${n(-cap * 1.1)}A${n(reach + 0.02)} ${n(cap * 1.1)} 0 0 1 -0.02 ${n(cap * 1.1)}Z`}
-          fill={`url(#${id}-cap)`}
-        />
-        {[-0.7, -0.35, 0, 0.35, 0.7].map((k) => (
+        <path d={`${dome(1.1)}Z`} fill={`url(#${id}-cap)`} />
+        {[0.82, 0.62, 0.42].map((k) => (
           <path
-            d={`M0.02 ${n(k * cap)}Q${n(reach * 0.5)} ${n(k * cap * 0.85)} ${n(reach * 0.92)} ${n(k * cap * 0.35)}`}
+            d={dome(k)}
             fill="none"
             key={k}
-            opacity={0.3}
-            stroke={paint.char}
+            opacity={0.35}
+            stroke={paint.capDeep}
+            strokeDasharray="0.05 0.035"
             strokeLinecap="round"
-            strokeWidth={0.022}
+            strokeWidth={0.024}
           />
         ))}
         <path
-          d={`M0.02 ${n(-cap * 0.95)}Q0.08 0 0.02 ${n(cap * 0.95)}`}
+          d={`M0.03 ${n(-cap * 0.96)}Q0.09 0 0.03 ${n(cap * 0.96)}`}
           fill="none"
-          opacity={0.45}
+          opacity={0.55}
           stroke={paint.mushroom}
           strokeLinecap="round"
-          strokeWidth={0.03}
+          strokeWidth={0.035}
         />
       </g>
     </>

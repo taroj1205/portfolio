@@ -220,10 +220,11 @@ export const GET = async (request: NextRequest) => {
         <div
           style={{
             display: "flex",
-            fontSize: 96,
+            fontSize: 86,
             letterSpacing: 1,
             lineHeight: 1.05,
             marginTop: 12,
+            whiteSpace: "nowrap",
           }}
         >
           {ratio}

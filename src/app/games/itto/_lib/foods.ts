@@ -1,7 +1,8 @@
-import { areaOf, centroidOf, signedArea } from "./geometry";
+import { centreOf, signedArea } from "./geometry";
 import type { Point } from "./geometry";
+import { TAU } from "./outline";
 import type { Bite, Grain } from "./outline";
-import { SEED_MAX, pick, seeded } from "./random";
+import { SEED_MAX, between, pick, seeded } from "./random";
 import { recipes } from "./recipes";
 
 export const kinds = [
@@ -45,6 +46,7 @@ export const everyKind: readonly Kind[] = [...kinds, ...rares];
 
 export const SPAN = 2.8;
 export const RARITY = 1 / 60;
+export const DRIFT = [0.08, 0.16] as const;
 
 export interface Unit {
   x: number;
@@ -101,32 +103,30 @@ export const foodOf = (kind: Kind, seed: number): Food => {
       y: p.x * sin + p.y * cos,
     }))
   );
-  let area = 0;
-  let cx = 0;
-  let cy = 0;
-  for (const points of turned) {
-    const weight = areaOf(points);
-    const centre = centroidOf(points);
-    area += weight;
-    cx += centre.x * weight;
-    cy += centre.y * weight;
-  }
-  const centre = { x: cx / area, y: cy / area };
+  const centre = centreOf(turned);
   const reach = Math.max(
     ...turned.flat().map((p) => Math.hypot(p.x - centre.x, p.y - centre.y))
   );
   const scale = 1 / reach;
+  const heading = roll() * TAU;
+  const away = between(roll, DRIFT[0], DRIFT[1]);
+  const drift = { x: Math.cos(heading) * away, y: Math.sin(heading) * away };
   return {
     art,
     kind,
     parts: turned.map((points) => {
       const placed = points.map((p) => ({
-        x: (p.x - centre.x) * scale,
-        y: (p.y - centre.y) * scale,
+        x: (p.x - centre.x) * scale + drift.x,
+        y: (p.y - centre.y) * scale + drift.y,
       }));
       return signedArea(placed) < 0 ? placed.toReversed() : placed;
     }),
-    place: { scale, turn, x: -centre.x * scale, y: -centre.y * scale },
+    place: {
+      scale,
+      turn,
+      x: drift.x - centre.x * scale,
+      y: drift.y - centre.y * scale,
+    },
   };
 };
 

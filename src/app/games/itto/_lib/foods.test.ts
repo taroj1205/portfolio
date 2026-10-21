@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 
 import { describe, test } from "vite-plus/test";
 
-import { areaOfParts } from "./cut";
+import { areaOfParts, errorOf, splitBy } from "./cut";
 import {
+  DRIFT,
   RARITY,
   dishOf,
   everyKind,
@@ -13,7 +14,7 @@ import {
   kinds,
   rares,
 } from "./foods";
-import { areaOf } from "./geometry";
+import { areaOf, centreOf } from "./geometry";
 import type { Point } from "./geometry";
 import { seeded } from "./random";
 
@@ -58,7 +59,7 @@ const apart = (first: readonly Point[], second: readonly Point[]) =>
   );
 
 describe("foods", () => {
-  test("every kind gives simple, separate, finite parts that fit the board, for many seeds", () => {
+  test("every kind gives simple, separate, finite parts that fit the board off its middle, for many seeds", () => {
     for (const kind of everyKind) {
       for (let seed = 1; seed <= 40; seed += 1) {
         const { parts } = foodOf(kind, seed * 7919);
@@ -68,7 +69,15 @@ describe("foods", () => {
           points.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y)),
           label
         );
-        const reach = Math.max(...points.map((p) => Math.hypot(p.x, p.y)));
+        const centre = centreOf(parts);
+        const away = Math.hypot(centre.x, centre.y);
+        assert.ok(
+          away >= DRIFT[0] - 1e-9 && away <= DRIFT[1] + 1e-9,
+          `${label} sits ${away} from the middle`
+        );
+        const reach = Math.max(
+          ...points.map((p) => Math.hypot(p.x - centre.x, p.y - centre.y))
+        );
         assert.ok(
           reach <= 1.0001 && reach >= 0.9999,
           `${label} reaches ${reach}`
@@ -127,6 +136,18 @@ describe("foods", () => {
       assert.equal(dish.kind, kindOf(seed));
       assert.deepEqual(dishOf(seed), dish, `seed ${seed}`);
     }
+  });
+
+  test("a cut straight through the middle of the board is no free half", () => {
+    const errors: number[] = [];
+    for (let seed = 1; seed <= 600; seed += 1) {
+      const split = splitBy(dishOf(seed).parts, { angle: 0, offset: 0 });
+      errors.push(split === null ? 500 : errorOf(split.small));
+    }
+    const close = errors.filter((error) => error <= 3).length;
+    const median = errors.toSorted((a, b) => a - b)[errors.length / 2] ?? 0;
+    assert.ok(close < errors.length * 0.06, `${close} near-perfect`);
+    assert.ok(median > 30, `median ${median}`);
   });
 
   test("the random numbers stay in range for any seed", () => {

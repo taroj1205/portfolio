@@ -291,7 +291,7 @@ export const looks: Record<Kind, (art: Art, part: number) => Look> = {
     const tint = dangoTints[unitOf(art, part)] ?? dangoTints[1];
     return {
       ...plain,
-      depth: 0.2,
+      depth: 0.1,
       gloss: 1.2,
       inside: solid(tint[0]),
       round: true,

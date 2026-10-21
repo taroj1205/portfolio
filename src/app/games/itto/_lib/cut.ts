@@ -1,7 +1,7 @@
 import {
   along,
   areaOf,
-  centroidOf,
+  centreOf,
   clip,
   flip,
   lineThrough,
@@ -131,18 +131,8 @@ const chunksOf = (parts: Parts, line: Line) =>
 
 const sideOf = (parts: Parts, line: Line, share: number): Side => {
   const chunks = chunksOf(parts, line);
-  let area = 0;
-  let x = 0;
-  let y = 0;
-  for (const { points } of chunks) {
-    const weight = areaOf(points);
-    const centre = centroidOf(points);
-    area += weight;
-    x += centre.x * weight;
-    y += centre.y * weight;
-  }
   return {
-    centre: area === 0 ? { x: 0, y: 0 } : { x: x / area, y: y / area },
+    centre: centreOf(chunks.map((chunk) => chunk.points)),
     chunks,
     push: { x: line.nx * GAP, y: line.ny * GAP },
     share,

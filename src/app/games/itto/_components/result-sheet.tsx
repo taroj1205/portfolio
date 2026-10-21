@@ -20,9 +20,9 @@ import {
 import type { Result } from "../_lib/result";
 import type { Save } from "../_lib/save";
 import type { Ending } from "../_lib/session";
+import { buttons } from "./buttons";
+import { brass } from "./itto.stylex";
 
-const GOLD = "#ffd27a";
-const VERMILION = "#c8352b";
 const WIDE = "@media (min-width: 900px) and (min-aspect-ratio: 1/1)";
 
 const rise = stylex.keyframes({
@@ -60,7 +60,7 @@ const styles = stylex.create({
     flexShrink: 0,
     gap: "0.75rem",
     marginInline: "auto",
-    maxHeight: { default: "52svh", [WIDE]: "100%" },
+    maxHeight: { default: "58svh", [WIDE]: "100%" },
     maxWidth: "27rem",
     overflowY: "auto",
     overscrollBehavior: "contain",
@@ -83,7 +83,7 @@ const styles = stylex.create({
     animationFillMode: "backwards",
     animationName: { default: stamp, [media.reduce]: "none" },
     animationTimingFunction: "cubic-bezier(0.2, 0.8, 0.2, 1)",
-    backgroundColor: VERMILION,
+    backgroundColor: brass.vermilion,
     borderRadius: 8,
     boxShadow:
       "inset 0 0 0 3px rgb(255 255 255 / 0.14), 0 6px 20px rgb(120 20 10 / 0.45)",
@@ -112,9 +112,9 @@ const styles = stylex.create({
     gap: "0.35rem",
   },
   badge: {
-    backgroundImage: "linear-gradient(180deg, #fff1b8, #ffd27a 50%, #d9962a)",
+    backgroundImage: brass.bar,
     borderRadius: 999,
-    color: "#2a1d05",
+    color: brass.ink,
     fontSize: "0.68rem",
     fontWeight: 800,
     letterSpacing: "calc(0.1em * var(--track, 1))",
@@ -144,10 +144,10 @@ const styles = stylex.create({
     whiteSpace: "nowrap",
   },
   even: {
-    color: GOLD,
+    color: brass.gold,
   },
   rank: {
-    color: GOLD,
+    color: brass.gold,
     fontFamily: font.mincho,
     fontSize: "1.05rem",
     fontWeight: 700,
@@ -189,48 +189,12 @@ const styles = stylex.create({
     textAlign: "center",
   },
   won: {
-    color: GOLD,
+    color: brass.gold,
     fontWeight: 700,
-  },
-  action: {
-    alignItems: "center",
-    borderRadius: 999,
-    color: ink.text,
-    cursor: "pointer",
-    display: "flex",
-    flexShrink: 0,
-    fontFamily: font.mincho,
-    fontSize: "1.05rem",
-    fontWeight: 700,
-    gap: "0.5rem",
-    justifyContent: "center",
-    letterSpacing: "calc(0.12em * var(--track, 1))",
-    minHeight: "3.2rem",
-    outlineColor: GOLD,
-    outlineOffset: 3,
-    paddingInline: "1.4rem",
-    transform: { default: null, ":active": "scale(0.97)" },
-    transitionDuration: "160ms",
-    transitionProperty: "transform",
-  },
-  primary: {
-    backgroundImage: "linear-gradient(180deg, #fff1b8, #ffd27a 50%, #d9962a)",
-    borderWidth: 0,
-    boxShadow: "0 10px 30px rgb(255 190 80 / 0.3)",
-    color: "#1c1406",
-  },
-  secondary: {
-    backgroundColor: "rgb(255 255 255 / 0.08)",
-    borderColor: "rgb(255 255 255 / 0.2)",
-    borderStyle: "solid",
-    borderWidth: 1,
   },
   row: {
     display: "flex",
     gap: "0.6rem",
-  },
-  grow: {
-    flexGrow: 1,
   },
 });
 
@@ -337,7 +301,7 @@ export const ResultSheet = ({
           onClick={onAgain}
           ref={again}
           type="button"
-          {...stylex.props(styles.action, styles.primary, styles.grow)}
+          {...stylex.props(buttons.action, buttons.primary)}
         >
           {words.result.again}
         </button>
@@ -345,14 +309,14 @@ export const ResultSheet = ({
           fileName="itto.png"
           labels={words.result}
           share={shareOf(result, piece, window.location.origin, lang)}
-          {...stylex.props(styles.action, styles.secondary)}
+          {...stylex.props(buttons.action, buttons.secondary)}
         />
       </div>
       {challenged ? (
         <button
           onClick={onRetry}
           type="button"
-          {...stylex.props(styles.action, styles.secondary)}
+          {...stylex.props(buttons.action, buttons.secondary)}
         >
           {words.challenge.retry}
         </button>

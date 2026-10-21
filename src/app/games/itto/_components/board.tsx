@@ -11,12 +11,11 @@ import { pointOn } from "../_lib/geometry";
 import { tenths } from "../_lib/result";
 import type { Slash, View } from "../_lib/session";
 import { cutSvg, layersOf, pieceSvg, tagAt } from "./food-svg";
+import { brass } from "./itto.stylex";
 import { knifeSvg } from "./knife-svg";
 import { woodSvg } from "./wood-svg";
 
 const SUMI = "#2a1a10";
-const VERMILION = "#c8352b";
-const GOLD = "#ffd27a";
 const SPRING = "cubic-bezier(0.34, 1.4, 0.64, 1)";
 const VIEW = `${-SPAN / 2} ${-SPAN / 2} ${SPAN} ${SPAN}`;
 
@@ -148,7 +147,7 @@ const styles = stylex.create({
     whiteSpace: "nowrap",
   },
   even: {
-    backgroundColor: VERMILION,
+    backgroundColor: brass.vermilion,
     color: "#fff6ee",
   },
   at: (left: string, top: string) => ({ left, top }),
@@ -178,12 +177,12 @@ const styles = stylex.create({
     backgroundImage: "linear-gradient(135deg, #3a2608, #6b4510 55%, #3a2608)",
     boxShadow:
       "0 0 0 1px rgb(255 210 122 / 0.7), 0 6px 22px rgb(255 190 80 / 0.35)",
-    color: GOLD,
+    color: brass.gold,
   },
   rareMark: {
-    backgroundImage: "linear-gradient(180deg, #fff1b8, #ffd27a 50%, #d9962a)",
+    backgroundImage: brass.bar,
     borderRadius: 4,
-    color: "#2a1d05",
+    color: brass.ink,
     fontSize: "0.68rem",
     paddingBlock: "0.05rem",
     paddingInline: "0.35rem",

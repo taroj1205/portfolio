@@ -39,6 +39,20 @@ export const centroidOf = (points: readonly Point[]): Point => {
     : { x: cx / (3 * twice), y: cy / (3 * twice) };
 };
 
+export const centreOf = (parts: readonly (readonly Point[])[]): Point => {
+  let area = 0;
+  let x = 0;
+  let y = 0;
+  for (const points of parts) {
+    const weight = areaOf(points);
+    const centre = centroidOf(points);
+    area += weight;
+    x += centre.x * weight;
+    y += centre.y * weight;
+  }
+  return area === 0 ? { x: 0, y: 0 } : { x: x / area, y: y / area };
+};
+
 const sideOf = (line: Line, p: Point) => p.x * line.nx + p.y * line.ny - line.d;
 
 const crossing = (a: Point, b: Point, da: number, db: number): Point => {

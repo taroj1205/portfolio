@@ -600,10 +600,10 @@ const nasu = (roll: Roll): Draft => {
 
 const takenoko = (roll: Roll): Draft => {
   const length = between(roll, 0.95, 1.1);
-  const fat = between(roll, 0.55, 0.65);
+  const fat = between(roll, 0.74, 0.84);
   const curl = between(roll, 2.2, 3.6);
   const width = (t: number) =>
-    fat * ((1 - t) / 2) ** 1.15 * Math.max(0, 1 - t * t) ** 0.35;
+    fat * ((1 - t) / 2) ** 1.15 * Math.max(0, 1 - t * t) ** 0.22;
   const points = resample(bend(profile(length, width, width), curl));
   return {
     art: {
@@ -952,17 +952,19 @@ const neko = (roll: Roll): Draft => {
   };
 };
 
+export const CAP_AT = 0.5;
+
 const matsutake = (roll: Roll): Draft => {
   const length = between(roll, 1, 1.12);
-  const stem = between(roll, 0.2, 0.24);
-  const cap = stem * between(roll, 1.6, 1.85);
-  const curl = between(roll, 2.5, 4.5);
+  const stem = between(roll, 0.19, 0.23);
+  const cap = stem * between(roll, 2.1, 2.4);
+  const curl = between(roll, 3, 5);
   const width = (t: number) =>
     Math.max(
-      stem * (1 + 0.2 * lobe(t + 1, 0.5)) * Math.max(0, 1 - t * t) ** 0.08,
-      t < 0.42
-        ? cap * clamp(1 - (0.42 - t) / 0.05)
-        : cap * Math.max(0, 1 - ((t - 0.42) / 0.58) ** 2) ** 0.5
+      stem * (1 + 0.25 * lobe(t + 1, 0.5)) * Math.max(0, 1 - t * t) ** 0.08,
+      t < CAP_AT
+        ? cap * clamp(1 - (CAP_AT - t) / 0.05)
+        : cap * Math.max(0, 1 - ((t - CAP_AT) / (1 - CAP_AT)) ** 2) ** 0.5
     );
   const points = resample(
     bend(
@@ -974,7 +976,7 @@ const matsutake = (roll: Roll): Draft => {
     art: {
       ...plain(length, cap),
       grains: scatter(roll, points, 34, [0.1, 0.22]).filter(
-        (grain) => grain.x < length * 0.3
+        (grain) => grain.x < length * (CAP_AT - 0.1)
       ),
       phase: curl,
     },

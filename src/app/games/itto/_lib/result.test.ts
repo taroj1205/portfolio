@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "vite-plus/test";
 
 import { postUrl } from "../../_lib/share";
-import { halving, splitBy } from "./cut";
+import { halving, judgeSwipe, reachOf, splitBy } from "./cut";
 import { dishOf, isRare } from "./foods";
 import {
   demoOf,
@@ -15,6 +15,7 @@ import {
   shareOf,
 } from "./result";
 import type { Result } from "./result";
+import { fresh, settleCut } from "./save";
 
 const played = (seed: number, nudge: number): Result => {
   const angle = 3000;
@@ -69,6 +70,35 @@ describe("scoring a cut", () => {
     assert.equal(ratioText(497), "49.7 : 50.3");
     assert.equal(ratioText(500), "50.0 : 50.0");
     assert.equal(ratioText(0), "0.0 : 100.0");
+  });
+});
+
+describe("one game", () => {
+  test("one swipe through a piece cuts it, scores it, saves it and sends the same piece", () => {
+    const seed = 4242;
+    const food = dishOf(seed);
+    const aim = played(seed, 150).cut;
+    const { from, to } = reachOf(food.parts, aim);
+    const swipe = judgeSwipe(food.parts, from, to);
+    assert.ok(swipe.kind === "cut", swipe.kind);
+    const result = { cut: swipe.cut, seed };
+    const piece = pieceOf(result);
+    assert.ok(piece !== null);
+    assert.equal(piece.food.kind, food.kind);
+    const { save } = settleCut(fresh, {
+      at: 1000,
+      challenged: false,
+      kind: food.kind,
+      seconds: 3,
+      small: piece.split.small,
+    });
+    assert.equal(save.cuts, 1);
+    assert.equal(save.kinds[food.kind], 1);
+    assert.equal(save.bestCut, 500 - piece.split.small);
+    const link = new URL(shareOf(result, piece, "https://x.y", "en").url);
+    const friend = readResult(Object.fromEntries(link.searchParams));
+    assert.deepEqual(friend, result);
+    assert.deepEqual(friend === null ? null : pieceOf(friend), piece);
   });
 });
 

@@ -3,6 +3,7 @@ import type { Chunk, Face, Split } from "../_lib/cut";
 import type { Food } from "../_lib/foods";
 import { clip, flip, signedArea } from "../_lib/geometry";
 import type { Line, Point } from "../_lib/geometry";
+import { moved } from "../_lib/outline";
 import { arts, n, stickSvg } from "./food-art";
 import { looks, paint } from "./food-looks";
 import type { Look } from "./food-looks";
@@ -19,14 +20,11 @@ const ring = (points: readonly Point[]) =>
 const rings = (chunks: readonly Chunk[]) =>
   chunks.map((chunk) => ring(chunk.points)).join("");
 
-const shift = (points: readonly Point[], by: Point) =>
-  points.map((p) => ({ x: p.x + by.x, y: p.y + by.y }));
-
 const facing = (points: readonly Point[]) =>
   signedArea(points) < 0 ? points.toReversed() : points;
 
 const sweep = (points: readonly Point[], by: Point, line: Line | null) => {
-  const parts = [ring(shift(points, by))];
+  const parts = [ring(moved(points, by))];
   for (let i = 0; i < points.length; i += 1) {
     const a = points[i];
     const b = points[(i + 1) % points.length];
@@ -183,7 +181,7 @@ export const pieceSvg = ({
       {chunks.map((chunk) => (
         <path
           d={sweep(
-            shift(chunk.points, { x: 0.035, y: 0.05 }),
+            moved(chunk.points, { x: 0.035, y: 0.05 }),
             depthOf(lookOf(chunk.part)),
             null
           )}

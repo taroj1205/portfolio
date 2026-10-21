@@ -13,9 +13,10 @@ import { pieceOf, kindTitle, ratioText, tenths } from "../_lib/result";
 import type { Result } from "../_lib/result";
 import type { Save } from "../_lib/save";
 import type { View } from "../_lib/session";
+import { buttons } from "./buttons";
 import { CutThumb } from "./cut-thumb";
+import { brass } from "./itto.stylex";
 
-const GOLD = "#ffd27a";
 const FINE = "@media (hover: hover) and (pointer: fine)";
 
 const drift = stylex.keyframes({
@@ -54,7 +55,7 @@ const styles = stylex.create({
     textShadow: shade.small,
   },
   lead: {
-    color: GOLD,
+    color: brass.gold,
     fontSize: "0.42em",
     letterSpacing: "0.4em",
     marginBlockEnd: "0.35em",
@@ -71,7 +72,7 @@ const styles = stylex.create({
     display: "flex",
     height: "2.75rem",
     justifyContent: "center",
-    outlineColor: GOLD,
+    outlineColor: brass.gold,
     outlineOffset: 3,
     padding: 0,
     transform: { default: null, ":active": "scale(0.92)" },
@@ -120,44 +121,10 @@ const styles = stylex.create({
     lineHeight: 1.6,
     textWrap: "balance",
   },
-  action: {
-    alignItems: "center",
-    borderRadius: 999,
-    color: ink.text,
-    cursor: "pointer",
-    display: "flex",
-    fontFamily: font.mincho,
-    fontSize: "1.1rem",
-    fontWeight: 700,
-    justifyContent: "center",
-    letterSpacing: "calc(0.12em * var(--track, 1))",
-    minHeight: "3.3rem",
-    outlineColor: GOLD,
-    outlineOffset: 3,
-    paddingInline: "1.2rem",
-    transform: { default: null, ":active": "scale(0.97)" },
-    transitionDuration: "160ms",
-    transitionProperty: "transform",
-  },
-  primary: {
-    backgroundImage: "linear-gradient(180deg, #fff1b8, #ffd27a 50%, #d9962a)",
-    borderWidth: 0,
-    boxShadow: "0 10px 30px rgb(255 190 80 / 0.3)",
-    color: "#1c1406",
-  },
-  secondary: {
-    backgroundColor: "rgb(255 255 255 / 0.08)",
-    borderColor: "rgb(255 255 255 / 0.2)",
-    borderStyle: "solid",
-    borderWidth: 1,
-  },
   row: {
     display: "flex",
     gap: "0.6rem",
     width: "100%",
-  },
-  grow: {
-    flexGrow: 1,
   },
   label: {
     color: ink.soft,
@@ -184,7 +151,7 @@ const styles = stylex.create({
   miss: {
     animationDuration: "420ms",
     animationName: { default: nudge, [media.reduce]: "none" },
-    color: GOLD,
+    color: brass.gold,
   },
   card: {
     alignItems: "center",
@@ -209,15 +176,17 @@ const styles = stylex.create({
     minWidth: 0,
   },
   rare: {
-    backgroundImage: "linear-gradient(180deg, #fff1b8, #ffd27a 50%, #d9962a)",
+    backgroundImage: brass.bar,
     borderRadius: 999,
-    color: "#2a1d05",
+    color: brass.ink,
+    display: "inline-block",
     fontSize: "0.66rem",
     fontWeight: 800,
     marginInlineStart: "0.5rem",
     paddingBlock: "0.15rem",
     paddingInline: "0.5rem",
     verticalAlign: "middle",
+    whiteSpace: "nowrap",
   },
   cardTitle: {
     fontFamily: font.mincho,
@@ -338,7 +307,7 @@ const Primary = ({
       onClick={onClick}
       ref={ref}
       type="button"
-      {...stylex.props(styles.action, styles.primary, styles.grow)}
+      {...stylex.props(buttons.action, buttons.primary)}
     >
       {label}
     </button>
@@ -425,7 +394,7 @@ export const Panel = ({
                   onStart(false);
                 }}
                 type="button"
-                {...stylex.props(styles.action, styles.secondary)}
+                {...stylex.props(buttons.action, buttons.secondary)}
               >
                 {words.start}
               </button>
