@@ -565,6 +565,7 @@ export const startSession = (
       duel = null;
       clash = null;
       held = null;
+      sound.still();
       demoAt = performance.now();
       enter("title");
     },
