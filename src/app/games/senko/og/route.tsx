@@ -50,6 +50,8 @@ const pitch: Record<Lang, { caption: string; detail: string }> = {
   },
 };
 
+const pitchSize: Record<Lang, number> = { en: 68, ja: 100 };
+
 export const GET = async (request: NextRequest) => {
   const params = Object.fromEntries(request.nextUrl.searchParams);
   const result = readResult(params);
@@ -65,7 +67,7 @@ export const GET = async (request: NextRequest) => {
   const spacing = lang === "ja" ? 18 : 4;
   const ladder = phases.map((phase) => phase.name.ja).join("");
   const font = await loadMincho(
-    `${headline}${unit}${caption}${detail}${ladder}線香花火せんこうはなび火${words.result.finished}`
+    `${headline}${unit}${caption}${detail}${ladder}${copy.ja.name}ひだまのいっしょう火${words.result.finished}`
   );
   const art = sparklerParts({
     id: "og",
@@ -145,7 +147,7 @@ export const GET = async (request: NextRequest) => {
               letterSpacing: 12,
             }}
           >
-            線香花火
+            {copy.ja.name}
             <div
               style={{
                 alignItems: "center",
@@ -164,14 +166,14 @@ export const GET = async (request: NextRequest) => {
           </div>
         ) : (
           <div style={{ color: ink.gold, fontSize: 30, letterSpacing: 14 }}>
-            せんこうはなび
+            ひだまのいっしょう
           </div>
         )}
         <div
           style={{
             alignItems: "baseline",
             display: "flex",
-            fontSize: result ? 168 : 128,
+            fontSize: result ? 168 : pitchSize[lang],
             letterSpacing: result ? 0 : spacing,
             lineHeight: 1,
             marginTop: 14,

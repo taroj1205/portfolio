@@ -70,9 +70,9 @@ const lineOf = (result: Result, lang: Lang) => {
   const done = finished(result);
   const { name } = phaseOf(reachedOf(result));
   if (lang === "en") {
-    return `Senko Hanabi ${timeText(result.time, "en")}, ${done ? "burned all the way down" : `made it to ${name.en}`}`;
+    return `An Ember's Life ${timeText(result.time, "en")}, ${done ? "burned all the way down" : `made it to ${name.en}`}`;
   }
-  return `線香花火 ${timeText(result.time, "ja")} ${done ? "完走" : `${name.ja}まで`}`;
+  return `火玉の一生 ${timeText(result.time, "ja")} ${done ? "完走" : `${name.ja}まで`}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
@@ -83,7 +83,7 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
     text: [
       lineOf(result, lang),
       trailOf(result),
-      lang === "en" ? "#線香花火 #SenkoHanabi" : "#線香花火",
+      lang === "en" ? "#火玉の一生 #EmberLife" : "#火玉の一生",
     ].join("\n"),
     url: `${origin}/games/senko?${query.toString()}`,
   };

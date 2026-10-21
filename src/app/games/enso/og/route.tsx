@@ -45,6 +45,11 @@ const pitch: Record<Lang, { caption: string; detail: string }> = {
   },
 };
 
+const pitchSize: Record<Lang, { size: number; spacing: number }> = {
+  en: { size: 72, spacing: 4 },
+  ja: { size: 84, spacing: 12 },
+};
+
 export const GET = async (request: NextRequest) => {
   const params = Object.fromEntries(request.nextUrl.searchParams);
   const result = readResult(params);
@@ -56,8 +61,9 @@ export const GET = async (request: NextRequest) => {
   const line = rank ? rank.line[lang] : pitch[lang].detail;
   const dare = result ? words.challenge.dare : "";
   const seal = rank?.seal ?? ["円", "相"];
+  const headlineSize = result ? { size: 150, spacing: 0 } : pitchSize[lang];
   const font = await loadMincho(
-    `${headline}${caption}${line}${dare}${seal.join("")}%円相えんそうEnsō`
+    `${headline}${caption}${line}${dare}${seal.join("")}%${copy.ja.name}ひとふでのつき${copy.en.name}`
   );
 
   return new ImageResponse(
@@ -154,17 +160,19 @@ export const GET = async (request: NextRequest) => {
             letterSpacing: 10,
           }}
         >
-          {result ? "円相" : "えんそう"}
+          {result ? copy.ja.name : "ひとふでのつき"}
           {result && lang === "en" ? (
-            <span style={{ fontSize: 24, letterSpacing: 2 }}>Ensō</span>
+            <span style={{ fontSize: 24, letterSpacing: 2 }}>
+              {copy.en.name}
+            </span>
           ) : null}
         </div>
         <div
           style={{
             alignItems: "baseline",
             display: "flex",
-            fontSize: 150,
-            letterSpacing: result ? 0 : 24,
+            fontSize: headlineSize.size,
+            letterSpacing: headlineSize.spacing,
             lineHeight: 1,
             marginTop: 18,
           }}

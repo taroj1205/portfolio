@@ -178,7 +178,7 @@ const lineOf = (result: Result, lang: Lang) => {
       result.time === null
         ? "Can you cut it out without breaking it?"
         : "Can you cut it out faster?";
-    return `Katanuki ${mould}\n${how} · ${rank}\n${bar}\n${dare}`;
+    return `Breathless Carve ${mould}\n${how} · ${rank}\n${bar}\n${dare}`;
   }
   const how =
     result.time === null
@@ -186,7 +186,7 @@ const lineOf = (result: Result, lang: Lang) => {
       : `${secondsText(result.time, lang)}で抜けた`;
   const dare =
     result.time === null ? "割らずに抜ける？" : "これより速く抜ける？";
-  return `型抜き ${mould}\n${how} · ${rank}\n${bar}\n${dare}`;
+  return `息止め型抜き ${mould}\n${how} · ${rank}\n${bar}\n${dare}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
@@ -196,7 +196,7 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
     image: `${origin}/games/katanuki/og?${query.toString()}`,
     text: [
       lineOf(result, lang),
-      lang === "en" ? "#型抜き #Katanuki" : "#型抜き",
+      lang === "en" ? "#息止め型抜き #BreathlessCarve" : "#息止め型抜き",
     ].join("\n"),
     url: `${origin}/games/katanuki?${query.toString()}`,
   };

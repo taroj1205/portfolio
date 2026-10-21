@@ -207,7 +207,7 @@ describe("results", () => {
     const share = shareOf(result, "https://x.y", "ja");
     assert.equal(
       share.text,
-      `星合で土星までつくった！ 3,210点\n${trailOf(result)}\n#星合`
+      `星合で土星までつくった！ 3,210点\n${trailOf(result)}\n#星合ゲーム`
     );
     assert.equal(trailOf(result), "✨🪨☄️🌙🔴🌍🔵🪐▫️▫️▫️");
     assert.ok(share.url.startsWith("https://x.y/games/hoshiai?"));
@@ -257,12 +257,12 @@ describe("career", () => {
   test("the share text shows the totals and the trail", () => {
     assert.equal(
       careerShare(career, "https://x.y", "en").text,
-      `My Hoshiai stats: best 12,340 pts\n25 runs · 1,203 merges · best chain 8\n${trailOf(career)}\n#星合 #Hoshiai`
+      `My Hoshiai stats: best 12,340 pts\n25 runs · 1,203 merges · best chain 8\n${trailOf(career)}\n#星合ゲーム #HoshiaiGame`
     );
     assert.equal(
       careerShare({ ...career, galaxies: 0, runs: 1 }, "https://x.y", "ja")
         .text,
-      `星合の戦績：最高12,340点\nプレイ 1回 · 合体 1,203回 · 最大 8連鎖\n${trailOf({ galaxies: 0, top: 7 })}\n#星合`
+      `星合の戦績：最高12,340点\nプレイ 1回 · 合体 1,203回 · 最大 8連鎖\n${trailOf({ galaxies: 0, top: 7 })}\n#星合ゲーム`
     );
   });
 });

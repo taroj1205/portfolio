@@ -28,7 +28,7 @@ const styles = stylex.create({
     alignItems: "center",
     display: "grid",
     gap: "0.5rem",
-    gridTemplateColumns: "1fr auto 1fr",
+    gridTemplateColumns: "auto 1fr auto",
     position: "relative",
   },
   brand: {
@@ -41,12 +41,13 @@ const styles = stylex.create({
     display: "flex",
     flexDirection: "column",
     fontFamily: font.mincho,
-    fontSize: "1.55rem",
+    fontSize: "1.35rem",
     fontWeight: 700,
-    letterSpacing: "0.3em",
+    letterSpacing: "0.12em",
     lineHeight: 1,
     margin: 0,
     textShadow: shade.small,
+    whiteSpace: "nowrap",
   },
   lead: {
     color: "#ffd27a",
@@ -55,10 +56,12 @@ const styles = stylex.create({
     marginBlockEnd: "0.35em",
   },
   stats: {
-    alignItems: "center",
+    alignItems: "baseline",
     display: "flex",
-    flexDirection: "column",
-    gap: "0.1rem",
+    gap: "0.6rem",
+    gridColumn: "1 / -1",
+    gridRow: 2,
+    justifyContent: "center",
     margin: 0,
     textAlign: "center",
     textShadow: shade.small,
@@ -78,6 +81,7 @@ const styles = stylex.create({
   corner: {
     display: "flex",
     gap: "0.45rem",
+    gridColumn: 3,
     justifySelf: "end",
   },
   button: {
@@ -219,8 +223,8 @@ export const Hud = ({ lang, best, draws, muted, onLang, onMute }: HudProps) => {
       <div {...stylex.props(styles.brand)}>
         <BackToGames label={words.back} />
         <h1 lang="ja" {...stylex.props(styles.title)}>
-          <span {...stylex.props(styles.lead)}>えんそう</span>
-          円相
+          <span {...stylex.props(styles.lead)}>ひとふでのつき</span>
+          {copy.ja.name}
         </h1>
       </div>
       {draws > 0 ? (
@@ -229,9 +233,7 @@ export const Hud = ({ lang, best, draws, muted, onLang, onMute }: HudProps) => {
           <span {...stylex.props(styles.best)}>{formatScore(best)}</span>
           <span {...stylex.props(styles.label)}>{words.draws(draws)}</span>
         </p>
-      ) : (
-        <span />
-      )}
+      ) : null}
       <div {...stylex.props(styles.corner)}>
         <Toggle
           aria-label={words.mute}

@@ -46,12 +46,13 @@ const styles = stylex.create({
     gap: "0.75rem",
   },
   title: {
-    alignItems: "center",
     display: "flex",
+    flexDirection: "column",
     fontFamily: font.mincho,
-    fontSize: "1.65rem",
+    fontSize: "1.25rem",
     fontWeight: 700,
-    gap: "0.45rem",
+    gap: "0.35rem",
+    letterSpacing: "0.04em",
     lineHeight: 1,
     margin: 0,
     textShadow: shade.small,
@@ -312,8 +313,8 @@ export const Hud = ({ lang, playing, muted, onLang, onMute }: HudProps) => {
       <div {...stylex.props(styles.brand)}>
         <BackToGames label={words.back} />
         <h1 lang="ja" {...stylex.props(styles.title)}>
-          餅つき
           <span {...stylex.props(styles.reading)}>{copy.ja.reading}</span>
+          {copy.ja.name}
         </h1>
       </div>
       <div {...stylex.props(styles.corner)}>

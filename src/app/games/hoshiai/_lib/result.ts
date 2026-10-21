@@ -46,7 +46,7 @@ export const trailOf = (result: Reach) =>
     .join("") + (result.galaxies > 0 ? "🌌" : "");
 
 export const hashtags = (lang: Lang) =>
-  lang === "en" ? "#星合 #Hoshiai" : "#星合";
+  lang === "en" ? "#星合ゲーム #HoshiaiGame" : "#星合ゲーム";
 
 const shared = z.object({
   c: z.coerce.number().int().min(0).max(999).default(0),

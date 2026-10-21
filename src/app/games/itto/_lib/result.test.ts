@@ -166,7 +166,7 @@ describe("share links", () => {
     const share = shareOf(cut, piece, "https://x.y", "ja");
     assert.ok(share.text.includes(ratioText(piece.split.small)));
     assert.ok(share.text.includes(rankOf(piece.split.small).name.ja));
-    assert.ok(share.text.endsWith("#一刀"));
+    assert.ok(share.text.endsWith("#半分こ道場"));
     assert.ok(!share.text.includes("レア"));
     assert.equal(share.url, `https://x.y/games/itto?${queryOf(cut)}&l=ja`);
     assert.equal(share.image, `https://x.y/games/itto/og?${queryOf(cut)}&l=ja`);

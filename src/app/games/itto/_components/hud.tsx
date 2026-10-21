@@ -47,12 +47,13 @@ const styles = stylex.create({
     display: "flex",
     flexDirection: "column",
     fontFamily: font.mincho,
-    fontSize: "1.6rem",
+    fontSize: "1.35rem",
     fontWeight: 700,
-    letterSpacing: "0.3em",
+    letterSpacing: "0.12em",
     lineHeight: 1,
     margin: 0,
     textShadow: shade.small,
+    whiteSpace: "nowrap",
   },
   lead: {
     color: brass.gold,
@@ -251,8 +252,8 @@ export const Header = ({
       <div {...stylex.props(styles.brand)}>
         <BackToGames label={words.back} />
         <h1 lang="ja" {...stylex.props(styles.title)}>
-          <span {...stylex.props(styles.lead)}>いっとう</span>
-          一刀
+          <span {...stylex.props(styles.lead)}>はんぶんこどうじょう</span>
+          {copy.ja.name}
         </h1>
       </div>
       <div {...stylex.props(styles.corner)}>

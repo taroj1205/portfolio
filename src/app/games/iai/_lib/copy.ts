@@ -97,7 +97,7 @@ export const copy: Record<Lang, Copy> = {
       versusSub: "On one screen",
     },
     mute: "Mute sound",
-    name: "Iai",
+    name: "Sayabashiri",
     next: "Next opponent",
     ordinal: (index) => `Opponent ${index + 1} of ${ladder.length}`,
     players: { left: "Blue", right: "Red" },
@@ -189,7 +189,7 @@ export const copy: Record<Lang, Copy> = {
       versusSub: "ひとつの画面で対決",
     },
     mute: "音を消す",
-    name: "居合",
+    name: "鞘走り",
     next: "次の相手へ",
     ordinal: (index) =>
       `${["一", "二", "三", "四", "五"][index] ?? index + 1}人目`,

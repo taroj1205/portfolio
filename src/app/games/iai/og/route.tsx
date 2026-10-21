@@ -143,6 +143,8 @@ const Caption = ({ text, size }: { text: string; size: number }) => {
   );
 };
 
+const pitchSize: Record<Lang, number> = { en: 56, ja: 110 };
+
 export const GET = async (request: NextRequest) => {
   const params = Object.fromEntries(request.nextUrl.searchParams);
   const result = readResult(params);
@@ -151,10 +153,10 @@ export const GET = async (request: NextRequest) => {
   const { caption, dare, detail, headline, rank } = textOf(result, lang);
   const seal = rank?.seal ?? ["居", "合"];
   const font = await loadMincho(
-    `${headline}${caption}${detail}${dare}${seal.join("")}${words.result.fastest}${words.result.average}0123456789ms居合いあいIAI`
+    `${headline}${caption}${detail}${dare}${seal.join("")}${words.result.fastest}${words.result.average}0123456789ms${copy.ja.name}さやばしり${copy.en.name}`
   );
   const size = sizes[lang];
-  const big = result === null ? 150 : size.headline;
+  const big = result === null ? pitchSize[lang] : size.headline;
   const stats =
     result === null || result.best === null || result.average === null
       ? []
@@ -214,9 +216,11 @@ export const GET = async (request: NextRequest) => {
             letterSpacing: 10,
           }}
         >
-          {result === null ? "いあい" : "居合"}
+          {result === null ? "さやばしり" : copy.ja.name}
           {lang === "en" ? (
-            <span style={{ fontSize: 22, letterSpacing: 4 }}>IAI</span>
+            <span style={{ fontSize: 22, letterSpacing: 4 }}>
+              {copy.en.name}
+            </span>
           ) : null}
         </div>
         <div

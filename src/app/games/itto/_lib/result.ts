@@ -217,13 +217,13 @@ const lineOf = (piece: Piece, lang: Lang) => {
   if (lang === "en") {
     return [
       rare ? `✨ A rare one: ${name}!` : null,
-      `Ittō, one straight cut: ${ratio} on the ${name} (${rank})`,
+      `Halving Dojo, one straight cut: ${ratio} on the ${name} (${rank})`,
       `${off}% off half. Can you cut this one closer?`,
     ];
   }
   return [
     rare ? `✨ レアの${name}が出た！` : null,
-    `一刀で${name}を切ったら ${ratio}（${rank}）`,
+    `半分こ道場で${name}を切ったら ${ratio}（${rank}）`,
     `半分からのズレ${off}%。同じのを、もっと半分に切れる？`,
   ];
 };
@@ -240,7 +240,7 @@ export const shareOf = (
     image: `${origin}/games/itto/og?${query.toString()}`,
     text: [
       ...lineOf(piece, lang).filter((line) => line !== null),
-      lang === "en" ? "#一刀 #Itto" : "#一刀",
+      lang === "en" ? "#半分こ道場 #HalvingDojo" : "#半分こ道場",
     ].join("\n"),
     url: `${origin}/games/itto?${query.toString()}`,
   };

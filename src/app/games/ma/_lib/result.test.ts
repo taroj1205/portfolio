@@ -109,7 +109,7 @@ describe("share text", () => {
     const share = shareOf({ day: null, time: 998 }, "https://x.y", "ja");
     assert.equal(
       share.text,
-      "間 10.00秒チャレンジ\n9.98秒（−0.02）· 体内時計\n🌕🌕🌕🌕🌕\nタイマーが消えても、10.00秒ぴったりで止められる？\n#間"
+      "無音の十秒 10.00秒チャレンジ\n9.98秒（−0.02）· 体内時計\n🌕🌕🌕🌕🌕\nタイマーが消えても、10.00秒ぴったりで止められる？\n#無音の十秒"
     );
     assert.equal(share.url, "https://x.y/games/ma?t=998&l=ja");
     assert.equal(share.image, "https://x.y/games/ma/og?t=998&l=ja");
@@ -128,7 +128,7 @@ describe("share text", () => {
     }
     assert.equal(
       shareOf({ day, time }, "https://x.y", "en").text,
-      "Ma daily #12\n+0.09s · Master\n🌕🌕🌕🌕🌑\n#間 #Ma"
+      "Ten Silent Seconds daily #12\n+0.09s · Master\n🌕🌕🌕🌕🌑\n#無音の十秒 #TenSilentSeconds"
     );
   });
 });
