@@ -21,7 +21,7 @@ export default defineConfig({
         rules: { "anti-slop/no-runtime-typeof": "off" },
       },
       {
-        files: ["src/app/**/og/route.tsx"],
+        files: ["src/app/**/og/route.tsx", "src/lib/app-icon.tsx"],
         rules: { "shadcn/no-inline-styles": "off" },
       },
     ],
