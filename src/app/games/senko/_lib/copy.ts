@@ -25,6 +25,7 @@ interface Copy {
     again: string;
     games: string;
     maker: string;
+    star: string;
   };
 }
 
@@ -58,6 +59,7 @@ export const copy: Record<Lang, Copy> = {
       left: (time) => `This one had ${time}s left to burn`,
       lost: (time) => `${time}s short of the challenge`,
       maker: "About the maker",
+      star: "Star on GitHub",
       postX: "Post on X",
       record: "New best",
       saveImage: "Save image",
@@ -104,6 +106,7 @@ export const copy: Record<Lang, Copy> = {
       left: (time) => `この一本は、あと${time}秒で燃え尽きるところだった`,
       lost: (time) => `挑戦状まであと${time}秒`,
       maker: "つくった人",
+      star: "GitHubでスター",
       postX: "Xに投稿",
       record: "自己ベスト",
       saveImage: "画像を保存",

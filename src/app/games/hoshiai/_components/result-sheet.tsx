@@ -1,10 +1,9 @@
 import * as stylex from "@stylexjs/stylex";
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import { glass } from "../../_components/glass";
 import { ShareButton } from "../../_components/share-button";
-import { StarLink } from "../../_components/star-link";
+import { SheetLinks } from "../../_components/sheet-links";
 import { font, ink, media } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
 import { bodies } from "../_lib/bodies";
@@ -154,19 +153,6 @@ const styles = stylex.create({
     borderStyle: "solid",
     borderWidth: 1,
   },
-  links: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "0 1.25rem",
-    justifyContent: "center",
-  },
-  link: {
-    color: ink.soft,
-    fontSize: "0.78rem",
-    letterSpacing: "calc(0.12em * var(--track, 1))",
-    paddingBlock: "0.35rem",
-    textDecoration: "none",
-  },
 });
 
 interface ResultSheetProps {
@@ -241,15 +227,7 @@ export const ResultSheet = ({ lang, ending, onAgain }: ResultSheetProps) => {
         share={shareOf(result, window.location.origin, lang)}
         {...stylex.props(styles.action, styles.share)}
       />
-      <div {...stylex.props(styles.links)}>
-        <Link href="/games" {...stylex.props(styles.link)}>
-          {words.result.games} <span aria-hidden="true">→</span>
-        </Link>
-        <Link href={`/${lang}`} {...stylex.props(styles.link)}>
-          {words.result.maker} <span aria-hidden="true">→</span>
-        </Link>
-        <StarLink>{words.result.star}</StarLink>
-      </div>
+      <SheetLinks labels={words.result} lang={lang} />
     </section>
   );
 };

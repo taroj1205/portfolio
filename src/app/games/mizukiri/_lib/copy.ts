@@ -54,6 +54,7 @@ export interface Copy {
     copyLink: string;
     copied: string;
     workshop: string;
+    games: string;
     maker: string;
     star: string;
   };
@@ -138,6 +139,7 @@ export const copy: Record<Lang, Copy> = {
     result: {
       again: "Again",
       levelUp: "Level up",
+      games: "More games",
       maker: "About the maker",
       newPart: (part) => `New ${part.toLowerCase()}`,
       points: (count) => `Skill points +${count}`,
@@ -255,6 +257,7 @@ export const copy: Record<Lang, Copy> = {
     result: {
       again: "もう一回",
       levelUp: "レベルアップ",
+      games: "ほかのゲーム",
       maker: "つくった人",
       newPart: (part) => `新しい${part}`,
       points: (count) => `スキルポイント +${count}`,
