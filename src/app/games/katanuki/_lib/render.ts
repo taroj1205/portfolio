@@ -498,7 +498,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.moveTo(tip.x + hover, tip.y + hover * 0.6);
     ctx.lineTo(end.x + hover + 0.04, end.y + hover * 0.6 + 0.02);
     ctx.stroke();
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = down ? 1 : 0.7;
     const steel = ctx.createLinearGradient(
       tip.x - 0.006,
       tip.y,

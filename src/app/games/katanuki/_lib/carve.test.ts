@@ -6,6 +6,7 @@ import {
   SAFE,
   WARNINGS,
   createCarving,
+  lift,
   percentOf,
   rest,
   scratch,
@@ -44,12 +45,39 @@ describe("carving", () => {
     assert.equal(carving.tension, 1);
   });
 
-  test("scratching away from the line breaks it without carving", () => {
+  test("the needle floats until its tip first touches the line", () => {
     const carving = createCarving(moulds.circle);
-    const start: Point = { x: 0.5, y: 0.5 };
-    const snaps = scratch(carving, start, { x: 0.5, y: 0.66 }, 10);
-    assert.equal(carving.count, 0);
+    const [onLine] = carving.mould.outline;
+    const centre: Point = { x: 0.5, y: 0.5 };
+    const inside: Point = { x: onLine.x, y: onLine.y + 0.1 };
+    assert.deepEqual(scratch(carving, centre, inside, 0), []);
+    assert.equal(carving.tension, 0);
+    assert.equal(carving.touching, false);
+    scratch(carving, inside, onLine, 10);
+    assert.equal(carving.touching, true);
+    assert.equal(carving.tension, 0);
+    assert.ok(carving.count > 0);
+  });
+
+  test("once touching, scratching away from the line breaks it", () => {
+    const carving = createCarving(moulds.circle);
+    const [onLine] = carving.mould.outline;
+    scratch(carving, onLine, onLine, 0);
+    const before = carving.count;
+    const snaps = scratch(carving, onLine, { x: 0.5, y: 0.5 }, 10);
+    assert.equal(carving.count, before);
     assert.equal(snaps.at(-1)?.type, "break");
+  });
+
+  test("lifting the needle lets you move it anywhere for free", () => {
+    const carving = createCarving(moulds.circle);
+    const [onLine] = carving.mould.outline;
+    scratch(carving, onLine, onLine, 0);
+    lift(carving);
+    assert.equal(carving.touching, false);
+    const inside: Point = { x: onLine.x, y: onLine.y + 0.1 };
+    assert.deepEqual(scratch(carving, inside, { x: 0.5, y: 0.5 }, 0), []);
+    assert.equal(carving.tension, 0);
   });
 
   test("stress eases off while resting and the warnings can come again", () => {

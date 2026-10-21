@@ -1,6 +1,6 @@
 import { loadSettings, storeSettings } from "../../_lib/settings";
 import type { Settings } from "../../_lib/settings";
-import { SAFE, createCarving, percentOf, rest, scratch } from "./carve";
+import { SAFE, createCarving, lift, percentOf, rest, scratch } from "./carve";
 import type { Carving, Snap } from "./carve";
 import { NOTCHES, moulds } from "./moulds";
 import type { MouldId, Point } from "./moulds";
@@ -47,7 +47,7 @@ export const startSession = (
   let mould = initial;
   let carving: Carving = createCarving(moulds[mould]);
   let active: number | null = null;
-  let lift = 0;
+  let offset = 0;
   let last: { at: Point; t: number } | null = null;
   let start = 0;
   let cracks = 0;
@@ -119,7 +119,7 @@ export const startSession = (
     const side = Math.min(rect.width, rect.height) || 1;
     return {
       x: (event.clientX - rect.left - (rect.width - side) / 2) / side,
-      y: (event.clientY - rect.top - (rect.height - side) / 2 - lift) / side,
+      y: (event.clientY - rect.top - (rect.height - side) / 2 - offset) / side,
     };
   };
 
@@ -169,7 +169,11 @@ export const startSession = (
     const from = last?.at ?? at;
     const seconds = last === null ? 0 : Math.max(0, (t - last.t) / 1000);
     const before = carving.count;
+    const { touching } = carving;
     const snaps = scratch(carving, from, at, seconds);
+    if (!touching && carving.touching) {
+      navigator.vibrate?.(8);
+    }
     if (carving.count > before) {
       render.dust(at, t);
     }
@@ -194,7 +198,7 @@ export const startSession = (
     sound.unlock();
     canvas.setPointerCapture(event.pointerId);
     active = event.pointerId;
-    lift = event.pointerType === "touch" ? LIFT : 0;
+    offset = event.pointerType === "touch" ? LIFT : 0;
     if (phase !== "carving") {
       fresh();
       start = event.timeStamp;
@@ -202,8 +206,10 @@ export const startSession = (
     }
     last = null;
     const at = pointOf(event);
-    render.needle(at, true, carving.tension);
     carve(at, event.timeStamp);
+    if (phase === "carving") {
+      render.needle(at, carving.touching, carving.tension);
+    }
   };
 
   const move = (event: PointerEvent) => {
@@ -212,7 +218,7 @@ export const startSession = (
     }
     if (event.pointerId !== active) {
       if (event.pointerType === "mouse") {
-        lift = 0;
+        offset = 0;
         render.needle(pointOf(event), false, 0);
       }
       return;
@@ -225,7 +231,11 @@ export const startSession = (
       carve(pointOf(each), each.timeStamp);
     }
     if (phase === "carving") {
-      render.needle(last?.at ?? pointOf(event), true, carving.tension);
+      render.needle(
+        last?.at ?? pointOf(event),
+        carving.touching,
+        carving.tension
+      );
     }
   };
 
@@ -235,6 +245,7 @@ export const startSession = (
     }
     active = null;
     last = null;
+    lift(carving);
     sound.scrape(0);
     if (phase === "carving") {
       render.needle(
@@ -249,6 +260,7 @@ export const startSession = (
     if (document.visibilityState === "hidden") {
       active = null;
       last = null;
+      lift(carving);
       sound.scrape(0);
     }
   };

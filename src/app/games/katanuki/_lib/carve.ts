@@ -22,6 +22,7 @@ export interface Carving {
   count: number;
   tension: number;
   warned: number;
+  touching: boolean;
   over: boolean;
 }
 
@@ -31,6 +32,7 @@ export const createCarving = (mould: Mould): Carving => ({
   over: false,
   mould,
   tension: 0,
+  touching: false,
   warned: 0,
 });
 
@@ -71,16 +73,18 @@ export const scratch = (
   }
   const snaps: Snap[] = [];
   const moved = Math.hypot(to.x - from.x, to.y - from.y);
-  carving.tension += (Math.max(0, moved - SAFE * seconds) / SAFE) * RUSH;
   const steps = Math.max(1, Math.ceil(moved / STEP));
+  const rush = (Math.max(0, moved - SAFE * seconds) / SAFE) * RUSH;
   for (let i = 1; i <= steps; i += 1) {
     const at = {
       x: from.x + ((to.x - from.x) * i) / steps,
       y: from.y + ((to.y - from.y) * i) / steps,
     };
     const off = touch(carving, at) - LINE;
-    if (off > 0) {
-      carving.tension += (moved / steps) * STRAY * Math.min(1, off / LINE);
+    carving.touching ||= off <= 0;
+    if (carving.touching) {
+      const stray = STRAY * Math.min(1, Math.max(0, off) / LINE);
+      carving.tension += (rush + moved * stray) / steps;
     }
   }
   warnings(carving, to, snaps);
@@ -93,6 +97,10 @@ export const scratch = (
     snaps.push({ at: to, type: "break" });
   }
   return snaps;
+};
+
+export const lift = (carving: Carving) => {
+  carving.touching = false;
 };
 
 export const rest = (carving: Carving, seconds: number) => {

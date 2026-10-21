@@ -73,7 +73,7 @@ export const copy: Record<Lang, Copy> = {
       won: "You beat the challenge",
     },
     rule: {
-      body: "Too fast, or off the line, and it cracks.",
+      body: "Rest the tip on the line to start. Too fast, or off the line, and it cracks.",
       lead: "Trace the line with the needle",
       start: "Drag to start",
     },
@@ -116,7 +116,7 @@ export const copy: Record<Lang, Copy> = {
       won: "挑戦状に勝った",
     },
     rule: {
-      body: "速すぎても、はみ出しても、ひびが入る。",
+      body: "針先を線に当てたら、削りはじめ。速すぎても、はみ出してもひびが入る。",
       lead: "針で、線をなぞる",
       start: "なぞってスタート",
     },
