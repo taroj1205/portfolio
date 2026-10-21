@@ -3,6 +3,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { useEffect, useRef, useState } from "react";
 
+import { LanguagePicker } from "../../_components/language-picker";
 import type { Lang } from "../../_lib/i18n";
 import type { Settings } from "../../_lib/settings";
 import { TIER, TOP, kindOf } from "../_lib/bodies";
@@ -73,6 +74,7 @@ export const Game = ({
   const [sharing, setSharing] = useState(false);
 
   const lang = settings?.lang ?? hint;
+  const picking = settings?.lang === null;
   const share =
     save === null || save.runs === 0 || save.top < 0
       ? null
@@ -126,8 +128,8 @@ export const Game = ({
   }, []);
 
   useEffect(() => {
-    session.current?.pause(sharing);
-  }, [sharing]);
+    session.current?.pause(sharing || picking);
+  }, [sharing, picking]);
 
   const again = () => {
     setEnding(null);
@@ -178,6 +180,11 @@ export const Game = ({
       {ending === null ? null : (
         <ResultSheet ending={ending} lang={lang} onAgain={again} />
       )}
+      <LanguagePicker
+        lang={lang}
+        onSettings={(updated) => session.current?.settings(updated)}
+        settings={settings}
+      />
     </>
   );
 };

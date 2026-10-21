@@ -21,7 +21,7 @@ Do not write Base UI code from memory. Part names, props, and `data-*` attribute
 
 | Need | Primitive | Example |
 | --- | --- | --- |
-| Modal choice | `Dialog` | `src/app/games/mizukiri/_components/language-picker.tsx` |
+| Modal choice | `Dialog` | `src/app/games/_components/language-picker.tsx` |
 | Bottom sheet with swipe | `Drawer` | `src/app/games/mizukiri/_components/workshop.tsx` |
 | Anchored hint, hover or tap | `Popover` | `src/app/games/mizukiri/_components/radar.tsx` |
 | Action list | `Menu` | `src/app/games/_components/share-button.tsx` |

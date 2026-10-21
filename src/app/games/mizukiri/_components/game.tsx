@@ -3,6 +3,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { useEffect, useRef, useState } from "react";
 
+import { LanguagePicker } from "../../_components/language-picker";
 import { guessLang } from "../../_lib/i18n";
 import type { Lang, Text } from "../../_lib/i18n";
 import type { Settings } from "../../_lib/settings";
@@ -18,7 +19,6 @@ import type { Event, Grade } from "../_lib/simulate";
 import { Hud } from "./hud";
 import type { Popup } from "./hud";
 import { LangContext } from "./lang";
-import { LanguagePicker } from "./language-picker";
 import { ResultSheet } from "./result-sheet";
 import { Workshop } from "./workshop";
 
@@ -267,15 +267,11 @@ export const Game = ({
           settings={settings}
         />
       )}
-      {settings === null ? null : (
-        <LanguagePicker
-          lang={lang}
-          onPick={(next) =>
-            session.current?.settings({ ...settings, lang: next })
-          }
-          open={settings.lang === null}
-        />
-      )}
+      <LanguagePicker
+        lang={lang}
+        onSettings={(next) => session.current?.settings(next)}
+        settings={settings}
+      />
     </LangContext>
   );
 };

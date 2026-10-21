@@ -3,6 +3,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { useEffect, useRef, useState } from "react";
 
+import { LanguagePicker } from "../../_components/language-picker";
 import { font, ink, media } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
 import type { Settings } from "../../_lib/settings";
@@ -271,6 +272,11 @@ export const Game = ({
           />
         )}
       </main>
+      <LanguagePicker
+        lang={lang}
+        onSettings={(next) => session.current?.settings(next)}
+        settings={settings}
+      />
     </div>
   );
 };
