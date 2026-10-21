@@ -174,36 +174,3 @@ export const moulds: Record<MouldId, Mould> = {
     corners(3, 0.3)
   ),
 };
-
-const seeded = (seed: number) => {
-  let state = (seed * 48_271) % 2_147_483_647 || 1;
-  return () => {
-    state = (state * 48_271) % 2_147_483_647;
-    return state / 2_147_483_647;
-  };
-};
-
-const cycleOf = (cycle: number): MouldId[] => {
-  const roll = seeded(cycle + 7);
-  const order = [...mouldIds];
-  for (let i = order.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(roll() * (i + 1));
-    [order[i], order[j]] = [order[j], order[i]];
-  }
-  return order;
-};
-
-const orderOf = (cycle: number): MouldId[] => {
-  const order = cycleOf(cycle);
-  if (cycle > 0 && order[0] === cycleOf(cycle - 1).at(-1)) {
-    [order[0], order[1]] = [order[1], order[0]];
-  }
-  return order;
-};
-
-export const mouldOf = (day: number) => {
-  const index = Math.max(0, day - 1);
-  return moulds[
-    orderOf(Math.floor(index / mouldIds.length))[index % mouldIds.length]
-  ];
-};

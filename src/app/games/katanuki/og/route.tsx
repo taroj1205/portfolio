@@ -1,13 +1,12 @@
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
-import { dayOf } from "../../_lib/day";
 import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
-import { mouldOf } from "../_lib/moulds";
-import type { Point } from "../_lib/moulds";
+import { moulds } from "../_lib/moulds";
+import type { MouldId, Point } from "../_lib/moulds";
 import { PERFECT, headlineOf, rankOf, readResult } from "../_lib/result";
 import type { Result } from "../_lib/result";
 
@@ -77,9 +76,9 @@ interface Face {
   perfect: boolean;
 }
 
-const faceOf = (result: Result | null, day: number, lang: Lang): Face => {
+const faceOf = (result: Result | null, mould: MouldId, lang: Lang): Face => {
   const words = copy[lang];
-  const mould = mouldOf(day).name[lang];
+  const name = moulds[mould].name[lang];
   if (result === null) {
     return {
       caption: pitch[lang].detail,
@@ -88,7 +87,7 @@ const faceOf = (result: Result | null, day: number, lang: Lang): Face => {
       detail: "",
       headline: pitch[lang].caption,
       perfect: false,
-      tag: words.today(day, mould),
+      tag: name,
     };
   }
   const rank = rankOf(result);
@@ -99,12 +98,18 @@ const faceOf = (result: Result | null, day: number, lang: Lang): Face => {
     detail: rank.line[lang],
     headline: headlineOf(result, lang),
     perfect: rank.level === PERFECT,
-    tag: `${words.day(day)} · ${mould}`,
+    tag: name,
   };
 };
 
-const Candy = ({ result, day }: { result: Result | null; day: number }) => {
-  const { outline } = mouldOf(day);
+const Candy = ({
+  result,
+  mould,
+}: {
+  result: Result | null;
+  mould: MouldId;
+}) => {
+  const { outline } = moulds[mould];
   const carved = result === null ? 0.34 : result.carved / 100;
   const cut = outline.slice(0, Math.round(outline.length * carved));
   const broke = result !== null && result.time === null;
@@ -195,10 +200,10 @@ export const GET = async (request: NextRequest) => {
   const params = Object.fromEntries(request.nextUrl.searchParams);
   const result = readResult(params);
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
-  const day = result?.day ?? dayOf(Date.now());
+  const mould = result?.mould ?? "umbrella";
   const { tag, headline, caption, detail, dare, clear, perfect } = faceOf(
     result,
-    day,
+    mould,
     lang
   );
   const font = await loadMincho(
@@ -219,7 +224,7 @@ export const GET = async (request: NextRequest) => {
         width: "100%",
       }}
     >
-      <Candy day={day} result={result} />
+      <Candy mould={mould} result={result} />
       <div
         style={{
           display: "flex",

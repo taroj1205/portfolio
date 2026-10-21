@@ -1,4 +1,5 @@
 import { Toggle } from "@base-ui/react/toggle";
+import { ToggleGroup } from "@base-ui/react/toggle-group";
 import * as stylex from "@stylexjs/stylex";
 import type { RefObject } from "react";
 
@@ -8,9 +9,10 @@ import { font, ink, media, shade } from "../../_components/theme.stylex";
 import { langNames } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
-import { mouldOf } from "../_lib/moulds";
+import { mouldIds, moulds } from "../_lib/moulds";
+import type { MouldId } from "../_lib/moulds";
 import { headlineOf, rankOf } from "../_lib/result";
-import type { Plan, Result } from "../_lib/result";
+import type { Result } from "../_lib/result";
 
 const GOLD = "#ffd27a";
 const PINK = "#f6b3c4";
@@ -94,33 +96,44 @@ const styles = stylex.create({
     textAlign: "center",
     width: "100%",
   },
-  today: {
-    alignItems: "center",
-    borderRadius: 999,
-    display: "inline-flex",
-    fontFamily: font.mincho,
-    fontSize: "0.95rem",
-    fontWeight: 700,
-    gap: "0.5rem",
-    letterSpacing: "calc(0.08em * var(--track, 1))",
-    margin: 0,
-    paddingBlock: "0.45rem",
-    paddingInline: "1rem",
+  segments: {
+    backdropFilter: "blur(18px) saturate(140%)",
+    backgroundColor: "rgb(12 16 28 / 0.42)",
+    borderColor: "rgb(255 255 255 / 0.14)",
+    borderRadius: 22,
+    borderStyle: "solid",
+    borderWidth: 1,
+    display: "grid",
+    gap: 2,
+    gridTemplateColumns: {
+      default: "repeat(3, 1fr)",
+      "@media (min-width: 520px)": "repeat(6, 1fr)",
+    },
+    padding: 3,
+    pointerEvents: "auto",
+    WebkitBackdropFilter: "blur(18px) saturate(140%)",
+    width: "100%",
   },
-  dot: {
-    backgroundColor: GOLD,
+  segment: {
+    backgroundColor: "transparent",
     borderRadius: 999,
-    boxShadow: `0 0 8px ${GOLD}`,
-    display: "inline-block",
-    height: 6,
-    width: 6,
-  },
-  status: {
+    borderWidth: 0,
     color: ink.soft,
-    fontSize: "0.78rem",
-    letterSpacing: "calc(0.06em * var(--track, 1))",
-    margin: 0,
-    textShadow: shade.small,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    fontSize: "0.82rem",
+    fontWeight: 700,
+    minHeight: "2.5rem",
+    outlineColor: GOLD,
+    outlineOffset: 2,
+    paddingInline: "0.5rem",
+    transitionDuration: "180ms",
+    transitionProperty: "background-color, color",
+    whiteSpace: "nowrap",
+  },
+  segmentOn: {
+    backgroundColor: "rgb(255 240 244 / 0.94)",
+    color: "#3a1020",
   },
   rule: {
     alignItems: "center",
@@ -382,12 +395,10 @@ const ChallengeCard = ({
   challenge: Result;
 }) => {
   const words = copy[lang];
-  const mould = mouldOf(challenge.day).name[lang];
   return (
     <div {...stylex.props(glass.surface, styles.challenge)}>
-      <span {...stylex.props(styles.label)}>{words.challenge.received}</span>
       <span {...stylex.props(styles.label)}>
-        {`${words.day(challenge.day)} · ${mould}`}
+        {`${words.challenge.received} · ${moulds[challenge.mould].name[lang]}`}
       </span>
       <p {...stylex.props(styles.challengeTitle)}>
         {`${headlineOf(challenge, lang)} · ${rankOf(challenge).name[lang]}`}
@@ -401,46 +412,52 @@ const ChallengeCard = ({
 
 interface PromptProps {
   lang: Lang;
-  plan: Plan;
-  today: number;
+  mould: MouldId;
   challenge: Result | null;
-  daily: { score: string; streak: number } | null;
+  best: number | null;
   clears: number;
   runs: number;
+  onMould: (mould: MouldId) => void;
 }
 
 export const Prompt = ({
   lang,
-  plan,
-  today,
+  mould,
   challenge,
-  daily,
+  best,
   clears,
   runs,
+  onMould,
 }: PromptProps) => {
   const words = copy[lang];
-  const mould = mouldOf(plan.day).name[lang];
-  let status: string | null = null;
-  if (plan.today) {
-    status =
-      daily === null
-        ? words.daily.fresh
-        : words.daily.done(daily.score, daily.streak);
-  }
   return (
     <div {...stylex.props(styles.prompt)}>
       {challenge === null ? (
-        <p {...stylex.props(glass.surface, styles.today)}>
-          {words.today(today, mould)}
-          {plan.today && daily === null ? (
-            <span aria-hidden="true" {...stylex.props(styles.dot)} />
-          ) : null}
-        </p>
+        <ToggleGroup
+          aria-label={words.moulds}
+          onValueChange={([next]) => {
+            if (next !== undefined) {
+              onMould(next);
+            }
+          }}
+          value={[mould]}
+          {...stylex.props(styles.segments)}
+        >
+          {mouldIds.map((id) => (
+            <Toggle
+              className={(state) =>
+                stylex.props(styles.segment, state.pressed && styles.segmentOn)
+                  .className
+              }
+              key={id}
+              value={id}
+            >
+              {moulds[id].name[lang]}
+            </Toggle>
+          ))}
+        </ToggleGroup>
       ) : (
         <ChallengeCard challenge={challenge} lang={lang} />
-      )}
-      {status === null ? null : (
-        <p {...stylex.props(styles.status)}>{status}</p>
       )}
       <p {...stylex.props(styles.rule)}>
         <span {...stylex.props(styles.lead)}>{words.rule.lead}</span>
@@ -453,7 +470,11 @@ export const Prompt = ({
         </span>
       </p>
       {runs === 0 ? null : (
-        <p {...stylex.props(styles.stats)}>{words.stats(clears, runs)}</p>
+        <p {...stylex.props(styles.stats)}>
+          {best === null
+            ? words.stats(clears, runs)
+            : words.best(headlineOf({ carved: 100, mould, time: best }, lang))}
+        </p>
       )}
     </div>
   );

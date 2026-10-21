@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 
 import { describe, test } from "vite-plus/test";
 
-import { NOTCHES, mouldIds, mouldOf, moulds } from "./moulds";
+import { NOTCHES, mouldIds, moulds } from "./moulds";
 
 describe("the moulds", () => {
   test("every outline has evenly spaced notches inside the candy", () => {
@@ -17,16 +17,5 @@ describe("the moulds", () => {
         assert.ok(Math.hypot(point.x - 0.5, point.y - 0.5) < 0.4, `${id} ${i}`);
       }
     }
-  });
-
-  test("the daily shape is the same for everyone and never repeats the next day", () => {
-    assert.deepEqual(
-      [1, 2, 3, 4, 5, 6].map((day) => mouldOf(day).id).toSorted(),
-      [...mouldIds].toSorted()
-    );
-    const days = Array.from({ length: 3650 }, (_, i) => mouldOf(i + 1).id);
-    assert.ok(days.every((id, i) => i === 0 || id !== days[i - 1]));
-    assert.equal(mouldOf(40).id, mouldOf(40).id);
-    assert.equal(mouldOf(0).id, mouldOf(1).id);
   });
 });

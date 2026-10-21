@@ -2,18 +2,17 @@ import * as stylex from "@stylexjs/stylex";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 
-import { dayOf } from "../_lib/day";
 import { langFrom, langFromHeader } from "../_lib/i18n";
 import type { Lang, Text } from "../_lib/i18n";
 import { Game } from "./_components/game";
 import { copy } from "./_lib/copy";
-import { mouldOf } from "./_lib/moulds";
+import { moulds } from "./_lib/moulds";
 import { headlineOf, queryOf, rankOf, readResult } from "./_lib/result";
 import type { Result } from "./_lib/result";
 
 const DESCRIPTION: Text = {
-  en: "Cut a shape out of a festival candy with a needle. Too fast, or off the line, and it cracks. A new shape every day.",
-  ja: "お祭りの型抜きを、針で抜く。速すぎても、はみ出しても割れる。型は毎日かわる。",
+  en: "Cut a shape out of a festival candy with a needle. Too fast, or off the line, and it cracks. Race for the fastest time on six shapes.",
+  ja: "お祭りの型抜きを、針で抜く。速すぎても、はみ出しても割れる。6つの型で、最速タイムを競う。",
 };
 
 const styles = stylex.create({
@@ -39,10 +38,8 @@ const langOf = async (param: string | string[] | undefined) => {
   return langFromHeader(incoming.get("accept-language"));
 };
 
-const today = () => dayOf(Date.now());
-
 const titleOf = (result: Result, lang: Lang) =>
-  `${copy[lang].day(result.day)} ${mouldOf(result.day).name[lang]} · ${headlineOf(result, lang)} · ${rankOf(result).name[lang]}`;
+  `${moulds[result.mould].name[lang]} · ${headlineOf(result, lang)} · ${rankOf(result).name[lang]}`;
 
 export const generateMetadata = async ({
   searchParams,
@@ -83,11 +80,7 @@ const Page = async ({ searchParams }: PageProps<"/games/katanuki">) => {
   const params = await searchParams;
   return (
     <div {...stylex.props(styles.page)}>
-      <Game
-        challenge={readResult(params)}
-        day={today()}
-        hint={await langOf(params.l)}
-      />
+      <Game challenge={readResult(params)} hint={await langOf(params.l)} />
     </div>
   );
 };

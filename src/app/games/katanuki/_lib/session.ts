@@ -1,13 +1,12 @@
-import { dayOf } from "../../_lib/day";
 import { loadSettings, storeSettings } from "../../_lib/settings";
 import type { Settings } from "../../_lib/settings";
 import { SAFE, createCarving, percentOf, rest, scratch } from "./carve";
 import type { Carving, Snap } from "./carve";
-import { NOTCHES, mouldOf } from "./moulds";
-import type { Point } from "./moulds";
+import { NOTCHES, moulds } from "./moulds";
+import type { MouldId, Point } from "./moulds";
 import { createRenderer } from "./render";
 import { LONGEST } from "./result";
-import type { Plan, Result } from "./result";
+import type { Result } from "./result";
 import { loadSave, settle, storeSave } from "./save";
 import type { Save } from "./save";
 import { createSound } from "./sound";
@@ -16,15 +15,11 @@ export type Phase = "demo" | "ready" | "carving" | "done";
 
 export interface Ending {
   result: Result;
-  today: boolean;
-  official: boolean;
   record: boolean;
 }
 
 interface Listeners {
-  plan: (today: number) => Plan;
   phase: (phase: Phase) => void;
-  today: (today: number) => void;
   meter: (carved: number, stress: number) => void;
   over: (ending: Ending) => void;
   save: (save: Save) => void;
@@ -38,15 +33,19 @@ const block = (event: Event) => {
   event.preventDefault();
 };
 
-export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
+export const startSession = (
+  canvas: HTMLCanvasElement,
+  initial: MouldId,
+  on: Listeners
+) => {
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const render = createRenderer(canvas, calm);
   const sound = createSound();
   let save = loadSave();
   let settings = loadSettings();
   let phase: Phase = "demo";
-  let plan = on.plan(dayOf(Date.now()));
-  let carving: Carving = createCarving(mouldOf(plan.day));
+  let mould = initial;
+  let carving: Carving = createCarving(moulds[mould]);
   let active: number | null = null;
   let lift = 0;
   let last: { at: Point; t: number } | null = null;
@@ -55,11 +54,9 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   let demoAt = performance.now();
   let demoAlong = 0;
   let previous = demoAt;
-  let dated = demoAt;
   sound.mute(settings.muted);
   on.save(save);
   on.settings(settings);
-  on.today(dayOf(Date.now()));
   on.phase(phase);
 
   const enter = (next: Phase) => {
@@ -74,8 +71,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   };
 
   const fresh = () => {
-    plan = on.plan(dayOf(Date.now()));
-    carving = createCarving(mouldOf(plan.day));
+    carving = createCarving(moulds[mould]);
     cracks = 0;
     render.reset(carving);
     on.meter(0, 0);
@@ -136,18 +132,12 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       at: Date.now(),
       cracks,
       notches: carving.count,
-      plan,
       result,
       seconds: (now - start) / 1000,
     });
     keep(settled.save);
     enter("done");
-    on.over({
-      official: settled.official,
-      record: settled.record,
-      result,
-      today: plan.today,
-    });
+    on.over({ record: settled.record, result });
   };
 
   const react = (snaps: Snap[], now: number) => {
@@ -161,7 +151,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         render.shatter(snap.at, now);
         sound.shatter();
         navigator.vibrate?.([40, 30, 90]);
-        finish({ carved: percentOf(carving), day: plan.day, time: null }, now);
+        finish({ carved: percentOf(carving), mould, time: null }, now);
       } else {
         render.pop(now);
         sound.clear();
@@ -170,7 +160,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
           LONGEST,
           Math.max(1, Math.floor((now - start) / 100))
         );
-        finish({ carved: 100, day: plan.day, time }, now);
+        finish({ carved: 100, mould, time }, now);
       }
     }
   };
@@ -283,16 +273,6 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       rest(carving, dt);
       on.meter(percentOf(carving), carving.tension);
     }
-    if (phase !== "carving" && now - dated > 1000) {
-      dated = now;
-      const today = dayOf(Date.now());
-      on.today(today);
-      if (phase !== "done" && on.plan(today).day !== plan.day) {
-        fresh();
-        demoAt = now;
-        demoAlong = 0;
-      }
-    }
     render.draw(now);
     frame = requestAnimationFrame(tick);
   };
@@ -304,6 +284,14 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         fresh();
         render.needle(null, false, 0);
         enter("ready");
+      }
+    },
+    choose: (next: MouldId) => {
+      mould = next;
+      if (phase === "demo" || phase === "ready") {
+        fresh();
+        demoAt = performance.now();
+        demoAlong = 0;
       }
     },
     settings: (next: Settings) => {

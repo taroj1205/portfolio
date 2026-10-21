@@ -1,24 +1,19 @@
 import { z } from "zod";
 
-import { LAST_DAY } from "../../_lib/day";
 import type { Lang, Text } from "../../_lib/i18n";
 import type { Share } from "../../_lib/share";
 import { SAFE } from "./carve";
-import { mouldOf } from "./moulds";
+import { mouldIds, moulds } from "./moulds";
+import type { MouldId } from "./moulds";
 
 export const LONGEST = 36_000;
 export const PERFECT = 6;
 const CELLS = 10;
 
 export interface Result {
-  day: number;
+  mould: MouldId;
   carved: number;
   time: number | null;
-}
-
-export interface Plan {
-  day: number;
-  today: boolean;
 }
 
 export interface Rank {
@@ -85,10 +80,10 @@ const bands: readonly Band[] = [
   shattered,
 ];
 
-export const parOf = (day: number) => mouldOf(day).length / SAFE;
+export const parOf = (mould: MouldId) => moulds[mould].length / SAFE;
 
 const paceOf = (result: Result) =>
-  result.time === null ? Infinity : result.time / 10 / parOf(result.day);
+  result.time === null ? Infinity : result.time / 10 / parOf(result.mould);
 
 const fits = (band: Band, result: Result) =>
   band.pace === undefined
@@ -105,7 +100,7 @@ export const nextOf = (result: Result) => {
     return null;
   }
   if (next.pace !== undefined && result.time !== null) {
-    const goal = Math.floor(next.pace * parOf(result.day) * 10);
+    const goal = Math.floor(next.pace * parOf(result.mould) * 10);
     return { carved: null, rank: next, time: result.time - goal };
   }
   return {
@@ -122,16 +117,11 @@ const secondsText = (time: number, lang: Lang) =>
 
 export const barOf = (result: Result) => {
   if (result.time !== null) {
-    const mould = mouldOf(result.day).emoji;
-    return `${"🟧".repeat(CELLS)}${mould}${rankOf(result).level === PERFECT ? "✨" : ""}`;
+    const { emoji } = moulds[result.mould];
+    return `${"🟧".repeat(CELLS)}${emoji}${rankOf(result).level === PERFECT ? "✨" : ""}`;
   }
   const done = Math.min(CELLS - 1, Math.floor(result.carved / CELLS));
   return `${"🟧".repeat(done)}💥${"⬜".repeat(CELLS - 1 - done)}`;
-};
-
-export const planOf = (challenge: Result | null, today: number): Plan => {
-  const day = challenge?.day ?? today;
-  return { day, today: day === today };
 };
 
 const whole = (pattern: RegExp, min: number, max: number) =>
@@ -144,7 +134,7 @@ const whole = (pattern: RegExp, min: number, max: number) =>
 const shared = z
   .object({
     c: whole(/^(?:0|[1-9]\d?)$/u, 0, 99).optional(),
-    n: whole(/^[1-9]\d{0,4}$/u, 1, LAST_DAY),
+    m: z.enum(mouldIds),
     t: whole(/^[1-9]\d{0,4}$/u, 1, LONGEST).optional(),
   })
   .refine(({ c, t }) => (c === undefined) !== (t === undefined));
@@ -156,14 +146,14 @@ export const readResult = (
   if (!parsed.success) {
     return null;
   }
-  const { c, n, t } = parsed.data;
+  const { c, m, t } = parsed.data;
   return t === undefined
-    ? { carved: c ?? 0, day: n, time: null }
-    : { carved: 100, day: n, time: t };
+    ? { carved: c ?? 0, mould: m, time: null }
+    : { carved: 100, mould: m, time: t };
 };
 
 export const queryOf = (result: Result) => {
-  const query = new URLSearchParams({ n: String(result.day) });
+  const query = new URLSearchParams({ m: result.mould });
   if (result.time === null) {
     query.set("c", String(result.carved));
   } else {
@@ -176,7 +166,7 @@ export const headlineOf = (result: Result, lang: Lang) =>
   result.time === null ? `${result.carved}%` : secondsText(result.time, lang);
 
 const lineOf = (result: Result, lang: Lang) => {
-  const mould = mouldOf(result.day).name[lang];
+  const mould = moulds[result.mould].name[lang];
   const rank = rankOf(result).name[lang];
   const bar = barOf(result);
   if (lang === "en") {
@@ -184,13 +174,19 @@ const lineOf = (result: Result, lang: Lang) => {
       result.time === null
         ? `Broke at ${result.carved}%`
         : `Cut out in ${secondsText(result.time, lang)}`;
-    return `Katanuki daily #${result.day} ${mould}\n${how} · ${rank}\n${bar}`;
+    const dare =
+      result.time === null
+        ? "Can you cut it out without breaking it?"
+        : "Can you cut it out faster?";
+    return `Katanuki ${mould}\n${how} · ${rank}\n${bar}\n${dare}`;
   }
   const how =
     result.time === null
       ? `${result.carved}%で割れた`
       : `${secondsText(result.time, lang)}で抜けた`;
-  return `型抜き お題 #${result.day} ${mould}\n${how} · ${rank}\n${bar}`;
+  const dare =
+    result.time === null ? "割らずに抜ける？" : "これより速く抜ける？";
+  return `型抜き ${mould}\n${how} · ${rank}\n${bar}\n${dare}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {

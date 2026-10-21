@@ -7,7 +7,7 @@ import { SheetLinks } from "../../_components/sheet-links";
 import { font, ink, media } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
-import { mouldOf } from "../_lib/moulds";
+import { moulds } from "../_lib/moulds";
 import {
   LONGEST,
   barOf,
@@ -18,7 +18,6 @@ import {
   shareOf,
 } from "../_lib/result";
 import type { Result } from "../_lib/result";
-import { officialOf } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import type { Ending } from "../_lib/session";
 
@@ -87,11 +86,6 @@ const styles = stylex.create({
     letterSpacing: "calc(0.1em * var(--track, 1))",
     paddingBlock: "0.2rem",
     paddingInline: "0.6rem",
-  },
-  plain: {
-    backgroundColor: "rgb(255 255 255 / 0.12)",
-    backgroundImage: "none",
-    color: ink.text,
   },
   rank: {
     fontFamily: font.mincho,
@@ -225,11 +219,10 @@ export const ResultSheet = ({
   challenge,
   onAgain,
 }: ResultSheetProps) => {
-  const { result, record, official, today } = ending;
+  const { result, record } = ending;
   const words = copy[lang];
   const rank = rankOf(result);
-  const kept = today && !official ? officialOf(save, result.day) : null;
-  const shared = kept ?? result;
+  const best = save.best[result.mould] ?? null;
   const against = challenge === null ? null : versus(result, challenge, lang);
   const again = useRef<HTMLButtonElement>(null);
   const focus = () => {
@@ -252,20 +245,9 @@ export const ResultSheet = ({
     >
       <div {...stylex.props(styles.head)}>
         <div {...stylex.props(styles.titles)}>
-          {record || today ? (
+          {record ? (
             <div {...stylex.props(styles.badges)}>
-              {record ? (
-                <span {...stylex.props(styles.badge)}>
-                  {words.result.record}
-                </span>
-              ) : null}
-              {today ? (
-                <span
-                  {...stylex.props(styles.badge, !official && styles.plain)}
-                >
-                  {official ? words.result.official : words.result.practice}
-                </span>
-              ) : null}
+              <span {...stylex.props(styles.badge)}>{words.result.record}</span>
             </div>
           ) : null}
           <h2 id="katanuki-result" {...stylex.props(styles.rank)}>
@@ -283,7 +265,7 @@ export const ResultSheet = ({
         </p>
       </div>
       <p aria-hidden="true" {...stylex.props(styles.bar)}>
-        {barOf(result)} {mouldOf(result.day).name[lang]}
+        {barOf(result)} {moulds[result.mould].name[lang]}
       </p>
       <ul {...stylex.props(styles.notes)}>
         <li {...stylex.props(styles.note)}>{nextText(result, lang)}</li>
@@ -292,14 +274,11 @@ export const ResultSheet = ({
             {against.text}
           </li>
         )}
-        {today && official && save.daily.streak > 1 ? (
+        {best === null || best === result.time ? null : (
           <li {...stylex.props(styles.note)}>
-            {words.result.streak(save.daily.streak)}
-          </li>
-        ) : null}
-        {kept === null ? null : (
-          <li {...stylex.props(styles.note)}>
-            {words.result.practiceNote(headlineOf(kept, lang))}
+            {words.best(
+              headlineOf({ carved: 100, mould: result.mould, time: best }, lang)
+            )}
           </li>
         )}
       </ul>
@@ -315,7 +294,7 @@ export const ResultSheet = ({
         <ShareButton
           fileName="katanuki.png"
           labels={words.result}
-          share={shareOf(shared, window.location.origin, lang)}
+          share={shareOf(result, window.location.origin, lang)}
           {...stylex.props(styles.action, styles.share)}
         />
       </div>

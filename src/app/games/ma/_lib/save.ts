@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { dateOf, dayFrom } from "../../_lib/day";
 import { createStore } from "../../_lib/storage";
+import { dateOf, dayFrom } from "./daily";
 import type { Plan } from "./result";
 
 const KEY = "ma.v1";

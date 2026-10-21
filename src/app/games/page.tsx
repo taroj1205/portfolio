@@ -113,7 +113,7 @@ const GAMES: Game[] = [
     href: "/games/katanuki",
     tags: [
       { en: "Trace", ja: "なぞる" },
-      { en: "Daily shape", ja: "今日の型" },
+      { en: "Fastest time", ja: "最速タイム" },
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
     title: { en: katanuki.en.name, ja: katanuki.ja.name },

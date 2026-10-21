@@ -8,9 +8,8 @@ import { ink, media } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
 import type { Settings } from "../../_lib/settings";
 import { copy } from "../_lib/copy";
-import { headlineOf, planOf } from "../_lib/result";
+import type { MouldId } from "../_lib/moulds";
 import type { Result } from "../_lib/result";
-import { officialOf, streakOn } from "../_lib/save";
 import type { Save } from "../_lib/save";
 import { startSession } from "../_lib/session";
 import type { Ending, Phase } from "../_lib/session";
@@ -105,21 +104,15 @@ const paintMeter = (
   }
 };
 
-const dailyOf = (save: Save | null, today: number, lang: Lang) => {
-  const official = save === null ? null : officialOf(save, today);
-  return save === null || official === null
-    ? null
-    : { score: headlineOf(official, lang), streak: streakOn(save, today) };
-};
+const firstMould = (challenge: Result | null): MouldId =>
+  challenge?.mould ?? "circle";
 
 export const Game = ({
   challenge,
   hint,
-  day,
 }: {
   challenge: Result | null;
   hint: Lang;
-  day: number;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const carvedBar = useRef<HTMLDivElement>(null);
@@ -129,11 +122,10 @@ export const Game = ({
   const [save, setSave] = useState<Save | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
   const [phase, setPhase] = useState<Phase>("demo");
-  const [today, setToday] = useState(day);
+  const [mould, setMould] = useState(firstMould(challenge));
   const [ending, setEnding] = useState<Ending | null>(null);
 
   const lang = settings?.lang ?? hint;
-  const plan = planOf(challenge, today);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -144,7 +136,7 @@ export const Game = ({
     session.current =
       canvas === null
         ? null
-        : startSession(canvas, {
+        : startSession(canvas, firstMould(challenge), {
             meter: (carved, tension) => {
               paintMeter(
                 carvedBar.current,
@@ -158,10 +150,8 @@ export const Game = ({
             },
             over: setEnding,
             phase: setPhase,
-            plan: (now) => planOf(challenge, now),
             save: setSave,
             settings: setSettings,
-            today: setToday,
           });
     return () => {
       session.current?.stop();
@@ -217,12 +207,15 @@ export const Game = ({
             >
               <Prompt
                 challenge={challenge}
+                best={save?.best[mould] ?? null}
                 clears={save?.clears ?? 0}
-                daily={dailyOf(save, today, lang)}
                 lang={lang}
-                plan={plan}
+                mould={mould}
+                onMould={(next) => {
+                  setMould(next);
+                  session.current?.choose(next);
+                }}
                 runs={save?.runs ?? 0}
-                today={today}
               />
             </div>
             {phase === "carving" ? (
