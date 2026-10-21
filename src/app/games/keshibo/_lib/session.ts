@@ -366,15 +366,21 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   };
   frame = requestAnimationFrame(tick);
 
+  const newGame = () => {
+    rolls = [];
+    playing = 0;
+    pointer = null;
+    aim = null;
+    sound.slide(0);
+    on.rolls(rolls);
+    reset(performance.now(), null);
+  };
+
   return {
     again: () => {
-      if (stage !== "done") {
-        return;
+      if (stage === "done") {
+        newGame();
       }
-      rolls = [];
-      playing = 0;
-      on.rolls(rolls);
-      reset(performance.now(), null);
     },
     design: (next: Design) => {
       if (rolls.length > 0 && stage !== "done") {
@@ -386,6 +392,11 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       world = createWorld(bodyOf(design), rack());
       lastX = 0;
       place(world, lastX, 0);
+    },
+    quit: () => {
+      if (stage !== "done") {
+        newGame();
+      }
     },
     settings: (next: Settings) => {
       settings = next;

@@ -112,6 +112,9 @@ const styles = stylex.create({
   },
   stage: {
     alignItems: "center",
+    flexShrink: 0,
+    marginInline: "1.25rem",
+    marginTop: "0.8rem",
     backgroundImage:
       "radial-gradient(70% 90% at 50% 40%, rgb(255 226 170 / 0.22), transparent 70%), linear-gradient(180deg, #c99a66, #a8774a)",
     borderRadius: 20,
@@ -440,29 +443,29 @@ export const Workshop = ({
             <Drawer.Title {...stylex.props(styles.title)}>
               {words.title}
             </Drawer.Title>
-            <Drawer.Content {...stylex.props(styles.content)}>
-              <div {...stylex.props(styles.stage)}>
-                <span {...stylex.props(styles.picture)}>
-                  <EraserPicture design={design} />
-                </span>
-                <div {...stylex.props(styles.stats)}>
-                  {statKeys.map((key) => (
-                    <Meter.Root
-                      key={key}
-                      value={stats[key]}
-                      {...stylex.props(styles.stat)}
-                    >
-                      <Meter.Label {...stylex.props(styles.statLabel)}>
-                        {words.stats[key]}
-                      </Meter.Label>
-                      <Meter.Value {...stylex.props(styles.statValue)} />
-                      <Meter.Track {...stylex.props(styles.track)}>
-                        <Meter.Indicator {...stylex.props(styles.indicator)} />
-                      </Meter.Track>
-                    </Meter.Root>
-                  ))}
-                </div>
+            <div {...stylex.props(styles.stage)}>
+              <span {...stylex.props(styles.picture)}>
+                <EraserPicture design={design} />
+              </span>
+              <div {...stylex.props(styles.stats)}>
+                {statKeys.map((key) => (
+                  <Meter.Root
+                    key={key}
+                    value={stats[key]}
+                    {...stylex.props(styles.stat)}
+                  >
+                    <Meter.Label {...stylex.props(styles.statLabel)}>
+                      {words.stats[key]}
+                    </Meter.Label>
+                    <Meter.Value {...stylex.props(styles.statValue)} />
+                    <Meter.Track {...stylex.props(styles.track)}>
+                      <Meter.Indicator {...stylex.props(styles.indicator)} />
+                    </Meter.Track>
+                  </Meter.Root>
+                ))}
               </div>
+            </div>
+            <Drawer.Content {...stylex.props(styles.content)}>
               <Drawer.Description {...stylex.props(styles.note)}>
                 {words.note}
               </Drawer.Description>

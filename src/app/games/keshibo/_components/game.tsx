@@ -147,6 +147,10 @@ export const Game = ({
               session.current?.settings({ ...settings, muted });
             }
           }}
+          onQuit={() => {
+            setCall(null);
+            session.current?.quit();
+          }}
           playing={playing && ending === null}
         />
         <ScoreSheet lang={lang} rolls={rolls} />

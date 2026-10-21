@@ -439,9 +439,17 @@ interface HudProps {
   playing: boolean;
   onLang: () => void;
   onMute: (muted: boolean) => void;
+  onQuit: () => void;
 }
 
-export const Hud = ({ lang, muted, playing, onLang, onMute }: HudProps) => {
+export const Hud = ({
+  lang,
+  muted,
+  playing,
+  onLang,
+  onMute,
+  onQuit,
+}: HudProps) => {
   const words = copy[lang];
   const other: Lang = lang === "ja" ? "en" : "ja";
   return (
@@ -462,7 +470,15 @@ export const Hud = ({ lang, muted, playing, onLang, onMute }: HudProps) => {
         >
           <Speaker muted={muted} />
         </Toggle>
-        {playing ? null : (
+        {playing ? (
+          <button
+            onClick={onQuit}
+            type="button"
+            {...stylex.props(glass.surface, styles.button, styles.language)}
+          >
+            {words.quit}
+          </button>
+        ) : (
           <button
             lang={other}
             onClick={onLang}

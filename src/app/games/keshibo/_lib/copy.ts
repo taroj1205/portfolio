@@ -10,6 +10,7 @@ interface Copy {
   fallback: string;
   back: string;
   mute: string;
+  quit: string;
   sheet: string;
   frame: (n: number) => string;
   total: string;
@@ -88,6 +89,7 @@ export const copy: Record<Lang, Copy> = {
     frame: (n) => `Frame ${n}`,
     mute: "Mute sound",
     name: "Keshibo",
+    quit: "Quit",
     reading: "Eraser bowling",
     result: {
       again: "Play again",
@@ -170,6 +172,7 @@ export const copy: Record<Lang, Copy> = {
     frame: (n) => `${n}フレーム`,
     mute: "音を消す",
     name: "消しボウ",
+    quit: "やめる",
     reading: "けしボウ",
     result: {
       again: "もう1ゲーム",
