@@ -135,6 +135,7 @@ export const Game = ({
           lang={lang}
           onAgain={() => session.current?.start(ending.mode)}
           onLadder={() => session.current?.start("solo")}
+          onQuit={() => session.current?.title()}
           onSharing={(open) => session.current?.pause(open)}
         />
       )}

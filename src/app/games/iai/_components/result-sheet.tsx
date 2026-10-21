@@ -236,6 +236,16 @@ const styles = stylex.create({
     borderStyle: "solid",
     borderWidth: 1,
   },
+  row: {
+    display: "flex",
+    gap: "0.6rem",
+  },
+  grow: {
+    flexGrow: 1,
+  },
+  quit: {
+    paddingInline: "1.4rem",
+  },
 });
 
 const useFirstFocus = () => {
@@ -245,6 +255,16 @@ const useFirstFocus = () => {
   }, []);
   return ref;
 };
+
+const Quit = ({ lang, onQuit }: { lang: Lang; onQuit: () => void }) => (
+  <button
+    onClick={onQuit}
+    type="button"
+    {...stylex.props(styles.action, styles.secondary, styles.quit)}
+  >
+    {copy[lang].quit}
+  </button>
+);
 
 const Stat = ({ label, value }: { label: string; value: number | null }) => (
   <p {...stylex.props(styles.stat)}>
@@ -261,6 +281,7 @@ interface RunProps {
   fastest: boolean;
   furthest: boolean;
   onAgain: () => void;
+  onQuit: () => void;
   onSharing: (open: boolean) => void;
 }
 
@@ -270,6 +291,7 @@ const Run = ({
   fastest,
   furthest,
   onAgain,
+  onQuit,
   onSharing,
 }: RunProps) => {
   const words = copy[lang];
@@ -331,14 +353,17 @@ const Run = ({
           </li>
         ))}
       </ol>
-      <button
-        onClick={onAgain}
-        ref={again}
-        type="button"
-        {...stylex.props(styles.action, styles.primary)}
-      >
-        {words.result.again}
-      </button>
+      <div {...stylex.props(styles.row)}>
+        <button
+          onClick={onAgain}
+          ref={again}
+          type="button"
+          {...stylex.props(styles.action, styles.primary, styles.grow)}
+        >
+          {words.result.again}
+        </button>
+        <Quit lang={lang} onQuit={onQuit} />
+      </div>
       <ShareButton
         fileName="iai.png"
         labels={words.result}
@@ -393,6 +418,7 @@ interface DuelProps {
   fastest: boolean;
   onAgain: () => void;
   onLadder: () => void;
+  onQuit: () => void;
 }
 
 const Duel = ({
@@ -402,6 +428,7 @@ const Duel = ({
   fastest,
   onAgain,
   onLadder,
+  onQuit,
 }: DuelProps) => {
   const words = copy[lang];
   const again = useFirstFocus();
@@ -441,14 +468,17 @@ const Duel = ({
         <Stat label={words.you} value={verdict.left} />
         <Stat label={words.challenge.who} value={challenge.best} />
       </div>
-      <button
-        onClick={onAgain}
-        ref={again}
-        type="button"
-        {...stylex.props(styles.action, styles.primary)}
-      >
-        {words.challenge.again}
-      </button>
+      <div {...stylex.props(styles.row)}>
+        <button
+          onClick={onAgain}
+          ref={again}
+          type="button"
+          {...stylex.props(styles.action, styles.primary, styles.grow)}
+        >
+          {words.challenge.again}
+        </button>
+        <Quit lang={lang} onQuit={onQuit} />
+      </div>
       <button
         onClick={onLadder}
         type="button"
@@ -467,6 +497,7 @@ interface ResultSheetProps {
   challenge: Challenge | null;
   onAgain: () => void;
   onLadder: () => void;
+  onQuit: () => void;
   onSharing: (open: boolean) => void;
 }
 
@@ -476,6 +507,7 @@ export const ResultSheet = ({
   challenge,
   onAgain,
   onLadder,
+  onQuit,
   onSharing,
 }: ResultSheetProps) => {
   if (ending.mode === "solo") {
@@ -485,6 +517,7 @@ export const ResultSheet = ({
         furthest={ending.furthest}
         lang={lang}
         onAgain={onAgain}
+        onQuit={onQuit}
         onSharing={onSharing}
         result={ending.result}
       />
@@ -497,6 +530,7 @@ export const ResultSheet = ({
       lang={lang}
       onAgain={onAgain}
       onLadder={onLadder}
+      onQuit={onQuit}
       verdict={ending.verdict}
     />
   );

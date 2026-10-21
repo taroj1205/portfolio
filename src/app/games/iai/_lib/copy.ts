@@ -101,7 +101,7 @@ export const copy: Record<Lang, Copy> = {
     next: "Next opponent",
     ordinal: (index) => `Opponent ${index + 1} of ${ladder.length}`,
     players: { left: "Blue", right: "Red" },
-    quit: "Stop",
+    quit: "Quit",
     ready: "Take your stance",
     rematch: "Again",
     record: (reach, best) =>

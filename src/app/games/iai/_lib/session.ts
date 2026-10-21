@@ -548,6 +548,9 @@ export const startSession = (
       sound.close();
     },
     title: () => {
+      if (stage === "ready" && mode === "solo" && rung > 0) {
+        keep(settleRun(save, rung).save);
+      }
       duel = null;
       clash = null;
       held = null;

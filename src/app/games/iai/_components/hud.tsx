@@ -825,15 +825,13 @@ const Ready = ({
       ) : null}
       <div {...stylex.props(styles.row)}>
         <Primary label={nextLabel(mode, verdict, lang)} onClick={onEngage} />
-        {mode === "versus" ? (
-          <button
-            onClick={onQuit}
-            type="button"
-            {...stylex.props(styles.action, styles.secondary)}
-          >
-            {words.quit}
-          </button>
-        ) : null}
+        <button
+          onClick={onQuit}
+          type="button"
+          {...stylex.props(styles.action, styles.secondary)}
+        >
+          {words.quit}
+        </button>
       </div>
     </div>
   );
