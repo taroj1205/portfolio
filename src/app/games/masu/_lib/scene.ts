@@ -281,13 +281,17 @@ export const poseOf = (angle: number, size: number) => {
   };
 };
 
-export interface Layout {
-  w: number;
-  h: number;
-  scale: number;
+export interface View {
   cx: number;
   cy: number;
+  scale: number;
+}
+
+export interface Layout extends View {
+  w: number;
+  h: number;
   size: Record<Bottle, number>;
+  near: View;
 }
 
 export const keepOut = {
@@ -303,6 +307,11 @@ const HEADER = 96;
 const SMALL = 1.1;
 const FULL = 0.9;
 const SMALLEST = 50;
+const ZOOM = 1.4;
+const NEAR_WIDTH = 0.86;
+const NEAR_HEIGHT = 0.5;
+const NEAR_FOOT = 0.9;
+const NEAREST = 1.05;
 const SWEEP = 24;
 const MOST_POURED = 300;
 const DEMO_SAMPLES = 200;
@@ -373,7 +382,7 @@ export const sweepOf = (bottle: Bottle) => {
 const clearOf = (
   bottle: Bottle,
   size: number,
-  at: Pick<Layout, "w" | "cx" | "cy" | "scale">,
+  at: View & { w: number },
   zone: KeepOut,
   angles: readonly number[]
 ) => {
@@ -450,6 +459,40 @@ export const reservedOf = (w: number, h: number): Reserved => ({
   top: h - IDLE_TEXT,
 });
 
+const nearOf = (layout: Omit<Layout, "near">): View => {
+  const { w, h, size } = layout;
+  const fits = (view: View) =>
+    view.cy + lipTop * view.scale >= HEADER &&
+    bottles.every((bottle) =>
+      clearOf(
+        bottle,
+        size[bottle],
+        { ...view, w },
+        keepOut.playing,
+        sweepOf(bottle)
+      )
+    );
+  for (
+    let scale = Math.min(
+      layout.scale * ZOOM,
+      (w * NEAR_WIDTH) / extent.width,
+      (h * NEAR_HEIGHT) / (extent.bottom - extent.top)
+    );
+    scale > layout.scale * NEAREST;
+    scale *= 0.97
+  ) {
+    const view = {
+      cx: w / 2,
+      cy: h * NEAR_FOOT - extent.bottom * scale,
+      scale,
+    };
+    if (fits(view)) {
+      return view;
+    }
+  }
+  return { cx: layout.cx, cy: layout.cy, scale: layout.scale };
+};
+
 export const layoutOf = (
   w: number,
   h: number,
@@ -490,7 +533,7 @@ export const layoutOf = (
       },
     };
   };
-  const cramped = (layout: Layout) =>
+  const cramped = (layout: Omit<Layout, "near">) =>
     layout.cy + lipTop * layout.scale < HEADER ||
     Object.values(layout.size).some((size) => size < FULL);
   let scale = Math.min(
@@ -502,7 +545,7 @@ export const layoutOf = (
     scale = Math.max(SMALL, scale * 0.97);
     layout = placed(scale);
   }
-  return layout;
+  return { ...layout, near: nearOf(layout) };
 };
 
 export const toward = Math.atan2(camera.z, camera.x);

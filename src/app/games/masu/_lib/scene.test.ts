@@ -126,6 +126,27 @@ describe("the layout", () => {
     }
   });
 
+  test("the pouring close-up keeps the bottles off the mute button and the cup on screen", () => {
+    for (const [w, h] of [...viewports, [414, 896], [1920, 1080]] as const) {
+      const layout = layoutOf(w, h, demo);
+      const near = { ...layout, ...layout.near };
+      assert.ok(near.scale >= layout.scale);
+      for (const bottle of bottles) {
+        assert.ok(
+          !covers(near, bottle, sweepOf(bottle), keepOut.playing),
+          `${bottle} reaches the mute button in the close-up at ${w}x${h}`
+        );
+      }
+      assert.ok(near.cy + extent.top * near.scale >= 0);
+      assert.ok(near.cy + extent.bottom * near.scale <= h);
+      assert.ok(
+        (extent.width / 2) * near.scale <= Math.min(near.cx, w - near.cx)
+      );
+    }
+    const phone = layoutOf(390, 844, demo);
+    assert.ok(phone.near.scale >= phone.scale * 1.3);
+  });
+
   test("a pour never tilts the bottle past the poses the layout checks", () => {
     for (let seed = 1; seed < 400; seed += 1) {
       const pour = pourOf(seed);

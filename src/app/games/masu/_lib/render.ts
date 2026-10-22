@@ -1,4 +1,12 @@
-import { dataUri, docOf, room, spriteDoc, sprites } from "./art";
+import {
+  dataUri,
+  docOf,
+  grade,
+  horizonOf,
+  room,
+  spriteDoc,
+  sprites,
+} from "./art";
 import { drawList, pathOf, spriteNames } from "./draw";
 import type { Bubble, Matrix, Moment, Op, Paint, Sprite } from "./draw";
 import { createWave, pushWave, spillageOf, stepWave, streamOf } from "./liquid";
@@ -25,7 +33,7 @@ import {
   tumbler,
   worldX,
 } from "./scene";
-import type { Demo, Layout, Point, Reserved } from "./scene";
+import type { Demo, Layout, Point, Reserved, View } from "./scene";
 
 export interface Frame {
   pour: Pour;
@@ -33,6 +41,7 @@ export interface Frame {
   spilledAt: number | null;
   t: number;
   raise: number;
+  focus: number;
   clock: number;
   dt: number;
 }
@@ -68,6 +77,7 @@ const B = box.inner;
 const BASE = box.floor + tumbler.base;
 const WIDE = 720;
 const RESULT = 0.32;
+const PARALLAX = 0.65;
 const SHEET_FLOW = 40;
 const PUSH = 5;
 const QUIVER = 160;
@@ -79,6 +89,7 @@ const COUNTER_Z = A + 12;
 const still = createWave(2);
 const MOTES = 42;
 const MOTE = "#ffe4b8";
+const ROOM = "#0b0604";
 const BEAM_FROM = project(lamps.key.x, lamps.key.y, lamps.key.z);
 const BEAM_TO = project(0, H * 0.5, 0);
 
@@ -125,10 +136,33 @@ const rasterize = async (svg: string, width: number, height: number) => {
   }
 };
 
+const riseOf = (layout: Layout) =>
+  layout.w >= layout.h && layout.w >= WIDE
+    ? 0
+    : Math.max(0, layout.cy - layout.h * RESULT);
+
+const viewOf = (layout: Layout, focus: number, lift: number): View => {
+  const { near } = layout;
+  return {
+    cx: layout.cx + (near.cx - layout.cx) * focus,
+    cy: layout.cy + (near.cy - layout.cy) * focus - lift,
+    scale: layout.scale + (near.scale - layout.scale) * focus,
+  };
+};
+
+interface Backdrop {
+  image: HTMLCanvasElement;
+  frame: View;
+  top: number;
+  bar: number;
+  density: number;
+}
+
 const createAtlas = () => {
   const bitmaps = new Map<Sprite, HTMLCanvasElement>();
   let scale = 0;
-  let backdrop: HTMLCanvasElement | null = null;
+  let backdrop: Backdrop | null = null;
+  let toned: HTMLCanvasElement | null = null;
   let wanted = "";
   const load = async (name: Sprite, at: number) => {
     const art = sprites[name];
@@ -143,33 +177,72 @@ const createAtlas = () => {
     }
   };
   const light = async (layout: Layout, dpr: number, key: string) => {
-    const frame = { cx: layout.cx, cy: layout.cy, scale: layout.scale };
-    const image = await rasterize(
-      docOf(
-        { h: layout.h, w: layout.w, x: 0, y: 0 },
-        layout.w * dpr,
-        layout.h * dpr,
-        room(layout.w, layout.h, frame)
+    const zoom = layout.near.scale / layout.scale;
+    const top = Math.min(0, layout.cy - layout.near.cy / zoom);
+    const height = layout.h + riseOf(layout) - top;
+    const density = dpr * zoom;
+    const shifted = { cx: layout.cx, cy: layout.cy - top, scale: layout.scale };
+    const [image, tone] = await Promise.all([
+      rasterize(
+        docOf(
+          { h: height, w: layout.w, x: 0, y: 0 },
+          layout.w * density,
+          height * density,
+          room(layout.w, height, shifted)
+        ),
+        layout.w * density,
+        height * density
       ),
-      layout.w * dpr,
-      layout.h * dpr
-    );
-    if (image !== null && wanted === key) {
-      backdrop = image;
+      rasterize(
+        docOf(
+          { h: layout.h, w: layout.w, x: 0, y: 0 },
+          layout.w * dpr,
+          layout.h * dpr,
+          grade(layout.w, layout.h)
+        ),
+        layout.w * dpr,
+        layout.h * dpr
+      ),
+    ]);
+    if (wanted !== key) {
+      return;
+    }
+    if (image !== null) {
+      backdrop = {
+        bar: horizonOf(shifted),
+        density,
+        frame: { cx: layout.cx, cy: layout.cy, scale: layout.scale },
+        image,
+        top,
+      };
+    }
+    if (tone !== null) {
+      toned = tone;
     }
   };
   return {
     backdrop: () => backdrop,
     get: (name: Sprite) => bitmaps.get(name) ?? null,
+    grade: () => toned,
     prepare: (layout: Layout, dpr: number) => {
-      const target = layout.scale * dpr;
+      const target = layout.near.scale * dpr;
       if (scale === 0 || Math.abs(target / scale - 1) > 0.04) {
         scale = target;
         for (const name of spriteNames) {
           void load(name, target);
         }
       }
-      const key = [layout.w, layout.h, layout.cx, layout.cy, layout.scale, dpr]
+      const key = [
+        layout.w,
+        layout.h,
+        layout.cx,
+        layout.cy,
+        layout.scale,
+        layout.near.cx,
+        layout.near.cy,
+        layout.near.scale,
+        dpr,
+      ]
         .map((value) => value.toFixed(2))
         .join(":");
       if (key !== wanted) {
@@ -364,15 +437,15 @@ const createAir = (canvas: HTMLCanvasElement, calm: boolean) => {
     x: roll(),
     y: roll(),
   }));
-  return (layout: Layout, dpr: number, clock: number, rise: number) => {
+  return (view: View, dpr: number, clock: number) => {
     if (ctx === null) {
       return;
     }
     const t = calm ? 0 : clock;
-    const lx = (layout.cx + BEAM_FROM.x * layout.scale) * dpr;
-    const ly = (layout.cy - rise + BEAM_FROM.y * layout.scale) * dpr;
-    const ax = (BEAM_TO.x - BEAM_FROM.x) * layout.scale * dpr;
-    const ay = (BEAM_TO.y - BEAM_FROM.y) * layout.scale * dpr;
+    const lx = (view.cx + BEAM_FROM.x * view.scale) * dpr;
+    const ly = (view.cy + BEAM_FROM.y * view.scale) * dpr;
+    const ax = (BEAM_TO.x - BEAM_FROM.x) * view.scale * dpr;
+    const ay = (BEAM_TO.y - BEAM_FROM.y) * view.scale * dpr;
     const span = Math.hypot(ax, ay) || 1;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalCompositeOperation = "screen";
@@ -412,7 +485,7 @@ export const createRenderer = (
   const sake = createSake();
   const paint = createPainter(canvas, atlas, sake);
   const air = createAir(canvas, calm);
-  const backdrop = canvas.getContext("2d");
+  const surface = canvas.getContext("2d");
   let reserved: (Reserved & { w: number; h: number }) | null = null;
   let layout = layoutOf(1, 1, demo);
   let dpr = 1;
@@ -633,6 +706,48 @@ export const createRenderer = (
     };
   };
 
+  const scenery = (view: View, lift: number) => {
+    if (!surface) {
+      return;
+    }
+    surface.setTransform(1, 0, 0, 1, 0, 0);
+    surface.globalAlpha = 1;
+    surface.globalCompositeOperation = "source-over";
+    surface.fillStyle = ROOM;
+    surface.fillRect(0, 0, canvas.width, canvas.height);
+    const shown = atlas.backdrop();
+    if (shown === null) {
+      return;
+    }
+    const { frame } = shown;
+    const zoom = view.scale / frame.scale;
+    const x = (view.cx - frame.cx * zoom) * dpr;
+    const at = (shift: number) =>
+      (view.cy + shift + (shown.top - frame.cy) * zoom) * dpr;
+    const size = (zoom * dpr) / shown.density;
+    surface.drawImage(
+      shown.image,
+      x,
+      at(0),
+      shown.image.width * size,
+      shown.image.height * size
+    );
+    const bar = Math.round(shown.bar * shown.density);
+    if (lift > 0 && bar > 0) {
+      surface.drawImage(
+        shown.image,
+        0,
+        0,
+        shown.image.width,
+        bar,
+        x,
+        at(lift * PARALLAX),
+        shown.image.width * size,
+        bar * size
+      );
+    }
+  };
+
   const draw = (frame: Frame) => {
     if (!resize()) {
       return;
@@ -642,46 +757,26 @@ export const createRenderer = (
       reset(pour);
     }
     last = t;
-    const rise =
-      layout.w >= layout.h && layout.w >= WIDE
-        ? 0
-        : frame.raise * Math.max(0, layout.cy - layout.h * RESULT);
+    const lift = frame.raise * riseOf(layout);
+    const view = viewOf(layout, frame.focus, lift);
     const moment = momentOf(frame);
-    if (backdrop) {
-      backdrop.setTransform(1, 0, 0, 1, 0, 0);
-      backdrop.globalAlpha = 1;
-      backdrop.globalCompositeOperation = "source-over";
-      const image = atlas.backdrop();
-      if (image === null) {
-        backdrop.fillStyle = "#0b0604";
-        backdrop.fillRect(0, 0, canvas.width, canvas.height);
-      } else {
-        const shift = Math.round(rise * dpr);
-        backdrop.drawImage(image, 0, -shift);
-        if (shift > 0) {
-          backdrop.drawImage(
-            image,
-            0,
-            image.height - 1,
-            image.width,
-            1,
-            0,
-            image.height - shift,
-            image.width,
-            shift
-          );
-        }
-      }
-    }
+    scenery(view, lift);
     paint(drawList(moment), {
-      a: dpr * layout.scale,
+      a: dpr * view.scale,
       b: 0,
       c: 0,
-      d: dpr * layout.scale,
-      e: dpr * layout.cx,
-      f: dpr * (layout.cy - rise),
+      d: dpr * view.scale,
+      e: dpr * view.cx,
+      f: dpr * view.cy,
     });
-    air(layout, dpr, frame.clock, rise);
+    air(view, dpr, frame.clock);
+    const tone = atlas.grade();
+    if (surface && tone !== null) {
+      surface.setTransform(1, 0, 0, 1, 0, 0);
+      surface.globalCompositeOperation = "multiply";
+      surface.drawImage(tone, 0, 0, canvas.width, canvas.height);
+      surface.globalCompositeOperation = "source-over";
+    }
   };
 
   return {

@@ -49,6 +49,7 @@ interface Active {
 const LATE = 0.05;
 const SPILL_PAUSE = 1.1;
 const RISE = 7;
+const FOCUS = 3.5;
 const DEMO = { lead: 900, rest: 2800, seed: 13, tenths: 970 };
 
 const newSeed = () => crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
@@ -90,7 +91,7 @@ const frameOf = (
   hold: number | null,
   outcome: Outcome | null,
   t: number
-): Omit<Frame, "clock" | "dt" | "raise"> => ({
+): Omit<Frame, "clock" | "dt" | "raise" | "focus"> => ({
   hold: hold === null ? Infinity : hold / 1000,
   pour,
   spilledAt: outcome?.spilledAt ?? null,
@@ -122,6 +123,7 @@ export const startSession = (
   let caption: Glass | null = null;
   let last = performance.now();
   let raise = 0;
+  let focus = 0;
   sound.mute(settings.muted);
   on.save(save);
   on.settings(settings);
@@ -359,8 +361,12 @@ export const startSession = (
     }
     const raised = stage === "result" ? 1 : 0;
     raise = calm ? raised : raise + (raised - raise) * Math.min(1, dt * RISE);
+    const focused = stage === "pouring" ? 1 : 0;
+    focus = calm
+      ? focused
+      : focus + (focused - focus) * Math.min(1, dt * FOCUS);
     sound.flow(stage === "idle" ? 0 : flow);
-    render.draw({ ...shown, clock: now / 1000, dt, raise });
+    render.draw({ ...shown, clock: now / 1000, dt, focus, raise });
     frame = requestAnimationFrame(tick);
   };
   frame = requestAnimationFrame(tick);

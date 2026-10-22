@@ -1,5 +1,4 @@
 import { opsSvg, stillDoc } from "./art";
-import type { Frame } from "./art";
 import { drawList, streamOps } from "./draw";
 import type { Moment } from "./draw";
 import { createWave, spillageOf, streamOf } from "./liquid";
@@ -15,7 +14,7 @@ import {
   lipOf,
   poseOf,
 } from "./scene";
-import type { Fill } from "./scene";
+import type { Fill, View } from "./scene";
 
 const SETTLED = 60;
 const PITCH_SEED = 11;
@@ -87,7 +86,7 @@ export const stillOf = (glass: Glass | null): Moment => {
 
 export const CARD = { height: 360, width: 640 } as const;
 
-const cardFrame: Frame = { cx: 318, cy: 214, scale: 1.92 };
+const cardFrame: View = { cx: 318, cy: 214, scale: 1.92 };
 
 export const cardLayers = ["scene", "stream"] as const;
 

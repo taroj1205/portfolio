@@ -23,7 +23,7 @@ import {
   vesselScale,
   vessels,
 } from "./scene";
-import type { Point, Vec } from "./scene";
+import type { Point, Vec, View } from "./scene";
 
 export interface Box {
   x: number;
@@ -35,12 +35,6 @@ export interface Box {
 export interface Art {
   box: Box;
   body: string;
-  scale: number;
-}
-
-export interface Frame {
-  cx: number;
-  cy: number;
   scale: number;
 }
 
@@ -685,6 +679,16 @@ const castShadow = () => {
   return [...footprint, ...top];
 };
 
+const shadowTip = project(-key.x * (H / key.y), 0, -key.z * (H / key.y));
+
+const around = (reach: number) =>
+  [
+    [-1, -1],
+    [1, -1],
+    [1, 1],
+    [-1, 1],
+  ].map(([x = 0, z = 0]) => project(x * (A + reach), 0, z * (A + reach)));
+
 const bar = {
   bottles: ["#0c2215", "#2a1407", "#171a14", "#1f1009", "#0f1d22"],
   counter: ["#4b2d17", "#563419", "#45291a", "#4f3018"],
@@ -704,7 +708,18 @@ const bar = {
 
 const REFERENCE = 2.4;
 
-const TINTS = ["#ffb055", "#ff8a4a", "#ffd08a", "#e8643a", "#bfe3ff"] as const;
+const TINTS = ["#ffb45c", "#ff9440", "#ffd391", "#ff5a26"] as const;
+
+const BOKEH = [
+  { depth: 0, r: 10, tint: 0, u: 0.08, v: 0.55 },
+  { depth: 0, r: 7, tint: 2, u: 0.3, v: 0.85 },
+  { depth: 0, r: 12, tint: 1, u: 0.47, v: 0.35 },
+  { depth: 0, r: 8, tint: 0, u: 0.66, v: 0.72 },
+  { depth: 0, r: 7, tint: 2, u: 0.8, v: 0.95 },
+  { depth: 1, r: 26, tint: 1, u: 0.2, v: 0.3 },
+  { depth: 1, r: 19, tint: 0, u: 0.58, v: 0.1 },
+  { depth: 1, r: 32, tint: 1, u: 0.97, v: 0.5 },
+] as const;
 
 const bottleSvg = (
   x: number,
@@ -773,13 +788,21 @@ const backBar = (width: number, back: number, k: number) => {
     (_, i) =>
       `<ellipse cx="${n(lantern.x)}" cy="${n(lantern.y + (i - 3) * 13 * k)}" rx="${n(40 * k * Math.cos(((i - 3) / 4.2) * 1.2))}" ry="${n(2.6 * k)}" fill="none" stroke="${bar.rib}" stroke-opacity="0.7" stroke-width="${n(1.8 * k)}"/>`
   ).join("");
-  const bokeh = Array.from({ length: 22 }, () => {
-    const x = roll() * width;
-    const y = shelf - tall * (0.15 + roll() * 0.95);
-    const r = (5 + roll() ** 2 * 22) * Math.max(0.8, k);
-    const tint = Math.floor(roll() * TINTS.length);
-    return `<circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="url(#room-bokeh${tint})" opacity="${n(0.16 + roll() * 0.34)}"/>`;
-  }).join("");
+  const bokeh = [0, 1]
+    .map(
+      (depth) =>
+        `<g filter="url(#room-bokehSoft${depth})" style="mix-blend-mode:screen">${BOKEH.filter(
+          (blob) => blob.depth === depth
+        )
+          .map((blob) => {
+            const x = blob.u * width;
+            const tint =
+              Math.abs(x - lantern.x) < 70 * k ? TINTS.length - 1 : blob.tint;
+            return `<circle cx="${n(x)}" cy="${n(shelf - tall * (0.2 + blob.v * 0.85))}" r="${n(blob.r * Math.max(0.8, k))}" fill="url(#room-bokeh${tint})" opacity="${n(depth === 0 ? 0.95 : 0.6)}"/>`;
+          })
+          .join("")}</g>`
+    )
+    .join("");
   return `${linear("room-wall", { x: 0, y: 0 }, { x: 0, y: back }, [
     [0, bar.wall, 1],
     [0.55, bar.warm, 1],
@@ -800,7 +823,7 @@ const backBar = (width: number, back: number, k: number) => {
     [0.35, bar.lantern, 0.95],
     [0.85, "#9a1506", 0.9],
     [1, "#9a1506", 0],
-  ])}${TINTS.map((tint, i) => `<radialGradient id="room-bokeh${i}"><stop offset="0" stop-color="${tint}" stop-opacity="0.55"/><stop offset="0.82" stop-color="${tint}" stop-opacity="0.8"/><stop offset="0.92" stop-color="${tint}" stop-opacity="0.95"/><stop offset="1" stop-color="${tint}" stop-opacity="0"/></radialGradient>`).join("")}<g filter="url(#room-far)"><rect width="${width}" height="${n(back)}" fill="url(#room-wall)"/>${slats}<rect width="${width}" height="${n(shelf)}" fill="url(#room-backlight)"/><rect x="${n(width * 0.02)}" y="${n(shelf - tall * 0.95)}" width="${n(tall * 0.5)}" height="${n(tall * 0.9)}" fill="${bar.fridge}" fill-opacity="0.12"/>${bottles.join("")}${linear(
+  ])}${TINTS.map((tint, i) => `<radialGradient id="room-bokeh${i}"><stop offset="0" stop-color="${tint}" stop-opacity="0.5"/><stop offset="0.7" stop-color="${tint}" stop-opacity="0.58"/><stop offset="0.93" stop-color="${tint}" stop-opacity="0.8"/><stop offset="1" stop-color="${tint}" stop-opacity="0"/></radialGradient>`).join("")}${blur("room-bokehSoft0", Math.max(0.6, 0.9 * k))}${blur("room-bokehSoft1", Math.max(1.6, 3.2 * k))}<g filter="url(#room-far)"><rect width="${width}" height="${n(back)}" fill="url(#room-wall)"/>${slats}<rect width="${width}" height="${n(shelf)}" fill="url(#room-backlight)"/><rect x="${n(width * 0.02)}" y="${n(shelf - tall * 0.95)}" width="${n(tall * 0.5)}" height="${n(tall * 0.9)}" fill="${bar.fridge}" fill-opacity="0.12"/>${bottles.join("")}${linear(
     "room-shoji",
     { x: 0, y: cabinet },
     { x: 0, y: back },
@@ -828,7 +851,7 @@ const SEAMS = [-320, -250, -180, -105, -25, 60, 155, 265, 400, 580, 820];
 const counterSvg = (
   width: number,
   height: number,
-  frame: Frame,
+  frame: View,
   back: number
 ) => {
   const s = frame.scale;
@@ -864,7 +887,7 @@ const counterSvg = (
   ])}<rect y="${n(back)}" width="${width}" height="${n(height - back)}" fill="${bar.near}"/>${planks.join("")}<filter id="room-figure" filterUnits="userSpaceOnUse" x="0" y="${n(back)}" width="${width}" height="${n(height - back)}" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="${n(0.004 / Math.max(0.5, s / REFERENCE))} ${n(0.03 / Math.max(0.5, s / REFERENCE))}" numOctaves="2" seed="17"/><feColorMatrix type="matrix" values="0 0 0 0 0.45 0 0 0 0 0.26 0 0 0 0 0.12 0.9 0 0 0 -0.32"/></filter><rect y="${n(back)}" width="${width}" height="${n(height - back)}" filter="url(#room-figure)"/><rect y="${n(back)}" width="${width}" height="${n(height - back)}" fill="url(#room-shade)"/>`;
 };
 
-const gloss = (width: number, height: number, frame: Frame, back: number) => {
+const gloss = (width: number, height: number, frame: View, back: number) => {
   const s = frame.scale;
   const k = s / REFERENCE;
   const spill = Math.max(12, (height - back) * 0.2);
@@ -877,7 +900,16 @@ const gloss = (width: number, height: number, frame: Frame, back: number) => {
     x: frame.cx + project(sheen.x, 0, sheen.z).x * s,
     y: frame.cy + project(sheen.x, 0, sheen.z).y * s,
   };
-  return `${linear(
+  return `${radial(
+    "room-falloff",
+    pool,
+    Math.max(width, height - back) * 0.85,
+    [
+      [0, wood.shadow, 0],
+      [0.4, wood.shadow, 0.12],
+      [1, wood.shadow, 0.62],
+    ]
+  )}<rect y="${n(back)}" width="${width}" height="${n(height - back)}" fill="url(#room-falloff)"/>${linear(
     "room-mirror",
     { x: 0, y: back },
     { x: 0, y: back + spill },
@@ -889,7 +921,7 @@ const gloss = (width: number, height: number, frame: Frame, back: number) => {
   )}<radialGradient id="room-pool"><stop offset="0" stop-color="${wood.lamp}" stop-opacity="0.42"/><stop offset="0.45" stop-color="#b06a2e" stop-opacity="0.17"/><stop offset="1" stop-color="#b06a2e" stop-opacity="0"/></radialGradient><radialGradient id="room-sheen"><stop offset="0" stop-color="${bar.paper}" stop-opacity="0.26"/><stop offset="1" stop-color="${bar.paper}" stop-opacity="0"/></radialGradient><rect y="${n(back)}" width="${width}" height="${n(spill)}" fill="url(#room-mirror)"/>${back > 0 ? `<ellipse cx="${n(width * 0.88)}" cy="${n(back + spill * 0.5)}" rx="${n(16 * k)}" ry="${n(spill * 0.55)}" fill="${bar.lantern}" fill-opacity="0.16" filter="url(#room-haze)"/>` : ""}<ellipse cx="${n(pool.x)}" cy="${n(pool.y)}" rx="${n(300 * k)}" ry="${n(135 * k)}" fill="url(#room-pool)"/><ellipse cx="${n(glint.x)}" cy="${n(glint.y)}" rx="${n(150 * k)}" ry="${n(34 * k)}" fill="url(#room-sheen)"/>`;
 };
 
-const shaft = (frame: Frame) => {
+const shaft = (frame: View) => {
   const s = frame.scale;
   const toScreen = (p: Point) => ({
     x: frame.cx + p.x * s,
@@ -905,26 +937,44 @@ const shaft = (frame: Frame) => {
   ])}<path d="${pathOf([from, far, near])}" fill="url(#room-shaft)" filter="url(#room-haze)"/>`;
 };
 
-export const room = (width: number, height: number, frame: Frame) => {
+const BAR_Z = -240;
+
+export const horizonOf = (frame: View) =>
+  Math.max(-40, frame.cy + project(0, 0, BAR_Z).y * frame.scale);
+
+export const room = (width: number, height: number, frame: View) => {
   const s = frame.scale;
   const k = s / REFERENCE;
   const toScreen = (p: Point) => ({
     x: frame.cx + p.x * s,
     y: frame.cy + p.y * s,
   });
-  const back = Math.max(-40, toScreen(project(0, 0, -320)).y);
+  const back = horizonOf(frame);
   const shadow = hull(castShadow()).map(toScreen);
-  const contact = footprint.map(toScreen);
-  return `${blur("room-far", Math.max(1.6, 2.8 * k))}${blur("room-haze", Math.max(6, 22 * k))}<rect width="${width}" height="${height}" fill="${wood.room}"/>${backBar(width, back, k)}${counterSvg(width, height, frame, back)}${gloss(width, height, frame, back)}${shaft(frame)}${radial(
-    "room-vignette",
-    { x: frame.cx, y: frame.cy },
-    Math.max(width, height) * 0.85,
+  return `${blur("room-far", Math.max(1.6, 2.8 * k))}${blur("room-haze", Math.max(6, 22 * k))}<rect width="${width}" height="${height}" fill="${wood.room}"/>${backBar(width, back, k)}${counterSvg(width, height, frame, back)}${gloss(width, height, frame, back)}${shaft(frame)}${linear(
+    "room-cast",
+    toScreen(project(0, 0, 0)),
+    toScreen(shadowTip),
     [
-      [0.3, wood.shadow, 0],
-      [1, wood.shadow, 0.8],
+      [0, wood.shadow, 0.78],
+      [0.55, wood.shadow, 0.42],
+      [1, wood.shadow, 0.1],
     ]
-  )}${blur("room-soft", Math.max(2, s * 5))}${blur("room-contact", Math.max(1, s * 1.4))}<filter id="room-film" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="1" seed="5"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.9 0 0 0 0 0.75 0 0 0 0.12 0"/></filter><path d="${pathOf(shadow)}" fill="${wood.shadow}" fill-opacity="0.6" filter="url(#room-soft)"/><path d="${pathOf(contact)}" fill="${wood.shadow}" fill-opacity="0.9" filter="url(#room-contact)"/><rect width="${width}" height="${height}" fill="url(#room-vignette)"/><rect width="${width}" height="${height}" filter="url(#room-film)" opacity="0.5"/>`;
+  )}${blur("room-soft", Math.max(2, s * 4))}${blur("room-ao", Math.max(1.5, s * 2.4))}${blur("room-contact", Math.max(0.6, s * 0.6))}<filter id="room-film" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="1" seed="5"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.9 0 0 0 0 0.75 0 0 0 0.12 0"/></filter><path d="${pathOf(shadow)}" fill="url(#room-cast)" filter="url(#room-soft)"/><path d="${pathOf(around(3).map(toScreen))}" fill="${wood.shadow}" fill-opacity="0.5" filter="url(#room-ao)"/><path d="${pathOf(around(0.4).map(toScreen))}" fill="${wood.shadow}" fill-opacity="0.95" filter="url(#room-contact)"/><rect width="${width}" height="${height}" filter="url(#room-film)" opacity="0.5"/>`;
 };
+
+export const grade = (width: number, height: number) =>
+  `${radial(
+    "grade-tone",
+    { x: width / 2, y: height * 0.46 },
+    Math.hypot(width, height) * 0.6,
+    [
+      [0, "#fff8ee", 1],
+      [0.45, "#ffecd2", 1],
+      [0.78, "#c9996c", 1],
+      [1, "#6e4a30", 1],
+    ]
+  )}<rect width="${width}" height="${height}" fill="url(#grade-tone)"/>`;
 
 const paintOf = (paint: Paint, id: string, defs: string[]) => {
   if (paint.kind === "solid") {
@@ -991,7 +1041,7 @@ const spriteDefs = (names: readonly Sprite[]) =>
 export const stillDoc = (
   width: number,
   height: number,
-  frame: Frame,
+  frame: View,
   ops: readonly Op[],
   scenery = true
 ) => {
@@ -1003,6 +1053,6 @@ export const stillDoc = (
     { h: height, w: width, x: 0, y: 0 },
     width,
     height,
-    `${scenery ? room(width, height, frame) : ""}<defs>${spriteDefs(used)}${defs}</defs><g transform="translate(${n(frame.cx)} ${n(frame.cy)}) scale(${n(frame.scale)})">${body}</g>`
+    `${scenery ? room(width, height, frame) : ""}<defs>${spriteDefs(used)}${defs}</defs><g transform="translate(${n(frame.cx)} ${n(frame.cy)}) scale(${n(frame.scale)})">${body}</g><g style="mix-blend-mode:multiply">${grade(width, height)}</g>`
   );
 };
