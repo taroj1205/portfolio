@@ -120,7 +120,10 @@ export const cardDoc = (layer: CardLayer) => {
       drawList({ ...pitch, stream: null })
     );
   }
-  const { body, defs } = opsSvg(streamOps(pitch.stream), "stream-");
+  const { body, defs } = opsSvg(
+    streamOps(pitch.stream, pitch.clock),
+    "stream-"
+  );
   const { x, y, width, height } = streamBox;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${x} ${y} ${width} ${height}" width="${width}" height="${height}"><defs>${defs}</defs><g transform="translate(${cardFrame.cx} ${cardFrame.cy}) scale(${cardFrame.scale})">${body}</g></svg>`;
 };
