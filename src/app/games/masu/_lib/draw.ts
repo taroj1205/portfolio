@@ -3,6 +3,7 @@ import type { Bead, Impact, Run, Spillage, Stream, Wave } from "./liquid";
 import { bottles } from "./pour";
 import type { Bottle } from "./pour";
 import {
+  CREST,
   GLASS_TOP,
   LIFT,
   alongSide,
@@ -288,36 +289,23 @@ const highlight = (
   return [
     spot(
       centre,
-      { x: long * 1.7 * stretch, y: 2.4 + long * 0.16 },
+      { x: long * 0.55, y: long * 0.9 * stretch },
       [
-        [0, LAMP, 0.32],
-        [0.5, LAMP, 0.1],
+        [0, LAMP, 0.36],
+        [0.5, LAMP, 0.12],
         [1, LAMP, 0],
       ],
-      { blend: "screen", clip },
-      -0.05
+      { blend: "screen", clip }
     ),
     spot(
       centre,
-      { x: long * stretch, y: 1.3 + long * 0.06 },
+      { x: long * 0.16, y: long * 0.62 * stretch },
       [
         [0, SHEEN, 0.8],
-        [0.4, SHEEN, 0.28],
+        [0.45, SHEEN, 0.26],
         [1, SHEEN, 0],
       ],
-      { blend: "screen", clip },
-      -0.05
-    ),
-    spot(
-      centre,
-      { x: long * 0.4 * stretch, y: 0.55 },
-      [
-        [0, SPARK, 1],
-        [0.5, SPARK, 0.5],
-        [1, SPARK, 0],
-      ],
-      { blend: "screen", clip },
-      -0.05
+      { blend: "screen", clip }
     ),
   ];
 };
@@ -484,93 +472,70 @@ const line = (
   width: 0.32,
 });
 
-const domeEdge = (height: Surface, strain: number, clip: readonly Point[]) => {
+const CREST_GLOW: Record<Side, number> = {
+  back: 0.9,
+  front: 0.2,
+  left: 0.75,
+  right: 0.25,
+};
+
+const domeEdge = (
+  { height, swell }: Pool,
+  strain: number,
+  clip: readonly Point[]
+) => {
   const reach = shoulderOf(strain);
   const sides: readonly Side[] = ["back", "left", "right", "front"];
   return sides.flatMap((side): Op[] => {
-    const crest = side === "back";
-    const glow = alongSide(side, reach * 0.4).map(([x, z]) =>
-      Math.max(
-        crest ? 0.75 : 0,
-        glowAt({ x, y: height(x, z), z }, normalOf(height, x, z))
-      )
+    const glow = alongSide(side, reach * CREST).map(([x, z]) =>
+      glowAt({ x, y: height(x, z), z }, normalOf(height, x, z))
     );
     return [
       sheen(
-        edgeLine(height, side, reach * 0.55),
-        glow,
-        0.22,
-        reach * 0.8,
-        clip
-      ),
-      sheen(
-        edgeLine(height, side, reach * 0.3),
-        glow,
-        crest ? 0.95 : 0.6,
-        reach * (crest ? 0.26 : 0.2),
-        clip
-      ),
-      contact(edgeLine(height, side, 0.9), clip),
-      sheen(
-        edgeLine(height, side, 0.15),
+        edgeLine(height, side, reach * CREST),
         glow.map((g) => 0.3 + 0.7 * g),
-        crest ? 1 : 0.45,
-        0.3,
+        CREST_GLOW[side] * swell * 0.7,
+        0.55,
         clip
       ),
+      {
+        alpha: 0.3,
+        blend: "multiply",
+        clip,
+        d: pathOf(edgeLine(height, side, 0.25), false),
+        kind: "stroke",
+        paint: solid(SOAK),
+        width: 0.5,
+      },
     ];
   });
 };
 
-const glare = ({ level, swell }: Pool, clip: readonly Point[]): Op[] => {
-  const at = (x: number, z: number) => project(x * B, level, z * B);
-  return [
-    {
-      blend: "screen",
-      clip,
-      d: pathOf([
-        at(-0.55, -0.82),
-        at(0.5, -0.82),
-        at(0.5, -0.12),
-        at(-0.55, -0.12),
-      ]),
+const WET_RIM = 2.2;
+
+const middleOf = (points: readonly Point[]) =>
+  points[Math.floor(points.length / 2)] ?? { x: 0, y: 0 };
+
+const wetRim = (sides: readonly Side[]): Op[] =>
+  sides.map((side): Op => {
+    const inner = alongSide(side).map(([x, z]) => project(x, H, z));
+    const outer = alongSide(side, -WET_RIM).map(([x, z]) => project(x, H, z));
+    return {
+      blend: "multiply",
+      d: pathOf(band(inner, outer)),
       kind: "fill",
       paint: {
-        from: at(0, -0.82),
+        from: middleOf(inner),
         kind: "linear",
         stops: [
-          [0, SHEEN, 0],
-          [0.25, SHEEN, 0.42 * swell],
-          [0.7, SHEEN, 0.3 * swell],
-          [1, SHEEN, 0],
+          [0, SOAK, 0.5],
+          [0.45, WET, 0.3],
+          [1, WET, 0],
         ],
-        to: at(0, -0.12),
+        to: middleOf(outer),
       },
-    },
-    ...[-0.2, 0.15].map((x): Op => ({
-      alpha: 0.12 * swell,
-      blend: "multiply",
-      clip,
-      d: pathOf([at(x, -0.8), at(x, -0.14)], false),
-      kind: "stroke",
-      paint: solid(DUSK),
-      width: 0.5,
-    })),
-  ];
-};
-
-const shoulders = (height: Surface, strain: number, clip: readonly Point[]) => {
-  const reach = shoulderOf(strain);
-  return (["left", "front"] as const).map((side): Op => ({
-    alpha: 0.32,
-    blend: "multiply",
-    clip,
-    d: pathOf(edgeLine(height, side, reach * 0.45), false),
-    kind: "stroke",
-    paint: solid(DUSK),
-    width: reach * 0.7,
-  }));
-};
+    };
+  });
 
 const liquidOf = ({ fill, strain, wave }: Moment, pool: Pool): Liquid => ({
   base: pool.domed ? H : pool.level,
@@ -600,7 +565,7 @@ const poolOps = (
   const body: Op[] = [
     { clip, kind: "lens", matrix: refraction(level) },
     {
-      alpha: wet * (0.32 + 0.15 * deep),
+      alpha: wet * (0.18 + 0.1 * deep),
       blend: "multiply",
       clip,
       d: pathOf(clip),
@@ -620,12 +585,20 @@ const poolOps = (
       project(0, level, 0),
       { x: B * 1.35, y: (front.y - back.y) * 0.75 },
       [
-        [0, GOLD, 0.25 + 0.35 * deep],
-        [0.55, GOLD, 0.2 + 0.25 * deep],
-        [1, STRAW, 0.25],
+        [0, GOLD, 0.35 + 0.4 * deep],
+        [0.55, GOLD, 0.3 + 0.3 * deep],
+        [1, STRAW, 0.3],
       ],
       { blend: "multiply", clip }
     ),
+    {
+      alpha: 0.16 * deep,
+      blend: "screen",
+      clip,
+      d: pathOf(clip),
+      kind: "fill",
+      paint: solid(GOLD),
+    },
     {
       alpha: domed ? 0.18 : 0.45,
       blend: "screen",
@@ -657,15 +630,14 @@ const poolOps = (
         from: back,
         kind: "linear",
         stops: [
-          [0, LAMP, 0.26],
-          [0.3, LAMP, 0.08],
-          [1, LAMP, 0],
+          [0, LAMP, 0.42],
+          [0.45, LAMP, 0.14],
+          [1, LAMP, 0.03],
         ],
         to: front,
       },
     },
     ...bokehOps(moment, level, wet * 0.45, clip),
-    ...(domed ? glare(pool, clip) : []),
     ...highlight(
       level,
       clip,
@@ -674,12 +646,7 @@ const poolOps = (
       B,
       domed ? 34 : 26
     ),
-    ...(domed
-      ? [
-          ...shoulders(height, moment.strain, clip),
-          ...domeEdge(height, moment.strain, clip),
-        ]
-      : []),
+    ...(domed ? domeEdge(pool, moment.strain, clip) : []),
   ];
   return [
     ...(shaded
@@ -736,43 +703,6 @@ const waterline = ({ height, level }: Pool): Op[] => {
     ]),
     bead(Math.min(B - 3, Math.max(3 - B, glint.x)), -B),
     bead(-B + 0.6, -B + 0.6),
-  ];
-};
-
-const LIP = 0.9;
-const lipXs = alongSide("front").map(([x]) => x);
-const taper = (x: number) => edgeOf(B - Math.abs(x), 2.5);
-const lipFoot = lipXs.map((x) => project(x, H + 0.02, B + LIP * taper(x)));
-
-const lipOps = ({ height, swell }: Pool): Op[] => {
-  const crest = lipXs.map((x) =>
-    project(x, H + 0.15 + 0.7 * swell * taper(x), B + LIP * 0.3)
-  );
-  const top = edgeLine(height, "front", 1.2);
-  return [
-    {
-      alpha: 0.45,
-      blend: "multiply",
-      d: pathOf(band(top, lipFoot)),
-      kind: "fill",
-      paint: solid(GOLD),
-    },
-    {
-      alpha: 0.5,
-      blend: "multiply",
-      d: pathOf(lipFoot, false),
-      kind: "stroke",
-      paint: solid(SOAK),
-      width: 0.45,
-    },
-    {
-      alpha: 0.95,
-      blend: "screen",
-      d: pathOf(crest, false),
-      kind: "stroke",
-      paint: solid(SPARK),
-      width: 0.4,
-    },
   ];
 };
 
@@ -1466,13 +1396,14 @@ export const drawList = (moment: Moment): Op[] => {
     ...(spillage === null ? [] : puddleOps(spillage)),
     { d: backing, kind: "fill", paint: solid(DAMP) },
     { kind: "sprite", name: "inside" },
+    ...(pool?.domed === true ? wetRim(["back", "left"]) : []),
     ...(pool === null ? [] : poolOps(moment, pool, pool.outline)),
     ...(pool === null || pool.domed ? [] : waterline(pool)),
     ...(fill.glass === null
       ? streamOps(moment.stream, moment.clock)
       : glassOps(moment, fill.glass, pool)),
     { kind: "sprite", name: "outside" },
-    ...(pool?.domed === true ? lipOps(pool) : []),
+    ...(pool?.domed === true ? wetRim(["front", "right"]) : []),
     ...(spillage === null ? [] : spillOps(moment, spillage)),
     ...moment.drops.flatMap(beadOps),
     ...(bottle === null

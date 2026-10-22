@@ -28,7 +28,7 @@ export const GLASS_TOP = box.floor + tumbler.height;
 const GLASS_SHARE = 0.6;
 const GLASS_SWELL = 0.03;
 const GLASS_RISE = 4;
-export const LIFT = 1.5;
+export const LIFT = 0.6;
 const PITCH = 0.68;
 const YAW = 0.3;
 const DISTANCE = 400;
@@ -549,8 +549,10 @@ export const seeded = (seed: number) => {
   };
 };
 
-const REACH = 4.2;
+const REACH = 2.6;
 const SAMPLES = 32;
+
+export const CREST = 0.62;
 
 export const shoulderOf = (strain: number) => REACH * (1 - 0.4 * strain);
 

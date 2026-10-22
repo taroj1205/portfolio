@@ -1,5 +1,5 @@
 import type { Liquid, Matrix } from "./draw";
-import { basis, box, camera, lamps } from "./scene";
+import { CREST, basis, box, camera, lamps } from "./scene";
 
 export interface Backing {
   bitmap: HTMLCanvasElement;
@@ -39,6 +39,8 @@ uniform sampler2D uInside;
 out vec4 colour;
 
 const int STEPS = 22;
+const float STRETCH = 3.4;
+const float CREST = ${CREST.toFixed(2)};
 const vec3 SAKE = vec3(0.0009, 0.0019, 0.0062);
 const vec3 ROOM = vec3(0.06, 0.036, 0.02);
 const vec3 CEILING = vec3(0.016, 0.01, 0.006);
@@ -138,7 +140,7 @@ vec2 project(vec3 p) {
 vec3 woodAt(vec3 p) {
   vec2 at = (project(p) - uBox.xy) / uBox.zw;
   vec3 wood = texture(uInside, clamp(at, 0.0, 1.0)).rgb;
-  return pow(wood, vec3(1.08)) * 0.96;
+  return pow(wood, vec3(1.18)) * 0.84;
 }
 
 float exitOf(vec3 o, vec3 d) {
@@ -154,16 +156,21 @@ float exitOf(vec3 o, vec3 d) {
 
 vec3 seenAt(vec3 hit) {
   vec3 p = hit;
-  p.x = p.x > uMasu.x - 0.05 ? -p.x : p.x;
-  p.z = p.z > uMasu.x - 0.05 ? -p.z : p.z;
+  bool right = p.x > uMasu.x - 0.05;
+  bool front = p.z > uMasu.x - 0.05;
+  p.x = right ? -p.x : p.x;
+  p.z = front ? -p.z : p.z;
   p.y = min(p.y, uMasu.z - 0.4);
-  return woodAt(p);
+  return woodAt(p) * (right ? 0.62 : 1.0) * (front ? 0.48 : 1.0);
 }
 
 float glow(vec3 r, vec3 at, vec3 lamp, float size) {
-  float facing = max(dot(r, normalize(lamp - at)), 0.0);
-  float core = smoothstep(1.0 - size, 1.0 - size * 0.55, facing);
-  return core * 34.0 + pow(facing, 420.0) * 3.0 + pow(facing, 36.0) * 0.45;
+  vec3 toward = normalize(lamp - at);
+  vec3 side = normalize(cross(toward, vec3(0.0, 1.0, 0.0)));
+  vec3 rise = cross(side, toward);
+  vec2 off = vec2(dot(r, side), dot(r, rise)) / vec2(size, size * STRETCH);
+  float spread = dot(off, off);
+  return step(0.0, dot(r, toward)) * (exp(-spread) * 22.0 + exp(-spread * 0.06) * 1.6);
 }
 
 float panelAt(vec3 r) {
@@ -181,15 +188,15 @@ float panelAt(vec3 r) {
 vec3 roomAt(vec3 r, vec3 at) {
   vec3 tone = mix(ROOM, CEILING, smoothstep(0.1, 0.95, r.y));
   float behind = smoothstep(0.2, -0.5, r.z);
-  tone += BAR * behind * smoothstep(0.35, 0.0, abs(r.y - 0.42)) * 0.16;
+  tone += BAR * behind * smoothstep(0.45, 0.0, abs(r.y - 0.5)) * 1.1;
   for (int i = 0; i < 5; i += 1) {
     vec4 blob = BOKEH[i];
     float off = length(vec2(r.x - blob.x, r.y - blob.y));
-    tone += BAR * behind * blob.w * smoothstep(blob.z, blob.z * 0.6, off) * 0.9;
+    tone += BAR * behind * blob.w * smoothstep(blob.z, blob.z * 0.6, off) * 7.0;
   }
   tone += WASHI * panelAt(r) * 12.0;
-  tone += LAMP * glow(r, at, uKey, 0.0005);
-  tone += LAMP * glow(r, at, uGlint, 0.00028) * 1.2;
+  tone += LAMP * glow(r, at, uKey, 0.04);
+  tone += LAMP * glow(r, at, uGlint, 0.02);
   return tone;
 }
 
@@ -287,11 +294,13 @@ void main() {
   seen *= exp(-SAKE * path);
   vec3 mirrored = mirrorAt(at, reflect(dir, normal));
   vec3 lit = seen * (1.0 - fresnel) + mirrored * fresnel;
-  float curve = smoothstep(0.04, 0.3, 1.0 - normal.y);
-  float catchKey = pow(max(dot(reflect(dir, normal), normalize(uKey - at)), 0.0), 10.0);
-  float catchBack = pow(max(dot(reflect(dir, normal), normalize(uGlint - at)), 0.0), 14.0);
-  float away = smoothstep(0.0, 0.5, -dot(normalize(normal.xz + 1e-4), normalize(eye.xz)));
-  lit += LAMP * curve * (catchKey * 0.75 + catchBack * 0.9 + pow(1.0 - facing, 3.0) * 0.25 + away * 0.55);
+  float along = (inset / uShape.z - CREST) / 0.2;
+  float crest = exp(-along * along) * uShape.w * smoothstep(0.0, 1.2, uLevel.y);
+  vec2 lean = normalize(normal.xz + 1e-4);
+  float distant = smoothstep(-0.3, 0.7, -dot(lean, normalize(eye.xz)));
+  float facingLamp = max(dot(lean, normalize(uKey.xz - at.xz)), 0.0) + max(dot(lean, normalize(uGlint.xz - at.xz)), 0.0);
+  lit += LAMP * crest * mix(0.25, 1.4, distant) * (0.5 + 0.9 * min(facingLamp, 1.0));
+  lit *= mix(0.62, 1.0, smoothstep(0.0, uShape.z * 0.7, inset));
   colour = vec4(soft(lit) * cover, cover);
 }`;
 
