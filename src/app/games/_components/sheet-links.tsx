@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { ease, media } from "../../../styles/tokens.stylex";
 import type { Lang } from "../_lib/i18n";
+import { ReportMenu } from "./report-menu";
 import { StarLink } from "./star-link";
 import { ink } from "./theme.stylex";
 
@@ -59,10 +60,13 @@ const styles = stylex.create({
     },
   },
   star: {
+    columnGap: "0.6rem",
     display: "flex",
     flexBasis: "100%",
+    flexWrap: "wrap",
     justifyContent: "center",
     paddingBottom: "0.3rem",
+    rowGap: "0.4rem",
   },
 });
 
@@ -111,6 +115,7 @@ export const SheetLinks = ({ lang, labels }: SheetLinksProps) => (
     </Link>
     <div {...stylex.props(styles.star)}>
       <StarLink>{labels.star}</StarLink>
+      <ReportMenu lang={lang} />
     </div>
   </div>
 );
