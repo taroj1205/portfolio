@@ -85,8 +85,8 @@ const headColour = (poured: Glass | null) => {
 
 const frameOf = (poured: Glass | null) =>
   poured !== null && spilledOf(poured)
-    ? { cx: 900, cy: 268, scale: 3.05 }
-    : { cx: 892, cy: 330, scale: 3.45 };
+    ? { cx: 900, cy: 318, scale: 2.6 }
+    : { cx: 880, cy: 384, scale: 2.9 };
 
 export const GET = async (request: NextRequest) => {
   const result = readResult(Object.fromEntries(request.nextUrl.searchParams));

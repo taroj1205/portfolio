@@ -390,6 +390,7 @@ export const startSession = (
       window.removeEventListener("blur", interrupt);
       screen.orientation?.removeEventListener("change", interrupt);
       document.removeEventListener("visibilitychange", hide);
+      render.dispose();
       sound.close();
     },
   };

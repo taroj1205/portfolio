@@ -40,6 +40,22 @@ export const camera: Vec = {
   z: DISTANCE * Math.cos(PITCH) * Math.cos(YAW),
 };
 
+export const basis = {
+  back: {
+    x: Math.cos(PITCH) * Math.sin(YAW),
+    y: Math.sin(PITCH),
+    z: Math.cos(PITCH) * Math.cos(YAW),
+  },
+  distance: DISTANCE,
+  middle: MIDDLE,
+  right: { x: Math.cos(YAW), y: 0, z: -Math.sin(YAW) },
+  up: {
+    x: -Math.sin(PITCH) * Math.sin(YAW),
+    y: Math.cos(PITCH),
+    z: -Math.sin(PITCH) * Math.cos(YAW),
+  },
+} as const;
+
 export const lamps = {
   back: { x: -90, y: 330, z: -400 },
   key: { x: -170, y: 300, z: 150 },
@@ -70,6 +86,15 @@ export const shine = (at: Vec, normal: Vec, sharpness = 60) => {
     lit += Math.max(0, dot(n, half)) ** sharpness;
   }
   return Math.min(1, lit);
+};
+
+export const glintOn = (y: number, lamp: Vec = lamps.back): Vec => {
+  const t = (camera.y - y) / (camera.y - (2 * y - lamp.y));
+  return {
+    x: camera.x + (lamp.x - camera.x) * t,
+    y,
+    z: camera.z + (lamp.z - camera.z) * t,
+  };
 };
 
 export const project = (x: number, y: number, z: number): Point => {
@@ -524,7 +549,7 @@ export const seeded = (seed: number) => {
   };
 };
 
-const REACH = 6.5;
+const REACH = 4.2;
 const SAMPLES = 32;
 
 export const shoulderOf = (strain: number) => REACH * (1 - 0.4 * strain);

@@ -5,6 +5,8 @@ import { createWave, pushWave, spillageOf, stepWave, streamOf } from "./liquid";
 import type { Bead, Stream } from "./liquid";
 import { capacity, domeOf, flowAt, insideAt, mlOf, overflowAt } from "./pour";
 import type { Pour } from "./pour";
+import { createSake } from "./sake";
+import type { Backing, Sake } from "./sake";
 import {
   angleAt,
   awayAt,
@@ -12,12 +14,14 @@ import {
   reservedOf,
   fillOf,
   jetOf,
+  lamps,
   landingOf,
   layoutOf,
   lipOf,
   poseOf,
   project,
   radiusAt,
+  seeded,
   tumbler,
   worldX,
 } from "./scene";
@@ -38,6 +42,15 @@ interface Drop extends Bead {
   vy: number;
   age: number;
   counter: boolean;
+}
+
+interface Mote {
+  x: number;
+  y: number;
+  size: number;
+  drift: number;
+  phase: number;
+  near: boolean;
 }
 
 interface Particle extends Bubble {
@@ -64,6 +77,10 @@ const SPRAY = 30;
 const SETTLED = 60;
 const COUNTER_Z = A + 12;
 const still = createWave(2);
+const MOTES = 42;
+const MOTE = "#ffe4b8";
+const BEAM_FROM = project(lamps.key.x, lamps.key.y, lamps.key.z);
+const BEAM_TO = project(0, H * 0.5, 0);
 
 const rgba = (hex: string, alpha: number) => {
   const [r, g, b] = [1, 3, 5].map((at) =>
@@ -195,7 +212,7 @@ const boundsOf = (points: readonly Point[]) => {
 
 const traced = (d: string) => new Path2D(d);
 
-const createPainter = (canvas: HTMLCanvasElement, atlas: Atlas) => {
+const createPainter = (canvas: HTMLCanvasElement, atlas: Atlas, sake: Sake) => {
   const context = canvas.getContext("2d");
   if (!context) {
     throw new Error("Canvas 2D is not available");
@@ -284,8 +301,26 @@ const createPainter = (canvas: HTMLCanvasElement, atlas: Atlas) => {
     ctx.drawImage(bitmap, area.x, area.y, area.w, area.h);
   };
 
-  return (ops: readonly Op[], scene: Matrix) => {
+  let backed: Backing | null = null;
+  const backing = () => {
+    const bitmap = atlas.get("inside");
+    if (bitmap === null) {
+      return null;
+    }
+    if (backed?.bitmap !== bitmap) {
+      backed = { bitmap, ...sprites.inside.box };
+    }
+    return backed;
+  };
+
+  const paint = (ops: readonly Op[], scene: Matrix) => {
     for (const op of ops) {
+      if (op.kind === "sake") {
+        if (!sake.draw(ctx, op.liquid, scene, backing())) {
+          paint(op.ops, scene);
+        }
+        continue;
+      }
       ctx.save();
       ctx.setTransform(scene.a, scene.b, scene.c, scene.d, scene.e, scene.f);
       if (op.clip) {
@@ -314,6 +349,58 @@ const createPainter = (canvas: HTMLCanvasElement, atlas: Atlas) => {
       ctx.restore();
     }
   };
+
+  return paint;
+};
+
+const createAir = (canvas: HTMLCanvasElement, calm: boolean) => {
+  const ctx = canvas.getContext("2d");
+  const roll = seeded(1205);
+  const motes: Mote[] = Array.from({ length: MOTES }, (_, i) => ({
+    drift: 0.004 + roll() * 0.01,
+    near: i % 6 === 0,
+    phase: roll() * TAU,
+    size: 0.6 + roll() * 1,
+    x: roll(),
+    y: roll(),
+  }));
+  return (layout: Layout, dpr: number, clock: number, rise: number) => {
+    if (ctx === null) {
+      return;
+    }
+    const t = calm ? 0 : clock;
+    const lx = (layout.cx + BEAM_FROM.x * layout.scale) * dpr;
+    const ly = (layout.cy - rise + BEAM_FROM.y * layout.scale) * dpr;
+    const ax = (BEAM_TO.x - BEAM_FROM.x) * layout.scale * dpr;
+    const ay = (BEAM_TO.y - BEAM_FROM.y) * layout.scale * dpr;
+    const span = Math.hypot(ax, ay) || 1;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = "screen";
+    ctx.fillStyle = MOTE;
+    for (const mote of motes) {
+      const x = ((mote.x + t * mote.drift) % 1) * canvas.width;
+      const lift =
+        (t * mote.drift * 0.45 + Math.sin(t * 0.4 + mote.phase) * 0.01) % 1;
+      const y = ((((mote.y - lift) % 1) + 1) % 1) * canvas.height;
+      const along = ((x - lx) * ax + (y - ly) * ay) / span;
+      const across = Math.abs((x - lx) * ay - (y - ly) * ax) / span;
+      const reach = Math.min(
+        1,
+        Math.max(0, (span * 1.2 - along) / (span * 0.25))
+      );
+      const beam = Math.max(0, 1 - across / (along * 0.2 + 24 * dpr)) * reach;
+      const glow = 0.25 + 0.45 * Math.max(0, Math.sin(t * 0.8 + mote.phase));
+      const alpha = Math.min(1, glow * beam * (mote.near ? 0.9 : 1.1));
+      if (along > 0 && alpha > 0.02) {
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(x, y, mote.size * dpr * (mote.near ? 2.4 : 1), 0, TAU);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+  };
 };
 
 export const createRenderer = (
@@ -322,7 +409,9 @@ export const createRenderer = (
   demo: Demo
 ) => {
   const atlas = createAtlas();
-  const paint = createPainter(canvas, atlas);
+  const sake = createSake();
+  const paint = createPainter(canvas, atlas, sake);
+  const air = createAir(canvas, calm);
   const backdrop = canvas.getContext("2d");
   let reserved: (Reserved & { w: number; h: number }) | null = null;
   let layout = layoutOf(1, 1, demo);
@@ -592,9 +681,11 @@ export const createRenderer = (
       e: dpr * layout.cx,
       f: dpr * (layout.cy - rise),
     });
+    air(layout, dpr, frame.clock, rise);
   };
 
   return {
+    dispose: sake.dispose,
     reserve: (next: Reserved) => {
       reserved = { ...next, h: canvas.clientHeight, w: canvas.clientWidth };
     },

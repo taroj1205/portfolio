@@ -1,4 +1,4 @@
-import { affineFrom, pathOf } from "./draw";
+import { affineFrom, flatten, pathOf } from "./draw";
 import type { Matrix, Op, Paint, Sprite, Stop } from "./draw";
 import type { Bottle } from "./pour";
 import {
@@ -8,6 +8,7 @@ import {
   dot,
   frontArc,
   glassBetween,
+  glintOn,
   heading,
   hull,
   lamps,
@@ -56,13 +57,11 @@ const n = (value: number) => Number(value.toFixed(2));
 const wood = {
   albedo: "#e9cf9f",
   bounce: "#c98f52",
-  end: "#c99863",
+  end: "#d6b07c",
   ring: "#8f5f30",
   line: "#a8794a",
   seam: "#5b3a1c",
   brand: "#3f1f0c",
-  counter: "#3a2416",
-  counterFar: "#170d07",
   room: "#0b0604",
   lamp: "#ffcf8a",
   shadow: "#050302",
@@ -207,11 +206,11 @@ const endGrain = (
   const cx = x + (roll() - 0.5) * w * 3;
   const cy = y + h + roll() * h * 2;
   const rings = Array.from(
-    { length: 14 },
+    { length: 30 },
     (_, i) =>
-      `<circle cx="${n(cx)}" cy="${n(cy)}" r="${n(h * 0.6 + i * 1.15 + roll() * 0.4)}" fill="none" stroke="${wood.ring}" stroke-opacity="${n(0.18 + roll() * 0.2)}" stroke-width="${n(0.18 + roll() * 0.2)}"/>`
+      `<circle cx="${n(cx)}" cy="${n(cy)}" r="${n(h * 0.5 + i * 0.55 + roll() * 0.25)}" fill="none" stroke="${wood.ring}" stroke-opacity="${n(0.16 + roll() * 0.26)}" stroke-width="${n(0.1 + roll() * 0.14)}"/>`
   ).join("");
-  return `<clipPath id="${id}"><rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}"/></clipPath><g clip-path="url(#${id})"><rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" fill="${toned(wood.end, light)}"/>${rings}</g><rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" fill="none" stroke="${wood.seam}" stroke-opacity="0.45" stroke-width="0.22"/>`;
+  return `<clipPath id="${id}"><rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}"/></clipPath><g clip-path="url(#${id})"><rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" fill="${toned(wood.end, light, 0.4)}"/>${rings}<path d="M${n(cx)} ${n(cy)}L${n(x + w * (0.2 + roll() * 0.6))} ${n(y - 1)}" stroke="${wood.seam}" stroke-opacity="0.35" stroke-width="0.12"/><rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h * 0.3)}" fill="${wood.spark}" fill-opacity="0.1"/></g><rect x="${n(x)}" y="${n(y)}" width="${n(w)}" height="${n(h)}" fill="none" stroke="${wood.seam}" stroke-opacity="0.5" stroke-width="0.2"/>`;
 };
 
 const joints =
@@ -230,8 +229,14 @@ const joints =
       )
       .join("");
 
-const brand = (size: Point) =>
-  `<filter id="masu-burn" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="0.35"/></filter><g filter="url(#masu-burn)" fill="none" stroke="${wood.brand}" stroke-opacity="0.72" stroke-linejoin="round" style="mix-blend-mode:multiply"><circle cx="${n(size.x * 0.46)}" cy="${n(size.y * 0.52)}" r="10.5" stroke-width="1.15"/><path d="M${n(size.x * 0.46)} ${n(size.y * 0.52 - 6)}l6 6l-6 6l-6 -6z" stroke-width="1.4"/></g>`;
+const brandMark = (x: number, y: number, scale: number) =>
+  `<circle cx="${n(x)}" cy="${n(y)}" r="10.5" stroke-width="${n(1.15 * scale)}"/><path d="M${n(x)} ${n(y - 6)}l6 6l-6 6l-6 -6z" stroke-width="${n(1.4 * scale)}"/>`;
+
+const brand = (size: Point) => {
+  const x = size.x * 0.46;
+  const y = size.y * 0.52;
+  return `<filter id="masu-scorch" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.3"/></filter><filter id="masu-burn" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="4" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="0.7" xChannelSelector="R" yChannelSelector="G" result="rough"/><feGaussianBlur in="rough" stdDeviation="0.22" result="soft"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.6 1.2" result="mottle"/><feComposite in="soft" in2="mottle" operator="in"/></filter><g fill="none" stroke-linejoin="round"><g filter="url(#masu-scorch)" stroke="${wood.ring}" stroke-opacity="0.32" style="mix-blend-mode:multiply">${brandMark(x, y, 2.6)}</g><g stroke="${wood.spark}" stroke-opacity="0.35" transform="translate(0 0.55)">${brandMark(x, y, 0.9)}</g><g filter="url(#masu-burn)" stroke="${wood.brand}" stroke-opacity="0.9" style="mix-blend-mode:multiply">${brandMark(x, y, 1.05)}</g></g>`;
+};
 
 const fade = (
   id: string,
@@ -680,63 +685,245 @@ const castShadow = () => {
   return [...footprint, ...top];
 };
 
-export const room = (width: number, height: number, frame: Frame) => {
+const bar = {
+  bottles: ["#0c2215", "#2a1407", "#171a14", "#1f1009", "#0f1d22"],
+  counter: ["#4b2d17", "#563419", "#45291a", "#4f3018"],
+  far: "#170c06",
+  fridge: "#a9dcff",
+  glow: "#ffb35c",
+  ink: "#000000",
+  label: "#efe0bd",
+  lantern: "#ff4a1c",
+  near: "#24150c",
+  paper: "#ffd9a0",
+  rib: "#5a0d04",
+  shelf: "#7a4c29",
+  wall: "#080403",
+  warm: "#3a2010",
+} as const;
+
+const REFERENCE = 2.4;
+
+const TINTS = ["#ffb055", "#ff8a4a", "#ffd08a", "#e8643a", "#bfe3ff"] as const;
+
+const bottleSvg = (
+  x: number,
+  base: number,
+  w: number,
+  h: number,
+  roll: () => number
+) => {
+  const left = x - w / 2;
+  const right = x + w / 2;
+  const neck = w * 0.17;
+  const shoulder = base - h * 0.6;
+  const collar = base - h * 0.8;
+  const glass = bar.bottles[Math.floor(roll() * bar.bottles.length)];
+  const label =
+    roll() > 0.3
+      ? `<rect x="${n(x - w * 0.34)}" y="${n(base - h * 0.48)}" width="${n(w * 0.68)}" height="${n(h * 0.24)}" fill="${bar.label}" fill-opacity="${n(0.28 + roll() * 0.3)}"/><rect x="${n(x - w * 0.05)}" y="${n(base - h * 0.45)}" width="${n(w * 0.1)}" height="${n(h * 0.18)}" fill="${bar.ink}" fill-opacity="0.45"/>`
+      : "";
+  return `<path d="M${n(left)} ${n(base)}V${n(shoulder)}Q${n(left)} ${n(collar)} ${n(x - neck)} ${n(collar)}V${n(base - h)}H${n(x + neck)}V${n(collar)}Q${n(right)} ${n(collar)} ${n(right)} ${n(shoulder)}V${n(base)}Z" fill="${glass}"/>${label}<path d="M${n(left + w * 0.2)} ${n(base - h * 0.08)}V${n(shoulder + h * 0.04)}" stroke="${bar.paper}" stroke-opacity="${n(0.25 + roll() * 0.3)}" stroke-width="${n(w * 0.07)}" stroke-linecap="round"/><path d="M${n(right - w * 0.1)} ${n(base - h * 0.1)}V${n(shoulder)}" stroke="${bar.glow}" stroke-opacity="0.18" stroke-width="${n(w * 0.04)}"/>`;
+};
+
+const backBar = (width: number, back: number, k: number) => {
+  if (back <= 0) {
+    return "";
+  }
+  const roll = seeded(4242);
+  const shelf = back * 0.66;
+  const tall = Math.max(back * 0.5, 70 * k);
+  const broad = tall * 0.3;
+  const bottles: string[] = [];
+  for (let x = -broad * roll(); x < width + broad;) {
+    const w = broad * (0.8 + roll() * 0.35);
+    bottles.push(
+      bottleSvg(x + w / 2, shelf, w, tall * (0.82 + roll() * 0.26), roll)
+    );
+    x += w * (1.2 + roll() * 0.6);
+  }
+  const slats = Array.from(
+    { length: Math.ceil(width / (16 * k)) + 1 },
+    (_, i) =>
+      `<path d="M${n(i * 16 * k)} 0V${n(back)}" stroke="${bar.ink}" stroke-opacity="0.4" stroke-width="${n(2.2 * k)}"/>`
+  ).join("");
+  const lantern = {
+    x: width * 0.88,
+    y: Math.min(back * 0.2, shelf - tall * 0.9),
+  };
+  const cabinet = shelf + 5 * k;
+  const cell = 15 * k;
+  const kumiko = [
+    ...Array.from(
+      { length: Math.ceil(width / cell) + 1 },
+      (_, i) => `M${n(i * cell)} ${n(cabinet)}V${n(back)}`
+    ),
+    ...Array.from(
+      { length: Math.max(0, Math.ceil((back - cabinet) / cell)) },
+      (_, i) => `M0 ${n(cabinet + (i + 1) * cell)}H${width}`
+    ),
+  ].join("");
+  const posts = Array.from(
+    { length: Math.ceil(width / (cell * 6)) + 1 },
+    (_, i) =>
+      `<rect x="${n(i * cell * 6 - 2 * k)}" y="${n(cabinet)}" width="${n(4 * k)}" height="${n(Math.max(0, back - cabinet))}" fill="${bar.far}"/>`
+  ).join("");
+  const ribs = Array.from(
+    { length: 7 },
+    (_, i) =>
+      `<ellipse cx="${n(lantern.x)}" cy="${n(lantern.y + (i - 3) * 13 * k)}" rx="${n(40 * k * Math.cos(((i - 3) / 4.2) * 1.2))}" ry="${n(2.6 * k)}" fill="none" stroke="${bar.rib}" stroke-opacity="0.7" stroke-width="${n(1.8 * k)}"/>`
+  ).join("");
+  const bokeh = Array.from({ length: 22 }, () => {
+    const x = roll() * width;
+    const y = shelf - tall * (0.15 + roll() * 0.95);
+    const r = (5 + roll() ** 2 * 22) * Math.max(0.8, k);
+    const tint = Math.floor(roll() * TINTS.length);
+    return `<circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="url(#room-bokeh${tint})" opacity="${n(0.16 + roll() * 0.34)}"/>`;
+  }).join("");
+  return `${linear("room-wall", { x: 0, y: 0 }, { x: 0, y: back }, [
+    [0, bar.wall, 1],
+    [0.55, bar.warm, 1],
+    [0.66, "#5a3216", 1],
+    [0.72, bar.far, 1],
+    [1, "#100804", 1],
+  ])}${radial(
+    "room-backlight",
+    { x: width * 0.5, y: shelf - tall * 0.45 },
+    Math.max(width * 0.7, tall * 2),
+    [
+      [0, bar.glow, 0.34],
+      [0.5, bar.glow, 0.12],
+      [1, bar.glow, 0],
+    ]
+  )}${radial("room-lantern", lantern, 60 * k, [
+    [0, bar.paper, 1],
+    [0.35, bar.lantern, 0.95],
+    [0.85, "#9a1506", 0.9],
+    [1, "#9a1506", 0],
+  ])}${TINTS.map((tint, i) => `<radialGradient id="room-bokeh${i}"><stop offset="0" stop-color="${tint}" stop-opacity="0.55"/><stop offset="0.82" stop-color="${tint}" stop-opacity="0.8"/><stop offset="0.92" stop-color="${tint}" stop-opacity="0.95"/><stop offset="1" stop-color="${tint}" stop-opacity="0"/></radialGradient>`).join("")}<g filter="url(#room-far)"><rect width="${width}" height="${n(back)}" fill="url(#room-wall)"/>${slats}<rect width="${width}" height="${n(shelf)}" fill="url(#room-backlight)"/><rect x="${n(width * 0.02)}" y="${n(shelf - tall * 0.95)}" width="${n(tall * 0.5)}" height="${n(tall * 0.9)}" fill="${bar.fridge}" fill-opacity="0.12"/>${bottles.join("")}${linear(
+    "room-shoji",
+    { x: 0, y: cabinet },
+    { x: 0, y: back },
+    [
+      [0, bar.paper, 0.2],
+      [0.45, bar.glow, 0.34],
+      [1, bar.glow, 0.12],
+    ]
+  )}<rect y="${n(cabinet)}" width="${width}" height="${n(Math.max(0, back - cabinet))}" fill="url(#room-shoji)"/><path d="${kumiko}" stroke="${bar.far}" stroke-opacity="0.6" stroke-width="${n(1.2 * k)}"/>${posts}<rect y="${n(shelf)}" width="${width}" height="${n(5 * k)}" fill="${bar.shelf}"/><path d="M0 ${n(shelf)}H${width}" stroke="${bar.paper}" stroke-opacity="0.5" stroke-width="${n(1.2 * k)}"/><ellipse cx="${n(lantern.x)}" cy="${n(lantern.y)}" rx="${n(40 * k)}" ry="${n(52 * k)}" fill="url(#room-lantern)"/>${ribs}${[-1, 1].map((side) => `<rect x="${n(lantern.x - 20 * k)}" y="${n(lantern.y + side * 50 * k - 4 * k)}" width="${n(40 * k)}" height="${n(8 * k)}" rx="${n(2 * k)}" fill="${bar.ink}" fill-opacity="0.85"/>`).join("")}</g><ellipse cx="${n(lantern.x)}" cy="${n(lantern.y)}" rx="${n(120 * k)}" ry="${n(120 * k)}" fill="${bar.lantern}" fill-opacity="0.1" filter="url(#room-haze)"/>${bokeh}`;
+};
+
+const plankGrain = (
+  id: string,
+  y: number,
+  w: number,
+  h: number,
+  along: number,
+  across: number,
+  seed: number
+) =>
+  `<filter id="${id}" filterUnits="userSpaceOnUse" x="0" y="${n(y)}" width="${n(w)}" height="${n(h)}" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="${n(along)} ${n(across)}" numOctaves="3" seed="${seed}"/><feColorMatrix type="matrix" values="0 0 0 0 0.06 0 0 0 0 0.03 0 0 0 0 0.012 1.3 0 0 0 -0.55"/></filter><rect y="${n(y)}" width="${n(w)}" height="${n(h)}" filter="url(#${id})"/>`;
+
+const SEAMS = [-320, -250, -180, -105, -25, 60, 155, 265, 400, 580, 820];
+
+const counterSvg = (
+  width: number,
+  height: number,
+  frame: Frame,
+  back: number
+) => {
+  const s = frame.scale;
+  const at = (x: number, z: number) => ({
+    x: frame.cx + project(x, 0, z).x * s,
+    y: frame.cy + project(x, 0, z).y * s,
+  });
+  const planks = SEAMS.slice(0, -1).map((z, i) => {
+    const far = Math.max(back, at(0, z).y);
+    const near = at(0, SEAMS[i + 1] ?? z).y;
+    if (near <= far || far >= height) {
+      return "";
+    }
+    const middle = (z + (SEAMS[i + 1] ?? z)) / 2;
+    const across = at(1, middle).x - at(0, middle).x || 1;
+    const deep = (near - at(0, z).y) / ((SEAMS[i + 1] ?? z) - z) || 1;
+    const top = Math.min(near, height + 2);
+    return `<rect y="${n(far)}" width="${width}" height="${n(top - far)}" fill="${bar.counter[i % bar.counter.length]}"/>${plankGrain(
+      `room-plank${i}`,
+      far,
+      width,
+      top - far,
+      Math.min(0.08, 1 / (90 * across)),
+      Math.min(1.6, 1 / (1.4 * deep)),
+      31 + i * 7
+    )}<path d="M0 ${n(far)}H${width}" stroke="${bar.ink}" stroke-opacity="0.55" stroke-width="${n(Math.max(0.5, across * 0.8))}"/><path d="M0 ${n(far + Math.max(0.6, across * 0.9))}H${width}" stroke="${bar.paper}" stroke-opacity="0.09" stroke-width="${n(Math.max(0.4, across * 0.5))}"/>`;
+  });
+  return `${linear("room-shade", { x: 0, y: back }, { x: 0, y: height }, [
+    [0, bar.far, 0.7],
+    [0.3, bar.far, 0.2],
+    [0.7, bar.near, 0.1],
+    [1, bar.near, 0.55],
+  ])}<rect y="${n(back)}" width="${width}" height="${n(height - back)}" fill="${bar.near}"/>${planks.join("")}<filter id="room-figure" filterUnits="userSpaceOnUse" x="0" y="${n(back)}" width="${width}" height="${n(height - back)}" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="${n(0.004 / Math.max(0.5, s / REFERENCE))} ${n(0.03 / Math.max(0.5, s / REFERENCE))}" numOctaves="2" seed="17"/><feColorMatrix type="matrix" values="0 0 0 0 0.45 0 0 0 0 0.26 0 0 0 0 0.12 0.9 0 0 0 -0.32"/></filter><rect y="${n(back)}" width="${width}" height="${n(height - back)}" filter="url(#room-figure)"/><rect y="${n(back)}" width="${width}" height="${n(height - back)}" fill="url(#room-shade)"/>`;
+};
+
+const gloss = (width: number, height: number, frame: Frame, back: number) => {
+  const s = frame.scale;
+  const k = s / REFERENCE;
+  const spill = Math.max(12, (height - back) * 0.2);
+  const pool = {
+    x: frame.cx + project(-12, 0, 14).x * s,
+    y: frame.cy + project(-12, 0, 14).y * s,
+  };
+  const sheen = glintOn(0, lamps.key);
+  const glint = {
+    x: frame.cx + project(sheen.x, 0, sheen.z).x * s,
+    y: frame.cy + project(sheen.x, 0, sheen.z).y * s,
+  };
+  return `${linear(
+    "room-mirror",
+    { x: 0, y: back },
+    { x: 0, y: back + spill },
+    [
+      [0, bar.glow, 0.3],
+      [0.25, bar.glow, 0.1],
+      [1, bar.glow, 0],
+    ]
+  )}<radialGradient id="room-pool"><stop offset="0" stop-color="${wood.lamp}" stop-opacity="0.42"/><stop offset="0.45" stop-color="#b06a2e" stop-opacity="0.17"/><stop offset="1" stop-color="#b06a2e" stop-opacity="0"/></radialGradient><radialGradient id="room-sheen"><stop offset="0" stop-color="${bar.paper}" stop-opacity="0.26"/><stop offset="1" stop-color="${bar.paper}" stop-opacity="0"/></radialGradient><rect y="${n(back)}" width="${width}" height="${n(spill)}" fill="url(#room-mirror)"/>${back > 0 ? `<ellipse cx="${n(width * 0.88)}" cy="${n(back + spill * 0.5)}" rx="${n(16 * k)}" ry="${n(spill * 0.55)}" fill="${bar.lantern}" fill-opacity="0.16" filter="url(#room-haze)"/>` : ""}<ellipse cx="${n(pool.x)}" cy="${n(pool.y)}" rx="${n(300 * k)}" ry="${n(135 * k)}" fill="url(#room-pool)"/><ellipse cx="${n(glint.x)}" cy="${n(glint.y)}" rx="${n(150 * k)}" ry="${n(34 * k)}" fill="url(#room-sheen)"/>`;
+};
+
+const shaft = (frame: Frame) => {
   const s = frame.scale;
   const toScreen = (p: Point) => ({
     x: frame.cx + p.x * s,
     y: frame.cy + p.y * s,
   });
-  const edgeAt = (z: number) => toScreen(project(0, 0, z)).y;
-  const back = Math.max(-40, edgeAt(-320));
-  const roll = seeded(4242);
-  const tints = ["#ffb055", "#ff8a4a", "#ffd08a", "#e8643a"];
-  const bokeh = Array.from({ length: 18 }, () => {
-    const x = roll() * width;
-    const y = roll() * Math.max(40, back) * 1.05;
-    const r = (10 + roll() * 36) * Math.max(1, s / 2.4);
-    const tint = Math.floor(roll() * tints.length);
-    return `<circle cx="${n(x)}" cy="${n(y)}" r="${n(r)}" fill="url(#room-bokeh${tint})" opacity="${n(0.08 + roll() * 0.2)}"/>`;
-  }).join("");
-  const seams = [-200, -120, -40, 50, 150, 270, 420]
-    .map((z) => edgeAt(z))
-    .filter((y) => y > back && y < height + 4)
-    .map(
-      (y) =>
-        `<path d="M0 ${n(y)}H${n(width)}" stroke="#000" stroke-opacity="0.35" stroke-width="${n(Math.max(0.6, s * 0.3))}"/>`
-    )
-    .join("");
-  const lamp = toScreen(project(-10, 0, 10));
+  const from = toScreen(project(lamps.key.x, lamps.key.y, lamps.key.z));
+  const near = toScreen(project(-A * 1.6, 0, A * 1.4));
+  const far = toScreen(project(A * 1.8, H, -A * 1.6));
+  return `${linear("room-shaft", from, toScreen(project(0, 0, 0)), [
+    [0, wood.lamp, 0],
+    [0.5, wood.lamp, 0.1],
+    [1, wood.lamp, 0.03],
+  ])}<path d="${pathOf([from, far, near])}" fill="url(#room-shaft)" filter="url(#room-haze)"/>`;
+};
+
+export const room = (width: number, height: number, frame: Frame) => {
+  const s = frame.scale;
+  const k = s / REFERENCE;
+  const toScreen = (p: Point) => ({
+    x: frame.cx + p.x * s,
+    y: frame.cy + p.y * s,
+  });
+  const back = Math.max(-40, toScreen(project(0, 0, -320)).y);
   const shadow = hull(castShadow()).map(toScreen);
   const contact = footprint.map(toScreen);
-  return `<defs>${linear("room-wall", { x: 0, y: 0 }, { x: 0, y: back }, [
-    [0, "#080403", 1],
-    [1, "#1a0f08", 1],
-  ])}${linear("room-counter", { x: 0, y: back }, { x: 0, y: height }, [
-    [0, wood.counterFar, 1],
-    [0.35, wood.counter, 1],
-    [1, "#1f130b", 1],
-  ])}${radial("room-pool", lamp, 210 * s, [
-    [0, wood.lamp, 0.26],
-    [0.45, "#a0612c", 0.1],
-    [1, "#a0612c", 0],
-  ])}${tints.map((tint, i) => `<radialGradient id="room-bokeh${i}"><stop offset="0" stop-color="${tint}"/><stop offset="0.75" stop-color="${tint}" stop-opacity="0.55"/><stop offset="1" stop-color="${tint}" stop-opacity="0"/></radialGradient>`).join("")}${radial(
+  return `${blur("room-far", Math.max(1.6, 2.8 * k))}${blur("room-haze", Math.max(6, 22 * k))}<rect width="${width}" height="${height}" fill="${wood.room}"/>${backBar(width, back, k)}${counterSvg(width, height, frame, back)}${gloss(width, height, frame, back)}${shaft(frame)}${radial(
     "room-vignette",
     { x: frame.cx, y: frame.cy },
     Math.max(width, height) * 0.85,
     [
-      [0.35, wood.shadow, 0],
-      [1, wood.shadow, 0.72],
+      [0.3, wood.shadow, 0],
+      [1, wood.shadow, 0.8],
     ]
-  )}${blur("room-soft", Math.max(2, s * 5))}${blur("room-contact", Math.max(1, s * 1.4))}${blur("room-far", 3)}<filter id="room-grain" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="${n(0.0035 / Math.max(1, s / 2))} ${n(0.07 / Math.max(1, s / 2))}" numOctaves="3" seed="8"/><feColorMatrix type="matrix" values="0 0 0 0 0.05 0 0 0 0 0.025 0 0 0 0 0.01 1.6 0 0 0 -0.8"/></filter>${linear(
-    "room-depth",
-    { x: 0, y: back },
-    { x: 0, y: height },
-    [
-      [0, "#000", 0],
-      [0.4, "#fff", 1],
-      [1, "#fff", 1],
-    ]
-  )}<mask id="room-near"><rect width="${width}" height="${height}" fill="url(#room-depth)"/></mask></defs><rect width="${width}" height="${height}" fill="${wood.room}"/><rect width="${width}" height="${n(Math.max(0, back))}" fill="url(#room-wall)"/><g filter="url(#room-far)">${bokeh}</g><rect y="${n(back)}" width="${width}" height="${n(height - back)}" fill="url(#room-counter)"/><g mask="url(#room-near)"><rect y="${n(back)}" width="${width}" height="${n(height - back)}" filter="url(#room-grain)"/>${seams}</g><rect y="${n(back)}" width="${width}" height="${n(height - back)}" fill="url(#room-pool)"/><path d="M0 ${n(back)}H${width}" stroke="${wood.lamp}" stroke-opacity="0.12" stroke-width="1.2"/><path d="${pathOf(shadow)}" fill="${wood.shadow}" fill-opacity="0.55" filter="url(#room-soft)"/><path d="${pathOf(contact)}" fill="${wood.shadow}" fill-opacity="0.85" filter="url(#room-contact)"/><rect width="${width}" height="${height}" fill="url(#room-vignette)"/>`;
+  )}${blur("room-soft", Math.max(2, s * 5))}${blur("room-contact", Math.max(1, s * 1.4))}<filter id="room-film" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="1" seed="5"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.9 0 0 0 0 0.75 0 0 0 0.12 0"/></filter><path d="${pathOf(shadow)}" fill="${wood.shadow}" fill-opacity="0.6" filter="url(#room-soft)"/><path d="${pathOf(contact)}" fill="${wood.shadow}" fill-opacity="0.9" filter="url(#room-contact)"/><rect width="${width}" height="${height}" fill="url(#room-vignette)"/><rect width="${width}" height="${height}" filter="url(#room-film)" opacity="0.5"/>`;
 };
 
 const paintOf = (paint: Paint, id: string, defs: string[]) => {
@@ -771,7 +958,7 @@ export const opsSvg = (ops: readonly Op[], prefix: string) => {
     defs.push(`<clipPath id="${id}"><path d="${d}"/></clipPath>`);
     return id;
   };
-  for (const op of ops) {
+  for (const op of flatten(ops)) {
     let inner = "";
     if (op.kind === "fill") {
       inner = `<path d="${op.d}" fill="${paintOf(op.paint, fresh(), defs)}"${op.matrix ? ` transform="${matrixOf(op.matrix)}"` : ""}/>`;
@@ -809,7 +996,9 @@ export const stillDoc = (
   scenery = true
 ) => {
   const { body, defs } = opsSvg(ops, "still-");
-  const used = ops.flatMap((op) => (op.kind === "sprite" ? [op.name] : []));
+  const used = flatten(ops).flatMap((op) =>
+    op.kind === "sprite" ? [op.name] : []
+  );
   return docOf(
     { h: height, w: width, x: 0, y: 0 },
     width,

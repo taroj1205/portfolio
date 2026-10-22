@@ -87,7 +87,7 @@ export const stillOf = (glass: Glass | null): Moment => {
 
 export const CARD = { height: 360, width: 640 } as const;
 
-const cardFrame: Frame = { cx: 318, cy: 200, scale: 2.05 };
+const cardFrame: Frame = { cx: 318, cy: 214, scale: 1.92 };
 
 export const cardLayers = ["scene", "stream"] as const;
 
