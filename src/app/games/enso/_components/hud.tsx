@@ -3,8 +3,9 @@ import * as stylex from "@stylexjs/stylex";
 
 import { BackToGames } from "../../_components/back-to-games";
 import { glass } from "../../_components/glass";
+import { LanguageButton } from "../../_components/language-button";
+import { ReportMenu } from "../../_components/report-menu";
 import { font, ink, media, shade } from "../../_components/theme.stylex";
-import { langNames } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
 import { formatScore, rankOf } from "../_lib/result";
@@ -98,13 +99,6 @@ const styles = stylex.create({
     transitionDuration: "160ms",
     transitionProperty: "transform",
     width: "2.75rem",
-  },
-  language: {
-    fontSize: "0.8rem",
-    fontWeight: 700,
-    letterSpacing: "calc(0.08em * var(--track, 1))",
-    paddingInline: "1rem",
-    width: "auto",
   },
   prompt: {
     alignItems: "center",
@@ -242,14 +236,8 @@ export const Hud = ({ lang, best, draws, muted, onLang, onMute }: HudProps) => {
         >
           <Speaker muted={muted} />
         </Toggle>
-        <button
-          lang={other}
-          onClick={onLang}
-          type="button"
-          {...stylex.props(glass.surface, styles.button, styles.language)}
-        >
-          {langNames[other]}
-        </button>
+        <LanguageButton lang={other} onClick={onLang} xstyle={styles.button} />
+        <ReportMenu iconOnly lang={lang} xstyle={styles.button} />
       </div>
     </header>
   );

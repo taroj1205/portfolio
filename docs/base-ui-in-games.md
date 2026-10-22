@@ -25,6 +25,7 @@ Do not write Base UI code from memory. Part names, props, and `data-*` attribute
 | Bottom sheet with swipe | `Drawer` | `src/app/games/mizukiri/_components/workshop.tsx` |
 | Anchored hint, hover or tap | `Popover` | `src/app/games/mizukiri/_components/radar.tsx` |
 | Action list | `Menu` | `src/app/games/_components/share-button.tsx` |
+| Icon button opening a link list | `Menu` | `src/app/games/_components/report-menu.tsx` (`iconOnly`) |
 | Sections | `Tabs` | `src/app/games/mizukiri/_components/stone-tab.tsx`, `workshop.tsx` |
 | On/off setting | `Switch` | `src/app/games/mizukiri/_components/workshop.tsx` |
 | Pick one of a few | `ToggleGroup` with `Toggle` | `src/app/games/mizukiri/_components/workshop.tsx` |

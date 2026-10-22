@@ -120,6 +120,7 @@ export const Game = ({
             session.current?.settings({ ...settings, muted });
           }
         }}
+        onMenu={(open) => session.current?.pause(open)}
         onQuit={() => session.current?.title()}
         onStart={(next) => session.current?.start(next)}
         rung={rung}
