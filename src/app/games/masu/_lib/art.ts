@@ -580,12 +580,12 @@ const bottleBody = (bottle: Bottle) => {
   const shift = `translate(${-vessel.lip.x} ${-vessel.lip.y})`;
   const bodies: Record<Bottle, { stops: readonly Stop[]; marks: string }> = {
     isshobin: {
-      marks: `<rect x="-40" y="214" width="80" height="120" fill="#f4ead7"/><rect x="-40" y="214" width="80" height="8" fill="#b8321f"/><text x="0" y="0" transform="translate(0 278) scale(-1 1)" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="46" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="#2b1c12">酒</text>`,
+      marks: `<rect x="-14" y="2" width="28" height="9" fill="#c9a24a"/><rect x="-13" y="11" width="26" height="7" fill="#b8321f"/><rect x="-13" y="34" width="26" height="46" fill="#f4ead7"/><rect x="-13" y="34" width="26" height="4" fill="#b8321f"/><rect x="-13" y="76" width="26" height="4" fill="#b8321f"/><text x="0" y="0" transform="translate(0 58) scale(-1 1)" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="17" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="#2b1c12">吟</text><path d="M-38 150Q0 128 38 150V174Q0 154 -38 174Z" fill="#f4ead7"/><path d="M-38 150Q0 128 38 150" fill="none" stroke="#c9a24a" stroke-width="3"/><rect x="-40" y="214" width="80" height="120" fill="#f4ead7"/><rect x="-40" y="214" width="80" height="8" fill="#b8321f"/><text x="0" y="0" transform="translate(0 278) scale(-1 1)" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="46" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="#2b1c12">酒</text>`,
       stops: [
-        [0, "#123a22", 1],
-        [0.22, "#5e9b6c", 1],
-        [0.36, "#1f4a2c", 1],
-        [1, "#06140b", 1],
+        [0, "#2a1206", 1],
+        [0.22, "#9c5422", 1],
+        [0.36, "#4a2009", 1],
+        [1, "#120602", 1],
       ],
     },
     katakuchi: {

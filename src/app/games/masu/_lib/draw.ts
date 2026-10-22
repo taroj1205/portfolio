@@ -336,6 +336,8 @@ const bokehOps = (
     );
   });
 
+const RINGS = [0, 1 / 3, 2 / 3] as const;
+
 const impactOf = (moment: Moment) => moment.stream?.impact ?? null;
 
 const splashOps = (
@@ -351,23 +353,36 @@ const splashOps = (
   const q = Math.min(1.4, rate);
   const r = (1.2 + 2.6 * Math.sqrt(q)) * (1 + 0.1 * Math.sin(clock * 47));
   return [
-    ...[0, 0.5].map((phase): Op => {
-      const age = (clock * 1.6 + phase) % 1;
-      return {
-        alpha: 0.16 * (1 - age) ** 2 * Math.min(1, q),
-        blend: "screen",
-        clip,
-        d: pathOf(
-          Array.from({ length: 33 }, (_, i) => {
-            const a = (i / 32) * TAU;
-            const reach = 2 + age * 13;
-            return project(x + Math.cos(a) * reach, y, Math.sin(a) * reach);
-          })
-        ),
-        kind: "stroke",
-        paint: solid(SHEEN),
-        width: 0.25,
-      };
+    ...RINGS.flatMap((phase): Op[] => {
+      const age = (clock * 1.3 + phase) % 1;
+      const ripple = pathOf(
+        Array.from({ length: 33 }, (_, i) => {
+          const a = (i / 32) * TAU;
+          const reach = 1.6 + age * 15;
+          return project(x + Math.cos(a) * reach, y, Math.sin(a) * reach);
+        })
+      );
+      const fade = (1 - age) ** 2 * Math.min(1, q);
+      return [
+        {
+          alpha: 0.3 * fade,
+          blend: "multiply",
+          clip,
+          d: ripple,
+          kind: "stroke",
+          paint: solid(WET),
+          width: 0.9,
+        },
+        {
+          alpha: 0.5 * fade,
+          blend: "screen",
+          clip,
+          d: ripple,
+          kind: "stroke",
+          paint: solid(SHEEN),
+          width: 0.3,
+        },
+      ];
     }),
     spot(
       impact,
@@ -1109,76 +1124,82 @@ const beadOps = (bead: Bead): Op[] => [
 
 const BEADS = 16;
 
+const ribbon = (thread: readonly Bead[], from: number, to: number) => {
+  const near: Point[] = [];
+  const far: Point[] = [];
+  for (const [index, bead] of thread.entries()) {
+    const before = thread[Math.max(0, index - 1)] ?? bead;
+    const after = thread[Math.min(thread.length - 1, index + 1)] ?? bead;
+    const size = Math.hypot(after.x - before.x, after.y - before.y) || 1;
+    const nx = (-(after.y - before.y) / size) * bead.r;
+    const ny = ((after.x - before.x) / size) * bead.r;
+    near.push({ x: bead.x + nx * from, y: bead.y + ny * from });
+    far.push({ x: bead.x + nx * to, y: bead.y + ny * to });
+  }
+  return pathOf(band(near, far));
+};
+
 export const streamOps = (stream: Stream | null, clock: number): Op[] => {
   if (stream === null) {
     return [];
   }
   return [
     ...stream.threads.flatMap((thread): Op[] => {
-      const left: Point[] = [];
-      const right: Point[] = [];
-      const lit: Point[] = [];
-      const far: Point[] = [];
-      let width = 0;
-      for (const [index, bead] of thread.entries()) {
-        const before = thread[Math.max(0, index - 1)] ?? bead;
-        const after = thread[Math.min(thread.length - 1, index + 1)] ?? bead;
-        const size = Math.hypot(after.x - before.x, after.y - before.y) || 1;
-        const nx = -(after.y - before.y) / size;
-        const ny = (after.x - before.x) / size;
-        left.push({ x: bead.x + nx * bead.r, y: bead.y + ny * bead.r });
-        right.push({ x: bead.x - nx * bead.r, y: bead.y - ny * bead.r });
-        lit.push({
-          x: bead.x + nx * bead.r * 0.42,
-          y: bead.y + ny * bead.r * 0.42,
-        });
-        far.push({
-          x: bead.x - nx * bead.r * 0.66,
-          y: bead.y - ny * bead.r * 0.66,
-        });
-        width += bead.r / thread.length;
-      }
-      const outline = band(left, right);
+      const from = thread[0] ?? { x: 0, y: 0 };
+      const to = thread.at(-1) ?? { x: 0, y: 1 };
+      const along = (stops: readonly Stop[]): Paint => ({
+        from,
+        kind: "linear",
+        stops,
+        to,
+      });
       const glints = Array.from({ length: BEADS + 1 }, (_, i): Stop => {
         const at = i / BEADS;
         const swell = 0.5 + 0.5 * Math.sin((at * at * 5.5 - clock * 3.1) * TAU);
-        return [at, SPARK, (0.4 + 0.6 * swell) * (1 - 0.3 * at)];
+        return [at, SPARK, (0.35 + 0.65 * swell) * (1 - 0.25 * at)];
       });
       return [
         {
-          alpha: 0.18,
-          d: pathOf(outline),
-          kind: "fill",
-          paint: solid(STRAW),
-        },
-        ...[left, right].map((edge, side): Op => ({
-          alpha: side === 0 ? 0.42 : 0.6,
+          alpha: 0.3,
           blend: "multiply",
-          clip: outline,
-          d: pathOf(edge, false),
-          kind: "stroke",
+          d: ribbon(thread, -1, 1),
+          kind: "fill",
+          paint: solid(DAMP),
+        },
+        {
+          blend: "screen",
+          d: ribbon(thread, -1, 1),
+          kind: "fill",
+          paint: along([
+            [0, GOLD, 0.5],
+            [0.6, STRAW, 0.32],
+            [1, STRAW, 0.24],
+          ]),
+        },
+        ...(
+          [
+            [-1, -0.55],
+            [0.6, 1],
+          ] as const
+        ).map(([edge, rim]): Op => ({
+          alpha: 0.6,
+          blend: "multiply",
+          d: ribbon(thread, edge, rim),
+          kind: "fill",
           paint: solid(WET),
-          width: Math.max(0.12, width * 0.85),
         })),
         {
           blend: "screen",
-          d: pathOf(lit, false),
-          kind: "stroke",
-          paint: {
-            from: thread[0] ?? { x: 0, y: 0 },
-            kind: "linear",
-            stops: glints,
-            to: thread.at(-1) ?? { x: 0, y: 1 },
-          },
-          width: Math.max(0.1, width * 0.26),
+          d: ribbon(thread, -0.5, -0.16),
+          kind: "fill",
+          paint: along(glints),
         },
         {
-          alpha: 0.4,
+          alpha: 0.45,
           blend: "screen",
-          d: pathOf(far, false),
-          kind: "stroke",
+          d: ribbon(thread, 0.3, 0.48),
+          kind: "fill",
           paint: solid(SHEEN),
-          width: Math.max(0.08, width * 0.12),
         },
       ];
     }),
