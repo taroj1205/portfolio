@@ -8,14 +8,23 @@ import {
   sprites,
 } from "./art";
 import { drawList, pathOf, spriteNames } from "./draw";
-import type { Bubble, Matrix, Moment, Op, Paint, Sprite } from "./draw";
+import type {
+  Bubble,
+  Droplet,
+  Matrix,
+  Moment,
+  Op,
+  Paint,
+  Sprite,
+} from "./draw";
 import { createWave, pushWave, spillageOf, stepWave, streamOf } from "./liquid";
-import type { Bead, Stream } from "./liquid";
+import type { Stream } from "./liquid";
 import { capacity, domeOf, flowAt, insideAt, mlOf, overflowAt } from "./pour";
 import type { Pour } from "./pour";
 import { createSake } from "./sake";
 import type { Backing, Sake } from "./sake";
 import {
+  GLASS_TOP,
   angleAt,
   awayAt,
   box,
@@ -31,9 +40,8 @@ import {
   radiusAt,
   seeded,
   tumbler,
-  worldX,
 } from "./scene";
-import type { Demo, Layout, Point, Reserved, View } from "./scene";
+import type { Demo, Layout, Point, Reserved, Vec, View } from "./scene";
 
 export interface Frame {
   pour: Pour;
@@ -46,11 +54,11 @@ export interface Frame {
   dt: number;
 }
 
-interface Drop extends Bead {
+interface Drop extends Droplet {
   vx: number;
   vy: number;
+  vz: number;
   age: number;
-  counter: boolean;
 }
 
 interface Mote {
@@ -82,10 +90,10 @@ const SHEET_FLOW = 40;
 const PUSH = 5;
 const QUIVER = 160;
 const SPLASH = 26;
+const SPLASH_SPEED = 380;
 const BUBBLES = 14;
 const SPRAY = 30;
 const SETTLED = 60;
-const COUNTER_Z = A + 12;
 const still = createWave(2);
 const MOTES = 42;
 const MOTE = "#ffe4b8";
@@ -536,23 +544,23 @@ export const createRenderer = (
     bubbling = 0;
   };
 
-  const spray = (
-    from: Point,
-    count: number,
-    speed: number,
-    counter: boolean
-  ) => {
+  const spray = (from: Vec, count: number, speed: number, counter: boolean) => {
     for (let i = 0; i < count; i += 1) {
-      const angle = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+      const heading = counter
+        ? Math.PI / 2 + (Math.random() - 0.5) * 2.2
+        : Math.random() * TAU;
+      const rise = 0.6 + Math.random() * 0.7;
       const push = speed * (0.35 + Math.random() * 0.65);
       drops.push({
         age: 0,
         counter,
         r: 0.3 + Math.random() * 0.6,
-        vx: Math.cos(angle) * push,
-        vy: Math.sin(angle) * push,
+        vx: Math.cos(heading) * Math.cos(rise) * push,
+        vy: Math.sin(rise) * push,
+        vz: Math.sin(heading) * Math.cos(rise) * push,
         x: from.x + (Math.random() - 0.5) * 2,
         y: from.y,
+        z: from.z + (Math.random() - 0.5) * 2,
       });
     }
   };
@@ -564,14 +572,16 @@ export const createRenderer = (
     strain: number,
     broke: number | null,
     start: number,
-    surfaceY: (x: number) => number
+    landing: (x: number) => number,
+    walled: (drop: Droplet) => boolean,
+    round: boolean
   ) => {
     const { dt, pour } = frame;
     stepWave(wave, dt, half * 2);
     const { impact } = stream;
     if (impact !== null) {
       const q = Math.min(1.5, impact.rate / pour.flow);
-      const x = worldX(impact.x, H);
+      const { x } = impact;
       pushWave(
         wave,
         x / half,
@@ -582,7 +592,12 @@ export const createRenderer = (
       splashing += dt * SPLASH * Math.max(0, q - 0.2) * (impact.speed / 1000);
       while (splashing > 1) {
         splashing -= 1;
-        spray(impact, 1, 520 * Math.min(1.3, impact.speed / 1000), false);
+        spray(
+          { x, y: -impact.y, z: 0 },
+          1,
+          SPLASH_SPEED * Math.min(1.3, impact.speed / 1000),
+          false
+        );
       }
       bubbling += dt * BUBBLES * q;
       while (bubbling > 1) {
@@ -614,7 +629,7 @@ export const createRenderer = (
     if (broke !== null && !burst) {
       burst = true;
       pushWave(wave, start / B, 1, -60, 0.35);
-      spray(project(start, H + 1, A), SPRAY, 420, true);
+      spray({ x: start, y: H + 1, z: A }, SPRAY, 420, true);
     }
     for (const bubble of bubbles) {
       bubble.age += dt;
@@ -625,21 +640,23 @@ export const createRenderer = (
     bubbles = bubbles.filter(
       (bubble) =>
         bubble.age < bubble.life &&
-        Math.abs(bubble.x) < half - 1 &&
-        Math.abs(bubble.z) < half - 1
+        (round
+          ? Math.hypot(bubble.x, bubble.z)
+          : Math.max(Math.abs(bubble.x), Math.abs(bubble.z))) <
+          half - 1
     );
     for (const drop of drops) {
       drop.age += dt;
-      drop.vy += GRAVITY * dt;
+      drop.vy -= GRAVITY * dt;
       drop.x += drop.vx * dt;
       drop.y += drop.vy * dt;
+      drop.z += drop.vz * dt;
     }
-    drops = drops.filter((drop) => {
-      const floor = drop.counter
-        ? project(drop.x, 0, COUNTER_Z).y
-        : surfaceY(drop.x);
-      return drop.age < 2 && (drop.vy < 0 || drop.y < floor);
-    });
+    drops = drops.filter(
+      (drop) =>
+        drop.age < 2 &&
+        (drop.counter ? drop.y > 0 : drop.y > -landing(drop.x) && !walled(drop))
+    );
   };
 
   const momentOf = (frame: Frame): Moment => {
@@ -648,9 +665,9 @@ export const createRenderer = (
     const fill = fillOf(pour, inside);
     const broke = spilledAt !== null && t >= spilledAt ? t - spilledAt : null;
     const strain = broke === null ? domeOf(pour, inside) : 0;
-    const surfaceY = landingOf(fill, strain);
+    const landing = landingOf(fill, strain);
     const lip = lipOf(pour);
-    const stream = streamOf(jetOf(pour, hold), t, surfaceY, pour.flow);
+    const stream = streamOf(jetOf(pour, hold), t, landing, pour.flow);
     const spilt = (since: number) =>
       mlOf(
         pour,
@@ -659,10 +676,15 @@ export const createRenderer = (
     const since = calm ? SETTLED : (broke ?? 0);
     const spillage =
       broke === null ? null : spillageOf(pour.seed, spilt, since, H, A);
-    const glassTarget = fill.glass !== null && !fill.glass.over;
+    const glassTarget = fill.glass !== null;
     const half = glassTarget
-      ? radiusAt(fill.glass?.level ?? BASE) - tumbler.wall
+      ? radiusAt(Math.min(fill.glass?.level ?? BASE, GLASS_TOP)) - tumbler.wall
       : B;
+    const walled = (drop: Droplet) =>
+      glassTarget
+        ? Math.hypot(drop.x, drop.z) >
+          radiusAt(Math.min(drop.y, GLASS_TOP)) - tumbler.wall
+        : Math.max(Math.abs(drop.x), Math.abs(drop.z)) > B;
     if (!calm) {
       evolve(
         frame,
@@ -671,7 +693,9 @@ export const createRenderer = (
         strain,
         broke,
         spillage?.start ?? 0,
-        surfaceY
+        landing,
+        walled,
+        glassTarget
       );
     }
     const rate = Math.min(1.5, flowAt(pour, hold, t) / pour.flow);
@@ -689,7 +713,7 @@ export const createRenderer = (
               name: pour.bottle,
             }
           : null,
-      bubbles: glassTarget ? [] : bubbles,
+      bubbles,
       clock,
       drops,
       film: fill.glass?.over === true ? rate : 0,

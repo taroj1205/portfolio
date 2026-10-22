@@ -4,6 +4,7 @@ import { bottles } from "./pour";
 import type { Bottle } from "./pour";
 import {
   CREST,
+  GLASS_REACH,
   GLASS_TOP,
   LIFT,
   alongSide,
@@ -15,9 +16,11 @@ import {
   glassBetween,
   glintOn,
   hull,
+  onScreen,
   project,
   radiusAt,
   ring,
+  scaleAt,
   shine,
   shoulderOf,
   surfaceOutline,
@@ -95,6 +98,11 @@ export interface Bubble {
   fade: number;
 }
 
+export interface Droplet extends Vec {
+  r: number;
+  counter: boolean;
+}
+
 export interface Moment {
   fill: Fill;
   strain: number;
@@ -106,7 +114,7 @@ export interface Moment {
   stream: Stream | null;
   rate: number;
   bubbles: readonly Bubble[];
-  drops: readonly Bead[];
+  drops: readonly Droplet[];
   bottle: { name: Bottle; matrix: Matrix } | null;
 }
 
@@ -407,9 +415,7 @@ const splashOps = (
   clip: readonly Point[]
 ): Op[] => {
   const { clock, rate } = moment;
-  const left = project(-10, y, 0);
-  const right = project(10, y, 0);
-  const x = ((impact.x - left.x) / (right.x - left.x || 1)) * 20 - 10;
+  const { x } = impact;
   const q = Math.min(1.4, rate);
   const r = (1.2 + 2.6 * Math.sqrt(q)) * (1 + 0.1 * Math.sin(clock * 47));
   return [
@@ -445,7 +451,7 @@ const splashOps = (
       ];
     }),
     spot(
-      impact,
+      project(x, y, 0),
       { x: r, y: r * 0.42 },
       [
         [0, SPARK, 0.75 * Math.min(1, q + 0.2)],
@@ -740,7 +746,6 @@ const waterline = ({ height, level }: Pool): Op[] => {
 
 const inner = (y: number) => radiusAt(y) - tumbler.wall;
 
-const GLASS_REACH = 4.5;
 const GLASS_RIPPLE = 0.6;
 const ARCS = 24;
 
@@ -1158,10 +1163,21 @@ const ribbon = (thread: readonly Bead[], from: number, to: number) => {
   return pathOf(band(near, far));
 };
 
-export const streamOps = (stream: Stream | null, clock: number): Op[] => {
-  if (stream === null) {
+const dropOps = (drops: readonly Droplet[], counter: boolean) =>
+  drops.flatMap((drop) =>
+    drop.counter === counter
+      ? beadOps({
+          ...project(drop.x, drop.y, drop.z),
+          r: drop.r * scaleAt(drop.x, drop.y, drop.z),
+        })
+      : []
+  );
+
+export const streamOps = (world: Stream | null, clock: number): Op[] => {
+  if (world === null) {
     return [];
   }
+  const stream = onScreen(world);
   return [
     ...stream.threads.flatMap((thread): Op[] => {
       const from = thread[0] ?? { x: 0, y: 0 };
@@ -1423,6 +1439,7 @@ const glassOps = (
     { kind: "sprite", name: "glassBack" },
     ...glassContents(moment, glass),
     ...streamOps(moment.stream, moment.clock),
+    ...dropOps(moment.drops, false),
     { kind: "sprite", name: "glassFront" },
     ...sheetOps(moment, glass),
     ...(pool === null ? [] : submerged(moment, pool)),
@@ -1442,10 +1459,11 @@ export const drawList = (moment: Moment): Op[] => {
     ...(fill.glass === null
       ? streamOps(moment.stream, moment.clock)
       : glassOps(moment, fill.glass, pool)),
+    ...(fill.glass === null ? dropOps(moment.drops, false) : []),
     { kind: "sprite", name: "outside" },
     ...(pool?.domed === true ? wetRim(["front", "right"]) : []),
     ...(spillage === null ? [] : spillOps(moment, spillage)),
-    ...moment.drops.flatMap(beadOps),
+    ...dropOps(moment.drops, true),
     ...(bottle === null
       ? []
       : [

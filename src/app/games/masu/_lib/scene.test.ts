@@ -2,22 +2,48 @@ import assert from "node:assert/strict";
 
 import { describe, test } from "vite-plus/test";
 
-import { bottles, cups, holdFor, outcomeOf, pourOf } from "./pour";
+import { streamOf } from "./liquid";
+import type { Jet, Stream } from "./liquid";
+import {
+  bottles,
+  capacity,
+  cups,
+  domeOf,
+  holdFor,
+  insideAt,
+  limitOf,
+  outcomeOf,
+  pourOf,
+} from "./pour";
+import type { Cup, Pour } from "./pour";
 import {
   AWAY,
   GAP,
   IDLE_TEXT,
   angleAt,
   awayAt,
+  basis,
+  box,
+  camera,
   demoSweepOf,
   extent,
+  fillOf,
+  jetAt,
+  jetOf,
   keepOut,
+  landingOf,
   layoutOf,
   lipOf,
+  onScreen,
   outlineAt,
+  project,
+  radiusAt,
+  rimOf,
+  ring,
   sweepOf,
+  tumbler,
 } from "./scene";
-import type { Demo, Layout, Point } from "./scene";
+import type { Demo, Layout, Point, View } from "./scene";
 
 const inside = (outline: readonly Point[], at: Point) => {
   let hit = false;
@@ -168,5 +194,172 @@ describe("the layout", () => {
     assert.equal(awayAt(pour, hold, hold + pour.trickle), 0);
     assert.ok(awayAt(pour, hold, hold + pour.trickle + AWAY / 2) > 0);
     assert.equal(awayAt(pour, hold, hold + pour.trickle + AWAY), 1);
+  });
+});
+
+const unproject = (screen: Point) => {
+  const dir = {
+    x:
+      screen.x * basis.right.x -
+      screen.y * basis.up.x -
+      basis.distance * basis.back.x,
+    y:
+      screen.x * basis.right.y -
+      screen.y * basis.up.y -
+      basis.distance * basis.back.y,
+    z:
+      screen.x * basis.right.z -
+      screen.y * basis.up.z -
+      basis.distance * basis.back.z,
+  };
+  const t = -camera.z / dir.z;
+  return { x: camera.x + dir.x * t, y: camera.y + dir.y * t };
+};
+
+const wallAt = (cup: Cup, y: number) =>
+  cup === "masu" ? box.inner : radiusAt(y) - tumbler.wall;
+
+const openingOf = (cup: Cup) =>
+  cup === "masu"
+    ? [
+        project(-box.inner, box.height, -box.inner),
+        project(box.inner, box.height, -box.inner),
+        project(box.inner, box.height, box.inner),
+        project(-box.inner, box.height, box.inner),
+      ]
+    : ring(rimOf(cup), wallAt(cup, rimOf(cup)), 0, Math.PI * 2, 96);
+
+const onView = (view: View, p: Point) => ({
+  x: view.cx + p.x * view.scale,
+  y: view.cy + p.y * view.scale,
+});
+
+const fallsIn = (stream: Stream, cup: Cup, views: readonly View[]) => {
+  const rim = rimOf(cup);
+  const drawn = onScreen(stream);
+  const problems: string[] = [];
+  let crossed = false;
+  for (const [k, thread] of drawn.threads.entries()) {
+    const world = thread.map((bead, i) => ({
+      ...unproject(bead),
+      r: stream.threads[k]?.[i]?.r ?? 0,
+    }));
+    for (const [i, p] of world.entries()) {
+      if (p.y < rim - 1e-6 && Math.abs(p.x) + p.r > wallAt(cup, p.y) + 1e-6) {
+        problems.push(
+          `pierces the wall at ${p.x.toFixed(1)}, ${p.y.toFixed(1)}`
+        );
+      }
+      const q = world[i + 1];
+      if (q !== undefined && p.y >= rim && q.y < rim) {
+        crossed = true;
+        const mix = (p.y - rim) / (p.y - q.y);
+        const x = p.x + (q.x - p.x) * mix;
+        const r = p.r + (q.r - p.r) * mix;
+        if (Math.abs(x) + r > wallAt(cup, rim)) {
+          problems.push(`crosses the rim plane at x=${x.toFixed(1)}`);
+        }
+        for (const view of views) {
+          if (
+            !inside(
+              openingOf(cup).map((each) => onView(view, each)),
+              onView(view, project(x, rim, 0))
+            )
+          ) {
+            problems.push(
+              `crosses outside the drawn opening at x=${x.toFixed(1)}`
+            );
+          }
+        }
+      }
+    }
+  }
+  for (const bead of drawn.beads) {
+    const p = unproject(bead);
+    if (p.y < rim) {
+      crossed = true;
+      if (Math.abs(p.x) > wallAt(cup, p.y)) {
+        problems.push(
+          `drips through the wall at ${p.x.toFixed(1)}, ${p.y.toFixed(1)}`
+        );
+      }
+    }
+  }
+  if (drawn.impact !== null) {
+    const p = unproject(drawn.impact);
+    if (Math.abs(p.x) > wallAt(cup, Math.min(p.y, rim))) {
+      problems.push(
+        `lands outside the cup at ${p.x.toFixed(1)}, ${p.y.toFixed(1)}`
+      );
+    }
+  }
+  return { problems, reached: crossed || drawn.impact !== null };
+};
+
+const fills = (pour: Pour) =>
+  [0, 0.3, 0.62, 0.9, 1, limitOf(pour)].map((volume) => ({
+    fill: fillOf(pour, volume),
+    strain: domeOf(pour, volume),
+  }));
+
+const viewsOf = (w: number, h: number) => {
+  const layout = layoutOf(w, h, demo);
+  return [layout, layout.near];
+};
+
+describe("the stream", () => {
+  test("falls through the opening and lands inside the cup at every sweep angle", () => {
+    for (const [w, h] of [
+      ...viewports,
+      [414, 896],
+      [1920, 1080],
+      [1440, 900],
+    ] as const) {
+      const views = viewsOf(w, h);
+      for (const bottle of bottles) {
+        for (const cup of cups) {
+          const pour: Pour = { ...pourOf(13), bottle, cup };
+          for (const angle of sweepOf(bottle)) {
+            for (const q of [0.08, 0.3, 0.7, 1, 1.3, 1.6]) {
+              const rate = q * pour.flow;
+              const emit = (at: number): Jet =>
+                jetAt(pour, angle, rate, rate * capacity[cup] * at);
+              for (const { fill, strain } of fills(pour)) {
+                const { problems, reached } = fallsIn(
+                  streamOf(emit, 1, landingOf(fill, strain), pour.flow),
+                  cup,
+                  views
+                );
+                const where = `${bottle} into ${cup} at ${angle.toFixed(2)} rad, ${q}x flow, ${w}x${h}`;
+                assert.deepEqual(problems, [], where);
+                assert.ok(reached, `${where} never reaches the cup`);
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
+  test("stays inside the cup through a whole pour and its drip", () => {
+    const views = viewsOf(390, 844);
+    for (let seed = 1; seed < 160; seed += 1) {
+      const pour = pourOf(seed);
+      for (const hold of [pour.lag + 0.4, pour.brink * 0.8, pour.brink]) {
+        const outcome = outcomeOf(pour, Math.round(hold * 1000));
+        for (let t = 0; t < outcome.settledAt; t += 0.05) {
+          const volume = insideAt(pour, outcome.hold, outcome.spilledAt, t);
+          const fill = fillOf(pour, volume);
+          const stream = streamOf(
+            jetOf(pour, outcome.hold),
+            t,
+            landingOf(fill, domeOf(pour, volume)),
+            pour.flow
+          );
+          const { problems } = fallsIn(stream, pour.cup, views);
+          assert.deepEqual(problems, [], `seed ${seed} at ${t.toFixed(2)}s`);
+        }
+      }
+    }
   });
 });

@@ -1,7 +1,7 @@
 import { edgeOf } from "./liquid";
-import type { Jet } from "./liquid";
+import type { Bead, Jet, Stream } from "./liquid";
 import { bottles, domeOf, flowAt, mlOf, rateAt, volumeAt } from "./pour";
-import type { Bottle, Pour } from "./pour";
+import type { Bottle, Cup, Pour } from "./pour";
 
 export interface Point {
   x: number;
@@ -286,12 +286,18 @@ const spoutAt = (bottle: Bottle, angle: number): Point => {
 
 const POUR_X = 12;
 
-export const lipOf = (pour: Pick<Pour, "bottle" | "cup">) =>
-  project(
-    POUR_X,
-    (pour.cup === "masu" ? box.height : GLASS_TOP) + vessels[pour.bottle].drop,
-    0
-  );
+export const rimOf = (cup: Cup) => (cup === "masu" ? box.height : GLASS_TOP);
+
+const lipAt = (pour: Pick<Pour, "bottle" | "cup">): Vec => ({
+  x: POUR_X,
+  y: rimOf(pour.cup) + vessels[pour.bottle].drop,
+  z: 0,
+});
+
+export const lipOf = (pour: Pick<Pour, "bottle" | "cup">) => {
+  const lip = lipAt(pour);
+  return project(lip.x, lip.y, lip.z);
+};
 
 export const poseOf = (angle: number, size: number) => {
   const s = vesselScale * size;
@@ -676,44 +682,93 @@ export const alongSide = (side: Side, inset = 0) =>
 export const edgeLine = (height: Surface, side: Side, inset = 0) =>
   alongSide(side, inset).map(([x, z]) => project(x, height(x, z), z));
 
-const LIP_SPEED = 130;
-const LIP_GAIN = 240;
+const LIP_SPEED = 70;
+const LIP_GAIN = 50;
+
+const planeOf = (screen: Point, at: Vec): Point => {
+  const origin = project(at.x, at.y, at.z);
+  const across = project(at.x + 1, at.y, at.z);
+  const rise = project(at.x, at.y + 1, at.z);
+  const ax = across.x - origin.x;
+  const ay = across.y - origin.y;
+  const bx = rise.x - origin.x;
+  const by = rise.y - origin.y;
+  const det = ax * by - bx * ay || 1;
+  const x = (screen.x * by - bx * screen.y) / det;
+  const up = (ax * screen.y - screen.x * ay) / det;
+  const size = Math.hypot(x, up) || 1;
+  return { x: x / size, y: -up / size };
+};
+
+export const jetAt = (
+  pour: Pick<Pour, "bottle" | "cup" | "flow">,
+  angle: number,
+  rate: number,
+  volume: number
+): Jet => {
+  const lip = lipAt(pour);
+  const direction = planeOf(spoutAt(pour.bottle, angle), lip);
+  const speed = LIP_SPEED + LIP_GAIN * Math.min(1.6, rate / pour.flow);
+  return {
+    rate,
+    volume,
+    vx: direction.x * speed,
+    vy: direction.y * speed,
+    x: lip.x,
+    y: -lip.y,
+  };
+};
 
 export const jetOf =
   (pour: Pour, hold: number) =>
-  (at: number): Jet => {
-    const lip = lipOf(pour);
-    const rate = flowAt(pour, hold, at);
-    const direction = spoutAt(pour.bottle, angleAt(pour, hold, at));
-    const speed = LIP_SPEED + LIP_GAIN * Math.min(1.6, rate / pour.flow);
-    return {
-      rate,
-      volume: mlOf(pour, volumeAt(pour, hold, at)),
-      vx: direction.x * speed,
-      vy: direction.y * speed,
-      x: lip.x,
-      y: lip.y,
-    };
-  };
+  (at: number): Jet =>
+    jetAt(
+      pour,
+      angleAt(pour, hold, at),
+      flowAt(pour, hold, at),
+      mlOf(pour, volumeAt(pour, hold, at))
+    );
 
-export const worldX = (screen: number, y: number) =>
-  screen / (project(1, y, 0).x || 1);
+export const GLASS_REACH = 4.5;
 
 export const landingOf = (fill: Fill, strain: number) => {
   const { glass } = fill;
-  const masu = (x: number) =>
-    fill.dome > 0
-      ? H + domeHeight(fill.dome, strain, x, 0)
-      : Math.max(fill.level, box.floor);
-  return (screen: number) => {
+  return (x: number) => {
     if (glass !== null) {
-      const y = Math.max(glass.level, box.floor + tumbler.base);
-      const x = worldX(screen, y);
+      const y = Math.min(
+        GLASS_TOP,
+        Math.max(glass.level, box.floor + tumbler.base)
+      );
       if (Math.abs(x) < radiusAt(y) - tumbler.wall) {
-        return project(x, Math.min(y, GLASS_TOP) + glass.dome * 0.6, 0).y;
+        return -(
+          y +
+          glass.dome * edgeOf(tumbler.top - Math.abs(x), GLASS_REACH)
+        );
       }
     }
-    const x = worldX(screen, H);
-    return project(x, masu(x), 0).y;
+    return -(fill.dome > 0
+      ? H + domeHeight(fill.dome, strain, x, 0)
+      : Math.max(fill.level, box.floor));
   };
 };
+
+export const scaleAt = (x: number, y: number, z: number) =>
+  DISTANCE /
+  (DISTANCE -
+    ((y - MIDDLE) * Math.sin(PITCH) +
+      (x * Math.sin(YAW) + z * Math.cos(YAW)) * Math.cos(PITCH)));
+
+const shown = <T extends Bead>(bead: T): T => ({
+  ...bead,
+  ...project(bead.x, -bead.y, 0),
+  r: bead.r * scaleAt(bead.x, -bead.y, 0),
+});
+
+export const onScreen = (stream: Stream): Stream => ({
+  beads: stream.beads.map(shown),
+  impact:
+    stream.impact === null
+      ? null
+      : { ...stream.impact, ...project(stream.impact.x, -stream.impact.y, 0) },
+  threads: stream.threads.map((thread) => thread.map(shown)),
+});

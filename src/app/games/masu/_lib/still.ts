@@ -12,6 +12,7 @@ import {
   jetOf,
   landingOf,
   lipOf,
+  onScreen,
   poseOf,
 } from "./scene";
 import type { Fill, View } from "./scene";
@@ -95,7 +96,8 @@ export type CardLayer = (typeof cardLayers)[number];
 export const isCardLayer = (value: string): value is CardLayer =>
   cardLayers.some((layer) => layer === value);
 
-const streamPoints = (pitch.stream?.threads ?? []).flat();
+const streamPoints =
+  pitch.stream === null ? [] : onScreen(pitch.stream).threads.flat();
 
 export const streamBox = (() => {
   const xs = streamPoints.map((p) => cardFrame.cx + p.x * cardFrame.scale);
