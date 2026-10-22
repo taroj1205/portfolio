@@ -482,7 +482,7 @@ export const createRenderer = (
   demo: Demo
 ) => {
   const atlas = createAtlas();
-  const sake = createSake();
+  const sake = createSake(calm);
   const paint = createPainter(canvas, atlas, sake);
   const air = createAir(canvas, calm);
   const surface = canvas.getContext("2d");

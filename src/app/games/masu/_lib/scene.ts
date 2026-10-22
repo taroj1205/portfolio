@@ -61,6 +61,28 @@ export const lamps = {
   key: { x: -170, y: 300, z: 150 },
 } as const;
 
+export const backBar = {
+  bokeh: [
+    [-150, 226, 10, 1.3],
+    [-96, 292, 8, 0.8],
+    [-58, 214, 12, 1.1],
+    [-130, 268, 7, 0.9],
+    [-30, 300, 9, 0.7],
+  ],
+  bottles: [
+    [-194, 312, 6.2],
+    [-158, 334, 5.4],
+    [-124, 300, 6.8],
+    [-90, 322, 5.8],
+    [-57, 340, 6.4],
+    [-24, 306, 5.2],
+    [10, 328, 6.6],
+  ],
+  lantern: { h: 26, w: 20, x: -12, y: 262 },
+  shelf: 212,
+  wall: -260,
+} as const;
+
 export const unit = (v: Vec): Vec => {
   const size = Math.hypot(v.x, v.y, v.z) || 1;
   return { x: v.x / size, y: v.y / size, z: v.z / size };

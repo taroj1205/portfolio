@@ -1,5 +1,5 @@
 import type { Liquid, Matrix } from "./draw";
-import { CREST, basis, box, camera, lamps } from "./scene";
+import { CREST, backBar, basis, box, camera, lamps } from "./scene";
 
 export interface Backing {
   bitmap: HTMLCanvasElement;
@@ -8,6 +8,11 @@ export interface Backing {
   w: number;
   h: number;
 }
+
+const decimals = (...values: readonly number[]) =>
+  values.map((value) => value.toFixed(1)).join(", ");
+
+const { lantern } = backBar;
 
 const VERTEX = `#version 300 es
 void main() {
@@ -33,6 +38,7 @@ uniform vec4 uBox;
 uniform vec3 uKey;
 uniform vec3 uGlint;
 uniform float uWaveSize;
+uniform float uTime;
 uniform sampler2D uWave;
 uniform sampler2D uInside;
 
@@ -41,20 +47,17 @@ out vec4 colour;
 const int STEPS = 22;
 const float STRETCH = 3.4;
 const float CREST = ${CREST.toFixed(2)};
-const vec3 SAKE = vec3(0.0009, 0.0019, 0.0062);
+const vec3 SAKE = vec3(0.0002, 0.0005, 0.0013);
 const vec3 ROOM = vec3(0.06, 0.036, 0.02);
 const vec3 CEILING = vec3(0.016, 0.01, 0.006);
 const vec3 LAMP = vec3(1.0, 0.82, 0.58);
 const vec3 BAR = vec3(1.0, 0.6, 0.28);
-const vec3 WASHI = vec3(1.0, 0.94, 0.84);
-const vec3 PANEL = vec3(-0.22, 0.57, -0.79);
-const vec4 BOKEH[5] = vec4[5](
-  vec4(-0.62, 0.42, 0.07, 1.4),
-  vec4(-0.2, 0.55, 0.05, 0.9),
-  vec4(0.28, 0.38, 0.08, 1.1),
-  vec4(0.55, 0.62, 0.06, 0.8),
-  vec4(0.02, 0.3, 0.09, 0.7)
-);
+const vec3 LANTERN = vec3(1.0, 0.32, 0.12);
+const float WALL = ${decimals(backBar.wall)};
+const float SHELF = ${decimals(backBar.shelf)};
+const vec4 LANTERN_AT = vec4(${decimals(lantern.x, lantern.y, lantern.w, lantern.h)});
+const vec4 BOKEH[${backBar.bokeh.length}] = vec4[${backBar.bokeh.length}](${backBar.bokeh.map((blob) => `vec4(${decimals(...blob)})`).join(", ")});
+const vec3 BOTTLES[${backBar.bottles.length}] = vec3[${backBar.bottles.length}](${backBar.bottles.map((bottle) => `vec3(${decimals(...bottle)})`).join(", ")});
 
 float edgeOf(float inset, float reach) {
   return tanh(max(0.0, inset) / max(0.5, reach));
@@ -160,7 +163,7 @@ vec3 seenAt(vec3 hit) {
   bool front = p.z > uMasu.x - 0.05;
   p.x = right ? -p.x : p.x;
   p.z = front ? -p.z : p.z;
-  p.y = min(p.y, uMasu.z - 0.4);
+  p.y = min(p.y, uMasu.z - 1.5);
   return woodAt(p) * (right ? 0.62 : 1.0) * (front ? 0.48 : 1.0);
 }
 
@@ -173,31 +176,49 @@ float glow(vec3 r, vec3 at, vec3 lamp, float size) {
   return step(0.0, dot(r, toward)) * (exp(-spread) * 22.0 + exp(-spread * 0.06) * 1.6);
 }
 
-float panelAt(vec3 r) {
-  vec3 ahead = normalize(PANEL);
-  vec3 side = normalize(cross(ahead, vec3(0.0, 1.0, 0.0)));
-  vec3 rise = cross(side, ahead);
-  float u = dot(r, side);
-  float v = dot(r, rise);
-  float inside = smoothstep(0.22, 0.18, abs(u)) * smoothstep(0.085, 0.06, abs(v));
-  vec2 cell = abs(fract(vec2(u * 12.5, v * 12.5) + 0.5) - 0.5);
-  float frame = smoothstep(0.02, 0.06, min(cell.x, cell.y));
-  return step(0.0, dot(r, ahead)) * inside * mix(0.72, 1.0, frame);
+float bottleAt(vec2 p) {
+  float cover = 0.0;
+  for (int i = 0; i < BOTTLES.length(); i += 1) {
+    vec3 bottle = BOTTLES[i];
+    float shoulder = bottle.y - 44.0;
+    float width = mix(bottle.z, 1.8, smoothstep(shoulder - 8.0, shoulder + 10.0, p.y));
+    cover = max(cover, smoothstep(width + 5.0, width - 4.0, abs(p.x - bottle.x)) * smoothstep(bottle.y + 6.0, bottle.y - 6.0, p.y));
+  }
+  return cover * smoothstep(SHELF - 1.0, SHELF + 1.0, p.y);
+}
+
+vec3 barAt(vec2 p) {
+  float rise = max(p.y - SHELF - 24.0, 0.0) / 80.0;
+  float ledge = (p.y - SHELF) / 2.5;
+  float shoji = smoothstep(SHELF - 170.0, SHELF - 20.0, p.y) * step(p.y, SHELF);
+  vec3 tone = BAR * ((exp(-rise * rise) * 2.6 + 0.08) * (1.0 - 0.7 * bottleAt(p)) * step(SHELF, p.y) + shoji * 1.4);
+  tone += LAMP * exp(-ledge * ledge) * 3.0;
+  for (int i = 0; i < BOKEH.length(); i += 1) {
+    vec4 blob = BOKEH[i];
+    float off = length(p - blob.xy) / blob.z;
+    tone += BAR * blob.w * exp(-off * off * 2.2) * 7.0;
+  }
+  float lantern = length((p - LANTERN_AT.xy) / LANTERN_AT.zw);
+  tone += LANTERN * (smoothstep(1.0, 0.7, lantern) * 6.0 + exp(-lantern * lantern * 0.35) * 1.4);
+  return tone;
 }
 
 vec3 roomAt(vec3 r, vec3 at) {
   vec3 tone = mix(ROOM, CEILING, smoothstep(0.1, 0.95, r.y));
-  float behind = smoothstep(0.2, -0.5, r.z);
-  tone += BAR * behind * smoothstep(0.45, 0.0, abs(r.y - 0.5)) * 1.1;
-  for (int i = 0; i < 5; i += 1) {
-    vec4 blob = BOKEH[i];
-    float off = length(vec2(r.x - blob.x, r.y - blob.y));
-    tone += BAR * behind * blob.w * smoothstep(blob.z, blob.z * 0.6, off) * 7.0;
+  if (r.z < -0.05) {
+    vec3 hit = at + r * ((WALL - at.z) / r.z);
+    tone = mix(tone, barAt(hit.xy), smoothstep(-0.05, -0.25, r.z));
   }
-  tone += WASHI * panelAt(r) * 12.0;
   tone += LAMP * glow(r, at, uKey, 0.04);
   tone += LAMP * glow(r, at, uGlint, 0.02);
   return tone;
+}
+
+vec2 shimmerAt(vec2 p) {
+  return vec2(
+    sin(p.x * 0.23 + p.y * 0.11 + uTime * 0.8) + 0.5 * sin(p.y * 0.41 - uTime * 1.15 + 1.3),
+    sin(p.y * 0.19 - p.x * 0.14 - uTime * 0.65 + 0.7) + 0.5 * sin(p.x * 0.37 + uTime * 1.05 + 2.1)
+  ) * 0.0015;
 }
 
 vec3 mirrorAt(vec3 at, vec3 r) {
@@ -223,6 +244,22 @@ float causticAt(vec3 floorAt, float depth) {
   return clamp(1.0 + max(focus, 0.0) * 1.4 + min(focus, 0.0) * 0.35, 0.82, 2.2);
 }
 
+vec2 columnOf(vec3 o, vec3 d) {
+  if (uShape.x > 0.5) {
+    float a = dot(d.xz, d.xz);
+    float b = dot(o.xz, d.xz);
+    float c = dot(o.xz, o.xz) - uShape.y * uShape.y;
+    float root = sqrt(max(b * b - a * c, 0.0));
+    return b * b < a * c ? vec2(1.0, -1.0) : vec2(-b - root, -b + root) / a;
+  }
+  vec2 inverse = 1.0 / mix(vec2(1e-6), d.xz, step(vec2(1e-6), abs(d.xz)));
+  vec2 low = (-uShape.y - o.xz) * inverse;
+  vec2 high = (uShape.y - o.xz) * inverse;
+  vec2 enter = min(low, high);
+  vec2 leave = max(low, high);
+  return vec2(max(enter.x, enter.y), min(leave.x, leave.y));
+}
+
 vec3 soft(vec3 c) {
   vec3 over = max(c - 0.78, 0.0);
   return min(c, 0.78) + 0.22 * (1.0 - exp(-over / 0.22));
@@ -232,14 +269,18 @@ void main() {
   vec2 device = vec2(uRegion.x + gl_FragCoord.x, uRegion.y + uRegion.w - gl_FragCoord.y);
   vec2 screen = (device - uScene.yz) / uScene.x;
   vec3 dir = normalize(screen.x * uRight - screen.y * uUp - uLens.x * uBack);
-  float near = (uSpan.y - uEye.y) / dir.y;
-  float far = (uSpan.x - uEye.y) / dir.y;
+  vec2 column = columnOf(uEye, dir);
+  float near = max((uSpan.y - uEye.y) / dir.y, column.x);
+  float far = min((uSpan.x - uEye.y) / dir.y, column.y);
+  if (far <= near) {
+    discard;
+  }
   float before = near;
   float hit = -1.0;
   float closest = 1e4;
   float graze = near;
   int steps = uLevel.y > 0.0 ? STEPS : STEPS / 2;
-  for (int i = 1; i <= STEPS; i += 1) {
+  for (int i = 0; i <= STEPS; i += 1) {
     if (i > steps) {
       break;
     }
@@ -269,20 +310,23 @@ void main() {
   }
   vec3 at = uEye + dir * hit;
   float inset = insetOf(at.xz);
-  float cover = found * clamp(inset / max(fwidth(inset), 1e-3) + 0.5, 0.0, 1.0);
-  if (cover <= 0.0) {
-    discard;
-  }
   float nudge = 0.22;
+  vec2 sway = shimmerAt(at.xz);
   vec3 normal = normalize(vec3(
-    smoothHeightAt(at.xz - vec2(nudge, 0.0)) - smoothHeightAt(at.xz + vec2(nudge, 0.0)),
+    smoothHeightAt(at.xz - vec2(nudge, 0.0)) - smoothHeightAt(at.xz + vec2(nudge, 0.0)) + sway.x,
     2.0 * nudge,
-    smoothHeightAt(at.xz - vec2(0.0, nudge)) - smoothHeightAt(at.xz + vec2(0.0, nudge))
+    smoothHeightAt(at.xz - vec2(0.0, nudge)) - smoothHeightAt(at.xz + vec2(0.0, nudge)) + sway.y
   ));
   vec3 eye = -dir;
   float facing = max(dot(normal, eye), 0.0);
+  float footprint = hit / (uLens.x * uScene.x * max(facing, 0.15));
+  float cover = found * clamp(inset / footprint + 0.5, 0.0, 1.0);
+  if (cover <= 0.0) {
+    discard;
+  }
   float fresnel = 0.02 + 0.98 * pow(1.0 - facing, 5.0);
-  vec3 bent = refract(dir, normal, 0.7519);
+  float rim = max(uShape.x * 0.6, 1.0 - smoothstep(0.0, max(uShape.z, 1.6), inset));
+  vec3 bent = refract(dir, normalize(mix(normal, vec3(0.0, 1.0, 0.0), rim * 0.85)), 0.7519);
   float t = exitOf(at, bent);
   vec3 under = at + bent * t;
   float depth = max(0.0, at.y - under.y);
@@ -294,13 +338,14 @@ void main() {
   seen *= exp(-SAKE * path);
   vec3 mirrored = mirrorAt(at, reflect(dir, normal));
   vec3 lit = seen * (1.0 - fresnel) + mirrored * fresnel;
-  float along = (inset / uShape.z - CREST) / 0.2;
+  float along = (inset - uShape.z * CREST) / max(uShape.z * 0.12, footprint * 1.2);
   float crest = exp(-along * along) * uShape.w * smoothstep(0.0, 1.2, uLevel.y);
   vec2 lean = normalize(normal.xz + 1e-4);
-  float distant = smoothstep(-0.3, 0.7, -dot(lean, normalize(eye.xz)));
+  float away = smoothstep(-0.55, 0.3, -dot(lean, normalize(eye.xz)));
   float facingLamp = max(dot(lean, normalize(uKey.xz - at.xz)), 0.0) + max(dot(lean, normalize(uGlint.xz - at.xz)), 0.0);
-  lit += LAMP * crest * mix(0.25, 1.4, distant) * (0.5 + 0.9 * min(facingLamp, 1.0));
-  lit *= mix(0.62, 1.0, smoothstep(0.0, uShape.z * 0.7, inset));
+  lit += LAMP * crest * away * (0.35 + 0.75 * min(facingLamp, 1.0));
+  float hair = 1.0 - smoothstep(0.0, footprint * 1.6, inset);
+  lit *= 1.0 - 0.3 * hair;
   colour = vec4(soft(lit) * cover, cover);
 }`;
 
@@ -320,6 +365,7 @@ const UNIFORMS = [
   "uKey",
   "uGlint",
   "uWaveSize",
+  "uTime",
   "uWave",
   "uInside",
 ] as const;
@@ -408,7 +454,7 @@ const prepare = (gl: WebGL2RenderingContext): State | null => {
   };
 };
 
-export const createSake = () => {
+export const createSake = (calm: boolean) => {
   const canvas = document.createElement("canvas");
   canvas.width = 1;
   canvas.height = 1;
@@ -571,6 +617,7 @@ export const createSake = () => {
     gl.uniform3f(at("uSpan"), low, high, liquid.span);
     gl.uniform4f(at("uBox"), backing.x, backing.y, backing.w, backing.h);
     gl.uniform1f(at("uWaveSize"), liquid.wave.size);
+    gl.uniform1f(at("uTime"), calm ? 0 : liquid.clock);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     target.save();
     target.setTransform(1, 0, 0, 1, 0, 0);

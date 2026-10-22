@@ -7,6 +7,7 @@ import {
   GLASS_TOP,
   LIFT,
   alongSide,
+  backBar,
   box,
   domeHeight,
   edgeLine,
@@ -72,6 +73,7 @@ export interface Liquid {
   ripple: number;
   meniscus: number;
   wave: Wave;
+  clock: number;
 }
 
 export type Op =
@@ -119,8 +121,9 @@ const MENISCUS = 0.3;
 const SHEEN = "#fff7e6";
 const SPARK = "#ffffff";
 const STRAW = "#f4e4b4";
-const GOLD = "#efc366";
 const LAMP = "#ffcf8a";
+const BAR = "#ff9947";
+const LANTERN = "#ff521f";
 const DAMP = "#b4854c";
 const DUSK = "#1c120a";
 const WET = "#9c6a38";
@@ -310,31 +313,88 @@ const highlight = (
   ];
 };
 
-const BOKEH = [
-  [-0.55, -0.5, 9, "#ffb055"],
-  [0.45, -0.7, 6, "#ffd08a"],
-  [0.6, 0.05, 11, "#ff8a4a"],
-] as const;
-
-const bokehOps = (
+const mirrored = (
   moment: Moment,
-  y: number,
-  alpha: number,
+  level: number,
+  x: number,
+  y: number
+): Point => {
+  const at = glintOn(level, { x, y, z: backBar.wall });
+  const tilt = tiltAt(moment.wave, at.x / B, at.z / B, B / 2.2, 0.3);
+  return project(at.x + tilt.x * 18, level, at.z + tilt.z * 18);
+};
+
+const barOps = (
+  moment: Moment,
+  level: number,
+  strength: number,
   clip: readonly Point[]
-) =>
-  BOKEH.map(([u, v, r, tint]) => {
-    const tilt = tiltAt(moment.wave, u, v, B / 2.2, 0.3);
-    return spot(
-      project((u + tilt.x) * B, y, (v + tilt.z) * B),
-      { x: r, y: r * 0.45 },
+): Op[] => {
+  const { shelf, bokeh, lantern, wall } = backBar;
+  const from = project(-80, 2 * level - shelf + 160, wall);
+  const to = project(-80, 2 * level - shelf - 140, wall);
+  const ledge = project(-80, 2 * level - shelf, wall);
+  const at = (ledge.y - from.y) / (to.y - from.y || 1);
+  const scale =
+    project(-79, 2 * level - shelf, wall).x -
+    project(-80, 2 * level - shelf, wall).x;
+  return [
+    {
+      blend: "screen",
+      clip,
+      d: pathOf(clip),
+      kind: "fill",
+      paint: {
+        from,
+        kind: "linear",
+        stops: [
+          [0, BAR, 0],
+          [at * 0.5, BAR, 0.16 * strength],
+          [at - 0.02, BAR, 0.22 * strength],
+          [at, LAMP, 0.4 * strength],
+          [at + 0.03, BAR, 0.3 * strength],
+          [at + (1 - at) * 0.45, BAR, 0.1 * strength],
+          [1, BAR, 0],
+        ],
+        to,
+      },
+    },
+    ...backBar.bottles.map(([x, top, half]) =>
+      spot(
+        mirrored(moment, level, x, (shelf + top) / 2),
+        { x: half * scale * 1.6, y: ((top - shelf) / 2) * scale },
+        [
+          [0, DUSK, 0.24 * strength],
+          [0.6, DUSK, 0.12 * strength],
+          [1, DUSK, 0],
+        ],
+        { blend: "multiply", clip }
+      )
+    ),
+    ...bokeh.map(([x, y, r, glow]) =>
+      spot(
+        mirrored(moment, level, x, y),
+        { x: r * scale, y: r * scale },
+        [
+          [0, BAR, 0.4 * glow * strength],
+          [0.5, BAR, 0.16 * glow * strength],
+          [1, BAR, 0],
+        ],
+        { blend: "screen", clip }
+      )
+    ),
+    spot(
+      mirrored(moment, level, lantern.x, lantern.y),
+      { x: lantern.w * scale * 1.6, y: lantern.h * scale * 1.6 },
       [
-        [0, tint, alpha],
-        [0.5, tint, alpha * 0.4],
-        [1, tint, 0],
+        [0, LANTERN, 0.55 * strength],
+        [0.4, LANTERN, 0.3 * strength],
+        [1, LANTERN, 0],
       ],
       { blend: "screen", clip }
-    );
-  });
+    ),
+  ];
+};
 
 const RINGS = [0, 1 / 3, 2 / 3] as const;
 
@@ -489,9 +549,9 @@ const line = (
 
 const CREST_GLOW: Record<Side, number> = {
   back: 0.9,
-  front: 0.2,
+  front: 0,
   left: 0.75,
-  right: 0.25,
+  right: 0.45,
 };
 
 const domeEdge = (
@@ -514,13 +574,13 @@ const domeEdge = (
         clip
       ),
       {
-        alpha: 0.3,
+        alpha: 0.25,
         blend: "multiply",
         clip,
-        d: pathOf(edgeLine(height, side, 0.25), false),
+        d: pathOf(edgeLine(height, side, 0.15), false),
         kind: "stroke",
         paint: solid(SOAK),
-        width: 0.5,
+        width: 0.35,
       },
     ];
   });
@@ -552,7 +612,10 @@ const wetRim = (sides: readonly Side[]): Op[] =>
     };
   });
 
-const liquidOf = ({ fill, strain, wave }: Moment, pool: Pool): Liquid => ({
+const liquidOf = (
+  { fill, strain, wave, clock }: Moment,
+  pool: Pool
+): Liquid => ({
   base: pool.domed ? H : pool.level,
   half: B,
   lift: pool.domed ? fill.dome * LIFT : 0,
@@ -563,6 +626,7 @@ const liquidOf = ({ fill, strain, wave }: Moment, pool: Pool): Liquid => ({
   round: false,
   span: B,
   wave,
+  clock,
 });
 
 const poolOps = (
@@ -574,8 +638,6 @@ const poolOps = (
   const { height, level, domed } = pool;
   const deep = clamp((level - FLOOR) / (H - FLOOR));
   const wet = smooth(FLOOR, FLOOR + 2, level);
-  const back = project(0, level, -B);
-  const front = project(0, level, B);
   const impact = impactOf(moment);
   const body: Op[] = [
     { clip, kind: "lens", matrix: refraction(level) },
@@ -585,74 +647,28 @@ const poolOps = (
       clip,
       d: pathOf(clip),
       kind: "fill",
-      paint: {
-        from: back,
-        kind: "linear",
-        stops: [
-          [0, DAMP, 1],
-          [0.6, DAMP, 0.8],
-          [1, DAMP, 0.65],
-        ],
-        to: front,
-      },
+      paint: solid(DAMP),
     },
-    spot(
-      project(0, level, 0),
-      { x: B * 1.35, y: (front.y - back.y) * 0.75 },
-      [
-        [0, GOLD, 0.35 + 0.4 * deep],
-        [0.55, GOLD, 0.3 + 0.3 * deep],
-        [1, STRAW, 0.3],
-      ],
-      { blend: "multiply", clip }
-    ),
     {
-      alpha: 0.16 * deep,
-      blend: "screen",
+      alpha: 0.4 * deep,
+      blend: "multiply",
       clip,
       d: pathOf(clip),
       kind: "fill",
-      paint: solid(GOLD),
+      paint: solid(STRAW),
     },
-    {
-      alpha: domed ? 0.18 : 0.45,
-      blend: "screen",
-      clip,
-      kind: "lens",
-      matrix: mirrorAbout(project(-B, level, -B), project(B, level, -B)),
-    },
-    {
-      clip,
-      d: pathOf(clip),
-      kind: "fill",
-      paint: {
-        from: back,
-        kind: "linear",
-        stops: [
-          [0, DUSK, 0.16],
-          [0.5, DUSK, 0.05],
-          [1, DUSK, 0],
-        ],
-        to: front,
-      },
-    },
-    {
-      blend: "screen",
-      clip,
-      d: pathOf(clip),
-      kind: "fill",
-      paint: {
-        from: back,
-        kind: "linear",
-        stops: [
-          [0, LAMP, 0.42],
-          [0.45, LAMP, 0.14],
-          [1, LAMP, 0.03],
-        ],
-        to: front,
-      },
-    },
-    ...bokehOps(moment, level, wet * 0.45, clip),
+    ...(domed
+      ? []
+      : [
+          {
+            alpha: 0.45,
+            blend: "screen",
+            clip,
+            kind: "lens",
+            matrix: mirrorAbout(project(-B, level, -B), project(B, level, -B)),
+          } satisfies Op,
+        ]),
+    ...barOps(moment, level, wet, clip),
     ...highlight(
       level,
       clip,
@@ -678,6 +694,7 @@ const poolOps = (
 const waterline = ({ height, level }: Pool): Op[] => {
   const climbed: Surface = (x, z) => height(x, z) + MENISCUS;
   const glint = glintOn(level);
+  const fade = smooth(FLOOR, FLOOR + 4, level);
   const bead = (x: number, z: number) =>
     spot(
       project(x, level + MENISCUS, z),
@@ -687,20 +704,20 @@ const waterline = ({ height, level }: Pool): Op[] => {
         [0.45, SHEEN, 0.5],
         [1, SHEEN, 0],
       ],
-      { blend: "screen" }
+      { alpha: fade, blend: "screen" }
     );
   return [
     ...(["back", "left"] as const).flatMap((side): Op[] => [
       {
-        alpha: 0.5,
+        alpha: 0.3 * fade,
         blend: "multiply",
         d: pathOf(edgeLine(height, side, 1.1), false),
         kind: "stroke",
         paint: solid(SOAK),
-        width: 1,
+        width: 0.7,
       },
       {
-        alpha: 0.4,
+        alpha: 0.4 * fade,
         blend: "screen",
         d: pathOf(edgeLine(climbed, side), false),
         kind: "stroke",
@@ -708,7 +725,7 @@ const waterline = ({ height, level }: Pool): Op[] => {
         width: 1.1,
       },
       {
-        alpha: 0.95,
+        alpha: 0.95 * fade,
         blend: "screen",
         d: pathOf(edgeLine(climbed, side), false),
         kind: "stroke",
@@ -728,7 +745,7 @@ const GLASS_RIPPLE = 0.6;
 const ARCS = 24;
 
 const glassLiquid = (
-  { wave }: Moment,
+  { wave, clock }: Moment,
   y: number,
   r: number,
   lift: number
@@ -745,6 +762,7 @@ const glassLiquid = (
         round: true,
         span: r,
         wave,
+        clock,
       }
     : {
         base: y,
@@ -757,6 +775,7 @@ const glassLiquid = (
         round: true,
         span: r,
         wave,
+        clock,
       };
 
 const glassDomeLines = (lift: number): Op[] => [
@@ -814,7 +833,7 @@ const glassDome = (lift: number): Op[] => {
       clip: outline,
       d: pathOf(outline),
       kind: "fill",
-      paint: solid(GOLD),
+      paint: solid(STRAW),
     },
     {
       blend: "screen",
@@ -900,9 +919,9 @@ const glassContents = (
       d: pathOf(clip),
       kind: "fill",
       paint: across([
-        [0, GOLD, 0.35],
-        [0.5, GOLD, 0.7],
-        [1, GOLD, 0.35],
+        [0, STRAW, 0.35],
+        [0.5, STRAW, 0.7],
+        [1, STRAW, 0.35],
       ]),
     },
     {
@@ -910,7 +929,7 @@ const glassContents = (
       clip,
       d: pathOf(clip),
       kind: "fill",
-      paint: solid(GOLD),
+      paint: solid(STRAW),
     },
     {
       clip,
@@ -1065,7 +1084,7 @@ const sheetOps = (moment: Moment, glass: NonNullable<Fill["glass"]>): Op[] => {
       blend: "multiply",
       d: pathOf(sheet),
       kind: "fill",
-      paint: solid(GOLD),
+      paint: solid(STRAW),
     },
     {
       alpha: 0.08 + 0.12 * film,
@@ -1171,7 +1190,7 @@ export const streamOps = (stream: Stream | null, clock: number): Op[] => {
           d: ribbon(thread, -1, 1),
           kind: "fill",
           paint: along([
-            [0, GOLD, 0.5],
+            [0, STRAW, 0.5],
             [0.6, STRAW, 0.32],
             [1, STRAW, 0.24],
           ]),
@@ -1248,7 +1267,7 @@ const puddleOps = (spillage: Spillage): Op[] => {
       blend: "multiply",
       d: pathOf(outline),
       kind: "fill",
-      paint: solid(GOLD),
+      paint: solid(STRAW),
     },
     {
       alpha: 0.36,
