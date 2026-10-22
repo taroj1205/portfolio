@@ -5,12 +5,23 @@ import { describe, test } from "vite-plus/test";
 import { docOf, room, spriteDoc, sprites, stillDoc } from "./art";
 import { drawList, flatten, spriteNames } from "./draw";
 import type { Op } from "./draw";
+import { bottles } from "./pour";
 import { glassOf } from "./result";
-import { basis, project } from "./scene";
+import { basis, poseOf, project, sweepOf } from "./scene";
 import { cardDoc, cardLayers, stillOf } from "./still";
 
 const idsOf = (svg: string) =>
   [...svg.matchAll(/ id="(?<id>[^"]+)"/gu)].map((match) => match.groups?.id);
+
+const labelsOf = (body: string) =>
+  [
+    ...body.matchAll(
+      /<path data-glyph="(?<glyph>[^"]+)"[^>]*transform="matrix\((?<matrix>[^)]+)\)"/gu
+    ),
+  ].map((match) => ({
+    glyph: match.groups?.glyph,
+    matrix: (match.groups?.matrix ?? "").split(" ").map(Number),
+  }));
 
 const pitch = drawList(stillOf(null));
 const brimming = drawList(stillOf(glassOf({ hold: 4088, seed: 13 })));
@@ -61,6 +72,31 @@ describe("the sake surfaces", () => {
     assert.ok(domes.length > 0);
     for (const liquid of domes) {
       assert.ok(liquid.lift > 0);
+    }
+  });
+});
+
+describe("the bottle labels", () => {
+  test("are drawn as strokes, not font text", () => {
+    assert.deepEqual(
+      labelsOf(sprites.isshobin.body).map((label) => label.glyph),
+      ["吟", "酒"]
+    );
+    for (const bottle of bottles) {
+      assert.doesNotMatch(sprites[bottle].body, /<text/u);
+    }
+  });
+
+  test("never read mirrored at any pour angle", () => {
+    for (const bottle of bottles) {
+      for (const { matrix } of labelsOf(sprites[bottle].body)) {
+        const [a = 0, b = 0, c = 0, d = 0] = matrix;
+        for (const angle of sweepOf(bottle)) {
+          const pose = poseOf(angle, 1);
+          const facing = (pose.a * pose.d - pose.b * pose.c) * (a * d - b * c);
+          assert.ok(facing > 0, `${bottle} at ${angle}`);
+        }
+      }
     }
   });
 });

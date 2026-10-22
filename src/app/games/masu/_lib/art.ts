@@ -12,6 +12,7 @@ import {
   heading,
   hull,
   lamps,
+  poseOf,
   project,
   radiusAt,
   ring,
@@ -554,15 +555,43 @@ const glassFrontBody = () => {
   ].join("");
 };
 
+const handle = (from: Point, to: Point, chord: number) => {
+  const x = (to.x - from.x) / 6;
+  const y = (to.y - from.y) / 6;
+  const k = Math.min(1, chord / 3 / (Math.hypot(x, y) || 1));
+  return { x: x * k, y: y * k };
+};
+
 const smoothPath = (points: readonly Point[]) => {
   const at = (i: number) =>
     points[(i + points.length) % points.length] ?? { x: 0, y: 0 };
   const curves = points.map((_, i) => {
     const [p0, p1, p2, p3] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
-    return `C${n(p1.x + (p2.x - p0.x) / 6)} ${n(p1.y + (p2.y - p0.y) / 6)} ${n(p2.x - (p3.x - p1.x) / 6)} ${n(p2.y - (p3.y - p1.y) / 6)} ${n(p2.x)} ${n(p2.y)}`;
+    const chord = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    const out = handle(p0, p2, chord);
+    const back = handle(p1, p3, chord);
+    return `C${n(p1.x + out.x)} ${n(p1.y + out.y)} ${n(p2.x - back.x)} ${n(p2.y - back.y)} ${n(p2.x)} ${n(p2.y)}`;
   });
   return `M${n(at(0).x)} ${n(at(0).y)}${curves.join("")}Z`;
 };
+
+const strokes = {
+  吟: "M-9 -3V4.5M-9 -3H-4V4.5M-9 3.8H-4M4 -9.5Q1.2 -4.8 -2.4 -1.6M4 -9.5Q6.8 -4.8 10 -1.8M2.6 -2.4L5.4 -0.8M0.2 2.6H8Q5.4 6.6 2.4 9.8",
+  酒: "M-8.6 -8.8L-6.2 -7M-9.4 -3.2L-7 -1.6M-9.6 8.8Q-8 4.6 -5.6 1.4M-3.6 -8.6H9.6M-2.6 -4.6V9.4M-2.6 -4.6H8.6V9.4M-2.6 8.9H8.6M1.8 -8.6V0.6Q1.8 2.4 -0.6 3M5.2 -8.6V2.2Q5.2 3 8.6 3M-2.6 5.6H8.6",
+} as const;
+
+const upright = (() => {
+  const { a, b, c, d } = poseOf(0, 1);
+  return Math.sign(a * d - b * c);
+})();
+
+const glyph = (
+  char: keyof typeof strokes,
+  x: number,
+  y: number,
+  size: number
+) =>
+  `<path data-glyph="${char}" d="${strokes[char]}" transform="${matrixOf({ a: (upright * size) / 20, b: 0, c: 0, d: size / 20, e: x, f: y })}" fill="none" stroke="#2b1c12" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>`;
 
 const bottleBody = (bottle: Bottle) => {
   const vessel = vessels[bottle];
@@ -572,9 +601,13 @@ const bottleBody = (bottle: Bottle) => {
   const top = Math.min(...vessel.outline.map(([, y]) => y));
   const id = `bottle-${bottle}`;
   const shift = `translate(${-vessel.lip.x} ${-vessel.lip.y})`;
-  const bodies: Record<Bottle, { stops: readonly Stop[]; marks: string }> = {
+  const bodies: Record<
+    Bottle,
+    { stops: readonly Stop[]; marks: string; glyphs: string }
+  > = {
     isshobin: {
-      marks: `<rect x="-14" y="2" width="28" height="9" fill="#c9a24a"/><rect x="-13" y="11" width="26" height="7" fill="#b8321f"/><rect x="-13" y="34" width="26" height="46" fill="#f4ead7"/><rect x="-13" y="34" width="26" height="4" fill="#b8321f"/><rect x="-13" y="76" width="26" height="4" fill="#b8321f"/><text x="0" y="0" transform="translate(0 58) scale(-1 1)" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="17" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="#2b1c12">吟</text><path d="M-38 150Q0 128 38 150V174Q0 154 -38 174Z" fill="#f4ead7"/><path d="M-38 150Q0 128 38 150" fill="none" stroke="#c9a24a" stroke-width="3"/><rect x="-40" y="214" width="80" height="120" fill="#f4ead7"/><rect x="-40" y="214" width="80" height="8" fill="#b8321f"/><text x="0" y="0" transform="translate(0 278) scale(-1 1)" font-family="Hiragino Mincho ProN, Yu Mincho, serif" font-size="46" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="#2b1c12">酒</text>`,
+      glyphs: `${glyph("吟", 0, 57, 18)}${glyph("酒", 0, 276, 50)}`,
+      marks: `<rect x="-14" y="2" width="28" height="9" fill="#c9a24a"/><rect x="-13" y="11" width="26" height="7" fill="#b8321f"/><rect x="-13" y="34" width="26" height="46" fill="#f4ead7"/><rect x="-13" y="34" width="26" height="4" fill="#b8321f"/><rect x="-13" y="76" width="26" height="4" fill="#b8321f"/><path d="M-38 150Q0 128 38 150V174Q0 154 -38 174Z" fill="#f4ead7"/><path d="M-38 150Q0 128 38 150" fill="none" stroke="#c9a24a" stroke-width="3"/><rect x="-40" y="214" width="80" height="120" fill="#f4ead7"/><rect x="-40" y="214" width="80" height="8" fill="#b8321f"/>`,
       stops: [
         [0, "#2a1206", 1],
         [0.22, "#9c5422", 1],
@@ -583,6 +616,7 @@ const bottleBody = (bottle: Bottle) => {
       ],
     },
     katakuchi: {
+      glyphs: "",
       marks: `<ellipse cx="-1" cy="1" rx="60" ry="5" fill="#b8321f"/>`,
       stops: [
         [0, "#1b0d0b", 1],
@@ -592,6 +626,7 @@ const bottleBody = (bottle: Bottle) => {
       ],
     },
     tokkuri: {
+      glyphs: "",
       marks: `<g stroke="#2c3f8f" fill="none"><path d="M-50 60H50M-50 66H50M-50 126H50" stroke-width="2.4"/><path d="M-43 96a7 7 0 0 1 14 0M-25 96a7 7 0 0 1 14 0M-7 96a7 7 0 0 1 14 0M11 96a7 7 0 0 1 14 0M29 96a7 7 0 0 1 14 0" stroke-width="3"/></g>`,
       stops: [
         [0, "#bdb8aa", 1],
@@ -601,7 +636,7 @@ const bottleBody = (bottle: Bottle) => {
       ],
     },
   };
-  const { stops, marks } = bodies[bottle];
+  const { stops, marks, glyphs } = bodies[bottle];
   const span = { height: height - top + 8, y: top - 4 };
   const band = (
     x: number,
@@ -621,7 +656,7 @@ const bottleBody = (bottle: Bottle) => {
       [0.85, wood.shadow, 0.22],
       [1, wood.shadow, 0.5],
     ]
-  )}${blur(`${id}-ink`, 0.6)}${blur(`${id}-glaze`, width * 0.05)}${blur(`${id}-sheen`, width * 0.015)}<clipPath id="${id}-clip"><path d="${body}"/></clipPath><g transform="${shift}"><path d="${body}" fill="url(#${id}-body)"/><g clip-path="url(#${id}-clip)"><g filter="url(#${id}-ink)" opacity="0.88">${marks}</g><rect x="${n(-width)}" y="${n(span.y)}" width="${n(width * 2)}" height="${n(span.height)}" fill="url(#${id}-fall)"/>${band(-width * 0.58, width * 0.22, wood.spark, "glaze", 0.32)}${band(-width * 0.5, width * 0.06, wood.spark, "sheen", 0.75)}${band(width * 0.8, width * 0.08, wood.lamp, "glaze", 0.3)}</g><path d="${body}" fill="none" stroke="${wood.shadow}" stroke-opacity="0.35" stroke-width="0.8"/></g>`;
+  )}${blur(`${id}-ink`, 0.3)}${blur(`${id}-glaze`, width * 0.05)}${blur(`${id}-sheen`, width * 0.015)}<clipPath id="${id}-clip"><path d="${body}"/></clipPath><g transform="${shift}"><path d="${body}" fill="url(#${id}-body)"/><g clip-path="url(#${id}-clip)"><g filter="url(#${id}-ink)" opacity="0.88">${marks}</g><g opacity="0.92">${glyphs}</g><rect x="${n(-width)}" y="${n(span.y)}" width="${n(width * 2)}" height="${n(span.height)}" fill="url(#${id}-fall)"/>${band(-width * 0.58, width * 0.22, wood.spark, "glaze", 0.32)}${band(-width * 0.5, width * 0.06, wood.spark, "sheen", 0.75)}${band(width * 0.8, width * 0.08, wood.lamp, "glaze", 0.3)}</g><path d="${body}" fill="none" stroke="${wood.shadow}" stroke-opacity="0.35" stroke-width="0.8"/></g>`;
 };
 
 const bottleBox = (bottle: Bottle): Box =>
