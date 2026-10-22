@@ -369,6 +369,7 @@ export const startSession = (
         ready();
       }
     },
+    reserve: render.reserve,
     settings: (next: Settings) => {
       settings = next;
       storeSettings(settings);

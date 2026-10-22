@@ -1,5 +1,6 @@
 import { edgeOf } from "./liquid";
-import { bottles, domeOf, mlOf, rateAt, volumeAt } from "./pour";
+import type { Jet } from "./liquid";
+import { bottles, domeOf, flowAt, mlOf, rateAt, volumeAt } from "./pour";
 import type { Bottle, Pour } from "./pour";
 
 export interface Point {
@@ -7,74 +8,78 @@ export interface Point {
   y: number;
 }
 
+export interface Vec {
+  x: number;
+  y: number;
+  z: number;
+}
+
 export const box = { floor: 6, height: 50, inner: 36.5, outer: 44 } as const;
 
 export const tumbler = {
-  base: 5,
-  bottom: 21.5,
-  height: 66,
-  top: 25.5,
+  base: 14,
+  bottom: 19,
+  height: 86,
+  top: 29,
+  wall: 1.8,
 } as const;
 
+export const GLASS_TOP = box.floor + tumbler.height;
 const GLASS_SHARE = 0.6;
 const GLASS_SWELL = 0.03;
-const GLASS_RISE = 2.6;
-export const LIFT = 2.2;
-const PITCH = 0.3;
-const DISTANCE = 520;
-const MIDDLE = 28;
+const GLASS_RISE = 4;
+export const LIFT = 1.5;
+const PITCH = 0.68;
+const YAW = 0.3;
+const DISTANCE = 400;
+const MIDDLE = 34;
 
-export const camera = {
-  x: 0,
+export const camera: Vec = {
+  x: DISTANCE * Math.cos(PITCH) * Math.sin(YAW),
   y: MIDDLE + DISTANCE * Math.sin(PITCH),
-  z: DISTANCE * Math.cos(PITCH),
+  z: DISTANCE * Math.cos(PITCH) * Math.cos(YAW),
+};
+
+export const lamps = {
+  back: { x: -90, y: 330, z: -400 },
+  key: { x: -170, y: 300, z: 150 },
 } as const;
 
-export const paint = {
-  night: "#070403",
-  room: "#160c07",
-  counter: "#2a170d",
-  counterLight: "#6b4024",
-  counterDark: "#120904",
-  wood: "#e9cf9f",
-  woodLight: "#f7e6c2",
-  woodDark: "#b98e57",
-  woodShade: "#8a6236",
-  grain: "#a77b45",
-  endGrain: "#c79f68",
-  brand: "#5a2d12",
-  inner: "#d8b47c",
-  innerDark: "#9c7444",
-  sake: "#f3dc9a",
-  sakeDeep: "#c99a45",
-  amber: "#9a6420",
-  straw: "#fbefc8",
-  wet: "#5e3c1c",
-  mirror: "#4a2e12",
-  sheen: "#fffbea",
-  glass: "#eef6ff",
-  shadow: "#050302",
-  lamp: "#ffcf8a",
-  isshobin: "#1f4a2c",
-  isshobinLight: "#5e9b6c",
-  isshobinDark: "#0a1d10",
-  label: "#f4ead7",
-  labelInk: "#2b1c12",
-  porcelain: "#f2efe6",
-  porcelainShade: "#c9c4b6",
-  porcelainDark: "#8f8a7c",
-  indigo: "#2c3f8f",
-  lacquer: "#1b0d0b",
-  lacquerLight: "#5a2a22",
-  vermilion: "#b8321f",
-} as const;
+export const unit = (v: Vec): Vec => {
+  const size = Math.hypot(v.x, v.y, v.z) || 1;
+  return { x: v.x / size, y: v.y / size, z: v.z / size };
+};
+
+export const dot = (a: Vec, b: Vec) => a.x * b.x + a.y * b.y + a.z * b.z;
+
+export const heading = (from: Vec, to: Vec) =>
+  unit({ x: to.x - from.x, y: to.y - from.y, z: to.z - from.z });
+
+export const shine = (at: Vec, normal: Vec, sharpness = 60) => {
+  const n = unit(normal);
+  const view = heading(at, camera);
+  const facing = Math.max(0, dot(n, view));
+  let lit = 0.04 + 0.96 * (1 - facing) ** 5;
+  for (const lamp of [lamps.key, lamps.back]) {
+    const light = heading(at, lamp);
+    const half = unit({
+      x: light.x + view.x,
+      y: light.y + view.y,
+      z: light.z + view.z,
+    });
+    lit += Math.max(0, dot(n, half)) ** sharpness;
+  }
+  return Math.min(1, lit);
+};
 
 export const project = (x: number, y: number, z: number): Point => {
+  const across = x * Math.cos(YAW) - z * Math.sin(YAW);
+  const toward = x * Math.sin(YAW) + z * Math.cos(YAW);
   const height = y - MIDDLE;
-  const up = height * Math.cos(PITCH) - z * Math.sin(PITCH);
-  const depth = height * Math.sin(PITCH) + z * Math.cos(PITCH);
+  const up = height * Math.cos(PITCH) - toward * Math.sin(PITCH);
+  const depth = height * Math.sin(PITCH) + toward * Math.cos(PITCH);
   const scale = DISTANCE / (DISTANCE - depth);
-  return { x: x * scale, y: -up * scale };
+  return { x: across * scale, y: -up * scale };
 };
 
 export interface Fill {
@@ -92,13 +97,12 @@ export const fillOf = (pour: Pour, volume: number): Fill => {
     return { dome, glass: null, level: box.floor + span * clamp(volume) };
   }
   const bottom = box.floor + tumbler.base;
-  const top = box.floor + tumbler.height;
   const spare = GLASS_SHARE + GLASS_SWELL;
   return {
     dome,
     glass: {
       dome: clamp((volume - GLASS_SHARE) / GLASS_SWELL) * GLASS_RISE,
-      level: bottom + (top - bottom) * clamp(volume / GLASS_SHARE),
+      level: bottom + (GLASS_TOP - bottom) * clamp(volume / GLASS_SHARE),
       over: volume > spare,
     },
     level: box.floor + span * clamp((volume - spare) / (1 - spare)),
@@ -140,7 +144,7 @@ export const vessels: Record<Bottle, Vessel> = {
       [49, 398],
     ]),
     rest: 1.18,
-    drop: 40,
+    drop: 34,
     tip: 1.8,
     lean: 0.22,
     content: 1800,
@@ -163,7 +167,7 @@ export const vessels: Record<Bottle, Vessel> = {
       [60, 0],
     ],
     rest: 0.1,
-    drop: 26,
+    drop: 22,
     tip: 0.86,
     lean: 0.16,
     content: 450,
@@ -184,7 +188,7 @@ export const vessels: Record<Bottle, Vessel> = {
       [32, 152],
     ]),
     rest: 0.96,
-    drop: 30,
+    drop: 26,
     tip: 1.8,
     lean: 0.26,
     content: 540,
@@ -198,9 +202,7 @@ const RETURN = 0.45;
 const JUDDER = 0.035;
 export const AWAY = 0.5;
 
-const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
-
-const ease = (t: number) => 1 - (1 - clamp01(t)) ** 3;
+const ease = (t: number) => 1 - (1 - clamp(t)) ** 3;
 
 const tiltAt = (pour: Pour, hold: number, t: number) => {
   const tipped = ease(Math.min(t, hold) / pour.lag);
@@ -208,7 +210,7 @@ const tiltAt = (pour: Pour, hold: number, t: number) => {
 };
 
 export const awayAt = (pour: Pour, hold: number, t: number) => {
-  const p = clamp01((t - hold - pour.trickle) / AWAY);
+  const p = clamp((t - hold - pour.trickle) / AWAY);
   return p * p * (3 - 2 * p);
 };
 
@@ -227,7 +229,7 @@ export const angleAt = (pour: Pour, hold: number, t: number) => {
   );
 };
 
-export const spoutAt = (bottle: Bottle, angle: number): Point => {
+const spoutAt = (bottle: Bottle, angle: number): Point => {
   const { spout } = vessels[bottle];
   const x = spout.x * Math.cos(angle) - spout.y * Math.sin(angle);
   const y = spout.x * Math.sin(angle) + spout.y * Math.cos(angle);
@@ -235,11 +237,12 @@ export const spoutAt = (bottle: Bottle, angle: number): Point => {
   return { x: -x / size, y: y / size };
 };
 
+const POUR_X = 12;
+
 export const lipOf = (pour: Pick<Pour, "bottle" | "cup">) =>
   project(
-    14,
-    (pour.cup === "masu" ? box.height : box.floor + tumbler.height) +
-      vessels[pour.bottle].drop,
+    POUR_X,
+    (pour.cup === "masu" ? box.height : GLASS_TOP) + vessels[pour.bottle].drop,
     0
   );
 
@@ -268,9 +271,12 @@ export const keepOut = {
 } as const;
 
 type KeepOut = (typeof keepOut)[keyof typeof keepOut];
-const HIGHEST = 47;
-const LOWEST = 56;
+const LOWEST = 0.6;
 export const IDLE_TEXT = 330;
+export const GAP = 14;
+const HEADER = 96;
+const SMALL = 1.1;
+const FULL = 0.9;
 const SMALLEST = 50;
 const SWEEP = 24;
 const MOST_POURED = 300;
@@ -315,16 +321,6 @@ const crossesBox = (p: Point, q: Point, from: Point, to: Point) => {
   return low <= high;
 };
 
-export const frontOf = (points: readonly Point[]) => {
-  let front = points[0] ?? { x: 0, y: 0 };
-  for (const point of points) {
-    if (point.y > front.y) {
-      front = point;
-    }
-  }
-  return front;
-};
-
 export const outlineAt = (
   bottle: Bottle,
   angle: number,
@@ -358,7 +354,7 @@ const clearOf = (
 ) => {
   const from = { x: at.w - zone.width, y: 0 };
   const to = { x: at.w, y: zone.height };
-  const lip = lipOf({ bottle, cup: "masu" });
+  const lip = lipOf({ bottle, cup: "mokkiri" });
   const anchor = { x: at.cx + lip.x * at.scale, y: at.cy + lip.y * at.scale };
   return angles.every((angle) => {
     const outline = outlineAt(bottle, angle, size * at.scale, anchor);
@@ -381,71 +377,144 @@ export const demoSweepOf = ({ pour, hold }: Demo) =>
     angleAt(pour, hold, ((hold + pour.trickle) * i) / DEMO_SAMPLES)
   );
 
-export const layoutOf = (w: number, h: number, demo: Demo): Layout => {
-  const scale = Math.min((w * 0.62) / 94, (h * 0.36) / 96);
-  const at = (share: number) => ({ cx: w / 2, cy: h * share, scale, w });
-  const shown = demoSweepOf(demo);
-  const clear = (bottle: Bottle, size: number, share: number) =>
-    clearOf(bottle, size, at(share), keepOut.playing, sweepOf(bottle)) &&
-    (bottle !== demo.pour.bottle ||
-      clearOf(bottle, size, at(share), keepOut.idle, shown));
-  const foot = project(0, 0, box.outer).y * scale;
-  const room = Math.floor(((h - IDLE_TEXT - foot) / h) * 100);
-  const deepest = Math.max(HIGHEST, Math.min(LOWEST, room));
-  const lowest = bottles.map((bottle) => {
-    for (let share = HIGHEST; share < deepest; share += 1) {
-      if (clear(bottle, 1, share / 100)) {
-        return share / 100;
-      }
-    }
-    return deepest / 100;
-  });
-  const share = Math.max(...lowest);
-  const fits = (bottle: Bottle) => {
-    for (let size = 100; size > SMALLEST; size -= 2) {
-      if (clear(bottle, size / 100, share)) {
-        return size / 100;
-      }
-    }
-    return SMALLEST / 100;
-  };
-  return {
-    ...at(share),
-    h,
-    size: {
-      isshobin: fits("isshobin"),
-      katakuchi: fits("katakuchi"),
-      tokkuri: fits("tokkuri"),
-    },
-  };
-};
-
 const TAU = Math.PI * 2;
-const B = box.inner;
 const A = box.outer;
+const B = box.inner;
 const H = box.height;
-const SAMPLES = 40;
-
-type Corner = readonly [number, number, number];
-
-const corners = (points: readonly Corner[]): Point[] =>
-  points.map(([x, y, z]) => project(x, y, z));
 
 export const ring = (
   y: number,
   r: number,
   from = 0,
   to = TAU,
-  steps = 32
+  steps = 48
 ): Point[] =>
   Array.from({ length: steps + 1 }, (_, i) => {
     const a = from + ((to - from) * i) / steps;
     return project(Math.cos(a) * r, y, Math.sin(a) * r);
   });
 
+const corners = [-1, 1].flatMap((x) =>
+  [-1, 1].flatMap((z) => [project(x * A, 0, z * A), project(x * A, H, z * A)])
+);
+
+export const extent = (() => {
+  const all = [...corners, ...ring(GLASS_TOP, tumbler.top, 0, TAU, 16)];
+  const xs = all.map((p) => p.x);
+  const ys = all.map((p) => p.y);
+  return {
+    bottom: Math.max(...ys),
+    top: Math.min(...ys),
+    width: Math.max(...xs) - Math.min(...xs),
+  };
+})();
+
+export interface Reserved {
+  top: number;
+  left: number;
+  right: number;
+}
+
+const lipTop = Math.min(
+  ...bottles.map((bottle) => lipOf({ bottle, cup: "mokkiri" }).y)
+);
+
+export const reservedOf = (w: number, h: number): Reserved => ({
+  left: 0,
+  right: w,
+  top: h - IDLE_TEXT,
+});
+
+export const layoutOf = (
+  w: number,
+  h: number,
+  demo: Demo,
+  reserved = reservedOf(w, h)
+): Layout => {
+  const shown = demoSweepOf(demo);
+  const placed = (scale: number) => {
+    const half = (extent.width / 2) * scale;
+    const beside =
+      reserved.right < w / 2 - half || reserved.left > w / 2 + half;
+    const floor = (beside ? h : reserved.top) - GAP;
+    const at = {
+      cx: w / 2,
+      cy: Math.min(h * LOWEST, floor - extent.bottom * scale),
+      scale,
+      w,
+    };
+    const fits = (bottle: Bottle) => {
+      for (let size = 100; size > SMALLEST; size -= 2) {
+        if (
+          clearOf(bottle, size / 100, at, keepOut.playing, sweepOf(bottle)) &&
+          (bottle !== demo.pour.bottle ||
+            clearOf(bottle, size / 100, at, keepOut.idle, shown))
+        ) {
+          return size / 100;
+        }
+      }
+      return SMALLEST / 100;
+    };
+    return {
+      ...at,
+      h,
+      size: {
+        isshobin: fits("isshobin"),
+        katakuchi: fits("katakuchi"),
+        tokkuri: fits("tokkuri"),
+      },
+    };
+  };
+  const cramped = (layout: Layout) =>
+    layout.cy + lipTop * layout.scale < HEADER ||
+    Object.values(layout.size).some((size) => size < FULL);
+  let scale = Math.min(
+    (w * 0.62) / extent.width,
+    (h * 0.42) / (extent.bottom - extent.top)
+  );
+  let layout = placed(scale);
+  while (scale > SMALL && cramped(layout)) {
+    scale = Math.max(SMALL, scale * 0.97);
+    layout = placed(scale);
+  }
+  return layout;
+};
+
+export const toward = Math.atan2(camera.z, camera.x);
+
+export const frontArc = (y: number, r: number, steps = 32) =>
+  ring(y, r, toward + Math.PI / 2, toward - Math.PI / 2, steps);
+
 export const radiusAt = (y: number) =>
   tumbler.bottom +
   ((tumbler.top - tumbler.bottom) * (y - box.floor)) / tumbler.height;
+
+const cross = (o: Point, a: Point, b: Point) =>
+  (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+
+const halfHull = (points: readonly Point[]) => {
+  const kept: Point[] = [];
+  for (const point of points) {
+    let [o, a] = kept.slice(-2);
+    while (o !== undefined && a !== undefined && cross(o, a, point) <= 0) {
+      kept.pop();
+      [o, a] = kept.slice(-2);
+    }
+    kept.push(point);
+  }
+  return kept.slice(0, -1);
+};
+
+export const hull = (points: readonly Point[]) => {
+  const sorted = points.toSorted((p, q) => p.x - q.x || p.y - q.y);
+  return [...halfHull(sorted), ...halfHull(sorted.toReversed())];
+};
+
+export const glassBetween = (from: number, to: number, inset = 0) =>
+  hull([
+    ...ring(from, radiusAt(from) - inset, 0, TAU, 40),
+    ...ring(to, radiusAt(to) - inset, 0, TAU, 40),
+  ]);
 
 export const seeded = (seed: number) => {
   let state = seed;
@@ -455,95 +524,10 @@ export const seeded = (seed: number) => {
   };
 };
 
-const grainRoll = seeded(1205);
-
-export const grain = Array.from({ length: 34 }, (_, i) => {
-  const y = (H * (i + grainRoll() * 0.8)) / 34;
-  const wave = (grainRoll() - 0.5) * 1.6;
-  return {
-    alpha: 0.08 + grainRoll() * 0.2,
-    points: [
-      project(-A, y, A),
-      project(grainRoll() * 40 - 20, y + wave * 1.6, A),
-      project(A, y + wave * 0.4, A),
-    ] as const,
-    width: 0.12 + grainRoll() * 0.35,
-  };
-});
-
-export const joints = [-1, 1].flatMap((side) =>
-  [0, 1, 2, 3, 4]
-    .filter((i) => (i + (side > 0 ? 1 : 0)) % 2 === 0)
-    .map((i) =>
-      corners([
-        [side * A, (H * (i + 1)) / 5, A],
-        [side * B, (H * (i + 1)) / 5, A],
-        [side * B, (H * i) / 5, A],
-        [side * A, (H * i) / 5, A],
-      ])
-    )
-);
-
-export const face = corners([
-  [-A, H, A],
-  [A, H, A],
-  [A, 0, A],
-  [-A, 0, A],
-]);
-
-export const rimOf = (side: -1 | 1) => ({
-  ends: [-1, 1].map((x) =>
-    corners([
-      [x * A, H, side * A],
-      [x * B, H, side * A],
-      [x * B, H, side * B],
-      [x * A, H, side * B],
-    ])
-  ),
-  inner: corners([
-    [B, H, 0],
-    [B, H, side * B],
-    [-B, H, side * B],
-    [-B, H, 0],
-  ]),
-  outer: corners([
-    [-A, H, 0],
-    [-A, H, side * A],
-    [A, H, side * A],
-    [A, H, 0],
-  ]),
-});
-
-export const level = (y: number) =>
-  corners([
-    [-B, y, -B],
-    [B, y, -B],
-    [B, y, B],
-    [-B, y, B],
-  ]);
-
-export const backWall = corners([
-  [-B, H, -B],
-  [B, H, -B],
-  [B, box.floor, -B],
-  [-B, box.floor, -B],
-]);
-
-export const sideWalls = [-1, 1].map((x) =>
-  corners([
-    [x * B, H, -B],
-    [x * B, H, B],
-    [x * B, box.floor, B],
-    [x * B, box.floor, -B],
-  ])
-);
-
 const REACH = 6.5;
-const CREST = REACH * 0.9;
+const SAMPLES = 32;
 
 export const shoulderOf = (strain: number) => REACH * (1 - 0.4 * strain);
-
-export const crestOf = (strain: number) => edgeOf(CREST, shoulderOf(strain));
 
 export const domeHeight = (
   lift: number,
@@ -558,37 +542,86 @@ export const domeHeight = (
   return (lift * LIFT + wave) * pinned;
 };
 
-export const domeOutline = (
-  height: number,
-  strain = 0,
-  wave: (x: number, z: number) => number = () => 0
-) => {
-  const surface = (x: number, z: number) =>
-    project(x, H + domeHeight(height, strain, x, z, wave(x, z)), z);
-  const columns = Array.from(
-    { length: SAMPLES + 1 },
-    (_, i) => -B + (2 * B * i) / SAMPLES
-  );
-  const upper = columns.map((x) => {
-    let top = project(x, H, B);
-    for (let j = 0; j <= SAMPLES / 2; j += 1) {
-      const point = surface(x, -B + (4 * B * j) / SAMPLES);
+export type Surface = (x: number, z: number) => number;
+
+const steps = Array.from(
+  { length: SAMPLES + 1 },
+  (_, i) => -B + (2 * B * i) / SAMPLES
+);
+
+export const surfaceOutline = (height: Surface) => {
+  const at = (x: number, z: number) => project(x, height(x, z), z);
+  const back = steps.toReversed().map((x) => {
+    let top = at(x, -B);
+    for (const z of steps) {
+      const point = at(x, z);
       if (point.y < top.y) {
         top = point;
       }
     }
     return top;
   });
-  const lower = columns.toReversed().map((x) => project(x, H, B));
-  const crest = columns.map((x) => surface(x, B - CREST));
-  return { crest, lower, outline: [...upper, ...lower], upper };
+  return [
+    ...steps.map((x) => at(x, B)),
+    ...steps.toReversed().map((z) => at(B, z)),
+    ...back,
+    ...steps.map((z) => at(-B, z)),
+  ];
 };
 
-export type Dome = ReturnType<typeof domeOutline>;
+export type Side = "back" | "left" | "front" | "right";
 
-export const stamp = project(0, H * 0.46, A);
+const sides: Record<Side, (t: number, inset: number) => [number, number]> = {
+  back: (t, inset) => [t, -B + inset],
+  front: (t, inset) => [t, B - inset],
+  left: (t, inset) => [-B + inset, t],
+  right: (t, inset) => [B - inset, t],
+};
 
-export const crestMark = (r: number) => {
-  const { x, y } = stamp;
-  return `M${x} ${y - r}L${x + r} ${y}L${x} ${y + r}L${x - r} ${y}Z`;
+export const alongSide = (side: Side, inset = 0) =>
+  steps.map((t) => sides[side](t, inset));
+
+export const edgeLine = (height: Surface, side: Side, inset = 0) =>
+  alongSide(side, inset).map(([x, z]) => project(x, height(x, z), z));
+
+const LIP_SPEED = 130;
+const LIP_GAIN = 240;
+
+export const jetOf =
+  (pour: Pour, hold: number) =>
+  (at: number): Jet => {
+    const lip = lipOf(pour);
+    const rate = flowAt(pour, hold, at);
+    const direction = spoutAt(pour.bottle, angleAt(pour, hold, at));
+    const speed = LIP_SPEED + LIP_GAIN * Math.min(1.6, rate / pour.flow);
+    return {
+      rate,
+      volume: mlOf(pour, volumeAt(pour, hold, at)),
+      vx: direction.x * speed,
+      vy: direction.y * speed,
+      x: lip.x,
+      y: lip.y,
+    };
+  };
+
+export const worldX = (screen: number, y: number) =>
+  screen / (project(1, y, 0).x || 1);
+
+export const landingOf = (fill: Fill, strain: number) => {
+  const { glass } = fill;
+  const masu = (x: number) =>
+    fill.dome > 0
+      ? H + domeHeight(fill.dome, strain, x, 0)
+      : Math.max(fill.level, box.floor);
+  return (screen: number) => {
+    if (glass !== null) {
+      const y = Math.max(glass.level, box.floor + tumbler.base);
+      const x = worldX(screen, y);
+      if (Math.abs(x) < radiusAt(y) - tumbler.wall) {
+        return project(x, Math.min(y, GLASS_TOP) + glass.dome * 0.6, 0).y;
+      }
+    }
+    const x = worldX(screen, H);
+    return project(x, masu(x), 0).y;
+  };
 };

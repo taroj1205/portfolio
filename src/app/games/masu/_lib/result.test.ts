@@ -138,10 +138,10 @@ describe("sharing a pour", () => {
     const lines = share.text.split("\n");
     assert.equal(
       lines[0],
-      `枡 表面張力 ${(glass.outcome.tenths / 10).toFixed(1)}%（${rankOf(glass).name.ja}）`
+      `表面張力酒場 表面張力 ${(glass.outcome.tenths / 10).toFixed(1)}%（${rankOf(glass).name.ja}）`
     );
     assert.match(lines[1] ?? "", /^縁から \+\d+\.\dmm で止めた。$/u);
-    assert.equal(lines.at(-1), "#枡");
+    assert.equal(lines.at(-1), "#表面張力酒場");
     assert.equal(
       share.url,
       `https://x.y/games/masu?h=${near.hold}&s=${SEED}&l=ja`
@@ -149,9 +149,12 @@ describe("sharing a pour", () => {
     assert.ok(share.image.startsWith("https://x.y/games/masu/og?h="));
     assert.equal(new URL(postUrl(share)).hostname, "x.com");
     const spilt = shareOf(late, "https://x.y", "en").text.split("\n");
-    assert.equal(spilt[0], "Masu: I spilled it (One drop too many)");
+    assert.equal(
+      spilt[0],
+      "Surface Tension Bar: I spilled it (One drop too many)"
+    );
     assert.equal(spilt[1], `${glassOf(late).spilled} ml on the table.`);
-    assert.equal(spilt.at(-1), "#枡 #Masu");
+    assert.equal(spilt.at(-1), "#表面張力酒場 #SurfaceTensionBar");
   });
 });
 

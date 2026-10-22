@@ -19,6 +19,7 @@ export interface Notice {
 }
 
 const GOLD = "#ffd27a";
+const WIDE = "@media (min-width: 900px) and (orientation: landscape)";
 
 const drift = stylex.keyframes({
   "0%": { opacity: 0, transform: "translateY(10px)" },
@@ -61,43 +62,23 @@ const styles = stylex.create({
     flexDirection: "column",
     gap: "0.7rem",
   },
-  titleBox: {
-    alignItems: "center",
+  title: {
     display: "flex",
     flexDirection: "column",
-    gap: "0.55rem",
-    width: "2.75rem",
-  },
-  title: {
     fontFamily: font.mincho,
-    fontSize: "2.1rem",
+    fontSize: "1.35rem",
     fontWeight: 700,
-    letterSpacing: "0.32em",
+    gap: "0.35rem",
+    letterSpacing: "0.08em",
     lineHeight: 1,
     margin: 0,
     textShadow: shade.small,
-    writingMode: "vertical-rl",
+    whiteSpace: "nowrap",
   },
   lead: {
     color: GOLD,
-    fontSize: "0.4em",
-    letterSpacing: "0.3em",
-    marginBlockEnd: "0.5em",
-  },
-  seal: {
-    alignItems: "center",
-    backgroundColor: "#c8352b",
-    borderRadius: 4,
-    boxShadow: "0 2px 10px rgb(120 20 10 / 0.35)",
-    color: "#fff4ec",
-    display: "flex",
-    fontFamily: font.mincho,
-    fontSize: "0.8rem",
-    fontWeight: 700,
-    height: "1.6rem",
-    justifyContent: "center",
-    transform: "rotate(-4deg)",
-    width: "1.6rem",
+    fontSize: "0.42em",
+    letterSpacing: "0.16em",
   },
   gauge: {
     animationDuration: "500ms",
@@ -180,17 +161,21 @@ const styles = stylex.create({
     color: GOLD,
   },
   bottom: {
-    alignItems: "center",
+    alignItems: { default: "center", [WIDE]: "flex-start" },
     bottom: "max(1.1rem, calc(env(safe-area-inset-bottom) + 0.7rem))",
     display: "flex",
     flexDirection: "column",
     gap: "0.75rem",
-    insetInline: "0.75rem",
+    insetInline: {
+      default: "0.75rem",
+      [WIDE]: "max(2.5rem, calc(env(safe-area-inset-left) + 1.5rem)) auto",
+    },
+    maxWidth: { default: null, [WIDE]: "26rem" },
     position: "absolute",
-    textAlign: "center",
+    textAlign: { default: "center", [WIDE]: "start" },
   },
   rule: {
-    alignItems: "center",
+    alignItems: { default: "center", [WIDE]: "flex-start" },
     animationDuration: "900ms",
     animationName: { default: drift, [media.reduce]: "none" },
     animationTimingFunction: "cubic-bezier(0.23, 1, 0.32, 1)",
@@ -354,6 +339,7 @@ interface HudProps {
   challenge: Result | null;
   notice: Notice | null;
   reading: RefObject<HTMLSpanElement | null>;
+  prose: RefObject<HTMLDivElement | null>;
   onLang: () => void;
   onMute: (muted: boolean) => void;
 }
@@ -409,6 +395,7 @@ export const Hud = ({
   challenge,
   notice,
   reading,
+  prose,
   onLang,
   onMute,
 }: HudProps) => {
@@ -432,14 +419,10 @@ export const Hud = ({
               </p>
             </div>
           ) : (
-            <div {...stylex.props(styles.titleBox)}>
-              <h1 lang="ja" {...stylex.props(styles.title)}>
-                <span {...stylex.props(styles.lead)}>ます</span>枡
-              </h1>
-              <span aria-hidden="true" {...stylex.props(styles.seal)}>
-                酒
-              </span>
-            </div>
+            <h1 lang="ja" {...stylex.props(styles.title)}>
+              <span {...stylex.props(styles.lead)}>{copy.ja.reading}</span>
+              {copy.ja.name}
+            </h1>
           )}
         </div>
         <div {...stylex.props(styles.corner)}>
@@ -471,7 +454,7 @@ export const Hud = ({
         </p>
       ) : null}
 
-      <div {...stylex.props(styles.bottom)}>
+      <div ref={prose} {...stylex.props(styles.bottom)}>
         {notice === null ? null : (
           <p
             aria-live="polite"

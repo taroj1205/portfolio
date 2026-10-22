@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import type { Lang, Text } from "../../_lib/i18n";
 import type { Share } from "../../_lib/share";
+import { copy } from "./copy";
 import { capacity, longestHold, mlOf, outcomeOf, pourOf } from "./pour";
 import type { Outcome, Pour } from "./pour";
 import { aboveRim, fillOf } from "./scene";
@@ -195,19 +196,20 @@ export const queryOf = (result: Result) =>
 
 const shareLines = (glass: Glass, lang: Lang) => {
   const rank = rankOf(glass).name[lang];
+  const { name } = copy[lang];
   if (spilledOf(glass)) {
     return lang === "en"
-      ? [`Masu: I spilled it (${rank})`, `${glass.spilled} ml on the table.`]
-      : [`枡で、こぼした（${rank}）`, `テーブルに ${glass.spilled}ml。`];
+      ? [`${name}: I spilled it (${rank})`, `${glass.spilled} ml on the table.`]
+      : [`${name}で、こぼした（${rank}）`, `テーブルに ${glass.spilled}ml。`];
   }
   const tension = percent(glass.outcome.tenths);
   const mm = signed(heightOf(glass));
   return lang === "en"
     ? [
-        `Masu: surface tension ${tension}% (${rank})`,
+        `${name}: ${tension}% surface tension (${rank})`,
         `Stopped at ${mm} mm from the rim.`,
       ]
-    : [`枡 表面張力 ${tension}%（${rank}）`, `縁から ${mm}mm で止めた。`];
+    : [`${name} 表面張力 ${tension}%（${rank}）`, `縁から ${mm}mm で止めた。`];
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
@@ -222,7 +224,7 @@ export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
         ? "Same pour, your turn. Can you fill it without spilling?"
         : "同じ一杯で勝負。こぼさずに、なみなみ注げる？",
       spilledOf(glass) ? "💦" : "🍶",
-      lang === "en" ? "#枡 #Masu" : "#枡",
+      lang === "en" ? "#表面張力酒場 #SurfaceTensionBar" : "#表面張力酒場",
     ].join("\n"),
     url: `${origin}/games/masu?${query.toString()}`,
   };

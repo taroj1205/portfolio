@@ -449,3 +449,5 @@ export const spillageOf = (
     start,
   };
 };
+
+export type Spillage = ReturnType<typeof spillageOf>;

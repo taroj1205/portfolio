@@ -5,16 +5,16 @@ import { describe, test } from "vite-plus/test";
 import { bottles, holdFor, outcomeOf, pourOf } from "./pour";
 import {
   AWAY,
+  GAP,
   IDLE_TEXT,
   angleAt,
   awayAt,
-  box,
   demoSweepOf,
+  extent,
   keepOut,
   layoutOf,
   lipOf,
   outlineAt,
-  project,
   sweepOf,
 } from "./scene";
 import type { Demo, Layout, Point } from "./scene";
@@ -101,20 +101,27 @@ describe("the layout", () => {
     const phone = layoutOf(390, 844, demo).size;
     assert.equal(phone.isshobin, 1);
     assert.equal(phone.katakuchi, 1);
-    assert.ok(phone.tokkuri >= 0.95);
+    assert.ok(phone.tokkuri >= 0.9);
     const small = layoutOf(360, 740, demo).size;
     assert.equal(small.isshobin, 1);
     assert.equal(small.katakuchi, 1);
     assert.ok(small.tokkuri >= 0.75);
   });
 
-  test("the cup only sits lower when the idle text leaves room under it", () => {
+  test("the cup stays above the idle text, and sits lower when the text is beside it", () => {
     for (const [w, h] of [...viewports, [414, 896], [1920, 1080]] as const) {
-      const { cy, scale } = layoutOf(w, h, demo);
-      assert.ok(cy >= h * 0.47 && cy <= h * 0.56);
-      if (cy > h * 0.47) {
-        const foot = cy + project(0, 0, box.outer).y * scale;
-        assert.ok(foot <= h - IDLE_TEXT);
+      const under = layoutOf(w, h, demo);
+      assert.ok(
+        under.cy + extent.bottom * under.scale <= h - IDLE_TEXT - GAP + 1e-9
+      );
+      const beside = layoutOf(w, h, demo, {
+        left: 40,
+        right: 456,
+        top: h - IDLE_TEXT,
+      });
+      if (w >= 1280) {
+        assert.ok(beside.cy > under.cy);
+        assert.ok(beside.cx - (extent.width / 2) * beside.scale > 456);
       }
     }
   });

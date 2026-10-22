@@ -44,6 +44,7 @@ export const Game = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reading = useRef<HTMLSpanElement>(null);
+  const prose = useRef<HTMLDivElement>(null);
   const session = useRef<ReturnType<typeof startSession> | null>(null);
   const ids = useRef(0);
   const langRef = useRef<Lang>(hint);
@@ -100,6 +101,41 @@ export const Game = ({
     };
   }, [challenge]);
 
+  useEffect(() => {
+    const block = prose.current;
+    const measure = () => {
+      if (stage !== "idle" || block === null) {
+        return;
+      }
+      const { left, top } = block.getBoundingClientRect();
+      const parts = [...block.children].filter(
+        (part): part is HTMLElement =>
+          part instanceof HTMLElement && part.offsetHeight > 0
+      );
+      if (parts.length > 0) {
+        session.current?.reserve({
+          left: left + Math.min(...parts.map((part) => part.offsetLeft)),
+          right:
+            left +
+            Math.max(
+              ...parts.map((part) => part.offsetLeft + part.offsetWidth)
+            ),
+          top: top + Math.min(...parts.map((part) => part.offsetTop)),
+        });
+      }
+    };
+    const observer = new ResizeObserver(measure);
+    if (block !== null) {
+      observer.observe(block);
+    }
+    window.addEventListener("resize", measure);
+    measure();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [stage]);
+
   const again = () => {
     setEnding(null);
     setNotice(null);
@@ -133,6 +169,7 @@ export const Game = ({
         }}
         pour={pour}
         pours={save?.pours ?? 0}
+        prose={prose}
         reading={reading}
         stage={stage}
       />

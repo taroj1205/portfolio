@@ -4,6 +4,7 @@ import type { Bottle, Cup } from "./pour";
 
 interface Copy {
   name: string;
+  reading: string;
   fallback: string;
   back: string;
   mute: string;
@@ -70,7 +71,8 @@ export const copy: Record<Lang, Copy> = {
     interrupted: "You left the screen, so the pour stopped there",
     mokkiri: "The glass is meant to overflow. The masu's rim is what counts.",
     mute: "Mute sound",
-    name: "Masu",
+    name: "Surface Tension Bar",
+    reading: "Surface Tension Bar",
     result: {
       again: "Pour again",
       copied: "Copied",
@@ -119,7 +121,8 @@ export const copy: Record<Lang, Copy> = {
     interrupted: "画面から離れたので、そこで注ぐのを止めた",
     mokkiri: "グラスからあふれるのはOK。勝負は枡の縁",
     mute: "音を消す",
-    name: "枡",
+    name: "表面張力酒場",
+    reading: "ひょうめんちょうりょくさかば",
     result: {
       again: "もう一杯注ぐ",
       copied: "コピーした",
