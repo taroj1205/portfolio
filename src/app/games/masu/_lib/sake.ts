@@ -539,7 +539,7 @@ export const createSake = () => {
       canvas.height = Math.max(canvas.height, h);
     }
     sendBacking(state, backing);
-    gl.viewport(0, canvas.height - h, w, h);
+    gl.viewport(0, 0, w, h);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.useProgram(state.program);
@@ -565,7 +565,7 @@ export const createSake = () => {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     target.save();
     target.setTransform(1, 0, 0, 1, 0, 0);
-    target.drawImage(canvas, 0, 0, w, h, left, top, w, h);
+    target.drawImage(canvas, 0, canvas.height - h, w, h, left, top, w, h);
     target.restore();
     return true;
   };
