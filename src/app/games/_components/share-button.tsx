@@ -1,69 +1,10 @@
 import { Menu } from "@base-ui/react/menu";
-import * as stylex from "@stylexjs/stylex";
 import { useRef, useState } from "react";
 
 import { postUrl } from "../_lib/share";
 import type { Share, ShareLabels } from "../_lib/share";
-import { ink, media } from "./theme.stylex";
-
-const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
-
-const styles = stylex.create({
-  popup: {
-    backgroundColor: "rgb(13 16 26)",
-    borderColor: "rgb(255 255 255 / 0.12)",
-    borderRadius: 18,
-    borderStyle: "solid",
-    borderWidth: 1,
-    boxShadow: "0 18px 50px rgb(0 0 0 / 0.5)",
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-    minWidth: "12rem",
-    outline: "none",
-    padding: 6,
-    transformOrigin: "var(--transform-origin)",
-    transitionDuration: "180ms",
-    transitionProperty: "opacity, transform",
-    transitionTimingFunction: EASE,
-  },
-  popupHidden: {
-    opacity: 0,
-    transform: { default: "scale(0.92)", [media.reduce]: "none" },
-  },
-  item: {
-    alignItems: "center",
-    borderRadius: 12,
-    color: ink.text,
-    cursor: "pointer",
-    display: "flex",
-    fontFamily: "inherit",
-    fontSize: "0.9rem",
-    fontWeight: 700,
-    gap: "0.6rem",
-    outline: "none",
-    paddingBlock: "0.7rem",
-    paddingInline: "0.8rem",
-    textDecoration: "none",
-    transitionDuration: "120ms",
-    transitionProperty: "background-color",
-    userSelect: "none",
-  },
-  highlighted: {
-    backgroundColor: "rgb(255 255 255 / 0.1)",
-  },
-});
-
-const itemClass = (state: { highlighted: boolean }) =>
-  stylex.props(styles.item, state.highlighted && styles.highlighted).className;
-
-const popupClass = (state: { transitionStatus: string | undefined }) =>
-  stylex.props(
-    styles.popup,
-    (state.transitionStatus === "starting" ||
-      state.transitionStatus === "ending") &&
-      styles.popupHidden
-  ).className;
+import { XMark } from "./brand-marks";
+import { itemClass, popupClass } from "./menu-popup";
 
 const ShareMark = () => (
   <svg aria-hidden="true" height="16" viewBox="0 0 24 24" width="16">
@@ -74,15 +15,6 @@ const ShareMark = () => (
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth="1.8"
-    />
-  </svg>
-);
-
-const XMark = () => (
-  <svg aria-hidden="true" height="15" viewBox="0 0 24 24" width="15">
-    <path
-      d="M17.75 3h3.07l-6.71 7.67L22 21h-6.17l-4.84-6.32L5.45 21H2.37l7.18-8.2L2 3h6.33l4.37 5.78L17.75 3Zm-1.08 16.18h1.7L7.4 4.73H5.58l11.09 14.45Z"
-      fill="currentColor"
     />
   </svg>
 );
