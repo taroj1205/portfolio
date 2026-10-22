@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 
 import { describe, test } from "vite-plus/test";
 
-import { bottles, holdFor, outcomeOf, pourOf } from "./pour";
+import { bottles, cups, holdFor, outcomeOf, pourOf } from "./pour";
 import {
   AWAY,
   GAP,
@@ -56,29 +56,30 @@ const covers = (
   bottle: (typeof bottles)[number],
   angles: readonly number[],
   zone: { width: number; height: number }
-) => {
-  const lip = lipOf({ bottle, cup: "masu" });
-  const anchor = {
-    x: layout.cx + lip.x * layout.scale,
-    y: layout.cy + lip.y * layout.scale,
-  };
-  return angles.some((angle) => {
-    const outline = outlineAt(
-      bottle,
-      angle,
-      layout.size[bottle] * layout.scale,
-      anchor
-    );
-    for (let x = layout.w - zone.width; x <= layout.w; x += 2) {
-      for (let y = 0; y <= zone.height; y += 2) {
-        if (inside(outline, { x, y })) {
-          return true;
+) =>
+  cups.some((cup) => {
+    const lip = lipOf({ bottle, cup });
+    const anchor = {
+      x: layout.cx + lip.x * layout.scale,
+      y: layout.cy + lip.y * layout.scale,
+    };
+    return angles.some((angle) => {
+      const outline = outlineAt(
+        bottle,
+        angle,
+        layout.size[bottle] * layout.scale,
+        anchor
+      );
+      for (let x = layout.w - zone.width; x <= layout.w; x += 2) {
+        for (let y = 0; y <= zone.height; y += 2) {
+          if (inside(outline, { x, y })) {
+            return true;
+          }
         }
       }
-    }
-    return false;
+      return false;
+    });
   });
-};
 
 describe("the layout", () => {
   test("no pour reaches the mute button, and the demo clears the language button too", () => {
