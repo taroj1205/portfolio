@@ -33,6 +33,13 @@ const fade = stylex.keyframes({
   "100%": { opacity: 0, transform: "translateY(-4px)" },
 });
 
+const fadeCalm = stylex.keyframes({
+  "0%": { opacity: 0 },
+  "12%": { opacity: 1 },
+  "85%": { opacity: 1 },
+  "100%": { opacity: 0 },
+});
+
 const ripple = stylex.keyframes({
   "0%": { opacity: 0.9, transform: "scale(0.6)" },
   "100%": { opacity: 0, transform: "scale(1.9)" },
@@ -276,7 +283,7 @@ const styles = stylex.create({
   notice: {
     animationDuration: "2.8s",
     animationFillMode: "forwards",
-    animationName: fade,
+    animationName: { default: fade, [media.reduce]: fadeCalm },
     borderRadius: 999,
     fontSize: "0.85rem",
     fontWeight: 700,

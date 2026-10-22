@@ -348,6 +348,9 @@ export const createRenderer = (
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
     }
+    if (w === 0 || h === 0) {
+      return false;
+    }
     const space =
       reserved !== null && reserved.w === w && reserved.h === h
         ? reserved
@@ -358,6 +361,7 @@ export const createRenderer = (
       layout = layoutOf(w, h, demo, space);
     }
     atlas.prepare(layout, dpr);
+    return true;
   };
 
   const reset = (pour: Pour) => {
@@ -541,7 +545,9 @@ export const createRenderer = (
   };
 
   const draw = (frame: Frame) => {
-    resize();
+    if (!resize()) {
+      return;
+    }
     const { pour, t } = frame;
     if (current !== pour || t < last) {
       reset(pour);

@@ -113,6 +113,7 @@ export const startSession = (
   let settings = loadSettings();
   let stage: Stage = "idle";
   let seed = challenge?.seed ?? newSeed();
+  let upcoming = pourOf(seed);
   let active: Active | null = null;
   let holder: number | "key" | null = null;
   let played = 0;
@@ -145,9 +146,10 @@ export const startSession = (
 
   const ready = () => {
     seed = challenge?.seed ?? newSeed();
+    upcoming = pourOf(seed);
     active = null;
     played = 0;
-    on.pour(pourOf(seed));
+    on.pour(upcoming);
     enter("ready");
   };
 
@@ -165,7 +167,7 @@ export const startSession = (
       broke: false,
       hold: null,
       outcome: null,
-      pour: pourOf(seed),
+      pour: upcoming,
     };
     beats = 0;
     navigator.vibrate?.(8);
@@ -329,7 +331,7 @@ export const startSession = (
       return demoFrame(now);
     }
     return active === null
-      ? frameOf(pourOf(seed), 0, null, 0)
+      ? frameOf(upcoming, 0, null, 0)
       : advance(active, now);
   };
 
