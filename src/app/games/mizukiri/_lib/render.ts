@@ -165,6 +165,7 @@ const TAU = Math.PI * 2;
 const NEAR = 0.35;
 const STONE = 0.26;
 const OPEN_SEA = 10_000;
+const RING_AHEAD = 12;
 const GOLD = "#ffd27a";
 
 const hash = (a: number, b = 0) => {
@@ -1965,6 +1966,15 @@ const paintHand = (
   ctx.restore();
 };
 
+export const ringAt = (flight: Flight, time: number, contact: number) =>
+  stoneAt(
+    flight,
+    Math.min(
+      contact - 1e-4,
+      time + RING_AHEAD / Math.max(1, speedAt(flight, time))
+    )
+  );
+
 const paintApproach = (
   ctx: CanvasRenderingContext2D,
   view: View,
@@ -1979,7 +1989,7 @@ const paintApproach = (
   if (remain < 0 || remain > 0.9) {
     return;
   }
-  const at = stoneAt(flight, contact - 1e-4);
+  const at = ringAt(flight, time, contact);
   const airborne = (flight.pending?.y ?? 0) > 0;
   const p = at ? project(view, airborne ? at : { ...at, y: 0 }) : null;
   if (!p) {

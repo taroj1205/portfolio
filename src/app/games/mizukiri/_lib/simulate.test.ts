@@ -17,7 +17,7 @@ import {
   statsOf,
   traitsOf as journeyTraits,
 } from "./journey";
-import { cameraFor } from "./render";
+import { cameraFor, ringAt } from "./render";
 import {
   describe as storyOf,
   journeyTag,
@@ -576,6 +576,33 @@ describe("areas", () => {
       },
     ];
     assert.ok(Math.abs(cameraFor(flight, 5, 0).x - 30) < 1e-9);
+  });
+
+  test("the timing ring stays close to a fast stone and sits on the landing spot as a slow one lands", () => {
+    const slow = launch(createRiver(3), full);
+    const first = nextContact(slow);
+    assert.ok(first !== null);
+    assert.ok(speedAt(slow, first - 0.05) < 200);
+    assert.deepEqual(
+      ringAt(slow, first - 0.05, first),
+      stoneAt(slow, first - 1e-4)
+    );
+
+    const fastFlight = launch(createRiver(1), full, fast);
+    for (
+      let contact = nextContact(fastFlight), n = 0;
+      contact !== null && n < 3000 && speedAt(fastFlight, contact) < 3000;
+      contact = nextContact(fastFlight), n += 1
+    ) {
+      land(fastFlight, contact - 0.01);
+    }
+    const contact = nextContact(fastFlight);
+    assert.ok(contact !== null);
+    const time = contact - 0.5;
+    const ahead =
+      (ringAt(fastFlight, time, contact)?.z ?? 0) -
+      (stoneAt(fastFlight, time)?.z ?? 0);
+    assert.ok(ahead > 0 && ahead < 12.5);
   });
 
   test("out on open water the stone runs straight instead of hitting an unseen wall", () => {
