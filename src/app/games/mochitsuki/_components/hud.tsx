@@ -35,10 +35,9 @@ const styles = stylex.create({
   top: {
     alignItems: "flex-start",
     display: "flex",
-    columnGap: "0.25rem",
     flexWrap: "wrap",
+    gap: "0.5rem",
     justifyContent: "space-between",
-    rowGap: "0.5rem",
     pointerEvents: "none",
     position: "relative",
     zIndex: 1,
@@ -67,7 +66,9 @@ const styles = stylex.create({
     letterSpacing: "0.16em",
   },
   corner: {
+    alignItems: "flex-end",
     display: "flex",
+    flexDirection: "column",
     gap: "0.45rem",
     marginInlineStart: "auto",
   },
