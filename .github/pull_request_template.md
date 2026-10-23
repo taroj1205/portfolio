@@ -1,5 +1,7 @@
 ## Issues
 
+<!-- Use "- Related to #" instead when this PR only covers part of the issue. -->
+
 - Closes #
 
 ## What changed and why
