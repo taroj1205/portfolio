@@ -11,6 +11,7 @@ import { GamesIndex } from "./_components/games-index";
 import { MergeArt } from "./_components/merge-art";
 import { MochiArt } from "./_components/mochi-art";
 import { PauseArt } from "./_components/pause-art";
+import { PourArt } from "./_components/pour-art";
 import { SkipArt } from "./_components/skip-art";
 import { SparkArt } from "./_components/spark-art";
 import { langFromHeader } from "./_lib/i18n";
@@ -22,6 +23,7 @@ import { kinds } from "./itto/_lib/foods";
 import { copy as katanuki } from "./katanuki/_lib/copy";
 import { copy as keshibo } from "./keshibo/_lib/copy";
 import { copy as ma } from "./ma/_lib/copy";
+import { copy as masu } from "./masu/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
 import { copy as mochitsuki } from "./mochitsuki/_lib/copy";
 import { copy as senko } from "./senko/_lib/copy";
@@ -166,6 +168,20 @@ const GAMES: Game[] = [
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
     title: { en: keshibo.en.name, ja: keshibo.ja.name },
+  },
+  {
+    art: <PourArt />,
+    blurb: {
+      en: "One pour of sake into a wooden masu. Let go once, early: it keeps trickling after you release, and the surface tension dome spills past a hidden limit.",
+      ja: "枡に酒を注ぐ一杯勝負。離すのは一度だけ。離してもとくとく垂れて、表面張力で盛り上がった酒は見えない限界でこぼれる。",
+    },
+    href: "/games/masu",
+    tags: [
+      { en: "Hold & let go", ja: "押して離す" },
+      { en: "One pour", ja: "一杯勝負" },
+      { en: "Same pour for a friend", ja: "同じ一杯で挑戦" },
+    ],
+    title: { en: masu.en.name, ja: masu.ja.name },
   },
 ];
 
