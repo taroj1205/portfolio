@@ -71,7 +71,7 @@ export const Game = ({
     null
   );
   const [ending, setEnding] = useState<Ending | null>(null);
-  const [sharing, setSharing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const lang = settings?.lang ?? hint;
   const picking = settings?.lang === null;
@@ -128,8 +128,8 @@ export const Game = ({
   }, []);
 
   useEffect(() => {
-    session.current?.pause(sharing || picking);
-  }, [sharing, picking]);
+    session.current?.pause(menuOpen || picking);
+  }, [menuOpen, picking]);
 
   const again = () => {
     setEnding(null);
@@ -168,7 +168,7 @@ export const Game = ({
           }
         }}
         onRestart={again}
-        onSharing={setSharing}
+        onMenu={setMenuOpen}
         playing={ending === null}
         reached={save?.top ?? -1}
         score={score}

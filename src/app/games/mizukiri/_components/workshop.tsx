@@ -6,6 +6,7 @@ import { ToggleGroup } from "@base-ui/react/toggle-group";
 import * as stylex from "@stylexjs/stylex";
 import type { RefObject } from "react";
 
+import { ReportMenu } from "../../_components/report-menu";
 import { font, ink } from "../../_components/theme.stylex";
 import type { Lang } from "../../_lib/i18n";
 import type { Settings } from "../../_lib/settings";
@@ -237,6 +238,10 @@ const styles = stylex.create({
     height: "100%",
     width: `${Math.round(part * 100)}%`,
   }),
+  report: {
+    display: "flex",
+    justifyContent: "center",
+  },
   row: {
     alignItems: "center",
     backgroundColor: "rgb(255 255 255 / 0.04)",
@@ -762,6 +767,9 @@ export const Workshop = ({
                         </Toggle>
                       ))}
                     </ToggleGroup>
+                  </div>
+                  <div {...stylex.props(styles.report)}>
+                    <ReportMenu lang={lang} />
                   </div>
                   <section {...stylex.props(styles.group)}>
                     <h3 {...stylex.props(styles.groupName)}>

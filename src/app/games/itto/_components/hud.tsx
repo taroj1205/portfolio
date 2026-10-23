@@ -4,8 +4,9 @@ import { useEffect, useRef } from "react";
 
 import { BackToGames } from "../../_components/back-to-games";
 import { glass } from "../../_components/glass";
+import { LanguageButton } from "../../_components/language-button";
+import { ReportMenu } from "../../_components/report-menu";
 import { font, ink, media, shade } from "../../_components/theme.stylex";
-import { langNames } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import { copy } from "../_lib/copy";
 import { isRare } from "../_lib/foods";
@@ -35,20 +36,21 @@ const styles = stylex.create({
   top: {
     alignItems: "center",
     display: "flex",
+    columnGap: "0.25rem",
     flexWrap: "wrap",
-    gap: "0.6rem",
     justifyContent: "space-between",
+    rowGap: "0.6rem",
   },
   brand: {
     alignItems: "center",
     display: "flex",
-    gap: "0.7rem",
+    gap: "0.55rem",
   },
   title: {
     display: "flex",
     flexDirection: "column",
     fontFamily: font.mincho,
-    fontSize: "1.35rem",
+    fontSize: { default: "1.35rem", "@media (max-width: 380px)": "1.15rem" },
     fontWeight: 700,
     letterSpacing: "0.12em",
     lineHeight: 1,
@@ -87,7 +89,7 @@ const styles = stylex.create({
     fontSize: "0.8rem",
     fontWeight: 700,
     letterSpacing: "calc(0.08em * var(--track, 1))",
-    paddingInline: "1rem",
+    paddingInline: "0.85rem",
     width: "auto",
   },
   panel: {
@@ -276,15 +278,13 @@ export const Header = ({
             {words.quit}
           </button>
         ) : (
-          <button
+          <LanguageButton
             lang={other}
             onClick={onLang}
-            type="button"
-            {...stylex.props(glass.surface, styles.button, styles.pill)}
-          >
-            {langNames[other]}
-          </button>
+            xstyle={styles.button}
+          />
         )}
+        <ReportMenu iconOnly lang={lang} xstyle={styles.button} />
       </div>
     </header>
   );
