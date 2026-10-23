@@ -1,9 +1,9 @@
-import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
 import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
+import { ogImage } from "../../_lib/og";
 import { cutSvg, tagAt } from "../_components/food-svg";
 import { woodSvg } from "../_components/wood-svg";
 import { copy } from "../_lib/copy";
@@ -118,7 +118,7 @@ export const GET = async (request: NextRequest) => {
     `${name}${detail}${title}${lead ?? ""}${seal.join("")}${words.rare}${words.challenge.dare}0123456789.:%·${copy.ja.name}はんぶんこどうじょう${copy.en.name}`
   );
 
-  return new ImageResponse(
+  return await ogImage(
     <div
       style={{
         backgroundColor: ink.counter,

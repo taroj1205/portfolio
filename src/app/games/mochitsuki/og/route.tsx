@@ -1,9 +1,9 @@
-import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
 import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
+import { ogImage } from "../../_lib/og";
 import { dataUri, sceneDoc } from "../_lib/art";
 import { START_BPM } from "../_lib/beat";
 import { copy } from "../_lib/copy";
@@ -106,7 +106,7 @@ export const GET = async (request: NextRequest) => {
     `${tag}${headline}${caption}${detail}${dare}${copy.ja.name}${copy.ja.reading}${copy.en.reading}0123456789BPM回·`
   );
 
-  return new ImageResponse(
+  return await ogImage(
     <div
       style={{
         backgroundImage:

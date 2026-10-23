@@ -1,9 +1,9 @@
-import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
 import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
+import { ogImage } from "../../_lib/og";
 import { MARK, SignalMark, duelSvg } from "../_components/duel-svg";
 import type { Moment } from "../_components/duel-svg";
 import { copy } from "../_lib/copy";
@@ -165,7 +165,7 @@ export const GET = async (request: NextRequest) => {
           { label: words.result.average, value: result.average },
         ];
 
-  return new ImageResponse(
+  return await ogImage(
     <div
       style={{
         backgroundColor: ink.night,
