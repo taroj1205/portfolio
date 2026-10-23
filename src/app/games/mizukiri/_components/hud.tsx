@@ -4,6 +4,7 @@ import type { RefObject } from "react";
 
 import { BackToGames } from "../../_components/back-to-games";
 import { glass } from "../../_components/glass";
+import { ReportMenu } from "../../_components/report-menu";
 import { Speaker } from "../../_components/speaker-mark";
 import { font, ink, media, shade } from "../../_components/theme.stylex";
 import type { Text } from "../../_lib/i18n";
@@ -465,6 +466,7 @@ const Corner = ({
   "phase" | "save" | "muted" | "onMute" | "onReset" | "onWorkshop" | "opener"
 >) => {
   const copy = useCopy();
+  const lang = useLang();
   return (
     <div {...stylex.props(styles.corner)}>
       {save === null || save.best <= 0 ? null : (
@@ -516,6 +518,7 @@ const Corner = ({
             <Replay />
           </button>
         ) : null}
+        <ReportMenu iconOnly lang={lang} xstyle={styles.button} />
       </div>
     </div>
   );
