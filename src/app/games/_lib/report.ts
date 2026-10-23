@@ -22,22 +22,20 @@ export const reportLabels: Record<Lang, ReportLabels> = {
   },
 };
 
-const drafts: Record<Lang, (path: string) => { title: string; body: string }> =
-  {
-    en: (path) => ({
-      body: `Game: ${path}\n\nWhat happened:\n\nDevice and browser:\n`,
-      title: `Problem in ${path}`,
-    }),
-    ja: (path) => ({
-      body: `ゲーム: ${path}\n\n何が起きたか:\n\n端末とブラウザ:\n`,
-      title: `${path} の不具合`,
-    }),
-  };
+const issueTemplates: Record<Lang, string> = {
+  en: "bug-report.yml",
+  ja: "bug-report.ja.yml",
+};
+
+const titles: Record<Lang, (path: string) => string> = {
+  en: (path) => `Problem in ${path}`,
+  ja: (path) => `${path} の不具合`,
+};
 
 export const reportUrls = (path: string, lang: Lang) => {
-  const draft = drafts[lang](path);
+  const title = titles[lang](path);
   return {
-    github: `${REPO_URL}/issues/new?${new URLSearchParams({ body: draft.body, title: draft.title }).toString()}`,
-    x: `https://x.com/intent/tweet?${new URLSearchParams({ text: `${HANDLE} ${draft.title}: ` }).toString()}`,
+    github: `${REPO_URL}/issues/new?${new URLSearchParams({ game: path, template: issueTemplates[lang], title }).toString()}`,
+    x: `https://x.com/intent/tweet?${new URLSearchParams({ text: `${HANDLE} ${title}: ` }).toString()}`,
   };
 };

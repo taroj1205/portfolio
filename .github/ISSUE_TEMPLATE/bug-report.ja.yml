@@ -1,0 +1,24 @@
+name: 問題を報告
+description: サイトやゲームがうまく動かない
+title: "不具合: "
+labels: ["bug"]
+body:
+  - type: input
+    id: game
+    attributes:
+      label: ページまたはゲーム
+      description: "アドレスを書く。例: /games/senko"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 何が起きたか
+      description: 何をして、何が見えたか。スクリーンショットがあると助かる。
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: 端末とブラウザ
+      description: "例: iPhone 15のSafari"
