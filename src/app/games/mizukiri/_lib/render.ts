@@ -164,6 +164,7 @@ interface Screen {
 const TAU = Math.PI * 2;
 const NEAR = 0.35;
 const STONE = 0.26;
+const OPEN_SEA = 10_000;
 const GOLD = "#ffd27a";
 
 const hash = (a: number, b = 0) => {
@@ -220,7 +221,7 @@ const shakeAt = (flight: Flight, time: number) => {
 const LOOK_AHEAD = 0.3;
 const CLIMB_FROM = 3;
 
-const cameraFor = (
+export const cameraFor = (
   flight: Flight | null,
   time: number,
   clock: number
@@ -257,7 +258,7 @@ const cameraFor = (
     pitch: 0.07 * blend,
     roll: idle.roll * (1 - blend) - sway * 0.35 + shake * 0.6,
     speed: rush,
-    x: idle.x * (1 - blend) + x * 0.9 * blend + shake,
+    x: idle.x * (1 - blend) + x * blend + shake,
     y: idle.y + (height - idle.y) * blend + 1.1 * settle + shake * 0.5,
     z:
       Math.max(
@@ -721,7 +722,7 @@ const paintFarShore = (
 ) => {
   const back = view.camera.z + 160;
   const ground = project(view, { x: 0, y: 0, z: back - 4 });
-  if (!ground) {
+  if (!ground || openWater(zoneOf(back).coast)) {
     return;
   }
   const top: [number, number][] = [];
@@ -1138,6 +1139,9 @@ const paintLand = ({ ctx, view, river, palette, side }: Bank) => {
     z >= view.camera.z + NEAR + 0.05;
     z -= Math.max(0.5, (z - view.camera.z) * 0.08)
   ) {
+    if (openWater(zoneOf(z).coast)) {
+      continue;
+    }
     const p = project(view, { x: side * shoreAt(river, z), y: 0.4, z });
     if (p) {
       line.push(p);
@@ -2488,7 +2492,9 @@ export const createRenderer = (surfaces: {
         roll: camera.roll,
         shift,
         shallow: mixHex(palette.water[1], tintColor, tintAmount * 0.6),
-        shore: shoreAt(frame.river, camera.z + 10),
+        shore: openWater(zoneOf(camera.z + 10).coast)
+          ? OPEN_SEA
+          : frame.river.shore,
         sun: {
           x: w * palette.sunX,
           y: level - level * palette.sunY + shift,

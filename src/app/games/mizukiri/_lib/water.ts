@@ -93,13 +93,13 @@ void main() {
     return;
   }
 
-  float rise = (pixel.y - uHorizon) / uFocal;
-  float depth = min(uCam.y / rise, 400.0);
+  float rise = max(pixel.y - uHorizon, 1.0) / uFocal;
+  float depth = uCam.y / rise;
   vec2 ground = vec2((pixel.x - center.x) / uFocal * depth, depth);
   vec2 world = ground + vec2(uCam.x, uDrift);
   float reach = clamp(1.0 - depth / 45.0, 0.0, 1.0);
 
-  vec2 tilt = slope(world, reach) * (0.35 + 0.65 * clamp(1.0 - depth / 120.0, 0.0, 1.0));
+  vec2 tilt = slope(world, reach) * (0.35 + 0.65 * clamp(1.0 - depth / 120.0, 0.0, 1.0)) * min(1.0, 400.0 / depth);
   float crest = 0.0;
   for (int i = 0; i < ${MAX_RIPPLES}; i++) {
     vec4 r = uRipples[i];

@@ -17,6 +17,7 @@ import {
   statsOf,
   traitsOf as journeyTraits,
 } from "./journey";
+import { cameraFor } from "./render";
 import {
   describe as storyOf,
   journeyTag,
@@ -561,6 +562,61 @@ describe("areas", () => {
     const river = createRiver(4);
     assert.equal(shoreAt(river, zones[areaOf("cloud")]?.from ?? 0), 40);
     assert.equal(shoreAt(river, zones[areaOf("snow")]?.from ?? 0), river.shore);
+  });
+
+  test("the camera stays on the stone however far it is to the side", () => {
+    const flight = launch(createRiver(1), full);
+    flight.bumps = [];
+    flight.hops = [
+      {
+        end: 10,
+        from: { x: 30, y: 0, z: 0 },
+        start: 0,
+        velocity: { x: 0, y: 4, z: 20 },
+      },
+    ];
+    assert.ok(Math.abs(cameraFor(flight, 5, 0).x - 30) < 1e-9);
+  });
+
+  test("out on open water the stone runs straight instead of hitting an unseen wall", () => {
+    const river = createRiver(1);
+    const flight = launch(river, { ...full, aim: 0.03 }, fast);
+    for (
+      let contact = nextContact(flight), n = 0;
+      contact !== null &&
+      n < 3000 &&
+      (flight.hops.at(-1)?.from.z ?? 0) < 300_000;
+      contact = nextContact(flight), n += 1
+    ) {
+      land(flight, contact - 0.01);
+    }
+    const sea = zones[areaOf("sea")]?.from ?? 0;
+    const offshore = flight.splashes.filter((splash) => splash.z >= sea);
+    assert.ok(offshore.length > 10);
+    assert.ok(offshore.every((splash) => splash.event !== "wall"));
+    assert.ok(offshore.every((splash) => Math.abs(splash.x) < river.shore));
+  });
+
+  test("a hop leaving the river for the sea does not hit the river's wall out at sea", () => {
+    const river = createRiver(1);
+    const sea = zones[areaOf("sea")]?.from ?? 0;
+    const flight = launch(river, full, fast);
+    flight.bumps = [];
+    flight.splashes = [];
+    flight.pending = null;
+    flight.hops = [
+      {
+        end: 1,
+        from: { x: river.shore - 6, y: 0, z: sea - 1000 },
+        start: 0,
+        velocity: { x: 5, y: 4.9, z: 990 },
+      },
+    ];
+    land(flight, 0.99);
+    const [first] = flight.splashes;
+    assert.ok(first !== undefined && first.z < sea && first.event === null);
+    assert.ok((flight.hops.at(-1)?.end ?? 0) > 1.2);
+    assert.ok(flight.splashes.every((splash) => splash.event !== "wall"));
   });
 });
 

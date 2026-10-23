@@ -70,8 +70,10 @@ export const zoneIndex = (z: number) =>
     zones.findLastIndex((zone) => z >= zone.from)
   );
 
+const isOpen = (z: number) => openWater(zones[zoneIndex(z)]?.coast);
+
 export const shoreAt = (river: River, z: number) =>
-  openWater(zones[zoneIndex(z)]?.coast) ? 40 : river.shore;
+  isOpen(z) ? 40 : river.shore;
 
 export interface Vec {
   x: number;
@@ -346,7 +348,8 @@ const wallTime = (river: River, from: Vec, velocity: Vec) => {
     return null;
   }
   const edge = Math.sign(velocity.x) * (shoreAt(river, from.z) - WALL);
-  return Math.max(0, (edge - from.x) / velocity.x);
+  const t = Math.max(0, (edge - from.x) / velocity.x);
+  return isOpen(from.z + velocity.z * t) ? null : t;
 };
 
 const ricochet = (flight: Flight, hop: Hop, t: number) => {
@@ -650,7 +653,7 @@ export const land = (flight: Flight, tapAt: number | null) => {
     flight,
     at,
     {
-      x: hop.velocity.x * scale,
+      x: isOpen(at.z) ? 0 : hop.velocity.x * scale,
       y:
         Math.min(HOP, forward * flight.lift) *
         rise *
