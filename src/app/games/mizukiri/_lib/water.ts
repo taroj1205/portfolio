@@ -94,7 +94,7 @@ void main() {
   }
 
   float rise = max(pixel.y - uHorizon, 1.0) / uFocal;
-  float depth = uCam.y / rise;
+  float depth = min(uCam.y, 8000.0 * rise) / rise;
   vec2 ground = vec2((pixel.x - center.x) / uFocal * depth, depth);
   vec2 world = ground + vec2(uCam.x, uDrift);
   float reach = clamp(1.0 - depth / 45.0, 0.0, 1.0);
