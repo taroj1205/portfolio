@@ -17,7 +17,7 @@ import {
   statsOf,
   traitsOf as journeyTraits,
 } from "./journey";
-import { cameraFor, ringAt } from "./render";
+import { cameraAt, cameraFor, follow } from "./render";
 import {
   describe as storyOf,
   journeyTag,
@@ -578,30 +578,31 @@ describe("areas", () => {
     assert.ok(Math.abs(cameraFor(flight, 5, 0).x - 30) < 1e-9);
   });
 
-  test("the timing ring waits on the landing spot for a slow stone and sits under a fast one", () => {
-    const slow = launch(createRiver(3), { aim: 0, speed: 16, tilt: 26 });
-    const first = nextContact(slow);
-    assert.ok(first !== null);
-    assert.ok(speedAt(slow, first - 0.5) < 60);
-    assert.deepEqual(
-      ringAt(slow, first - 0.5, first),
-      stoneAt(slow, first - 1e-4)
-    );
-
-    const fastFlight = launch(createRiver(1), full, fast);
+  test("the timing ring holds still on screen while a fast stone falls into it", () => {
+    const flight = launch(createRiver(1), full, fast);
     for (
-      let contact = nextContact(fastFlight), n = 0;
-      contact !== null && n < 3000 && speedAt(fastFlight, contact) < 3000;
-      contact = nextContact(fastFlight), n += 1
+      let contact = nextContact(flight), n = 0;
+      contact !== null && n < 3000 && speedAt(flight, contact) < 3000;
+      contact = nextContact(flight), n += 1
     ) {
-      land(fastFlight, contact - 0.01);
+      land(flight, contact - 0.01);
     }
-    const contact = nextContact(fastFlight);
+    const contact = nextContact(flight);
     assert.ok(contact !== null);
-    assert.deepEqual(
-      ringAt(fastFlight, contact - 0.5, contact),
-      stoneAt(fastFlight, contact - 0.5)
-    );
+    const landing = contact - 1e-4;
+    let time = contact - 0.9;
+    let rig = cameraFor(flight, time, time);
+    const start = rig;
+    const first = cameraAt(flight, rig, time, landing, time);
+    for (; time < contact - 0.05;) {
+      time += 1 / 60;
+      rig = follow(rig, cameraFor(flight, time, time), 1 / 60);
+      const now = cameraAt(flight, rig, time, landing, time);
+      assert.ok(Math.abs(now.x - first.x) < 1e-6);
+      assert.ok(Math.abs(now.y - first.y) < 1e-6);
+      assert.ok(Math.abs(now.pitch - first.pitch) < 1e-6);
+    }
+    assert.ok(start.y - first.y > 1);
   });
 
   test("out on open water the stone runs straight instead of hitting an unseen wall", () => {

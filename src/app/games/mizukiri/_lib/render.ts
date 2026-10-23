@@ -166,7 +166,7 @@ const NEAR = 0.35;
 const STONE = 0.26;
 const OPEN_SEA = 10_000;
 const RING_FOLLOW_SPEED = 60;
-const RING_FLOOR = 0.92;
+const FRAME = 1 / 60;
 const GOLD = "#ffd27a";
 
 const hash = (a: number, b = 0) => {
@@ -271,7 +271,11 @@ export const cameraFor = (
   };
 };
 
-const follow = (rig: Camera | null, target: Camera, dt: number): Camera => {
+export const follow = (
+  rig: Camera | null,
+  target: Camera,
+  dt: number
+): Camera => {
   if (rig === null) {
     return target;
   }
@@ -285,6 +289,15 @@ const follow = (rig: Camera | null, target: Camera, dt: number): Camera => {
     z: target.z,
   };
 };
+
+const viewOf = (camera: Camera, w: number, h: number): View => ({
+  camera,
+  far: camera.z + 90,
+  focal: h * 0.85 * (1 - 0.22 * camera.speed),
+  h,
+  horizon: h * (w < h ? 0.4 : 0.44) + h * camera.pitch,
+  w,
+});
 
 const ridgeLine = (
   random: () => number,
@@ -1967,17 +1980,28 @@ const paintHand = (
   ctx.restore();
 };
 
-export const ringAt = (flight: Flight, time: number, contact: number) =>
-  stoneAt(
-    flight,
-    speedAt(flight, time) > RING_FOLLOW_SPEED ? time : contact - 1e-4
-  );
+export const cameraAt = (
+  flight: Flight,
+  camera: Camera,
+  time: number,
+  until: number,
+  clock: number
+) => {
+  let rig = camera;
+  for (let t = time; t < until;) {
+    const step = Math.min(FRAME, until - t);
+    t += step;
+    rig = follow(rig, cameraFor(flight, t, clock + t - time), step);
+  }
+  return rig;
+};
 
 const paintApproach = (
   ctx: CanvasRenderingContext2D,
   view: View,
   flight: Flight,
-  time: number
+  time: number,
+  clock: number
 ) => {
   const contact = nextContact(flight);
   if (contact === null) {
@@ -1987,14 +2011,22 @@ const paintApproach = (
   if (remain < 0 || remain > 0.9) {
     return;
   }
-  const at = ringAt(flight, time, contact);
+  const landing = contact - 1e-4;
+  const at = stoneAt(flight, landing);
+  const sight =
+    speedAt(flight, time) > RING_FOLLOW_SPEED
+      ? viewOf(
+          cameraAt(flight, view.camera, time, landing, clock),
+          view.w,
+          view.h
+        )
+      : view;
   const airborne = (flight.pending?.y ?? 0) > 0;
-  const p = at ? project(view, airborne ? at : { ...at, y: 0 }) : null;
+  const p = at ? project(sight, airborne ? at : { ...at, y: 0 }) : null;
   if (!p) {
     return;
   }
-  const squash = airborne ? 1 : flatten(view, p.d);
-  const y = Math.min(p.y, view.h * RING_FLOOR);
+  const squash = airborne ? 1 : flatten(sight, p.d);
   const win = windowFor(flight);
   const radiusAt = (left: number) => (0.45 + left * 3.2) * p.s;
   const target = radiusAt(win.perfect);
@@ -2008,7 +2040,7 @@ const paintApproach = (
   }
   ctx.fillStyle = rgba(GOLD, 0.12);
   ctx.beginPath();
-  ctx.ellipse(p.x, y, target, target * squash, 0, 0, TAU);
+  ctx.ellipse(p.x, p.y, target, target * squash, 0, 0, TAU);
   ctx.fill();
   ctx.strokeStyle = "rgb(255 255 255 / 0.5)";
   ctx.lineWidth = Math.max(1, 0.02 * p.s);
@@ -2024,7 +2056,7 @@ const paintApproach = (
     ctx.globalAlpha = alpha;
     ctx.lineWidth = Math.max(1.5, width * p.s);
     ctx.beginPath();
-    ctx.ellipse(p.x, y, ring, ring * squash, 0, 0, TAU);
+    ctx.ellipse(p.x, p.y, ring, ring * squash, 0, 0, TAU);
     ctx.stroke();
   }
   ctx.restore();
@@ -2206,7 +2238,7 @@ const paintScene = (
   }
   if (shot) {
     paintSplashes(ctx, view, shot, palette, time, rings);
-    paintApproach(ctx, view, shot, time);
+    paintApproach(ctx, view, shot, time, frame.clock);
   }
   const flownOf = (prop: Prop) => {
     const hit =
@@ -2456,14 +2488,7 @@ export const createRenderer = (surfaces: {
     const zoom = 1 + Math.abs(camera.roll) * 1.6;
     const level = h * (w < h ? 0.4 : 0.44);
     const shift = h * camera.pitch;
-    const view: View = {
-      camera,
-      far: camera.z + 90,
-      focal: h * 0.85 * (1 - 0.22 * camera.speed),
-      h,
-      horizon: level + shift,
-      w,
-    };
+    const view = viewOf(camera, w, h);
     const still: View = { ...view, horizon: level };
 
     const key = `${w}x${h}@${dpr}:${frame.river.seed}`;
