@@ -15,6 +15,8 @@ import type {
   Moment,
   Op,
   Paint,
+  Ring,
+  Shaded,
   Sprite,
 } from "./draw";
 import { createWave, pushWave, spillageOf, stepWave, streamOf } from "./liquid";
@@ -34,6 +36,7 @@ import {
   lamps,
   landingOf,
   layoutOf,
+  leftIn,
   lipOf,
   poseOf,
   project,
@@ -77,6 +80,13 @@ interface Particle extends Bubble {
   life: number;
 }
 
+interface Target {
+  half: number;
+  round: boolean;
+  landing: (x: number) => number;
+  walled: (drop: Droplet) => boolean;
+}
+
 const TAU = Math.PI * 2;
 const GRAVITY = 9810;
 const H = box.height;
@@ -93,6 +103,11 @@ const SPLASH = 26;
 const SPLASH_SPEED = 380;
 const BUBBLES = 14;
 const SPRAY = 30;
+const RING_GAP = 0.085;
+const RING_LIFE = 1.4;
+const RINGS_KEPT = 10;
+const CHOP_RISE = 6;
+const CHOP_FALL = 1.2;
 const SETTLED = 60;
 const still = createWave(2);
 const MOTES = 42;
@@ -394,10 +409,20 @@ const createPainter = (canvas: HTMLCanvasElement, atlas: Atlas, sake: Sake) => {
     return backed;
   };
 
+  const shade = (op: Shaded, scene: Matrix) => {
+    if (op.kind === "sake") {
+      return sake.pool(ctx, op.liquid, scene, backing());
+    }
+    if (op.kind === "glass") {
+      return sake.glass(ctx, op.tumbler, scene, backing());
+    }
+    return sake.stream(ctx, op.pouring, scene, backing());
+  };
+
   const paint = (ops: readonly Op[], scene: Matrix) => {
     for (const op of ops) {
-      if (op.kind === "sake") {
-        if (!sake.draw(ctx, op.liquid, scene, backing())) {
+      if ("ops" in op) {
+        if (!shade(op, scene)) {
           paint(op.ops, scene);
         }
         continue;
@@ -484,6 +509,43 @@ const createAir = (canvas: HTMLCanvasElement, calm: boolean) => {
   };
 };
 
+const GRAIN = 128;
+const GRAIN_SPREAD = 0.18;
+
+const createFilm = (canvas: HTMLCanvasElement, calm: boolean) => {
+  const ctx = canvas.getContext("2d");
+  const tile = document.createElement("canvas");
+  tile.width = GRAIN;
+  tile.height = GRAIN;
+  const roll = seeded(4093);
+  const paint = tile.getContext("2d");
+  if (paint !== null) {
+    const image = paint.createImageData(GRAIN, GRAIN);
+    for (let i = 0; i < image.data.length; i += 4) {
+      const value = 255 * (0.5 + (roll() - 0.5) * GRAIN_SPREAD);
+      image.data[i] = value;
+      image.data[i + 1] = value;
+      image.data[i + 2] = value;
+      image.data[i + 3] = 255;
+    }
+    paint.putImageData(image, 0, 0);
+  }
+  const pattern = ctx?.createPattern(tile, "repeat") ?? null;
+  return () => {
+    if (ctx === null || pattern === null) {
+      return;
+    }
+    const shift = calm ? 0 : Math.floor(Math.random() * GRAIN);
+    const lift = calm ? 0 : Math.floor(Math.random() * GRAIN);
+    ctx.setTransform(1, 0, 0, 1, -shift, -lift);
+    ctx.globalCompositeOperation = "soft-light";
+    ctx.fillStyle = pattern;
+    ctx.fillRect(shift, lift, canvas.width, canvas.height);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalCompositeOperation = "source-over";
+  };
+};
+
 export const createRenderer = (
   canvas: HTMLCanvasElement,
   calm: boolean,
@@ -493,6 +555,7 @@ export const createRenderer = (
   const sake = createSake(calm);
   const paint = createPainter(canvas, atlas, sake);
   const air = createAir(canvas, calm);
+  const film = createFilm(canvas, calm);
   const surface = canvas.getContext("2d");
   let reserved: (Reserved & { w: number; h: number }) | null = null;
   let layout = layoutOf(1, 1, demo);
@@ -503,6 +566,9 @@ export const createRenderer = (
   let last = 0;
   let drops: Drop[] = [];
   let bubbles: Particle[] = [];
+  let rings: Ring[] = [];
+  let ringing = 0;
+  let chop = 0;
   let burst = false;
   let splashing = 0;
   let bubbling = 0;
@@ -539,6 +605,9 @@ export const createRenderer = (
     wave = createWave();
     drops = [];
     bubbles = [];
+    rings = [];
+    ringing = 0;
+    chop = 0;
     burst = false;
     splashing = 0;
     bubbling = 0;
@@ -565,20 +634,44 @@ export const createRenderer = (
     }
   };
 
+  const ripple = (dt: number, x: number, q: number) => {
+    for (const ring of rings) {
+      ring.age += dt;
+    }
+    rings = rings.filter((ring) => ring.age < RING_LIFE);
+    ringing += dt;
+    if (q > 0 && ringing > RING_GAP) {
+      ringing = 0;
+      rings.push({
+        age: 0,
+        strength: Math.min(1, q) * (0.6 + 0.4 * Math.random()),
+        x,
+        z: (Math.random() - 0.5) * 0.6,
+      });
+      rings = rings.slice(-RINGS_KEPT);
+    }
+    const goal = Math.min(1.2, q);
+    chop +=
+      (goal - chop) * Math.min(1, dt * (goal > chop ? CHOP_RISE : CHOP_FALL));
+  };
+
   const evolve = (
     frame: Frame,
     stream: Stream,
-    half: number,
+    target: Target,
     strain: number,
     broke: number | null,
-    start: number,
-    landing: (x: number) => number,
-    walled: (drop: Droplet) => boolean,
-    round: boolean
+    start: number
   ) => {
     const { dt, pour } = frame;
+    const { half, landing, round, walled } = target;
     stepWave(wave, dt, half * 2);
     const { impact } = stream;
+    ripple(
+      dt,
+      impact?.x ?? 0,
+      impact === null ? 0 : Math.min(1.5, impact.rate / pour.flow)
+    );
     if (impact !== null) {
       const q = Math.min(1.5, impact.rate / pour.flow);
       const { x } = impact;
@@ -628,7 +721,9 @@ export const createRenderer = (
     }
     if (broke !== null && !burst) {
       burst = true;
-      pushWave(wave, start / B, 1, -60, 0.35);
+      if (!round) {
+        pushWave(wave, start / B, 1, -60, 0.35);
+      }
       spray({ x: start, y: H + 1, z: A }, SPRAY, 420, true);
     }
     for (const bubble of bubbles) {
@@ -689,13 +784,10 @@ export const createRenderer = (
       evolve(
         frame,
         stream,
-        half,
+        { half, landing, round: glassTarget, walled },
         strain,
         broke,
-        spillage?.start ?? 0,
-        landing,
-        walled,
-        glassTarget
+        spillage?.start ?? 0
       );
     }
     const rate = Math.min(1.5, flowAt(pour, hold, t) / pour.flow);
@@ -705,6 +797,7 @@ export const createRenderer = (
       bottle:
         away < 1
           ? {
+              left: leftIn(pour, hold, t),
               matrix: {
                 ...pose,
                 e: lip.x + (away * layout.w) / layout.scale,
@@ -714,6 +807,7 @@ export const createRenderer = (
             }
           : null,
       bubbles,
+      chop: calm ? 0 : chop,
       clock,
       drops,
       film: fill.glass?.over === true ? rate : 0,
@@ -723,6 +817,7 @@ export const createRenderer = (
         (spilt(since) - spilt(since - 0.05)) / 0.05 / SHEET_FLOW
       ),
       rate,
+      rings: calm ? [] : rings,
       spillage,
       strain,
       stream: calm ? { ...stream, beads: [] } : stream,
@@ -801,6 +896,7 @@ export const createRenderer = (
       surface.drawImage(tone, 0, 0, canvas.width, canvas.height);
       surface.globalCompositeOperation = "source-over";
     }
+    film();
   };
 
   return {

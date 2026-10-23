@@ -197,7 +197,7 @@ describe("the layout", () => {
   });
 });
 
-const unproject = (screen: Point) => {
+const onStreamPlane = (screen: Point) => {
   const dir = {
     x:
       screen.x * basis.right.x -
@@ -241,7 +241,7 @@ const fallsIn = (stream: Stream, cup: Cup, views: readonly View[]) => {
   let crossed = false;
   for (const [k, thread] of drawn.threads.entries()) {
     const world = thread.map((bead, i) => ({
-      ...unproject(bead),
+      ...onStreamPlane(bead),
       r: stream.threads[k]?.[i]?.r ?? 0,
     }));
     for (const [i, p] of world.entries()) {
@@ -275,7 +275,7 @@ const fallsIn = (stream: Stream, cup: Cup, views: readonly View[]) => {
     }
   }
   for (const bead of drawn.beads) {
-    const p = unproject(bead);
+    const p = onStreamPlane(bead);
     if (p.y < rim) {
       crossed = true;
       if (Math.abs(p.x) > wallAt(cup, p.y)) {
@@ -286,7 +286,7 @@ const fallsIn = (stream: Stream, cup: Cup, views: readonly View[]) => {
     }
   }
   if (drawn.impact !== null) {
-    const p = unproject(drawn.impact);
+    const p = onStreamPlane(drawn.impact);
     if (Math.abs(p.x) > wallAt(cup, Math.min(p.y, rim))) {
       problems.push(
         `lands outside the cup at ${p.x.toFixed(1)}, ${p.y.toFixed(1)}`

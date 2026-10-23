@@ -11,6 +11,7 @@ import {
   fillOf,
   jetOf,
   landingOf,
+  leftIn,
   lipOf,
   onScreen,
   poseOf,
@@ -39,17 +40,20 @@ const resting = (
   return {
     bottle: pouring
       ? {
+          left: leftIn(pour, Infinity, PITCH_AT),
           matrix: { ...poseOf(angle, 1), e: lip.x, f: lip.y },
           name: pour.bottle,
         }
       : null,
     bubbles: [],
+    chop: 0,
     clock: 0,
     drops: [],
     film: pouring ? 0.6 : 0,
     fill,
     flux: 0,
     rate: pouring ? 1 : 0,
+    rings: [],
     spillage,
     strain,
     stream: pouring

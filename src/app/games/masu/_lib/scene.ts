@@ -261,13 +261,21 @@ export const awayAt = (pour: Pour, hold: number, t: number) => {
   return p * p * (3 - 2 * p);
 };
 
+const emptiedAt = (pour: Pour, hold: number, t: number) =>
+  Math.min(
+    1,
+    mlOf(pour, volumeAt(pour, hold, t)) / vessels[pour.bottle].content
+  );
+
+const FILLED = 0.86;
+
+export const leftIn = (pour: Pour, hold: number, t: number) =>
+  FILLED * (1 - emptiedAt(pour, hold, t));
+
 export const angleAt = (pour: Pour, hold: number, t: number) => {
   const vessel = vessels[pour.bottle];
   const tilt = tiltAt(pour, hold, t);
-  const emptied = Math.min(
-    1,
-    mlOf(pour, volumeAt(pour, hold, t)) / vessel.content
-  );
+  const emptied = emptiedAt(pour, hold, t);
   const glug = t <= hold ? rateAt(pour, t) / pour.flow - 1 : 0;
   return (
     vessel.rest +
@@ -284,7 +292,7 @@ const spoutAt = (bottle: Bottle, angle: number): Point => {
   return { x: -x / size, y: y / size };
 };
 
-const POUR_X = 12;
+const POUR_X = 18;
 
 export const rimOf = (cup: Cup) => (cup === "masu" ? box.height : GLASS_TOP);
 
@@ -682,8 +690,9 @@ export const alongSide = (side: Side, inset = 0) =>
 export const edgeLine = (height: Surface, side: Side, inset = 0) =>
   alongSide(side, inset).map(([x, z]) => project(x, height(x, z), z));
 
-const LIP_SPEED = 70;
-const LIP_GAIN = 50;
+const LIP_SPEED = 130;
+const LIP_GAIN = 60;
+const HEAD = 0.3;
 
 const planeOf = (screen: Point, at: Vec): Point => {
   const origin = project(at.x, at.y, at.z);
@@ -707,8 +716,10 @@ export const jetAt = (
   volume: number
 ): Jet => {
   const lip = lipAt(pour);
+  const { rest, tip } = vessels[pour.bottle];
   const direction = planeOf(spoutAt(pour.bottle, angle), lip);
-  const speed = LIP_SPEED + LIP_GAIN * Math.min(1.6, rate / pour.flow);
+  const head = HEAD + (1 - HEAD) * clamp((angle - rest) / (tip - rest));
+  const speed = (LIP_SPEED + LIP_GAIN * Math.min(1.6, rate / pour.flow)) * head;
   return {
     rate,
     volume,

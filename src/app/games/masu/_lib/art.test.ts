@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { describe, test } from "vite-plus/test";
 
 import { docOf, room, spriteDoc, sprites, stillDoc } from "./art";
-import { drawList, flatten, spriteNames } from "./draw";
+import { drawList, flatten, spriteNames, streamOps } from "./draw";
 import type { Op } from "./draw";
 import { bottles } from "./pour";
 import { glassOf } from "./result";
@@ -23,7 +23,8 @@ const labelsOf = (body: string) =>
     matrix: (match.groups?.matrix ?? "").split(" ").map(Number),
   }));
 
-const pitch = drawList(stillOf(null));
+const pitching = stillOf(null);
+const pitch = drawList(pitching);
 const brimming = drawList(stillOf(glassOf({ hold: 4088, seed: 13 })));
 const spilled = drawList(stillOf(glassOf({ hold: 3700, seed: 11 })));
 
@@ -47,21 +48,45 @@ describe("the camera basis", () => {
   });
 });
 
-describe("the sake surfaces", () => {
+describe("the shaded layers", () => {
   test("carry the 2D layers the OG image and the no-WebGL canvas draw", () => {
     for (const ops of [pitch, brimming, spilled]) {
-      const surfaces = ops.filter((op) => op.kind === "sake");
-      assert.ok(surfaces.length > 0);
-      for (const surface of surfaces) {
-        assert.ok(surface.ops.length > 0);
+      const shaded = ops.filter((op) => "ops" in op);
+      assert.ok(shaded.some((op) => op.kind === "sake"));
+      for (const op of shaded) {
+        if (op.kind !== "stream") {
+          assert.ok(op.ops.length > 0, op.kind);
+        }
       }
       const flat: readonly Op[] = flatten(ops);
-      assert.ok(!flat.some((op) => op.kind === "sake"));
-      for (const surface of surfaces) {
-        for (const layer of surface.ops) {
+      assert.ok(!flat.some((op) => "ops" in op));
+      for (const op of shaded) {
+        for (const layer of flatten(op.ops)) {
           assert.ok(flat.includes(layer));
         }
       }
+    }
+  });
+
+  test("shade the glass before the stream that falls into it", () => {
+    const kinds = pitch.flatMap((op) => ("ops" in op ? [op.kind] : []));
+    assert.deepEqual(kinds.slice(-2), ["glass", "stream"]);
+    const stream = pitch.find((op) => op.kind === "stream");
+    assert.equal(stream?.ops.length, 0);
+  });
+
+  test("draw the 2D stream between the back and front of the glass", () => {
+    const glass = pitch.find((op) => op.kind === "glass");
+    const layers = flatten(glass?.ops ?? []);
+    const at = (name: string) =>
+      layers.findIndex((op) => op.kind === "sprite" && op.name === name);
+    const ribbons = flatten(streamOps(pitching.stream, pitching.clock)).flatMap(
+      (op) => (op.kind === "fill" ? [op.d] : [])
+    );
+    assert.ok(ribbons.length > 0);
+    for (const d of ribbons) {
+      const index = layers.findIndex((op) => op.kind === "fill" && op.d === d);
+      assert.ok(index > at("glassBack") && index < at("glassFront"));
     }
   });
 
