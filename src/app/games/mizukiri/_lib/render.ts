@@ -164,7 +164,6 @@ interface Screen {
 const TAU = Math.PI * 2;
 const NEAR = 0.35;
 const STONE = 0.26;
-const OPEN_SEA = 10_000;
 const RING_FOLLOW_SPEED = 60;
 const FRAME = 1 / 60;
 const GOLD = "#ffd27a";
@@ -2027,6 +2026,7 @@ const paintApproach = (
     return;
   }
   const squash = airborne ? 1 : flatten(sight, p.d);
+  const y = Math.min(p.y, view.h);
   const win = windowFor(flight);
   const radiusAt = (left: number) => (0.45 + left * 3.2) * p.s;
   const target = radiusAt(win.perfect);
@@ -2040,7 +2040,7 @@ const paintApproach = (
   }
   ctx.fillStyle = rgba(GOLD, 0.12);
   ctx.beginPath();
-  ctx.ellipse(p.x, p.y, target, target * squash, 0, 0, TAU);
+  ctx.ellipse(p.x, y, target, target * squash, 0, 0, TAU);
   ctx.fill();
   ctx.strokeStyle = "rgb(255 255 255 / 0.5)";
   ctx.lineWidth = Math.max(1, 0.02 * p.s);
@@ -2056,7 +2056,7 @@ const paintApproach = (
     ctx.globalAlpha = alpha;
     ctx.lineWidth = Math.max(1.5, width * p.s);
     ctx.beginPath();
-    ctx.ellipse(p.x, p.y, ring, ring * squash, 0, 0, TAU);
+    ctx.ellipse(p.x, y, ring, ring * squash, 0, 0, TAU);
     ctx.stroke();
   }
   ctx.restore();
@@ -2527,7 +2527,7 @@ export const createRenderer = (surfaces: {
         shift,
         shallow: mixHex(palette.water[1], tintColor, tintAmount * 0.6),
         shore: openWater(zoneOf(camera.z + 10).coast)
-          ? OPEN_SEA
+          ? 0
           : frame.river.shore,
         sun: {
           x: w * palette.sunX,

@@ -139,7 +139,7 @@ void main() {
 
   color += vec3(1.0) * crest * 0.55;
 
-  float edge = smoothstep(uShore - 0.6, uShore, abs(world.x));
+  float edge = uShore > 0.0 ? smoothstep(uShore - 0.6, uShore, abs(world.x)) : 0.0;
   color = mix(color, color * 0.55, edge);
 
   float haze = smoothstep(18.0, 150.0, depth) * uMistAlpha * 1.6;
