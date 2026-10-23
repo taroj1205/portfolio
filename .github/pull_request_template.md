@@ -1,6 +1,6 @@
 ## Issues
 
-<!-- Use "- Related to #" instead when this PR only covers part of the issue. -->
+<!-- Use "- Related to #" instead when this PR only covers part of the issue, or "- None" when there is no issue. -->
 
 - Closes #
 
