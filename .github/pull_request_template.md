@@ -1,3 +1,9 @@
+## Issues
+
+<!-- Use "- Related to #" instead when this PR only covers part of the issue, or "- None" when there is no issue. -->
+
+- Closes #
+
 ## What changed and why
 
 | File | What changed |
