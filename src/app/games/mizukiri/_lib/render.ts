@@ -2526,9 +2526,7 @@ export const createRenderer = (surfaces: {
         roll: camera.roll,
         shift,
         shallow: mixHex(palette.water[1], tintColor, tintAmount * 0.6),
-        shore: openWater(zoneOf(camera.z + 10).coast)
-          ? 0
-          : frame.river.shore,
+        shore: openWater(zoneOf(camera.z + 10).coast) ? 0 : frame.river.shore,
         sun: {
           x: w * palette.sunX,
           y: level - level * palette.sunY + shift,
