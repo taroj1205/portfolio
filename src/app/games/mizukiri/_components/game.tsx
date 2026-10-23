@@ -222,6 +222,12 @@ export const Game = ({
         challenge={
           thrown || (save !== null && save.mode !== "duel") ? null : challenge
         }
+        muted={settings?.muted ?? false}
+        onMute={(muted) => {
+          if (settings !== null) {
+            session.current?.settings({ ...settings, muted });
+          }
+        }}
         onReset={() => session.current?.again()}
         onWorkshop={() => {
           setWorkshop(true);

@@ -1,8 +1,10 @@
+import { Toggle } from "@base-ui/react/toggle";
 import * as stylex from "@stylexjs/stylex";
 import type { RefObject } from "react";
 
 import { BackToGames } from "../../_components/back-to-games";
 import { glass } from "../../_components/glass";
+import { Speaker } from "../../_components/speaker-mark";
 import { font, ink, media, shade } from "../../_components/theme.stylex";
 import type { Text } from "../../_lib/i18n";
 import type { Copy } from "../_lib/copy";
@@ -143,6 +145,10 @@ const styles = stylex.create({
     top: 2,
     width: 9,
   },
+  buttons: {
+    display: "flex",
+    gap: "0.45rem",
+  },
   corner: {
     alignItems: "flex-end",
     display: "flex",
@@ -169,7 +175,7 @@ const styles = stylex.create({
     fontWeight: 700,
     gap: "0.35rem",
   },
-  mute: {
+  button: {
     position: "relative",
     alignItems: "center",
     borderRadius: 999,
@@ -394,6 +400,8 @@ interface HudProps {
   popup: Popup | null;
   challenge: Result | null;
   tutorial: boolean;
+  muted: boolean;
+  onMute: (muted: boolean) => void;
   onReset: () => void;
   onWorkshop: () => void;
   opener: RefObject<HTMLButtonElement | null>;
@@ -447,10 +455,15 @@ const Replay = () => (
 const Corner = ({
   phase,
   save,
+  muted,
+  onMute,
   onReset,
   onWorkshop,
   opener,
-}: Pick<HudProps, "phase" | "save" | "onReset" | "onWorkshop" | "opener">) => {
+}: Pick<
+  HudProps,
+  "phase" | "save" | "muted" | "onMute" | "onReset" | "onWorkshop" | "opener"
+>) => {
   const copy = useCopy();
   return (
     <div {...stylex.props(styles.corner)}>
@@ -469,31 +482,41 @@ const Corner = ({
           </span>
         </p>
       ) : null}
-      {phase === "ready" || phase === "done" ? (
-        <button
-          aria-label={copy.openWorkshop}
-          onClick={onWorkshop}
-          ref={opener}
-          type="button"
-          {...stylex.props(glass.surface, styles.mute)}
+      <div {...stylex.props(styles.buttons)}>
+        <Toggle
+          aria-label={copy.workshop.mute.label}
+          onPressedChange={onMute}
+          pressed={muted}
+          {...stylex.props(glass.surface, styles.button)}
         >
-          <Gear />
-          {save?.mode === "journey" &&
-          (pointsLeft(save) > 0 || save.unseen.length > 0) ? (
-            <span aria-hidden="true" {...stylex.props(styles.dot)} />
-          ) : null}
-        </button>
-      ) : null}
-      {phase === "flying" ? (
-        <button
-          aria-label={copy.reset}
-          onClick={onReset}
-          type="button"
-          {...stylex.props(glass.surface, styles.mute)}
-        >
-          <Replay />
-        </button>
-      ) : null}
+          <Speaker muted={muted} />
+        </Toggle>
+        {phase === "ready" || phase === "done" ? (
+          <button
+            aria-label={copy.openWorkshop}
+            onClick={onWorkshop}
+            ref={opener}
+            type="button"
+            {...stylex.props(glass.surface, styles.button)}
+          >
+            <Gear />
+            {save?.mode === "journey" &&
+            (pointsLeft(save) > 0 || save.unseen.length > 0) ? (
+              <span aria-hidden="true" {...stylex.props(styles.dot)} />
+            ) : null}
+          </button>
+        ) : null}
+        {phase === "flying" ? (
+          <button
+            aria-label={copy.reset}
+            onClick={onReset}
+            type="button"
+            {...stylex.props(glass.surface, styles.button)}
+          >
+            <Replay />
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 };
@@ -507,6 +530,8 @@ export const Hud = ({
   popup,
   challenge,
   tutorial,
+  muted,
+  onMute,
   onReset,
   onWorkshop,
   opener,
@@ -535,6 +560,8 @@ export const Hud = ({
           </span>
         </div>
         <Corner
+          muted={muted}
+          onMute={onMute}
           onReset={onReset}
           onWorkshop={onWorkshop}
           opener={opener}

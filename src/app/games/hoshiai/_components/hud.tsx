@@ -3,9 +3,10 @@ import type { RefObject } from "react";
 
 import { BackToGames } from "../../_components/back-to-games";
 import { glass } from "../../_components/glass";
+import { LanguageButton } from "../../_components/language-button";
+import { ReportMenu } from "../../_components/report-menu";
 import { ShareButton } from "../../_components/share-button";
 import { font, ink, media, shade } from "../../_components/theme.stylex";
-import { langNames } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import type { Share } from "../../_lib/share";
 import { bodies, kindOf } from "../_lib/bodies";
@@ -187,13 +188,6 @@ const styles = stylex.create({
     transitionDuration: "160ms",
     transitionProperty: "transform",
     width: "2.75rem",
-  },
-  language: {
-    fontSize: "0.8rem",
-    fontWeight: 700,
-    letterSpacing: "calc(0.08em * var(--track, 1))",
-    paddingInline: "1rem",
-    width: "auto",
   },
   next: {
     alignItems: "center",
@@ -403,7 +397,7 @@ interface HudProps {
   onMute: () => void;
   onRestart: () => void;
   share: Share | null;
-  onSharing: (open: boolean) => void;
+  onMenu: (open: boolean) => void;
 }
 
 export const Hud = ({
@@ -424,7 +418,7 @@ export const Hud = ({
   onMute,
   onRestart,
   share,
-  onSharing,
+  onMenu,
 }: HudProps) => {
   const words = copy[lang];
   const other: Lang = lang === "ja" ? "en" : "ja";
@@ -459,7 +453,7 @@ export const Hud = ({
                     fileName="hoshiai-stats.png"
                     iconOnly
                     labels={words.result}
-                    onOpenChange={onSharing}
+                    onOpenChange={onMenu}
                     share={share}
                     {...stylex.props(
                       glass.surface,
@@ -493,14 +487,19 @@ export const Hud = ({
                 </button>
               ) : null}
             </div>
-            <button
-              lang={other}
-              onClick={onLang}
-              type="button"
-              {...stylex.props(glass.surface, styles.button, styles.language)}
-            >
-              {langNames[other]}
-            </button>
+            <div {...stylex.props(styles.buttons)}>
+              <LanguageButton
+                lang={other}
+                onClick={onLang}
+                xstyle={styles.button}
+              />
+              <ReportMenu
+                iconOnly
+                lang={lang}
+                xstyle={styles.button}
+                onOpenChange={onMenu}
+              />
+            </div>
             {playing ? (
               <div {...stylex.props(glass.surface, styles.next)}>
                 <span {...stylex.props(styles.label)}>{words.next}</span>
