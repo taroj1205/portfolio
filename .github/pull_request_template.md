@@ -1,3 +1,7 @@
+## Issues
+
+- Closes #
+
 ## What changed and why
 
 | File | What changed |
