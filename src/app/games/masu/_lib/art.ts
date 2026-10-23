@@ -122,6 +122,9 @@ const grain = (
   return `<filter id="${id}" filterUnits="userSpaceOnUse" x="-4" y="-4" width="${n(size.x + 8)}" height="${n(size.y + 8)}" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="${frequency.x} ${frequency.y}" numOctaves="3" seed="${seed}"/><feColorMatrix type="matrix" values="0 0 0 0 ${r} 0 0 0 0 ${g} 0 0 0 0 ${b} ${n(strength)} 0 0 0 ${n(-strength * 0.5)}"/></filter><rect x="-4" y="-4" width="${n(size.x + 8)}" height="${n(size.y + 8)}" filter="url(#${id})"/>`;
 };
 
+const detail = (id: string, size: Point, seed: number, fine: number) =>
+  `<filter id="${id}-f" filterUnits="userSpaceOnUse" x="-4" y="-4" width="${n(size.x + 8)}" height="${n(size.y + 8)}" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.05 ${n(1.7 * fine)}" numOctaves="2" seed="${seed + 3}"/><feColorMatrix type="matrix" values="0 0 0 0 ${fraction(wood.line).join(" 0 0 0 0 ")} 1.6 0 0 0 -0.78"/></filter><filter id="${id}-p" filterUnits="userSpaceOnUse" x="-4" y="-4" width="${n(size.x + 8)}" height="${n(size.y + 8)}" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.55 ${n(2.6 * fine)}" numOctaves="1" seed="${seed + 5}"/><feColorMatrix type="matrix" values="0 0 0 0 ${fraction(wood.seam).join(" 0 0 0 0 ")} 9 0 0 0 -6.1"/></filter><filter id="${id}-r" filterUnits="userSpaceOnUse" x="-4" y="-4" width="${n(size.x + 8)}" height="${n(size.y + 8)}" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.009 0.035" numOctaves="2" seed="${seed + 9}"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.95 0 0 0 0 0.86 1.1 0 0 0 -0.5"/></filter><rect x="-4" y="-4" width="${n(size.x + 8)}" height="${n(size.y + 8)}" filter="url(#${id}-f)" opacity="0.55"/><rect x="-4" y="-4" width="${n(size.x + 8)}" height="${n(size.y + 8)}" filter="url(#${id}-p)" opacity="0.45"/><rect x="-4" y="-4" width="${n(size.x + 8)}" height="${n(size.y + 8)}" filter="url(#${id}-r)" opacity="0.32"/>`;
+
 interface Plane {
   id: string;
   corners: readonly [Vec, Vec, Vec, Vec];
@@ -184,7 +187,7 @@ const planeSvg = (plane: Plane) => {
     shaded
       ? `${blur(`${id}-s`, 0.9)}<path d="${pathOf(litOn(plane))}" fill="${lit}" filter="url(#${id}-s)"/>`
       : ""
-  }<g transform="${local}">${grain(`${id}-g`, size, { x: 0.012, y: across }, plane.seed, wood.line, 1.4)}${grain(`${id}-b`, size, { x: 0.004, y: 0.08 }, plane.seed + 7, wood.bounce, 0.9)}${plane.extra?.(size) ?? ""}</g></g>`;
+  }<g transform="${local}">${grain(`${id}-g`, size, { x: 0.012, y: across }, plane.seed, wood.line, 1.4)}${grain(`${id}-b`, size, { x: 0.004, y: 0.08 }, plane.seed + 7, wood.bounce, 0.9)}${detail(id, size, plane.seed, plane.fine === true ? 1.6 : 1)}${plane.extra?.(size) ?? ""}</g></g>`;
 };
 
 const v = (x: number, y: number, z: number): Vec => ({ x, y, z });
@@ -603,49 +606,51 @@ const bottleBody = (bottle: Bottle) => {
   const shift = `translate(${-vessel.lip.x} ${-vessel.lip.y})`;
   const bodies: Record<
     Bottle,
-    { stops: readonly Stop[]; marks: string; glyphs: string }
+    { stops: readonly Stop[]; marks: string; glyphs: string; paper: string }
   > = {
     isshobin: {
       glyphs: `${glyph("吟", 0, 57, 18)}${glyph("酒", 0, 276, 50)}`,
+      paper: `<rect x="-13" y="34" width="26" height="46"/><path d="M-38 150Q0 128 38 150V174Q0 154 -38 174Z"/><rect x="-40" y="214" width="80" height="120"/>`,
       marks: `<rect x="-14" y="2" width="28" height="9" fill="#c9a24a"/><rect x="-13" y="11" width="26" height="7" fill="#b8321f"/><rect x="-13" y="34" width="26" height="46" fill="#f4ead7"/><rect x="-13" y="34" width="26" height="4" fill="#b8321f"/><rect x="-13" y="76" width="26" height="4" fill="#b8321f"/><path d="M-38 150Q0 128 38 150V174Q0 154 -38 174Z" fill="#f4ead7"/><path d="M-38 150Q0 128 38 150" fill="none" stroke="#c9a24a" stroke-width="3"/><rect x="-40" y="214" width="80" height="120" fill="#f4ead7"/><rect x="-40" y="214" width="80" height="8" fill="#b8321f"/>`,
       stops: [
-        [0, "#2a1206", 1],
-        [0.22, "#9c5422", 1],
-        [0.36, "#4a2009", 1],
+        [0, "#140602", 1],
+        [0.2, "#3a1806", 1],
+        [0.5, "#6a3211", 1],
+        [0.8, "#3a1806", 1],
         [1, "#120602", 1],
       ],
     },
     katakuchi: {
       glyphs: "",
       marks: `<ellipse cx="-1" cy="1" rx="60" ry="5" fill="#b8321f"/>`,
+      paper: "",
       stops: [
-        [0, "#1b0d0b", 1],
-        [0.28, "#6a3328", 1],
-        [0.45, "#2a120e", 1],
-        [1, "#120706", 1],
+        [0, "#120706", 1],
+        [0.25, "#2c130f", 1],
+        [0.5, "#4f2419", 1],
+        [0.75, "#2c130f", 1],
+        [1, "#100605", 1],
       ],
     },
     tokkuri: {
       glyphs: "",
       marks: `<g stroke="#2c3f8f" fill="none"><path d="M-50 60H50M-50 66H50M-50 126H50" stroke-width="2.4"/><path d="M-43 96a7 7 0 0 1 14 0M-25 96a7 7 0 0 1 14 0M-7 96a7 7 0 0 1 14 0M11 96a7 7 0 0 1 14 0M29 96a7 7 0 0 1 14 0" stroke-width="3"/></g>`,
+      paper: "",
       stops: [
-        [0, "#bdb8aa", 1],
-        [0.28, "#f6f3ea", 1],
-        [0.5, "#e2ddd0", 1],
+        [0, "#8d887b", 1],
+        [0.25, "#d9d5ca", 1],
+        [0.5, "#f4f1e8", 1],
+        [0.75, "#d9d5ca", 1],
         [1, "#7f7a6d", 1],
       ],
     },
   };
-  const { stops, marks, glyphs } = bodies[bottle];
+  const { stops, marks, glyphs, paper } = bodies[bottle];
   const span = { height: height - top + 8, y: top - 4 };
-  const band = (
-    x: number,
-    w: number,
-    fill: string,
-    filter: string,
-    opacity: number
-  ) =>
-    `<rect x="${n(x)}" y="${n(span.y)}" width="${n(w)}" height="${n(span.height)}" fill="${fill}" fill-opacity="${n(opacity)}" filter="url(#${id}-${filter})"/>`;
+  const fibres =
+    paper === ""
+      ? ""
+      : `<filter id="${id}-paper" filterUnits="userSpaceOnUse" x="${n(-width)}" y="${n(span.y)}" width="${n(width * 2)}" height="${n(span.height)}" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="0.7 0.09" numOctaves="3" seed="7"/><feColorMatrix type="matrix" values="0 0 0 0 0.55 0 0 0 0 0.42 0 0 0 0 0.28 0.7 0 0 0 -0.34"/></filter><filter id="${id}-pulp" filterUnits="userSpaceOnUse" x="${n(-width)}" y="${n(span.y)}" width="${n(width * 2)}" height="${n(span.height)}" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="2" seed="11"/><feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.97 0 0 0 0 0.9 0 0 0 -1.4 0.82"/></filter><clipPath id="${id}-labels">${paper}</clipPath><g clip-path="url(#${id}-labels)"><rect x="${n(-width)}" y="${n(span.y)}" width="${n(width * 2)}" height="${n(span.height)}" filter="url(#${id}-paper)"/><rect x="${n(-width)}" y="${n(span.y)}" width="${n(width * 2)}" height="${n(span.height)}" filter="url(#${id}-pulp)" opacity="0.35"/></g>`;
   return `${linear(`${id}-body`, { x: -width, y: 0 }, { x: width, y: 0 }, stops)}${linear(
     `${id}-fall`,
     { x: 0, y: top },
@@ -656,7 +661,7 @@ const bottleBody = (bottle: Bottle) => {
       [0.85, wood.shadow, 0.22],
       [1, wood.shadow, 0.5],
     ]
-  )}${blur(`${id}-ink`, 0.3)}${blur(`${id}-glaze`, width * 0.05)}${blur(`${id}-sheen`, width * 0.015)}<clipPath id="${id}-clip"><path d="${body}"/></clipPath><g transform="${shift}"><path d="${body}" fill="url(#${id}-body)"/><g clip-path="url(#${id}-clip)"><g filter="url(#${id}-ink)" opacity="0.88">${marks}</g><g opacity="0.92">${glyphs}</g><rect x="${n(-width)}" y="${n(span.y)}" width="${n(width * 2)}" height="${n(span.height)}" fill="url(#${id}-fall)"/>${band(-width * 0.58, width * 0.22, wood.spark, "glaze", 0.32)}${band(-width * 0.5, width * 0.06, wood.spark, "sheen", 0.75)}${band(width * 0.8, width * 0.08, wood.lamp, "glaze", 0.3)}</g><path d="${body}" fill="none" stroke="${wood.shadow}" stroke-opacity="0.35" stroke-width="0.8"/></g>`;
+  )}${blur(`${id}-ink`, 0.3)}<clipPath id="${id}-clip"><path d="${body}"/></clipPath><g transform="${shift}"><path d="${body}" fill="url(#${id}-body)"/><g clip-path="url(#${id}-clip)"><g filter="url(#${id}-ink)" opacity="0.88">${marks}</g>${fibres}<g opacity="0.92">${glyphs}</g><rect x="${n(-width)}" y="${n(span.y)}" width="${n(width * 2)}" height="${n(span.height)}" fill="url(#${id}-fall)"/></g><path d="${body}" fill="none" stroke="${wood.shadow}" stroke-opacity="0.35" stroke-width="0.8"/></g>`;
 };
 
 const bottleBox = (bottle: Bottle): Box =>
@@ -882,6 +887,7 @@ const plankGrain = (
   `<filter id="${id}" filterUnits="userSpaceOnUse" x="0" y="${n(y)}" width="${n(w)}" height="${n(h)}" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="${n(along)} ${n(across)}" numOctaves="3" seed="${seed}"/><feColorMatrix type="matrix" values="0 0 0 0 0.06 0 0 0 0 0.03 0 0 0 0 0.012 1.3 0 0 0 -0.55"/></filter><rect y="${n(y)}" width="${n(w)}" height="${n(h)}" filter="url(#${id})"/>`;
 
 const SEAMS = [-320, -250, -180, -105, -25, 60, 155, 265, 400, 580, 820];
+const FOCUS = 90;
 
 const counterSvg = (
   width: number,
@@ -890,6 +896,7 @@ const counterSvg = (
   back: number
 ) => {
   const s = frame.scale;
+  const k = s / REFERENCE;
   const at = (x: number, z: number) => ({
     x: frame.cx + project(x, 0, z).x * s,
     y: frame.cy + project(x, 0, z).y * s,
@@ -904,7 +911,15 @@ const counterSvg = (
     const across = at(1, middle).x - at(0, middle).x || 1;
     const deep = (near - at(0, z).y) / ((SEAMS[i + 1] ?? z) - z) || 1;
     const top = Math.min(near, height + 2);
-    return `<rect y="${n(far)}" width="${width}" height="${n(top - far)}" fill="${bar.counter[i % bar.counter.length]}"/>${plankGrain(
+    const soft = Math.min(
+      4.5 * k,
+      Math.max(0, Math.abs(middle) - FOCUS) * 0.012 * k
+    );
+    const focus =
+      soft > 0.2
+        ? `<filter id="room-dof${i}" x="0" y="-20%" width="100%" height="140%"><feGaussianBlur stdDeviation="${n(soft)} ${n(soft * 0.6)}"/></filter>`
+        : "";
+    return `${focus}<g${soft > 0.2 ? ` filter="url(#room-dof${i})"` : ""}><rect y="${n(far)}" width="${width}" height="${n(top - far)}" fill="${bar.counter[i % bar.counter.length]}"/>${plankGrain(
       `room-plank${i}`,
       far,
       width,
@@ -912,7 +927,7 @@ const counterSvg = (
       Math.min(0.08, 1 / (90 * across)),
       Math.min(1.6, 1 / (1.4 * deep)),
       31 + i * 7
-    )}<path d="M0 ${n(far)}H${width}" stroke="${bar.ink}" stroke-opacity="0.55" stroke-width="${n(Math.max(0.5, across * 0.8))}"/><path d="M0 ${n(far + Math.max(0.6, across * 0.9))}H${width}" stroke="${bar.paper}" stroke-opacity="0.09" stroke-width="${n(Math.max(0.4, across * 0.5))}"/>`;
+    )}<path d="M0 ${n(far)}H${width}" stroke="${bar.ink}" stroke-opacity="0.55" stroke-width="${n(Math.max(0.5, across * 0.8))}"/><path d="M0 ${n(far + Math.max(0.6, across * 0.9))}H${width}" stroke="${bar.paper}" stroke-opacity="0.09" stroke-width="${n(Math.max(0.4, across * 0.5))}"/></g>`;
   });
   return `${linear("room-shade", { x: 0, y: back }, { x: 0, y: height }, [
     [0, bar.far, 0.7],
