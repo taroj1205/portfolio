@@ -191,32 +191,31 @@ export const ShareButton = ({
                 <LinkMark />
                 {labels.shareLink}
               </Menu.Item>
-            ) : (
-              <>
-                <Menu.LinkItem
-                  className={itemClass}
-                  closeOnClick
-                  href={postUrl(share)}
-                  rel="noopener noreferrer"
-                  target="_blank"
-                >
-                  <XMark />
-                  {labels.postX}
-                </Menu.LinkItem>
-                <Menu.Item
-                  className={itemClass}
-                  closeOnClick={false}
-                  label={labels.copyLink}
-                  onClick={() => {
-                    void copyLink();
-                  }}
-                >
-                  <LinkMark />
-                  <span aria-live="polite">
-                    {copied ? labels.copied : labels.copyLink}
-                  </span>
-                </Menu.Item>
-              </>
+            ) : null}
+            <Menu.LinkItem
+              className={itemClass}
+              closeOnClick
+              href={postUrl(share)}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <XMark />
+              {labels.postX}
+            </Menu.LinkItem>
+            {native ? null : (
+              <Menu.Item
+                className={itemClass}
+                closeOnClick={false}
+                label={labels.copyLink}
+                onClick={() => {
+                  void copyLink();
+                }}
+              >
+                <LinkMark />
+                <span aria-live="polite">
+                  {copied ? labels.copied : labels.copyLink}
+                </span>
+              </Menu.Item>
             )}
           </Menu.Popup>
         </Menu.Positioner>
