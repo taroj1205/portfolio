@@ -1,9 +1,9 @@
 import * as stylex from "@stylexjs/stylex";
-import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 
+import { Analytics } from "@/components/analytics";
 import { Pointer } from "@/components/pointer";
 import { Reveal } from "@/components/reveal";
 import { Scroll } from "@/components/scroll";

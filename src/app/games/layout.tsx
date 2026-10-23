@@ -1,7 +1,8 @@
 import * as stylex from "@stylexjs/stylex";
-import { Analytics } from "@vercel/analytics/next";
 import type { Viewport } from "next";
 import { Shippori_Mincho } from "next/font/google";
+
+import { Analytics } from "@/components/analytics";
 
 import "./games.css";
 
