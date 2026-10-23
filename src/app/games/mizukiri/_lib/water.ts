@@ -93,13 +93,13 @@ void main() {
     return;
   }
 
-  float rise = (pixel.y - uHorizon) / uFocal;
-  float depth = min(uCam.y / rise, 400.0);
+  float rise = max(pixel.y - uHorizon, 1.0) / uFocal;
+  float depth = min(uCam.y, 8000.0 * rise) / rise;
   vec2 ground = vec2((pixel.x - center.x) / uFocal * depth, depth);
   vec2 world = ground + vec2(uCam.x, uDrift);
   float reach = clamp(1.0 - depth / 45.0, 0.0, 1.0);
 
-  vec2 tilt = slope(world, reach) * (0.35 + 0.65 * clamp(1.0 - depth / 120.0, 0.0, 1.0));
+  vec2 tilt = slope(world, reach) * (0.35 + 0.65 * clamp(1.0 - depth / 120.0, 0.0, 1.0)) * min(1.0, 400.0 / depth);
   float crest = 0.0;
   for (int i = 0; i < ${MAX_RIPPLES}; i++) {
     vec4 r = uRipples[i];
@@ -139,7 +139,7 @@ void main() {
 
   color += vec3(1.0) * crest * 0.55;
 
-  float edge = smoothstep(uShore - 0.6, uShore, abs(world.x));
+  float edge = uShore > 0.0 ? smoothstep(uShore - 0.6, uShore, abs(world.x)) : 0.0;
   color = mix(color, color * 0.55, edge);
 
   float haze = smoothstep(18.0, 150.0, depth) * uMistAlpha * 1.6;

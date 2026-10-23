@@ -164,6 +164,8 @@ interface Screen {
 const TAU = Math.PI * 2;
 const NEAR = 0.35;
 const STONE = 0.26;
+const RING_FOLLOW_SPEED = 60;
+const FRAME = 1 / 60;
 const GOLD = "#ffd27a";
 
 const hash = (a: number, b = 0) => {
@@ -220,7 +222,7 @@ const shakeAt = (flight: Flight, time: number) => {
 const LOOK_AHEAD = 0.3;
 const CLIMB_FROM = 3;
 
-const cameraFor = (
+export const cameraFor = (
   flight: Flight | null,
   time: number,
   clock: number
@@ -257,7 +259,7 @@ const cameraFor = (
     pitch: 0.07 * blend,
     roll: idle.roll * (1 - blend) - sway * 0.35 + shake * 0.6,
     speed: rush,
-    x: idle.x * (1 - blend) + x * 0.9 * blend + shake,
+    x: idle.x * (1 - blend) + x * blend + shake,
     y: idle.y + (height - idle.y) * blend + 1.1 * settle + shake * 0.5,
     z:
       Math.max(
@@ -268,7 +270,11 @@ const cameraFor = (
   };
 };
 
-const follow = (rig: Camera | null, target: Camera, dt: number): Camera => {
+export const follow = (
+  rig: Camera | null,
+  target: Camera,
+  dt: number
+): Camera => {
   if (rig === null) {
     return target;
   }
@@ -282,6 +288,15 @@ const follow = (rig: Camera | null, target: Camera, dt: number): Camera => {
     z: target.z,
   };
 };
+
+const viewOf = (camera: Camera, w: number, h: number): View => ({
+  camera,
+  far: camera.z + 90,
+  focal: h * 0.85 * (1 - 0.22 * camera.speed),
+  h,
+  horizon: h * (w < h ? 0.4 : 0.44) + h * camera.pitch,
+  w,
+});
 
 const ridgeLine = (
   random: () => number,
@@ -721,7 +736,7 @@ const paintFarShore = (
 ) => {
   const back = view.camera.z + 160;
   const ground = project(view, { x: 0, y: 0, z: back - 4 });
-  if (!ground) {
+  if (!ground || openWater(zoneOf(back).coast)) {
     return;
   }
   const top: [number, number][] = [];
@@ -1138,6 +1153,9 @@ const paintLand = ({ ctx, view, river, palette, side }: Bank) => {
     z >= view.camera.z + NEAR + 0.05;
     z -= Math.max(0.5, (z - view.camera.z) * 0.08)
   ) {
+    if (openWater(zoneOf(z).coast)) {
+      continue;
+    }
     const p = project(view, { x: side * shoreAt(river, z), y: 0.4, z });
     if (p) {
       line.push(p);
@@ -1961,11 +1979,28 @@ const paintHand = (
   ctx.restore();
 };
 
+export const cameraAt = (
+  flight: Flight,
+  camera: Camera,
+  time: number,
+  until: number,
+  clock: number
+) => {
+  let rig = camera;
+  for (let t = time; t < until;) {
+    const step = Math.min(FRAME, until - t);
+    t += step;
+    rig = follow(rig, cameraFor(flight, t, clock + t - time), step);
+  }
+  return rig;
+};
+
 const paintApproach = (
   ctx: CanvasRenderingContext2D,
   view: View,
   flight: Flight,
-  time: number
+  time: number,
+  clock: number
 ) => {
   const contact = nextContact(flight);
   if (contact === null) {
@@ -1975,13 +2010,23 @@ const paintApproach = (
   if (remain < 0 || remain > 0.9) {
     return;
   }
-  const at = stoneAt(flight, contact - 1e-4);
+  const landing = contact - 1e-4;
+  const at = stoneAt(flight, landing);
+  const sight =
+    speedAt(flight, time) > RING_FOLLOW_SPEED
+      ? viewOf(
+          cameraAt(flight, view.camera, time, landing, clock),
+          view.w,
+          view.h
+        )
+      : view;
   const airborne = (flight.pending?.y ?? 0) > 0;
-  const p = at ? project(view, airborne ? at : { ...at, y: 0 }) : null;
+  const p = at ? project(sight, airborne ? at : { ...at, y: 0 }) : null;
   if (!p) {
     return;
   }
-  const squash = airborne ? 1 : flatten(view, p.d);
+  const squash = airborne ? 1 : flatten(sight, p.d);
+  const y = Math.min(p.y, view.h);
   const win = windowFor(flight);
   const radiusAt = (left: number) => (0.45 + left * 3.2) * p.s;
   const target = radiusAt(win.perfect);
@@ -1995,7 +2040,7 @@ const paintApproach = (
   }
   ctx.fillStyle = rgba(GOLD, 0.12);
   ctx.beginPath();
-  ctx.ellipse(p.x, p.y, target, target * squash, 0, 0, TAU);
+  ctx.ellipse(p.x, y, target, target * squash, 0, 0, TAU);
   ctx.fill();
   ctx.strokeStyle = "rgb(255 255 255 / 0.5)";
   ctx.lineWidth = Math.max(1, 0.02 * p.s);
@@ -2011,7 +2056,7 @@ const paintApproach = (
     ctx.globalAlpha = alpha;
     ctx.lineWidth = Math.max(1.5, width * p.s);
     ctx.beginPath();
-    ctx.ellipse(p.x, p.y, ring, ring * squash, 0, 0, TAU);
+    ctx.ellipse(p.x, y, ring, ring * squash, 0, 0, TAU);
     ctx.stroke();
   }
   ctx.restore();
@@ -2193,7 +2238,7 @@ const paintScene = (
   }
   if (shot) {
     paintSplashes(ctx, view, shot, palette, time, rings);
-    paintApproach(ctx, view, shot, time);
+    paintApproach(ctx, view, shot, time, frame.clock);
   }
   const flownOf = (prop: Prop) => {
     const hit =
@@ -2443,14 +2488,7 @@ export const createRenderer = (surfaces: {
     const zoom = 1 + Math.abs(camera.roll) * 1.6;
     const level = h * (w < h ? 0.4 : 0.44);
     const shift = h * camera.pitch;
-    const view: View = {
-      camera,
-      far: camera.z + 90,
-      focal: h * 0.85 * (1 - 0.22 * camera.speed),
-      h,
-      horizon: level + shift,
-      w,
-    };
+    const view = viewOf(camera, w, h);
     const still: View = { ...view, horizon: level };
 
     const key = `${w}x${h}@${dpr}:${frame.river.seed}`;
@@ -2488,7 +2526,7 @@ export const createRenderer = (surfaces: {
         roll: camera.roll,
         shift,
         shallow: mixHex(palette.water[1], tintColor, tintAmount * 0.6),
-        shore: shoreAt(frame.river, camera.z + 10),
+        shore: openWater(zoneOf(camera.z + 10).coast) ? 0 : frame.river.shore,
         sun: {
           x: w * palette.sunX,
           y: level - level * palette.sunY + shift,
