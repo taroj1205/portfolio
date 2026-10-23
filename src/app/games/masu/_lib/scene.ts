@@ -331,7 +331,7 @@ export interface Layout extends View {
 }
 
 export const keepOut = {
-  idle: { height: 121, width: 125 },
+  idle: { height: 174, width: 68 },
   playing: { height: 68, width: 68 },
 } as const;
 
