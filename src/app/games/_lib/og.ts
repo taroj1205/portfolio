@@ -13,7 +13,7 @@ export const ogImage = async (scene: Scene, options: Options) => {
   if (process.env.NODE_ENV === "production") {
     headers.set(
       "cache-control",
-      "public, max-age=86400, s-maxage=31536000, stale-while-revalidate=86400"
+      "public, max-age=0, s-maxage=31536000, stale-while-revalidate=86400"
     );
   }
   return new Response(new Uint8Array(body), { headers });
