@@ -12,10 +12,12 @@ describe("report links", () => {
     const jaIssue = new URL(ja.github);
     assert.equal(jaIssue.pathname, "/taroj1205/portfolio/issues/new");
     assert.equal(jaIssue.searchParams.get("title"), "/games/senko の不具合");
-    assert.equal(
-      jaIssue.searchParams.get("body"),
-      "ゲーム: /games/senko\n\n何が起きたか:\n\n端末とブラウザ:\n"
-    );
+    assert.equal(jaIssue.searchParams.get("template"), "bug-report.ja.yml");
+    assert.equal(jaIssue.searchParams.get("game"), "/games/senko");
+
+    const enIssue = new URL(en.github);
+    assert.equal(enIssue.searchParams.get("template"), "bug-report.yml");
+    assert.equal(enIssue.searchParams.get("game"), "/games/senko");
 
     assert.equal(
       new URL(en.x).searchParams.get("text"),
