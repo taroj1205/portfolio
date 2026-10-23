@@ -165,7 +165,8 @@ const TAU = Math.PI * 2;
 const NEAR = 0.35;
 const STONE = 0.26;
 const OPEN_SEA = 10_000;
-const RING_AHEAD = 12;
+const RING_FOLLOW_SPEED = 60;
+const RING_FLOOR = 0.92;
 const GOLD = "#ffd27a";
 
 const hash = (a: number, b = 0) => {
@@ -1969,10 +1970,7 @@ const paintHand = (
 export const ringAt = (flight: Flight, time: number, contact: number) =>
   stoneAt(
     flight,
-    Math.min(
-      contact - 1e-4,
-      time + RING_AHEAD / Math.max(1, speedAt(flight, time))
-    )
+    speedAt(flight, time) > RING_FOLLOW_SPEED ? time : contact - 1e-4
   );
 
 const paintApproach = (
@@ -1996,6 +1994,7 @@ const paintApproach = (
     return;
   }
   const squash = airborne ? 1 : flatten(view, p.d);
+  const y = Math.min(p.y, view.h * RING_FLOOR);
   const win = windowFor(flight);
   const radiusAt = (left: number) => (0.45 + left * 3.2) * p.s;
   const target = radiusAt(win.perfect);
@@ -2009,7 +2008,7 @@ const paintApproach = (
   }
   ctx.fillStyle = rgba(GOLD, 0.12);
   ctx.beginPath();
-  ctx.ellipse(p.x, p.y, target, target * squash, 0, 0, TAU);
+  ctx.ellipse(p.x, y, target, target * squash, 0, 0, TAU);
   ctx.fill();
   ctx.strokeStyle = "rgb(255 255 255 / 0.5)";
   ctx.lineWidth = Math.max(1, 0.02 * p.s);
@@ -2025,7 +2024,7 @@ const paintApproach = (
     ctx.globalAlpha = alpha;
     ctx.lineWidth = Math.max(1.5, width * p.s);
     ctx.beginPath();
-    ctx.ellipse(p.x, p.y, ring, ring * squash, 0, 0, TAU);
+    ctx.ellipse(p.x, y, ring, ring * squash, 0, 0, TAU);
     ctx.stroke();
   }
   ctx.restore();

@@ -578,13 +578,13 @@ describe("areas", () => {
     assert.ok(Math.abs(cameraFor(flight, 5, 0).x - 30) < 1e-9);
   });
 
-  test("the timing ring stays close to a fast stone and sits on the landing spot as a slow one lands", () => {
-    const slow = launch(createRiver(3), full);
+  test("the timing ring waits on the landing spot for a slow stone and sits under a fast one", () => {
+    const slow = launch(createRiver(3), { aim: 0, speed: 16, tilt: 26 });
     const first = nextContact(slow);
     assert.ok(first !== null);
-    assert.ok(speedAt(slow, first - 0.05) < 200);
+    assert.ok(speedAt(slow, first - 0.5) < 60);
     assert.deepEqual(
-      ringAt(slow, first - 0.05, first),
+      ringAt(slow, first - 0.5, first),
       stoneAt(slow, first - 1e-4)
     );
 
@@ -598,11 +598,10 @@ describe("areas", () => {
     }
     const contact = nextContact(fastFlight);
     assert.ok(contact !== null);
-    const time = contact - 0.5;
-    const ahead =
-      (ringAt(fastFlight, time, contact)?.z ?? 0) -
-      (stoneAt(fastFlight, time)?.z ?? 0);
-    assert.ok(ahead > 0 && ahead < 12.5);
+    assert.deepEqual(
+      ringAt(fastFlight, contact - 0.5, contact),
+      stoneAt(fastFlight, contact - 0.5)
+    );
   });
 
   test("out on open water the stone runs straight instead of hitting an unseen wall", () => {
