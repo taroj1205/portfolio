@@ -214,6 +214,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   };
 
   const up = (event: PointerEvent) => {
+    sound.unlock();
     if (event.pointerId === active) {
       release(event.timeStamp);
     }
