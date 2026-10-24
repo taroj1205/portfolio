@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
       "/manifest.webmanifest",
       "/apple-icon",
       "/games/mochitsuki/art/:layer",
+      "/games/cheese/art/:layer",
     ].map((source) => ({ headers: daily, source }));
   },
   rewrites() {

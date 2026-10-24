@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { BladeArt } from "./_components/blade-art";
 import { BrushArt } from "./_components/brush-art";
 import { CandyArt } from "./_components/candy-art";
+import { CheeseArt } from "./_components/cheese-art";
 import { CutArt } from "./_components/cut-art";
 import { EraserArt } from "./_components/eraser-art";
 import type { Game } from "./_components/game-card";
@@ -14,6 +15,7 @@ import { PauseArt } from "./_components/pause-art";
 import { SkipArt } from "./_components/skip-art";
 import { SparkArt } from "./_components/spark-art";
 import { langFromHeader } from "./_lib/i18n";
+import { copy as cheese } from "./cheese/_lib/copy";
 import { copy as enso } from "./enso/_lib/copy";
 import { copy as hoshiai } from "./hoshiai/_lib/copy";
 import { copy as iai } from "./iai/_lib/copy";
@@ -27,6 +29,20 @@ import { copy as mochitsuki } from "./mochitsuki/_lib/copy";
 import { copy as senko } from "./senko/_lib/copy";
 
 const GAMES: Game[] = [
+  {
+    art: <CheeseArt />,
+    blurb: {
+      en: "Drag up to pull the cheese. Too fast and it snaps, too slow and it sets. The longer it gets, the further the camera pulls back, past Tokyo Tower and Mt Fuji and out towards the Moon.",
+      ja: "上になぞってチーズを引っぱる。速すぎるとちぎれて、遅すぎると固まる。のびるほどカメラが引いて、東京タワー、富士山、そして月へ。",
+    },
+    href: "/games/cheese",
+    tags: [
+      { en: "Drag up", ja: "上になぞる" },
+      { en: "Dish of the day", ja: "今日のお題" },
+      { en: "Challenge a friend", ja: "友だちに挑戦" },
+    ],
+    title: { en: cheese.en.name, ja: cheese.ja.name },
+  },
   {
     art: <SkipArt />,
     blurb: {
