@@ -4,7 +4,7 @@ There are no accounts. Each game keeps its progress in `localStorage`, and a pro
 
 ## Rules for every game
 
-- One versioned key per game, `<game>.vN`, read and written through `createStore` in `src/app/games/_lib/storage.ts` with a zod schema. Language and sound are not game data. They live in `games.settings.v1` (`src/app/games/_lib/settings.ts`).
+- One versioned key per game, `<game>.vN`, read and written through `createStore` in `src/app/games/_lib/storage.ts` with a zod schema. Language, sound, other per-player switches and "tip shown" flags are not game data. They live in `games.settings.v1` (`src/app/games/_lib/settings.ts`); see `docs/game-settings-and-copy.md`.
 - `createStore` returns its fallback when the schema fails, and the next write replaces the old save. A new required field therefore wipes everyone's progress. Add every new field with `.default(...)` or `.prefault({})`, as `tally` does in `src/app/games/mizukiri/_lib/save.ts`. Bump the key only for an incompatible change, and copy the old save across once, as `loadProfiles` does for mizukiri and `inherited` does for settings.
 - Keep the save to plain data: counts, bests, flags and ids. No UI state, no text, nothing the code can recompute.
 - Keep identity out of saves and share links. No names or emails. Links carry only the totals.
