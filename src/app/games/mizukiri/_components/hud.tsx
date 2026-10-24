@@ -148,6 +148,7 @@ const styles = stylex.create({
   },
   buttons: {
     display: "flex",
+    flexDirection: "column",
     gap: "0.45rem",
   },
   corner: {
