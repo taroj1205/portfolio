@@ -48,6 +48,8 @@ import {
   plain,
   randomFrom,
   qualityOf,
+  RING_FOLLOW_SPEED,
+  ringTipDue,
   shoreAt,
   speedAt,
   stoneAt,
@@ -1308,6 +1310,14 @@ describe("save", () => {
       readCareer(Object.fromEntries(new URL(english.url).searchParams))?.level,
       null
     );
+  });
+
+  test("the ring tip comes once, to a player on the distant ring who reached its speed", () => {
+    const quick = RING_FOLLOW_SPEED + 1;
+    assert.equal(ringTipDue(true, false, quick), true);
+    assert.equal(ringTipDue(true, false, RING_FOLLOW_SPEED), false);
+    assert.equal(ringTipDue(true, true, quick), false);
+    assert.equal(ringTipDue(false, false, quick), false);
   });
 
   test("a perfect throw is remembered", () => {

@@ -247,6 +247,11 @@ export const Game = ({
         <ResultSheet
           landing={landed}
           onAgain={() => session.current?.again()}
+          onRingOff={() => {
+            if (settings !== null) {
+              session.current?.settings({ ...settings, distantRing: false });
+            }
+          }}
           onWear={(part, id) => session.current?.wear(part, id)}
           onWorkshop={() => {
             setWorkshop(true);

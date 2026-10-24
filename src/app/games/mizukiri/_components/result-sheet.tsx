@@ -1,4 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
+import { useState } from "react";
 
 import { glass } from "../../_components/glass";
 import { ShareButton } from "../../_components/share-button";
@@ -315,10 +316,38 @@ const styles = stylex.create({
 
 const PART_NAMES = new Map(parts.map(({ part, name }) => [part, name]));
 
+const RingTip = ({ onOff }: { onOff: () => void }) => {
+  const { ringTip } = useCopy().result;
+  const [off, setOff] = useState(false);
+  return (
+    <div {...stylex.props(styles.unlocks)}>
+      <span {...stylex.props(styles.levelLabel)}>{ringTip.label}</span>
+      <button
+        aria-pressed={off}
+        onClick={() => {
+          setOff(true);
+          onOff();
+        }}
+        type="button"
+        {...stylex.props(styles.unlock, off && styles.unlockWorn)}
+      >
+        <span {...stylex.props(styles.unlockText)}>
+          <span {...stylex.props(styles.name)}>{ringTip.title}</span>
+          <span {...stylex.props(styles.note)}>{ringTip.note}</span>
+        </span>
+        <span {...stylex.props(styles.wear, off && styles.wearOn)}>
+          {off ? ringTip.done : ringTip.action}
+        </span>
+      </button>
+    </div>
+  );
+};
+
 interface ResultSheetProps {
   landing: Landing;
   save: Save;
   onAgain: () => void;
+  onRingOff: () => void;
   onWear: (part: Part, id: string) => void;
   onWorkshop: () => void;
 }
@@ -327,6 +356,7 @@ export const ResultSheet = ({
   landing,
   save,
   onAgain,
+  onRingOff,
   onWear,
   onWorkshop,
 }: ResultSheetProps) => {
@@ -410,6 +440,7 @@ export const ResultSheet = ({
           })}
         </div>
       ) : null}
+      {landing.ringTip ? <RingTip onOff={onRingOff} /> : null}
       <button
         onClick={onAgain}
         type="button"

@@ -4,6 +4,7 @@ import {
   nextContact,
   propsIn,
   randomFrom,
+  RING_FOLLOW_SPEED,
   shoreAt,
   speedAt,
   stoneAt,
@@ -165,7 +166,6 @@ interface Screen {
 const TAU = Math.PI * 2;
 const NEAR = 0.35;
 const STONE = 0.26;
-const RING_FOLLOW_SPEED = 60;
 const FRAME = 1 / 60;
 const GOLD = "#ffd27a";
 

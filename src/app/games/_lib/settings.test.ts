@@ -18,12 +18,13 @@ describe("shared game settings", () => {
     vi.unstubAllGlobals();
   });
 
-  test("a new visitor starts with no language chosen, sound on and the ring under the stone", () => {
+  test("a new visitor starts with no language chosen, sound on and the distant ring", () => {
     stubStorage({});
     assert.deepEqual(loadSettings(), {
-      distantRing: false,
+      distantRing: true,
       lang: null,
       muted: false,
+      ringTipSeen: false,
     });
   });
 
@@ -34,20 +35,26 @@ describe("shared game settings", () => {
         settings: { lang: "en", muted: true },
       }),
     });
-    const carried = { distantRing: false, lang: "en", muted: true };
+    const carried = {
+      distantRing: true,
+      lang: "en",
+      muted: true,
+      ringTipSeen: false,
+    };
     assert.deepEqual(loadSettings(), carried);
     data.set("mizukiri.v3", JSON.stringify({ runs: 5 }));
     assert.deepEqual(loadSettings(), carried);
   });
 
-  test("settings saved before the ring option keep their language and sound", () => {
+  test("settings saved before the ring options keep their language and sound", () => {
     stubStorage({
       "games.settings.v1": JSON.stringify({ lang: "ja", muted: true }),
     });
     assert.deepEqual(loadSettings(), {
-      distantRing: false,
+      distantRing: true,
       lang: "ja",
       muted: true,
+      ringTipSeen: false,
     });
   });
 
@@ -57,11 +64,17 @@ describe("shared game settings", () => {
         settings: { lang: "ja", muted: false },
       }),
     });
-    storeSettings({ distantRing: true, lang: "en", muted: true });
-    assert.deepEqual(loadSettings(), {
-      distantRing: true,
+    storeSettings({
+      distantRing: false,
       lang: "en",
       muted: true,
+      ringTipSeen: true,
+    });
+    assert.deepEqual(loadSettings(), {
+      distantRing: false,
+      lang: "en",
+      muted: true,
+      ringTipSeen: true,
     });
   });
 });

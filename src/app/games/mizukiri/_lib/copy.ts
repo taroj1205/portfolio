@@ -39,6 +39,13 @@ export interface Copy {
       quality: number,
       kmh: number
     ) => string;
+    ringTip: {
+      label: string;
+      title: string;
+      note: string;
+      action: string;
+      done: string;
+    };
     unlocked: string;
     newPart: (part: string) => string;
     wear: string;
@@ -148,6 +155,13 @@ export const copy: Record<Lang, Copy> = {
       shareLink: "Share link",
       star: "Star on GitHub",
       record: "New best",
+      ringTip: {
+        action: "Switch",
+        done: "Switched",
+        label: "Tip",
+        note: "At high speed, the ring can sit big, right under the stone. You can also change it in the workshop settings",
+        title: "Hard to see the ring?",
+      },
       stats: (skips, combo, quality, kmh) =>
         `${skips} skips · best combo ×${combo} · throw ${quality}% · top\u00A0${kmh}\u00A0km/h`,
       unlocked: "Unlocked",
@@ -169,7 +183,7 @@ export const copy: Record<Lang, Copy> = {
       mute: { label: "Mute", note: "Sound effects and river" },
       ring: {
         label: "Distant ring",
-        note: "At high speed, show the timing ring small, far ahead where the stone lands. Off shows it right under the stone",
+        note: "At high speed, show the ring small and far ahead, where the stone lands. Off shows it big, right under the stone",
       },
       mode: {
         duel: {
@@ -266,6 +280,13 @@ export const copy: Record<Lang, Copy> = {
       shareLink: "リンクでシェア",
       star: "GitHubでスター",
       record: "自己ベスト更新",
+      ringTip: {
+        action: "真下にする",
+        done: "真下にした",
+        label: "ヒント",
+        note: "速いときの輪を、石の真下に大きく出せる。工房の設定でも変えられる",
+        title: "輪が見えにくい?",
+      },
       stats: (skips, combo, quality, kmh) =>
         `${skips}回跳ねた · 最大コンボ ×${combo} · 投げの質 ${quality}% · 最高速度\u00A0${kmh}\u00A0km/h`,
       unlocked: "新しく解放",
@@ -286,8 +307,8 @@ export const copy: Record<Lang, Copy> = {
       lower: (name) => `${name}を1下げる`,
       mute: { label: "音を消す", note: "効果音と川の音" },
       ring: {
-        label: "輪を奥に出す",
-        note: "速いとき、輪を石の真下ではなく、着水する奥の位置に小さく出す",
+        label: "輪を遠くに出す",
+        note: "速いとき、輪を着水する遠くの位置に小さく出す。オフなら石の真下に大きく出す",
       },
       mode: {
         duel: {
