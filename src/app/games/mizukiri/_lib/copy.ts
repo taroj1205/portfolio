@@ -13,6 +13,7 @@ export interface Copy {
   skipUnit: string;
   combo: (count: number) => string;
   hints: { ready: string; aiming: string; flying: string };
+  keys: { ready: string; flying: string };
   challenge: {
     received: string;
     stone: (name: string) => string;
@@ -128,6 +129,10 @@ export const copy: Record<Lang, Copy> = {
       aiming: "Wait for a good angle, then flick up",
       flying: "Tap as the ring closes!",
       ready: "Hold, then flick up",
+    },
+    keys: {
+      flying: "Or press Space",
+      ready: "Or press Space, release to throw",
     },
     locale: "en-US",
     openWorkshop: "Open workshop",
@@ -253,6 +258,10 @@ export const copy: Record<Lang, Copy> = {
       aiming: "いい角度で、上にはじく",
       flying: "輪が閉じる瞬間にタップ！",
       ready: "押したまま、上にはじく",
+    },
+    keys: {
+      flying: "スペースキーでもいい",
+      ready: "スペースキーを押して離しても投げられる",
     },
     locale: "ja-JP",
     openWorkshop: "工房をひらく",
