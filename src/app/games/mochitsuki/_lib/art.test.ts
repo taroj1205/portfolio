@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import { describe, test } from "vite-plus/test";
 
+import { spriteDoc } from "../../_lib/svg";
 import {
   KINE,
   MOCHI,
@@ -20,7 +21,6 @@ import {
   mochiGrains,
   sceneDoc,
   sleeve,
-  spriteDoc,
   toWorld,
   tub,
   usu,
