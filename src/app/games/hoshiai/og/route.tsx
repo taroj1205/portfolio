@@ -1,9 +1,9 @@
-import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
 import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
+import { ogImage } from "../../_lib/og";
 import { orbDefs, orbSvg } from "../_components/orb-svg";
 import { TIER, TOP, bodies } from "../_lib/bodies";
 import { readCareer } from "../_lib/career";
@@ -103,7 +103,7 @@ export const GET = async (request: NextRequest) => {
     `${headline}${unit}${caption}${detail}${tag}星合ほしあい`
   );
 
-  return new ImageResponse(
+  return await ogImage(
     <div
       style={{
         backgroundImage:

@@ -1,9 +1,9 @@
-import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
 import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
+import { ogImage } from "../../_lib/og";
 import { describeCareer, readCareer } from "../_lib/career";
 import type { Career } from "../_lib/career";
 import { copy } from "../_lib/copy";
@@ -117,7 +117,7 @@ export const GET = async (request: NextRequest) => {
     }
   );
 
-  return new ImageResponse(
+  return await ogImage(
     <div
       style={{
         backgroundImage: `linear-gradient(180deg, ${palette.water[0]} ${HORIZON}px, ${palette.water[1]} 450px, ${palette.water[2]})`,

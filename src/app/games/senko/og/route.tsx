@@ -1,9 +1,9 @@
-import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
 import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
+import { ogImage } from "../../_lib/og";
 import { sparklerDefs, sparklerParts } from "../_components/sparkler-svg";
 import { copy } from "../_lib/copy";
 import { LAST, phases } from "../_lib/phases";
@@ -78,7 +78,7 @@ export const GET = async (request: NextRequest) => {
     y: HERO.y,
   });
 
-  return new ImageResponse(
+  return await ogImage(
     <div
       style={{
         backgroundImage:

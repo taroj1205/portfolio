@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
     return [
       "/manifest.webmanifest",
       "/apple-icon",
-      "/pwa/:size",
       "/games/mochitsuki/art/:layer",
     ].map((source) => ({ headers: daily, source }));
   },

@@ -1,9 +1,9 @@
-import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 
 import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
+import { ogImage } from "../../_lib/og";
 import { copy } from "../_lib/copy";
 import {
   PERFECT,
@@ -267,7 +267,7 @@ export const GET = async (request: NextRequest) => {
     `${headline}${unit}${caption}${detail}${dare}${tag}${side}${center}${copy.ja.name}むおんのじゅうびょう${copy.en.name}0123456789.+−±`
   );
 
-  return new ImageResponse(
+  return await ogImage(
     <div
       style={{
         backgroundImage:
