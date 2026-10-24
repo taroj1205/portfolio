@@ -2,14 +2,8 @@ import assert from "node:assert/strict";
 
 import { describe, test } from "vite-plus/test";
 
-import {
-  cheeseMoon,
-  landmarkBody,
-  moon,
-  plates,
-  pullDoc,
-  spriteDoc,
-} from "./art";
+import { spriteDoc } from "../../_lib/svg";
+import { cheeseMoon, landmarkBody, moon, plates, pullDoc } from "./art";
 import { cardDoc, cardLayers } from "./card";
 import { dishIds } from "./dishes";
 

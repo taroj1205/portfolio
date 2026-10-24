@@ -1,4 +1,5 @@
-import { landmarks, mix, seeded } from "./art";
+import { seeded } from "../../_lib/svg";
+import { landmarks, mix } from "./art";
 import type { Landmark, Look } from "./art";
 
 export interface Camera {

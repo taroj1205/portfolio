@@ -4,16 +4,14 @@ import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import { ogImage } from "../../_lib/og";
+import { dataUri, ellipse, seeded } from "../../_lib/svg";
 import {
-  dataUri,
-  ellipse,
   landmarkBody,
-  linear,
+  linearBox,
   lookAt,
   moonBodyAt,
   plates,
   pullDoc,
-  seeded,
 } from "../_lib/art";
 import { copy } from "../_lib/copy";
 import { dishes } from "../_lib/dishes";
@@ -91,7 +89,7 @@ const marksOf = (reached: number) => {
   }
   if (reached >= 9) {
     parts.push(
-      `<defs>${linear(
+      `<defs>${linearBox(
         "og-earth",
         [0, 0, 0, 1],
         [
@@ -119,7 +117,7 @@ const sceneOf = (result: Result | null) => {
   const altitude =
     result === null ? 5.2 : Math.log10(Math.max(3, cmOf(result)));
   const look = lookAt(altitude);
-  const sky = `<defs>${linear(
+  const sky = `<defs>${linearBox(
     "og-sky",
     [0, 0, 0, 1],
     [

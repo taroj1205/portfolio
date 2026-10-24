@@ -1,21 +1,11 @@
+import { blur, docOf, ellipse, n, path, seeded, stopsOf } from "../../_lib/svg";
+import type { Box, Point, Sprite, Stop } from "../../_lib/svg";
 import { dishes } from "./dishes";
 import type { DishId } from "./dishes";
 import { pathOf, pointAt, ribbonOf } from "./strand";
-import type { Point, Thread } from "./strand";
+import type { Thread } from "./strand";
 
 export const UNIT = 1000;
-
-export interface Box {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-export interface Sprite {
-  box: Box;
-  body: string;
-}
 
 export interface Plate {
   base: Sprite;
@@ -25,8 +15,6 @@ export interface Plate {
   feet: number;
   crown: number;
 }
-
-type Stop = readonly [number, string, number?];
 
 export const paint = {
   basil: ["#6aa84f", "#2f5e22"],
@@ -51,68 +39,24 @@ export const paint = {
   wick: "#2a1d14",
 } as const;
 
-const n = (value: number) => Number(value.toFixed(2));
-
-export const seeded = (seed: number) => {
-  let state = seed;
-  return () => {
-    state = (state * 16_807) % 2_147_483_647;
-    return state / 2_147_483_647;
-  };
-};
-
-const stopsOf = (stops: readonly Stop[]) =>
-  stops
-    .map(
-      ([offset, color, opacity = 1]) =>
-        `<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>`
-    )
-    .join("");
-
-export const linear = (
+export const linearBox = (
   id: string,
   [x1, y1, x2, y2]: readonly [number, number, number, number],
-  stops: readonly Stop[],
-  units = "objectBoundingBox"
+  stops: readonly Stop[]
 ) =>
-  `<linearGradient id="${id}" gradientUnits="${units}" x1="${n(x1)}" y1="${n(y1)}" x2="${n(x2)}" y2="${n(y2)}">${stopsOf(stops)}</linearGradient>`;
+  `<linearGradient id="${id}" gradientUnits="objectBoundingBox" x1="${n(x1)}" y1="${n(y1)}" x2="${n(x2)}" y2="${n(y2)}">${stopsOf(stops)}</linearGradient>`;
 
-const radial = (
+const radialBox = (
   id: string,
   [cx, cy, r]: readonly [number, number, number],
-  stops: readonly Stop[],
-  units = "objectBoundingBox"
+  stops: readonly Stop[]
 ) =>
-  `<radialGradient id="${id}" gradientUnits="${units}" cx="${n(cx)}" cy="${n(cy)}" r="${n(r)}">${stopsOf(stops)}</radialGradient>`;
-
-const blur = (id: string, deviation: number) =>
-  `<filter id="${id}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${n(deviation)}"/></filter>`;
-
-export const ellipse = (
-  cx: number,
-  cy: number,
-  rx: number,
-  ry: number,
-  attributes: string
-) =>
-  `<ellipse cx="${n(cx)}" cy="${n(cy)}" rx="${n(rx)}" ry="${n(ry)}" ${attributes}/>`;
-
-const path = (d: string, attributes: string) =>
-  `<path d="${d}" ${attributes}/>`;
+  `<radialGradient id="${id}" gradientUnits="objectBoundingBox" cx="${n(cx)}" cy="${n(cy)}" r="${n(r)}">${stopsOf(stops)}</radialGradient>`;
 
 const points = (list: readonly Point[]) =>
   list
     .map((point, i) => `${i === 0 ? "M" : "L"}${n(point.x)} ${n(point.y)}`)
     .join("");
-
-const docOf = (box: Box, width: number, height: number, body: string) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${n(box.x)} ${n(box.y)} ${n(box.w)} ${n(box.h)}" width="${Math.round(width)}" height="${Math.round(height)}" preserveAspectRatio="none">${body}</svg>`;
-
-export const spriteDoc = (sprite: Sprite, scale: number) =>
-  docOf(sprite.box, sprite.box.w * scale, sprite.box.h * scale, sprite.body);
-
-export const dataUri = (svg: string) =>
-  `data:image/svg+xml;base64,${btoa(svg)}`;
 
 const pepperoni = (
   id: string,
@@ -164,7 +108,7 @@ const basil = (id: string, x: number, y: number, size: number, angle: number) =>
 
 const toppingDefs = (id: string) =>
   [
-    radial(
+    radialBox(
       `${id}-pep`,
       [0.42, 0.38, 0.62],
       [
@@ -173,7 +117,7 @@ const toppingDefs = (id: string) =>
         [1, paint.pepperoni[2]],
       ]
     ),
-    linear(
+    linearBox(
       `${id}-basil`,
       [0, 0, 1, 1],
       [
@@ -181,7 +125,7 @@ const toppingDefs = (id: string) =>
         [1, paint.basil[1]],
       ]
     ),
-    radial(
+    radialBox(
       `${id}-char`,
       [0.5, 0.5, 0.5],
       [
@@ -269,7 +213,7 @@ const pizzaBase = (): Sprite => {
     body: [
       "<defs>",
       blur("pz-soft", 16),
-      radial(
+      radialBox(
         "pz-board",
         [0.42, 0.38, 0.7],
         [
@@ -278,7 +222,7 @@ const pizzaBase = (): Sprite => {
           [1, paint.board[2]],
         ]
       ),
-      linear(
+      linearBox(
         "pz-rim",
         [0, 0, 0, 1],
         [
@@ -286,7 +230,7 @@ const pizzaBase = (): Sprite => {
           [1, paint.crust[2]],
         ]
       ),
-      linear(
+      linearBox(
         "pz-crust",
         [0, 0, 0, 1],
         [
@@ -295,7 +239,7 @@ const pizzaBase = (): Sprite => {
           [1, paint.crust[2]],
         ]
       ),
-      radial(
+      radialBox(
         "pz-top",
         [0.4, 0.3, 0.75],
         [
@@ -305,7 +249,7 @@ const pizzaBase = (): Sprite => {
           [1, paint.cheese[3]],
         ]
       ),
-      linear(
+      linearBox(
         "pz-melt",
         [0, 0, 0, 1],
         [
@@ -385,7 +329,7 @@ const pizzaSlice = (): Sprite => {
   return {
     body: [
       "<defs>",
-      linear(
+      linearBox(
         "sl-face",
         [0, 0, 0.3, 1],
         [
@@ -394,7 +338,7 @@ const pizzaSlice = (): Sprite => {
           [1, paint.cheese[2]],
         ]
       ),
-      linear(
+      linearBox(
         "sl-crust",
         [0, 0, 0, 1],
         [
@@ -403,7 +347,7 @@ const pizzaSlice = (): Sprite => {
           [1, paint.crust[2]],
         ]
       ),
-      linear(
+      linearBox(
         "sl-melt",
         [0, 0, 0, 1],
         [
@@ -484,7 +428,7 @@ const dogEnd = (id: string, y: number) =>
 
 const dogDefs = (id: string) =>
   [
-    linear(
+    linearBox(
       `${id}-skin`,
       [0, 0, 1, 0],
       [
@@ -495,7 +439,7 @@ const dogDefs = (id: string) =>
         [1, paint.dog[4]],
       ]
     ),
-    radial(
+    radialBox(
       `${id}-core`,
       [0.45, 0.4, 0.6],
       [
@@ -509,7 +453,7 @@ const corndogHeld = (): Sprite => ({
   body: [
     "<defs>",
     dogDefs("cd"),
-    linear(
+    linearBox(
       "cd-stick",
       [0, 0, 1, 0],
       [
@@ -553,7 +497,7 @@ const corndogBase = (): Sprite => ({
     "<defs>",
     dogDefs("cb"),
     blur("cb-soft", 14),
-    radial(
+    radialBox(
       "cb-plate",
       [0.45, 0.35, 0.7],
       [
@@ -622,7 +566,7 @@ const fondueBase = (): Sprite => {
       "<defs>",
       blur("fb-soft", 16),
       blur("fb-glow", 22),
-      linear(
+      linearBox(
         "fb-glaze",
         [0, 0, 1, 0.4],
         [
@@ -632,7 +576,7 @@ const fondueBase = (): Sprite => {
           [1, paint.glaze[2]],
         ]
       ),
-      radial(
+      radialBox(
         "fb-top",
         [0.42, 0.4, 0.7],
         [
@@ -641,7 +585,7 @@ const fondueBase = (): Sprite => {
           [1, paint.cheese[2]],
         ]
       ),
-      radial(
+      radialBox(
         "fb-flame",
         [0.5, 0.6, 0.5],
         [
@@ -650,7 +594,7 @@ const fondueBase = (): Sprite => {
           [1, paint.flame[2], 0],
         ]
       ),
-      linear(
+      linearBox(
         "fb-metal",
         [0, 0, 1, 0],
         [
@@ -718,7 +662,7 @@ const fondueBase = (): Sprite => {
 const fondueHeld = (): Sprite => ({
   body: [
     "<defs>",
-    linear(
+    linearBox(
       "fh-metal",
       [0, 0, 1, 0],
       [
@@ -727,7 +671,7 @@ const fondueHeld = (): Sprite => ({
         [1, paint.metal[1]],
       ]
     ),
-    linear(
+    linearBox(
       "fh-grip",
       [0, 0, 1, 0],
       [
@@ -736,7 +680,7 @@ const fondueHeld = (): Sprite => ({
         [1, "#4a2a12"],
       ]
     ),
-    linear(
+    linearBox(
       "fh-crumb",
       [0, 0, 0, 1],
       [
@@ -744,7 +688,7 @@ const fondueHeld = (): Sprite => ({
         [1, paint.bread[1]],
       ]
     ),
-    linear(
+    linearBox(
       "fh-top",
       [0, 0, 1, 1],
       [
@@ -752,7 +696,7 @@ const fondueHeld = (): Sprite => ({
         [1, paint.crust[2]],
       ]
     ),
-    linear(
+    linearBox(
       "fh-melt",
       [0, 0, 0, 1],
       [
@@ -837,7 +781,7 @@ const moonBody = (id: string, cheese: boolean) => {
   const colours = cheese ? paint.cheese : paint.moon;
   return [
     "<defs>",
-    radial(
+    radialBox(
       `${id}-face`,
       [0.38, 0.34, 0.72],
       [
@@ -846,7 +790,7 @@ const moonBody = (id: string, cheese: boolean) => {
         [1, colours[2]],
       ]
     ),
-    radial(
+    radialBox(
       `${id}-halo`,
       [0.5, 0.5, 0.5],
       [
@@ -1096,7 +1040,7 @@ const strandsBody = (pull: Pull, id: string) => {
   );
   return [
     "<defs>",
-    linear(
+    linearBox(
       `${id}-thread`,
       [0, 0, 1, 0],
       [
@@ -1170,7 +1114,7 @@ export const landmarkBody = (
   opacity = 1
 ) => {
   const mark = landmarks[key];
-  return `<defs>${linear(`${id}-mark`, [0, 1, 0, 0], mark.fill)}</defs><g transform="translate(${n(at.x)} ${n(at.y)}) scale(${n(height / mark.size)})" opacity="${n(opacity)}">${path(mark.d, `fill="url(#${id}-mark)"`)}</g>`;
+  return `<defs>${linearBox(`${id}-mark`, [0, 1, 0, 0], mark.fill)}</defs><g transform="translate(${n(at.x)} ${n(at.y)}) scale(${n(height / mark.size)})" opacity="${n(opacity)}">${path(mark.d, `fill="url(#${id}-mark)"`)}</g>`;
 };
 
 export const moonBodyAt = (cheese: boolean, at: Point, radius: number) =>

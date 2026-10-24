@@ -1,4 +1,4 @@
-import { landmarkBody, linear, pullDoc } from "./art";
+import { landmarkBody, linearBox, pullDoc } from "./art";
 import type { Layer } from "./art";
 
 export const CARD = {
@@ -21,7 +21,7 @@ export const isCardLayer = (value: string): value is CardLayer =>
   cardLayers.some((layer) => layer === value);
 
 const scenery = [
-  `<defs>${linear(
+  `<defs>${linearBox(
     "card-sky",
     [0, 0, 0, 1],
     [

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 
 import { describe, test } from "vite-plus/test";
 
-import { seeded } from "./art";
+import { seeded } from "../../_lib/svg";
 import { dishIds, dishOfDay, dishes } from "./dishes";
 import { LAST, heights, reachedOf } from "./heights";
 import {

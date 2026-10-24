@@ -33,7 +33,7 @@ export const seeded = (seed: number) => {
   };
 };
 
-const stopsOf = (stops: readonly Stop[]) =>
+export const stopsOf = (stops: readonly Stop[]) =>
   stops
     .map(
       ([offset, color, opacity = 1]) =>

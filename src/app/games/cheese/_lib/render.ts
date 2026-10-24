@@ -1,22 +1,23 @@
+import { rasterize } from "../../_lib/atlas";
+import { spriteDoc } from "../../_lib/svg";
+import type { Point, Sprite } from "../../_lib/svg";
 import {
   UNIT,
   cheeseMoon,
-  dataUri,
   lookAt,
   mix,
   moon,
   paint,
   plates,
   sideOf,
-  spriteDoc,
   threadOf,
   websOf,
 } from "./art";
-import type { Plate, Pull, Sprite } from "./art";
+import type { Plate, Pull } from "./art";
 import { drawSky, drawStars, drawWorld, smooth } from "./scenery";
 import type { Camera } from "./scenery";
 import { pointAt, ribbonOf } from "./strand";
-import type { Point, Thread } from "./strand";
+import type { Thread } from "./strand";
 import { MOON, isSweet } from "./stretch";
 import type { Run, Strand } from "./stretch";
 
@@ -73,23 +74,6 @@ export const frameOf = (width: number, height: number) => ({
   rest: height * 0.27,
   stroke: height * 0.3,
 });
-
-const rasterize = async (svg: string, width: number, height: number) => {
-  try {
-    const image = new Image();
-    image.src = dataUri(svg);
-    await image.decode();
-    const bitmap = document.createElement("canvas");
-    bitmap.width = Math.max(1, Math.round(width));
-    bitmap.height = Math.max(1, Math.round(height));
-    bitmap
-      .getContext("2d")
-      ?.drawImage(image, 0, 0, bitmap.width, bitmap.height);
-    return bitmap;
-  } catch {
-    return null;
-  }
-};
 
 const createSprites = () => {
   const bitmaps = new Map<Sprite, HTMLCanvasElement>();

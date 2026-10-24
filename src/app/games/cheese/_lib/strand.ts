@@ -1,7 +1,4 @@
-export interface Point {
-  x: number;
-  y: number;
-}
+import type { Point } from "../../_lib/svg";
 
 export interface Thread {
   from: Point;
