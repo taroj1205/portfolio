@@ -8,6 +8,7 @@ const MERGED = `author:${USER} is:pr is:merged`;
 const PUBLIC_MERGED = `${MERGED} is:public`;
 const PUBLIC_OTHERS = `${MERGED} is:public -user:${USER}`;
 const REVIEWED = `is:pr is:public reviewed-by:${USER} -author:${USER}`;
+
 // Where I'm a member or maintainer. Anything else counts as upstream.
 const HOME_ORGS = ["zen-browser", "yamada-ui", "Hazumi-Inc", "UoaWDCC"];
 const UPSTREAM_MIN_STARS = 500;
@@ -95,6 +96,7 @@ const byMergedAt = (a: PullRequest, b: PullRequest) =>
 
 const fetchGitHub = async () => {
   const token = process.env.GITHUB_TOKEN ?? "";
+
   if (token === "") {
     throw new Error(
       "GITHUB_TOKEN is not set. Try: GITHUB_TOKEN=$(gh auth token) bun dev"
@@ -102,16 +104,20 @@ const fetchGitHub = async () => {
   }
 
   const now = new Date();
+
   const from = new Date(
     Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), now.getUTCDate())
   );
+
   if (from.getUTCMonth() !== now.getUTCMonth()) {
     from.setUTCDate(0);
   }
+
   from.setUTCDate(from.getUTCDate() + 1);
   const earlierTo = new Date(from.getTime() - 1);
   const firstDay = from.toISOString().slice(0, 10);
   const ranges: { alias: string; from: Date; to: Date }[] = [];
+
   for (let year = FIRST_YEAR; Date.UTC(year, 0) < from.getTime(); year += 1) {
     ranges.push({
       alias: `history${year}`,
@@ -119,7 +125,9 @@ const fetchGitHub = async () => {
       to: new Date(Math.min(Date.UTC(year + 1, 0) - 1, earlierTo.getTime())),
     });
   }
+
   ranges.push({ alias: "contributionsCollection", from, to: now });
+
   const query = `{
     ${Object.entries(searches)
       .map(
@@ -147,10 +155,13 @@ const fetchGitHub = async () => {
     headers: { authorization: `bearer ${token}` },
     method: "POST",
   });
+
   if (!res.ok) {
     throw new Error(`GitHub query failed: ${res.status} ${res.statusText}`);
   }
+
   const payload: unknown = await res.json();
+
   const { errors } = z
     .object({
       errors: z
@@ -164,37 +175,47 @@ const fetchGitHub = async () => {
         .optional(),
     })
     .parse(payload);
+
   const failures =
     errors?.filter(
       (error) => !inaccessiblePullRequest.safeParse(error).success
     ) ?? [];
+
   if (failures.length > 0) {
     throw new Error(
       `GitHub query failed: ${failures.map(({ message }) => message).join("; ")}`
     );
   }
+
   const { data } = response.parse(payload);
 
   const monthly = new Map<string, number>();
   const months = (now.getUTCFullYear() - FIRST_YEAR) * 12 + now.getUTCMonth();
+
   for (let i = 0; i <= months; i += 1) {
     monthly.set(new Date(Date.UTC(FIRST_YEAR, i)).toISOString().slice(0, 7), 0);
   }
+
   let contributionTotal = 0;
+
   for (const range of ranges) {
     const collection = contributionCollection.parse(data.user[range.alias]);
     const start = range.from.toISOString().slice(0, 10);
     const end = range.to.toISOString().slice(0, 10);
+
     for (const week of collection.contributionCalendar.weeks) {
       for (const day of week.contributionDays) {
         if (day.date < start || day.date > end) {
           continue;
         }
+
         const key = day.date.slice(0, 7);
         const current = monthly.get(key);
+
         if (current !== undefined) {
           monthly.set(key, current + day.contributionCount);
         }
+
         if (day.date >= firstDay) {
           contributionTotal += day.contributionCount;
         }
@@ -203,6 +224,7 @@ const fetchGitHub = async () => {
   }
 
   const upstream = new Map<string, PullRequest[]>();
+
   for (const pr of data.upstream.nodes.toSorted(byMergedAt)) {
     if (pr.stars >= UPSTREAM_MIN_STARS) {
       upstream.set(pr.repo, [...(upstream.get(pr.repo) ?? []), pr]);

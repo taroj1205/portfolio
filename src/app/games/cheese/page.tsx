@@ -28,7 +28,9 @@ const langOf = async (param: string | string[] | undefined) => {
   if (param !== undefined) {
     return langFrom(param);
   }
+
   const incoming = await headers();
+
   return langFromHeader(incoming.get("accept-language"));
 };
 
@@ -40,15 +42,18 @@ export const generateMetadata = async ({
   const shared = readResult(params);
   const query = new URLSearchParams(shared ? queryOf(shared) : "");
   query.set("l", lang);
+
   const title = shared
     ? `${lengthText(cmOf(shared), lang)} · ${titleOf(shared, lang)} | ${copy[lang].name}`
     : copy[lang].name;
+
   const image = {
     alt: title,
     height: 630,
     url: `/games/cheese/og?${query.toString()}`,
     width: 1200,
   };
+
   return {
     description: DESCRIPTION[lang],
     openGraph: {
@@ -69,6 +74,7 @@ export const generateMetadata = async ({
 
 const Page = async ({ searchParams }: PageProps<"/games/cheese">) => {
   const params = await searchParams;
+
   return (
     <div {...stylex.props(styles.page)}>
       <Game challenge={readResult(params)} hint={await langOf(params.l)} />

@@ -96,13 +96,17 @@ export const rankOf = (result: Result): Rank =>
 export const nextOf = (result: Result) => {
   const { level } = rankOf(result);
   const next = bands.find((band) => band.level === level + 1);
+
   if (next === undefined) {
     return null;
   }
+
   if (next.pace !== undefined && result.time !== null) {
     const goal = Math.floor(next.pace * parOf(result.mould) * 10);
+
     return { carved: null, rank: next, time: result.time - goal };
   }
+
   return {
     carved: (next.carved ?? 100) - result.carved,
     rank: next,
@@ -118,9 +122,12 @@ const secondsText = (time: number, lang: Lang) =>
 export const barOf = (result: Result) => {
   if (result.time !== null) {
     const { emoji } = moulds[result.mould];
+
     return `${"🟧".repeat(CELLS)}${emoji}${rankOf(result).level === PERFECT ? "✨" : ""}`;
   }
+
   const done = Math.min(CELLS - 1, Math.floor(result.carved / CELLS));
+
   return `${"🟧".repeat(done)}💥${"⬜".repeat(CELLS - 1 - done)}`;
 };
 
@@ -143,10 +150,13 @@ export const readResult = (
   params: Record<string, string | string[] | undefined>
 ): Result | null => {
   const parsed = shared.safeParse(params);
+
   if (!parsed.success) {
     return null;
   }
+
   const { c, m, t } = parsed.data;
+
   return t === undefined
     ? { carved: c ?? 0, mould: m, time: null }
     : { carved: 100, mould: m, time: t };
@@ -154,11 +164,13 @@ export const readResult = (
 
 export const queryOf = (result: Result) => {
   const query = new URLSearchParams({ m: result.mould });
+
   if (result.time === null) {
     query.set("c", String(result.carved));
   } else {
     query.set("t", String(result.time));
   }
+
   return query.toString();
 };
 
@@ -169,29 +181,36 @@ const lineOf = (result: Result, lang: Lang) => {
   const mould = moulds[result.mould].name[lang];
   const rank = rankOf(result).name[lang];
   const bar = barOf(result);
+
   if (lang === "en") {
     const how =
       result.time === null
         ? `Broke at ${result.carved}%`
         : `Cut out in ${secondsText(result.time, lang)}`;
+
     const dare =
       result.time === null
         ? "Can you cut it out without breaking it?"
         : "Can you cut it out faster?";
+
     return `Breathless Carve ${mould}\n${how} · ${rank}\n${bar}\n${dare}`;
   }
+
   const how =
     result.time === null
       ? `${result.carved}%で割れた`
       : `${secondsText(result.time, lang)}で抜けた`;
+
   const dare =
     result.time === null ? "割らずに抜ける？" : "これより速く抜ける？";
+
   return `息止め型抜き ${mould}\n${how} · ${rank}\n${bar}\n${dare}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
+
   return {
     image: `${origin}/games/katanuki/og?${query.toString()}`,
     text: [

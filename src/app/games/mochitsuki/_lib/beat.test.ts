@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, it } from "vite-plus/test";
 
 import {
   COUNT_IN,
@@ -23,6 +23,7 @@ import type { Run } from "./beat";
 
 const started = () => {
   const run = createRun(0);
+
   return { first: run.at, run };
 };
 
@@ -33,14 +34,14 @@ const poundAll = (run: Run, count: number) => {
 };
 
 describe("tempo", () => {
-  test("starts slow and steps up every eight beats", () => {
+  it("starts slow and steps up every eight beats", () => {
     assert.equal(tempoAt(0), START_BPM);
     assert.equal(tempoAt(STEP_BEATS - 1), START_BPM);
     assert.equal(tempoAt(STEP_BEATS), START_BPM + 10);
     assert.equal(tempoAt(STEP_BEATS * 17), 260);
   });
 
-  test("the pound window never reaches into the hand", () => {
+  it("the pound window never reaches into the hand", () => {
     for (const beat of [0, 40, 120, 400, 2000]) {
       const { good, great } = windowsAt(beat);
       assert.ok(great < good);
@@ -50,7 +51,7 @@ describe("tempo", () => {
 });
 
 describe("a run", () => {
-  test("counts in before the first beat and ignores taps meanwhile", () => {
+  it("counts in before the first beat and ignores taps meanwhile", () => {
     const { run, first } = started();
     assert.equal(first, COUNT_IN * intervalAt(0));
     assert.equal(counting(run, 10), true);
@@ -59,7 +60,7 @@ describe("a run", () => {
     assert.equal(counting(run, first - intervalAt(0) + 1), false);
   });
 
-  test("grades taps by how close they land to the beat", () => {
+  it("grades taps by how close they land to the beat", () => {
     const { run, first } = started();
     assert.deepEqual(strike(run, first + 10), {
       beat: 0,
@@ -78,7 +79,7 @@ describe("a run", () => {
     assert.equal(run.at, second + intervalAt(1));
   });
 
-  test("a tap while the hand is in the mortar ends the run", () => {
+  it("a tap while the hand is in the mortar ends the run", () => {
     const { run, first } = started();
     strike(run, first);
     const middle = first + intervalAt(0) / 2;
@@ -87,7 +88,7 @@ describe("a run", () => {
     assert.deepEqual(strike(run, run.at), { kind: "idle" });
   });
 
-  test("a tap just outside the window and the hand only breaks the streak", () => {
+  it("a tap just outside the window and the hand only breaks the streak", () => {
     const { run, first } = started();
     strike(run, first);
     const outcome = strike(run, first + intervalAt(0) * 0.2);
@@ -97,17 +98,19 @@ describe("a run", () => {
     assert.equal(run.over, null);
   });
 
-  test("letting three beats pass ends the run", () => {
+  it("letting three beats pass ends the run", () => {
     const { run, first } = started();
     let at = first;
+
     for (let i = 0; i < LIVES; i += 1) {
       at += intervalAt(i);
     }
+
     assert.equal(advance(run, at), LIVES);
     assert.equal(run.over, "miss");
   });
 
-  test("misses before a tap are counted before it is judged", () => {
+  it("misses before a tap are counted before it is judged", () => {
     const { run, first } = started();
     const late = first + intervalAt(0) + 5;
     assert.equal(strike(run, late).kind, "great");
@@ -116,14 +119,14 @@ describe("a run", () => {
     assert.equal(run.tempo, tempoAt(1));
   });
 
-  test("tempo follows the beat of the last pound", () => {
+  it("tempo follows the beat of the last pound", () => {
     const { run } = started();
     poundAll(run, STEP_BEATS + 1);
     assert.equal(run.tempo, START_BPM + 10);
     assert.equal(run.longest, STEP_BEATS + 1);
   });
 
-  test("resuming counts in again at the current tempo", () => {
+  it("resuming counts in again at the current tempo", () => {
     const { run } = started();
     poundAll(run, STEP_BEATS);
     resume(run, 50_000);
@@ -134,7 +137,7 @@ describe("a run", () => {
 });
 
 describe("the hand", () => {
-  test("is out on the beat and fully in halfway between", () => {
+  it("is out on the beat and fully in halfway between", () => {
     const { run, first } = started();
     assert.equal(sweep(run, first), 0);
     assert.ok(sweep(run, first - 1) > 0.99);

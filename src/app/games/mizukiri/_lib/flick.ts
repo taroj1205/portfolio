@@ -38,6 +38,7 @@ export const listenFlick = (
   const letGo = (at: number) => {
     const held = hold ? (at - hold.since) / 1000 : 0;
     hold = null;
+
     return held;
   };
 
@@ -48,6 +49,7 @@ export const listenFlick = (
     if (hold || !event.isPrimary) {
       return;
     }
+
     target.setPointerCapture(event.pointerId);
     trail = [{ t: event.timeStamp, x: event.clientX, y: event.clientY }];
     begin(event.timeStamp, false);
@@ -57,6 +59,7 @@ export const listenFlick = (
     if (!hold || hold.byKey) {
       return;
     }
+
     trail.push({ t: event.timeStamp, x: event.clientX, y: event.clientY });
     trail = recent(event.timeStamp);
   };
@@ -65,12 +68,16 @@ export const listenFlick = (
     if (!hold || hold.byKey) {
       return;
     }
+
     const held = letGo(event.timeStamp);
     const [first] = recent(event.timeStamp);
+
     if (first === undefined) {
       release(null);
+
       return;
     }
+
     const seconds = Math.max((event.timeStamp - first.t) / 1000, 1 / 60);
     const rise = (first.y - event.clientY) / target.clientHeight / seconds;
     const aim = Math.atan2(event.clientX - first.x, first.y - event.clientY);
@@ -96,6 +103,7 @@ export const listenFlick = (
     if (ignored(event) || event.repeat || hold) {
       return;
     }
+
     event.preventDefault();
     begin(event.timeStamp, true);
   };
@@ -104,6 +112,7 @@ export const listenFlick = (
     if (ignored(event) || hold?.byKey !== true) {
       return;
     }
+
     release({ aim: 0, speed: 12.5, tilt: tiltAt(letGo(event.timeStamp)) });
   };
 
@@ -113,6 +122,7 @@ export const listenFlick = (
   target.addEventListener("pointercancel", cancel);
   window.addEventListener("keydown", keyDown);
   window.addEventListener("keyup", keyUp);
+
   return () => {
     target.removeEventListener("pointerdown", down);
     target.removeEventListener("pointermove", move);

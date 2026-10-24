@@ -19,6 +19,7 @@ const GOLD = "#ffd27a";
 const point = (index: number, value: number) => {
   const angle = -Math.PI / 2 + (index / axes.length) * Math.PI * 2;
   const reach = RADIUS * (0.12 + 0.88 * value);
+
   return [CENTER + Math.cos(angle) * reach, CENTER + Math.sin(angle) * reach];
 };
 
@@ -147,6 +148,7 @@ export const Radar = ({
   const lang = useLang();
   const [open, setOpen] = useState<Axis | null>(null);
   const tier = tierOf(...(preview === null ? [levels] : [levels, preview]));
+
   return (
     <figure {...stylex.props(styles.figure)}>
       <svg viewBox={`0 0 ${SIZE} ${SIZE}`} {...stylex.props(styles.chart)}>
@@ -161,6 +163,7 @@ export const Radar = ({
         ))}
         {axes.map(({ key }, index) => {
           const [x, y] = point(index, 1);
+
           return (
             <line
               key={key}
@@ -195,6 +198,7 @@ export const Radar = ({
         ) : null}
         {axes.map(({ key, label, note }, index) => {
           const [x = 0, y = 0] = point(index, 1.32);
+
           return (
             <Popover.Root
               key={key}

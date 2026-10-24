@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { AsyncLocalStorage } from "node:async_hooks";
 
-import { describe, test, vi } from "vite-plus/test";
+import { describe, it, vi } from "vite-plus/test";
 import { z } from "zod";
 
 Reflect.set(globalThis, "AsyncLocalStorage", AsyncLocalStorage);
+
 const { getGitHub } = await import("./github");
 
 const calendar = (
@@ -12,15 +13,17 @@ const calendar = (
 ) => ({ contributionCalendar: { weeks: [{ contributionDays }] } });
 
 describe("GitHub fetching", () => {
-  test("GitHub batches searches, caches validated results, and retries failures", async () => {
+  it("GitHub batches searches, caches validated results, and retries failures", async () => {
     const entries = new Map<
       string,
       { isStale: boolean; value: { revalidate: number } }
     >();
+
     let requests = 0;
     let fail = false;
     let query = "";
     const counts = { issueCount: 42 };
+
     const payload = {
       data: {
         recent: { ...counts, nodes: [] },
@@ -39,6 +42,7 @@ describe("GitHub fetching", () => {
         zenReviewed: { issueCount: 9 },
       },
     };
+
     vi.stubGlobal("__incrementalCache", {
       generateSimpleCacheKey: (key: string) => key,
       get: (key: string) => entries.get(key),
@@ -52,6 +56,7 @@ describe("GitHub fetching", () => {
       requests += 1;
       const body = z.string().parse(init?.body);
       ({ query } = z.object({ query: z.string() }).parse(JSON.parse(body)));
+
       return await Promise.resolve(
         Response.json(fail ? { errors: [{ message: "Unavailable" }] } : payload)
       );
@@ -91,6 +96,7 @@ describe("GitHub fetching", () => {
         "Repeated calls should reuse the GitHub result"
       );
       assert.equal(query.match(/search\(type: ISSUE/gu)?.length, 8);
+
       for (const org of ["yamada-ui", "zen-browser"]) {
         assert.ok(
           query.includes(
@@ -98,6 +104,7 @@ describe("GitHub fetching", () => {
           )
         );
       }
+
       assert.equal(query.match(/nodes\s*\{/gu)?.length, 2);
 
       entries.clear();
@@ -132,6 +139,7 @@ describe("GitHub fetching", () => {
       await assert.rejects(getGitHub(), /GitHub query failed/u);
       assert.equal(entries.size, 0, "Partial results must not enter the cache");
       const failures: Promise<void>[] = [];
+
       for (const error of [
         { type: "FORBIDDEN", path: ["total"] },
         { type: "FORBIDDEN", path: ["recent"] },
@@ -146,6 +154,7 @@ describe("GitHub fetching", () => {
         );
         failures.push(assert.rejects(getGitHub(), /Query failed/u));
       }
+
       await Promise.all(failures);
       assert.equal(entries.size, 0);
       const retried = await getGitHub();
@@ -163,9 +172,11 @@ describe("GitHub fetching", () => {
         vi.mocked(fetch).mockImplementationOnce(async (_url, init) => {
           const body = z.string().parse(init?.body);
           assert.ok(body.includes(`${start}T00:00:00.000Z`));
+
           const { query: sent } = z
             .object({ query: z.string() })
             .parse(JSON.parse(body));
+
           const days = {
             [`history${before.slice(0, 4)}`]: [
               { date: `${before.slice(0, 7)}-01`, contributionCount: 7 },
@@ -179,14 +190,17 @@ describe("GitHub fetching", () => {
               { date: end, contributionCount: 100 },
             ],
           };
+
           const user = Object.fromEntries(
             [...sent.matchAll(/(?<alias>\w+): contributionsCollection/gu)].map(
               ({ groups }) => {
                 const alias = groups?.alias ?? "";
+
                 return [alias, calendar(days[alias])];
               }
             )
           );
+
           return await Promise.resolve(
             Response.json({ ...payload, data: { ...payload.data, user } })
           );
@@ -203,6 +217,7 @@ describe("GitHub fetching", () => {
         );
         assert.equal(result.contributionTotal, 5);
       };
+
       await checkRange("2026-09-28", "2025-09-29", "2025-09-28", "2026-09-29");
       await checkRange("2024-02-29", "2023-03-01", "2023-02-28", "2024-03-01");
       await checkRange("2025-02-28", "2024-02-29", "2024-02-28", "2025-03-01");

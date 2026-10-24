@@ -61,6 +61,7 @@ const block = (event: Event) => {
 
 const demoOf = (index: number) => {
   const stick = createStick(DEMOS[index % DEMOS.length] ?? 1);
+
   return createRun(stick, stick.starts[2]);
 };
 
@@ -109,13 +110,16 @@ export const startSession = (
   const advance = (now: number) => {
     const real = Math.min(0.05, Math.max(0, now - last) / 1000);
     last = now;
+
     if (run === null || stage !== "burning") {
       return;
     }
+
     pending += real;
     const steps = Math.floor(pending / TICK);
     pending -= steps * TICK;
     const held = holder !== null;
+
     for (let i = 1; i <= steps; i += 1) {
       const k = i / steps;
       step(
@@ -127,6 +131,7 @@ export const startSession = (
         held
       );
     }
+
     steered = finger;
   };
 
@@ -134,6 +139,7 @@ export const startSession = (
     if (stage !== "idle") {
       return false;
     }
+
     run = createRun(createStick(challenge?.seed ?? newSeed()));
     finger = still;
     steered = still;
@@ -146,12 +152,14 @@ export const startSession = (
     sound.ignite();
     navigator.vibrate?.(12);
     enter("burning");
+
     return true;
   };
 
   const release = () => {
     advance(performance.now());
     holder = null;
+
     if (run !== null && stage === "burning") {
       step(run, finger, false);
     }
@@ -159,9 +167,11 @@ export const startSession = (
 
   const interrupt = () => {
     holder = null;
+
     if (stage !== "burning") {
       return;
     }
+
     run = null;
     enter("idle");
     on.interrupted();
@@ -174,6 +184,7 @@ export const startSession = (
     ) {
       return;
     }
+
     if (ignite()) {
       canvas.setPointerCapture(event.pointerId);
       holder = event.pointerId;
@@ -185,14 +196,17 @@ export const startSession = (
     if (event.pointerId !== holder) {
       return;
     }
+
     if (rebase) {
       rebase = false;
       origin = {
         x: event.clientX - finger.x * HAND,
         y: event.clientY - finger.y * HAND,
       };
+
       return;
     }
+
     finger = {
       x: clamp((event.clientX - origin.x) / HAND, REACH.x),
       y: clamp((event.clientY - origin.y) / HAND, REACH.y),
@@ -221,7 +235,9 @@ export const startSession = (
     ) {
       return;
     }
+
     event.preventDefault();
+
     if (!event.repeat && holder === null && ignite()) {
       holder = "key";
     }
@@ -259,38 +275,47 @@ export const startSession = (
     const result = resultOf(ended);
     const settled = settle(save, result, Date.now());
     keep(settled.save);
+
     if (settled.record) {
       sound.record();
     }
+
     enter("result");
     on.over({ end, record: settled.record, result });
   };
 
   const watch = (now: number, current: Run) => {
     const time = hundredths(current);
+
     if (time !== shown) {
       shown = time;
       on.clock(time);
     }
+
     on.sway(current.end === null ? current.sway : 0);
     const reached = phaseAt(current.stick, current.time);
+
     if (reached !== phase) {
       if (phase >= 0) {
         sound.phase(reached);
         navigator.vibrate?.(8);
       }
+
       phase = reached;
       on.phase(reached);
     }
+
     if (challenge !== null && !passed && time > challenge.time) {
       passed = true;
       sound.passed();
       navigator.vibrate?.(15);
       on.passed();
     }
+
     if (current.end !== null && stage === "burning") {
       endedAt = now;
       enter("ending");
+
       if (current.end === "burned") {
         sound.out();
         navigator.vibrate?.([20, 80, 20, 80, 40]);
@@ -299,6 +324,7 @@ export const startSession = (
         navigator.vibrate?.([30, 40, 60]);
       }
     }
+
     if (
       current.end !== null &&
       stage === "ending" &&
@@ -311,12 +337,16 @@ export const startSession = (
   const idle = (dt: number) => {
     if (demo.end === null) {
       const until = demo.time + dt;
+
       while (demo.end === null && demo.time < until) {
         step(demo, still, true);
       }
+
       return;
     }
+
     rested += dt;
+
     if (rested > REST) {
       rested = 0;
       demos += 1;
@@ -325,17 +355,22 @@ export const startSession = (
   };
 
   let frame = 0;
+
   const tick = (now: number) => {
     const dt = Math.min(0.05, Math.max(0, now - drawn) / 1000);
     drawn = now;
     advance(now);
+
     if (stage === "idle") {
       idle(dt);
     }
+
     const shownRun = stage === "idle" || run === null ? demo : run;
+
     if (stage !== "idle" && run !== null) {
       watch(now, run);
     }
+
     const lit = shownRun.end === null;
     sound.level(
       lit
@@ -352,6 +387,7 @@ export const startSession = (
     sound.crackle(render.heard(), stage === "idle" ? 0.35 : 1);
     frame = requestAnimationFrame(tick);
   };
+
   frame = requestAnimationFrame(tick);
 
   return {
@@ -359,6 +395,7 @@ export const startSession = (
       if (stage !== "result") {
         return;
       }
+
       run = null;
       enter("idle");
     },

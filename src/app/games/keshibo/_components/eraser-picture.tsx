@@ -16,6 +16,7 @@ const styles = stylex.create({
 
 export const EraserPicture = ({ design }: { design: Design }) => {
   const { plates, x, y, width, height } = isoEraser(design);
+
   return (
     <svg
       aria-hidden="true"

@@ -30,8 +30,10 @@ const inherited = (): Settings => {
   for (const key of LEGACY_KEYS) {
     try {
       const raw = localStorage.getItem(key);
+
       if (raw !== null) {
         const found = legacy.safeParse(JSON.parse(raw));
+
         if (found.success) {
           return found.data.settings;
         }
@@ -40,6 +42,7 @@ const inherited = (): Settings => {
       continue;
     }
   }
+
   return fresh;
 };
 
@@ -48,8 +51,10 @@ export const loadSettings = (): Settings => {
     if (localStorage.getItem(KEY) !== null) {
       return store.read();
     }
+
     const settings = inherited();
     store.write(settings);
+
     return settings;
   } catch {
     return fresh;

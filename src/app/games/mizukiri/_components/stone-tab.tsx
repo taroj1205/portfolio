@@ -282,9 +282,11 @@ const Tiles = ({ part, options, save, onPeek, onWear }: TilesProps) => {
   const lang = useLang();
   const copy = useCopy();
   const journey = save.mode === "journey";
+
   const open = journey
     ? options.filter((option) => isUnlocked(save, part, option))
     : options;
+
   return (
     <section {...stylex.props(styles.group)}>
       {journey ? (
@@ -302,12 +304,14 @@ const Tiles = ({ part, options, save, onPeek, onWear }: TilesProps) => {
           const available = open.includes(option);
           const worn = save.look[part] === option.id;
           const perks = journey ? perksOf(part, option.id) : undefined;
+
           const peek =
             perks !== undefined && available
               ? () => {
                   onPeek({ id: option.id, part });
                 }
               : undefined;
+
           return (
             <button
               aria-pressed={worn}
@@ -367,6 +371,7 @@ const Combos = ({
   const copy = useCopy();
   const worn = comboOf(save.look);
   const found = foundOf(save);
+
   return (
     <section {...stylex.props(styles.group)}>
       <div {...stylex.props(styles.groupHead)}>
@@ -379,6 +384,7 @@ const Combos = ({
         {combos.map((entry) => {
           const known = found.includes(entry);
           const active = worn?.id === entry.id;
+
           return (
             <li key={entry.id}>
               <button
@@ -430,27 +436,33 @@ export const StoneTab = ({
   const copy = useCopy();
   const [peek, setPeek] = useState<Peek>(null);
   const { color, form, pattern } = save.look;
+
   const sections = [
     ...parts.map(({ part, name }): [string, Text] => [part, name]),
     ...(save.mode === "journey" ? [COMBO_SECTION] : []),
   ];
+
   const stats =
     save.mode === "journey"
       ? statsOf(journeyTraits(save.gear, save.look))
       : null;
+
   const ghost =
     save.mode === "journey" && peek !== null && save.look[peek.part] !== peek.id
       ? statsOf(
           journeyTraits(save.gear, { ...save.look, [peek.part]: peek.id })
         )
       : null;
+
   const combo = comboOf(save.look);
+
   const fresh = (section: string) =>
     save.mode === "journey" &&
     save.unseen.some((key) => key.startsWith(`${section}:`));
 
   const paintStone = (canvas: HTMLCanvasElement | null) => {
     const ctx = canvas?.getContext("2d");
+
     if (ctx) {
       ctx.clearRect(0, 0, 256, 160);
       ctx.drawImage(stoneSprite(colorOf(color), form, pattern), 0, 0);

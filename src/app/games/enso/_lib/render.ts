@@ -11,32 +11,40 @@ const makeCanvas = (side: number) => {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, side);
   canvas.height = Math.max(1, side);
+
   return canvas;
 };
 
 const paintGrain = (roll: () => number) => {
   const canvas = makeCanvas(128);
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return canvas;
   }
+
   const image = ctx.createImageData(128, 128);
+
   for (let i = 0; i < image.data.length; i += 4) {
     image.data[i] = 120;
     image.data[i + 1] = 98;
     image.data[i + 2] = 64;
     image.data[i + 3] = roll() ** 3 * 46;
   }
+
   ctx.putImageData(image, 0, 0);
+
   return canvas;
 };
 
 const paintPaper = (side: number) => {
   const canvas = makeCanvas(side);
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return canvas;
   }
+
   const roll = seeded(1021);
   const base = ctx.createLinearGradient(0, 0, side, side);
   base.addColorStop(0, "#f7f0e1");
@@ -44,11 +52,14 @@ const paintPaper = (side: number) => {
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, side, side);
   const grain = ctx.createPattern(paintGrain(roll), "repeat");
+
   if (grain) {
     ctx.fillStyle = grain;
     ctx.fillRect(0, 0, side, side);
   }
+
   ctx.lineCap = "round";
+
   for (let i = 0; i < 340; i += 1) {
     const x = roll() * side;
     const y = roll() * side;
@@ -70,6 +81,7 @@ const paintPaper = (side: number) => {
         : `rgb(255 255 255 / ${0.3 + roll() * 0.35})`;
     ctx.stroke();
   }
+
   for (let i = 0; i < 54; i += 1) {
     const corner = i % 2 === 0 ? 0 : 1;
     const spread = roll() ** 2 * 0.34;
@@ -78,15 +90,18 @@ const paintPaper = (side: number) => {
     const y = side * (corner === 0 ? spread * along : 1 - spread);
     const r = side * (0.003 + roll() ** 2 * 0.014);
     ctx.beginPath();
+
     for (let k = 0; k < 5; k += 1) {
       const a = (k / 5) * Math.PI * 2 + roll() * 0.9;
       const d = r * (0.5 + roll() * 0.7);
       ctx.lineTo(x + Math.cos(a) * d, y + Math.sin(a) * d);
     }
+
     ctx.closePath();
     ctx.fillStyle = `rgb(${196 + roll() * 40} ${154 + roll() * 34} ${70 + roll() * 30} / ${0.55 + roll() * 0.4})`;
     ctx.fill();
   }
+
   const edge = ctx.createRadialGradient(
     side / 2,
     side / 2,
@@ -95,37 +110,46 @@ const paintPaper = (side: number) => {
     side / 2,
     side * 0.75
   );
+
   edge.addColorStop(0, "rgb(120 90 50 / 0)");
   edge.addColorStop(1, "rgb(120 90 50 / 0.16)");
   ctx.fillStyle = edge;
   ctx.fillRect(0, 0, side, side);
+
   return canvas;
 };
 
 const paintBleed = (seed: number) => {
   const canvas = makeCanvas(SPRITE);
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return canvas;
   }
+
   const roll = seeded(seed);
   const phases = Array.from({ length: 4 }, () => roll() * Math.PI * 2);
   const image = ctx.createImageData(SPRITE, SPRITE);
   const c = SPRITE / 2;
+
   for (let y = 0; y < SPRITE; y += 1) {
     for (let x = 0; x < SPRITE; x += 1) {
       const dx = x + 0.5 - c;
       const dy = y + 0.5 - c;
       const angle = Math.atan2(dy, dx);
       const d = Math.hypot(dx, dy) / c;
+
       const edge =
         1 +
         0.12 * Math.sin(angle * 5 + (phases[0] ?? 0)) +
         0.07 * Math.sin(angle * 11 + (phases[1] ?? 0) + d * 4) +
         0.05 * Math.sin(angle * 23 + (phases[2] ?? 0));
+
       const fall = clamp01((edge - d) / (edge * 0.55));
+
       const fibre =
         0.7 + 0.3 * Math.sin(angle * 37 + (phases[3] ?? 0) + d * 19);
+
       const i = (y * SPRITE + x) * 4;
       image.data[i] = 46;
       image.data[i + 1] = 50;
@@ -133,7 +157,9 @@ const paintBleed = (seed: number) => {
       image.data[i + 3] = fall * fall * fibre * (0.75 + roll() * 0.25) * 255;
     }
   }
+
   ctx.putImageData(image, 0, 0);
+
   return canvas;
 };
 
@@ -142,9 +168,11 @@ const toneOf = (tone: number) =>
 
 export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const context = canvas.getContext("2d");
+
   if (!context) {
     throw new Error("Canvas 2D is not available");
   }
+
   const ctx = context;
   const sprites = Array.from({ length: KINDS }, (_, i) => paintBleed(i + 3));
   let side = 0;
@@ -161,9 +189,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const fit = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const next = Math.round(canvas.clientWidth * dpr);
+
     if (next === side || next === 0) {
       return;
     }
+
     side = next;
     canvas.width = side;
     canvas.height = side;
@@ -177,11 +207,14 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const drawMarks = () => {
     const pen = ink.getContext("2d");
+
     if (!pen || drawn >= marks.length) {
       return;
     }
+
     pen.globalCompositeOperation = "darken";
     pen.lineCap = "round";
+
     for (let i = drawn; i < marks.length; i += 1) {
       const mark = marks[i];
       pen.beginPath();
@@ -191,17 +224,21 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       pen.strokeStyle = toneOf(mark.tone);
       pen.stroke();
     }
+
     drawn = marks.length;
     dirty = true;
   };
 
   const drawBleeds = (now: number) => {
     const pen = wash.getContext("2d");
+
     if (!pen || settled) {
       return;
     }
+
     pen.clearRect(0, 0, side, side);
     let growing = false;
+
     for (const bleed of bleeds) {
       const age = calm ? 1 : clamp01((now - bleed.born) / SPREAD);
       growing ||= age < 1;
@@ -214,6 +251,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       pen.drawImage(sprites[bleed.kind], -size / 2, -size / 2, size, size);
       pen.restore();
     }
+
     settled = !growing;
     dirty = true;
   };
@@ -223,6 +261,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       for (const mark of strokes.marks) {
         marks.push(mark);
       }
+
       for (const bleed of strokes.bleeds) {
         bleeds.push(bleed);
         settled = false;
@@ -241,9 +280,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       fit();
       drawMarks();
       drawBleeds(now);
+
       if (!dirty) {
         return;
       }
+
       dirty = false;
       ctx.globalCompositeOperation = "source-over";
       ctx.globalAlpha = 1;

@@ -415,6 +415,7 @@ interface HudProps {
 const Challenge = ({ challenge }: { challenge: Result }) => {
   const lang = useLang();
   const copy = useCopy();
+
   return (
     <div {...stylex.props(glass.surface, styles.challenge)}>
       <span {...stylex.props(styles.label)}>{copy.challenge.received}</span>
@@ -468,6 +469,7 @@ const Corner = ({
 >) => {
   const copy = useCopy();
   const lang = useLang();
+
   return (
     <div {...stylex.props(styles.corner)}>
       {save === null || save.best <= 0 ? null : (
@@ -546,10 +548,12 @@ export const Hud = ({
   const lang = useLang();
   const copy = useCopy();
   const counting = phase === "flying" || phase === "done";
+
   const hint =
     phase === "done" || (phase === "flying" && !tutorial)
       ? undefined
       : copy.hints[phase];
+
   return (
     <div {...stylex.props(styles.root)}>
       <div {...stylex.props(styles.top)}>

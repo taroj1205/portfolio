@@ -20,11 +20,13 @@ const ranges = new Map([
 const edge = (name: string, offset: number, source: HTMLElement) => {
   const [start = 0, end = 0] =
     ranges.get(name)?.(source.offsetHeight, innerHeight) ?? [];
+
   return start + ((end - start) * offset) / 100;
 };
 
 const viewTop = (el: HTMLElement) => {
   let top = -scrollY;
+
   for (
     let node: Element | null = el;
     node instanceof HTMLElement;
@@ -32,15 +34,18 @@ const viewTop = (el: HTMLElement) => {
   ) {
     top += node.offsetTop;
   }
+
   return top;
 };
 
 const parse = (range: string, source: HTMLElement) => {
   const [a = "", from = "", b = "", to = ""] = range.trim().split(/\s+/u);
+
   const track = {
     progress: () => {
       const start = edge(a, Number(from.slice(0, -1)), source);
       const end = edge(b, Number(to.slice(0, -1)), source);
+
       return Math.min(
         1,
         Math.max(0, (start - viewTop(source)) / (start - end))
@@ -49,13 +54,16 @@ const parse = (range: string, source: HTMLElement) => {
     speed: 0,
     value: 0,
   };
+
   track.value = track.progress();
+
   return track;
 };
 
 export const Scroll = () => {
   useEffect(() => {
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     const items = [
       ...document.querySelectorAll<HTMLElement>("[data-scroll]"),
     ].flatMap((el) => {
@@ -63,6 +71,7 @@ export const Scroll = () => {
         el.dataset.scrollFrom === undefined
           ? el
           : document.querySelector<HTMLElement>(`#${el.dataset.scrollFrom}`);
+
       return source
         ? [
             {
@@ -74,6 +83,7 @@ export const Scroll = () => {
           ]
         : [];
     });
+
     let frame = 0;
     let last = 0;
 
@@ -81,14 +91,17 @@ export const Scroll = () => {
       const dt = Math.min(Math.max(now - last, 0) / 1000, 1 / 30);
       last = now;
       let moving = false;
+
       for (const { el, tracks } of items) {
         for (const [i, track] of tracks.entries()) {
           const target = track.progress();
+
           if (!still) {
             track.speed +=
               (stiffness * (target - track.value) - damping * track.speed) * dt;
             track.value += track.speed * dt;
           }
+
           if (
             still ||
             Math.abs(target - track.value) + Math.abs(track.speed) < 1e-4
@@ -98,9 +111,11 @@ export const Scroll = () => {
           } else {
             moving = true;
           }
+
           el.style.setProperty(`--scroll-${i}`, track.value.toFixed(4));
         }
       }
+
       frame = moving ? requestAnimationFrame(tick) : 0;
     };
 
@@ -114,11 +129,13 @@ export const Scroll = () => {
     wake();
     addEventListener("scroll", wake, { passive: true });
     addEventListener("resize", wake);
+
     return () => {
       cancelAnimationFrame(frame);
       removeEventListener("scroll", wake);
       removeEventListener("resize", wake);
     };
   }, []);
+
   return null;
 };

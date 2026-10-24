@@ -185,12 +185,15 @@ const styles = stylex.create({
 const versus = (score: number, challenge: Result, lang: Lang) => {
   const words = copy[lang].result;
   const theirs = scoreOf(challenge.rolls);
+
   if (score > theirs) {
     return { strong: true, text: words.won };
   }
+
   if (score < theirs) {
     return { strong: false, text: words.lost };
   }
+
   return { strong: true, text: words.tied };
 };
 
@@ -219,14 +222,17 @@ export const ResultSheet = ({
   const next = nextRankOf(score);
   const against = challenge === null ? null : versus(score, challenge, lang);
   const again = useRef<HTMLButtonElement>(null);
+
   const focus = () => {
     again.current?.focus({ preventScroll: true });
   };
+
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
       again.current?.focus({ preventScroll: true });
     }
   }, []);
+
   return (
     <section
       aria-labelledby="keshibo-result"

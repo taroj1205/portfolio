@@ -43,6 +43,7 @@ export const createSound = () => {
     scoop: (count: number) => {
       spray(1800, 0.3 + count * 0.05, 0.22);
       tone(330, { bend: 1.8, length: 0.16, peak: 0.12 });
+
       for (let i = 0; i < Math.min(count, 5); i += 1) {
         tone(880 * 2 ** (PENTATONIC[i] / 12), {
           at: 0.48 + i * 0.09,
@@ -56,6 +57,7 @@ export const createSound = () => {
       for (let i = 0; i < 4; i += 1) {
         spray(3200 + i * 600, 0.4, 0.05 + i * 0.03);
       }
+
       tone(150, { bend: 0.5, length: 0.3, peak: 0.18, type: "triangle" });
     },
     unlock,

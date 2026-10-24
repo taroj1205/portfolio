@@ -58,11 +58,13 @@ export const officialOf = (save: Save, day: number | null) =>
 
 export const streakOn = (save: Save, today: number) => {
   const last = lastDay(save);
+
   return last !== null && last >= today - 1 ? save.daily.streak : 0;
 };
 
 const dailyOf = (save: Save, day: number, time: number) => {
   const streak = lastDay(save) === day - 1 ? save.daily.streak + 1 : 1;
+
   return {
     last: dateOf(day),
     longest: Math.max(save.daily.longest, streak),
@@ -77,10 +79,12 @@ export const settle = (save: Save, { plan, time, seconds, at }: Run) => {
   const off = Math.abs(gap);
   const kind = plan.day === null ? "standard" : "daily";
   const previous = save.best[kind];
+
   const official =
     plan.today && plan.day !== null && (lastDay(save) ?? 0) < plan.day
       ? plan.day
       : null;
+
   return {
     official: official !== null,
     record: previous !== null && off < previous,

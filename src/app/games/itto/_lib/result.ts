@@ -143,12 +143,14 @@ const kindName = (kind: Kind, lang: Lang) => kindNames[kind][lang];
 
 export const kindTitle = (kind: Kind, lang: Lang) => {
   const name = kindName(kind, lang);
+
   return `${name.charAt(0).toUpperCase()}${name.slice(1)}`;
 };
 
 export const pieceOf = (result: Result): Piece | null => {
   const food = dishOf(result.seed);
   const split = splitBy(food.parts, result.cut);
+
   return split === null ? null : { cut: result.cut, food, split };
 };
 
@@ -159,6 +161,7 @@ const cutText = z
   .max(13)
   .transform((text, context) => {
     const [angle, offset, extra] = text.split(".");
+
     if (
       extra !== undefined ||
       angle === undefined ||
@@ -167,8 +170,10 @@ const cutText = z
       !NUMBER.test(offset)
     ) {
       context.addIssue({ code: "custom", message: "Unreadable cut" });
+
       return z.NEVER;
     }
+
     return { angle: Number(angle), offset: Number(offset) };
   })
   .pipe(
@@ -198,6 +203,7 @@ export const readResult = (
   params: Record<string, string | string[] | undefined>
 ): Result | null => {
   const parsed = shared.safeParse(params);
+
   return parsed.success ? parsed.data : null;
 };
 
@@ -214,6 +220,7 @@ const lineOf = (piece: Piece, lang: Lang) => {
   const rank = rankOf(small).name[lang];
   const name = kindName(piece.food.kind, lang);
   const rare = isRare(piece.food.kind);
+
   if (lang === "en") {
     return [
       rare ? `✨ A rare one: ${name}!` : null,
@@ -221,6 +228,7 @@ const lineOf = (piece: Piece, lang: Lang) => {
       `${off}% off half. Can you cut this one closer?`,
     ];
   }
+
   return [
     rare ? `✨ レアの${name}が出た！` : null,
     `半分こ道場で${name}を切ったら ${ratio}（${rank}）`,
@@ -236,6 +244,7 @@ export const shareOf = (
 ): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
+
   return {
     image: `${origin}/games/itto/og?${query.toString()}`,
     text: [
@@ -252,5 +261,6 @@ export const demoOf = (round: number) => {
   const angle = Math.floor(roll() * ANGLES);
   const offset = halving(food.parts, angle) + Math.round((roll() - 0.5) * 120);
   const cut = { angle, offset };
+
   return { cut, food, split: splitBy(food.parts, cut) };
 };

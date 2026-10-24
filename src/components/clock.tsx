@@ -7,6 +7,7 @@ import type { Locale } from "@/lib/i18n";
 
 const subscribe = (tick: () => void) => {
   const id = setInterval(tick, 10_000);
+
   return () => {
     clearInterval(id);
   };

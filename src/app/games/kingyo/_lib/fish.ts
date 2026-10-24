@@ -99,19 +99,26 @@ export const pickKind = (
   bossAround: boolean
 ): KindId => {
   const boost = 1 + caught / 15;
+
   const weights = kindIds.map((id) => {
     const { chance, tier } = kinds[id];
+
     if (id === "nushi" && bossAround) {
       return 0;
     }
+
     return tier === "rare" || tier === "legend" ? chance * boost : chance;
   });
+
   let roll = random() * weights.reduce((sum, weight) => sum + weight, 0);
+
   for (const [i, weight] of weights.entries()) {
     roll -= weight;
+
     if (roll < 0) {
       return kindIds[i];
     }
   }
+
   return "wakin";
 };

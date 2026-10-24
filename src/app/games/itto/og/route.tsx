@@ -50,6 +50,7 @@ const Tag = ({
   small: number;
 }) => {
   const tag = tagAt(side, APART);
+
   return (
     <div
       style={{
@@ -84,6 +85,7 @@ const Tags = ({ split }: { split: Split }) => (
 
 const textOf = (piece: Piece | null, lang: Lang) => {
   const words = copy[lang];
+
   if (piece === null) {
     return {
       detail: words.rule.body,
@@ -94,7 +96,9 @@ const textOf = (piece: Piece | null, lang: Lang) => {
       title: words.rule.lead,
     };
   }
+
   const rank = rankOf(piece.split.small);
+
   return {
     detail: words.result.off(tenths(errorOf(piece.split.small))),
     lead: rank.line[lang],
@@ -114,6 +118,7 @@ export const GET = async (request: NextRequest) => {
   const hero = piece ?? demoOf(0);
   const ratio = hero.split === null ? "" : ratioText(hero.split.small);
   const { detail, lead, name, rare, seal, title } = textOf(piece, lang);
+
   const font = await loadMincho(
     `${name}${detail}${title}${lead ?? ""}${seal.join("")}${words.rare}${words.challenge.dare}0123456789.:%·${copy.ja.name}はんぶんこどうじょう${copy.en.name}`
   );

@@ -24,36 +24,43 @@ const gapTo = (p: Trace, a: Trace, b: Trace) => {
   const dy = b.y - a.y;
   const dw = b.w - a.w;
   const span = dx * dx + dy * dy + dw * dw;
+
   const t =
     span === 0
       ? 0
       : clamp01(
           ((p.x - a.x) * dx + (p.y - a.y) * dy + (p.w - a.w) * dw) / span
         );
+
   return Math.hypot(p.x - a.x - dx * t, p.y - a.y - dy * t, p.w - a.w - dw * t);
 };
 
 const reduce = (points: readonly Trace[], tolerance: number) => {
   const keep = new Set([0, points.length - 1]);
   const spans: [number, number][] = [[0, points.length - 1]];
+
   for (let span = spans.pop(); span; span = spans.pop()) {
     const [from, to] = span;
     const a = points[from];
     const b = points[to];
     let far = -1;
     let most = tolerance;
+
     for (let i = from + 1; i < to; i += 1) {
       const gap = gapTo(points[i], a, b);
+
       if (gap > most) {
         most = gap;
         far = i;
       }
     }
+
     if (far > 0) {
       keep.add(far);
       spans.push([from, far], [far, to]);
     }
   }
+
   return [...keep].toSorted((a, b) => a - b).map((i) => points[i]);
 };
 
@@ -62,26 +69,32 @@ export const simplify = (trace: readonly Trace[]): Trace[] => {
   let top = Infinity;
   let right = -Infinity;
   let bottom = -Infinity;
+
   for (const p of trace) {
     left = Math.min(left, p.x);
     top = Math.min(top, p.y);
     right = Math.max(right, p.x);
     bottom = Math.max(bottom, p.y);
   }
+
   const wide = right - left;
   const tall = bottom - top;
   const size = Math.max(wide, tall, 1e-6);
+
   const unit = trace.map((p) => ({
     w: Math.min(WIDTH_RANGE, p.w / size),
     x: (p.x - left) / size + (1 - wide / size) / 2,
     y: (p.y - top) / size + (1 - tall / size) / 2,
   }));
+
   let tolerance = TOLERANCE;
   let kept = reduce(unit, tolerance);
+
   while (kept.length > MAX_POINTS) {
     tolerance *= 1.5;
     kept = reduce(unit, tolerance);
   }
+
   return kept;
 };
 
@@ -94,6 +107,7 @@ const toBase64 = (bytes: Uint8Array) =>
 const fromBase64 = (text: string) => {
   try {
     const raw = atob(text.replaceAll("-", "+").replaceAll("_", "/"));
+
     return Uint8Array.from(raw, (char) => char.codePointAt(0) ?? 0);
   } catch {
     return null;
@@ -113,11 +127,15 @@ export const unpack = (text: string): Trace[] | null => {
   if (!/^[\w-]+$/u.test(text) || text.length > MAX_POINTS * 4) {
     return null;
   }
+
   const bytes = fromBase64(text);
+
   if (bytes === null || bytes.length % 3 !== 0 || bytes.length < 6) {
     return null;
   }
+
   const trace: Trace[] = [];
+
   for (let i = 0; i < bytes.length; i += 3) {
     trace.push({
       w: ((bytes[i + 2] ?? 0) / 255) * WIDTH_RANGE,
@@ -125,6 +143,7 @@ export const unpack = (text: string): Trace[] | null => {
       y: (bytes[i + 1] ?? 0) / 255,
     });
   }
+
   return trace;
 };
 
@@ -144,9 +163,11 @@ const subdivide = (line: readonly Trace[]) => [
 
 const smooth = (points: readonly Trace[]) => {
   let line: readonly Trace[] = points;
+
   for (let pass = 0; pass < SMOOTHING; pass += 1) {
     line = subdivide(line);
   }
+
   return line;
 };
 
@@ -155,52 +176,71 @@ const num = (value: number) => value.toFixed(1);
 export const inkPaths = (trace: readonly Trace[], frame: Frame) => {
   const pad = Math.max(...trace.map((p) => p.w)) / 2;
   const scale = frame.size / (1 + pad * 2);
+
   const line = smooth(trace).map((p) => ({
     w: p.w * scale,
     x: frame.x + (p.x + pad) * scale,
     y: frame.y + (p.y + pad) * scale,
   }));
+
   let nx = 0;
   let ny = -1;
+
   const normals = line.map((p, i) => {
     const a = line[Math.max(0, i - 1)] ?? p;
     const b = line[Math.min(line.length - 1, i + 1)] ?? p;
     const length = Math.hypot(b.x - a.x, b.y - a.y);
+
     if (length > 1e-6) {
       nx = -(b.y - a.y) / length;
       ny = (b.x - a.x) / length;
     }
+
     return { x: nx, y: ny };
   });
+
   const offset = (lane: number) =>
     line.map((p, i) => {
       const n = normals[i] ?? { x: 0, y: 0 };
+
       return `${num(p.x + n.x * lane * (p.w / 2))} ${num(p.y + n.y * lane * (p.w / 2))}`;
     });
+
   const outer = offset(1);
   const inner = offset(-1).toReversed();
+
   const cap = (p: Trace | undefined) => {
     const r = num(Math.max(0.1, (p?.w ?? 0) / 2));
+
     return `${r} ${r} 0 0 0`;
   };
+
   const body = `M${outer.join("L")}A${cap(line.at(-1))} ${inner.join("L")}A${cap(line[0])} ${outer[0] ?? ""}Z`;
   let travelled = 0;
+
   const reach = line.map((p, i) => {
     const prev = line[i - 1] ?? p;
     travelled += Math.hypot(p.x - prev.x, p.y - prev.y);
+
     return travelled;
   });
+
   const thick = pad * 2 * scale;
+
   const streaks = LANES.flatMap((lane, k) => {
     const from = 0.4 + (1 - Math.abs(lane)) * 0.32;
+
     const points = offset(lane).filter(
       (_, i) => (reach[i] ?? 0) >= travelled * from
     );
+
     if (points.length < 2) {
       return [];
     }
+
     const turn = (k * 3) % DASHES.length;
     const dash = [...DASHES.slice(turn), ...DASHES.slice(0, turn)];
+
     return [
       {
         d: `M${points.join("L")}`,
@@ -211,5 +251,6 @@ export const inkPaths = (trace: readonly Trace[], frame: Frame) => {
       },
     ];
   });
+
   return { body, spine: `M${offset(0).join("L")}`, streaks };
 };

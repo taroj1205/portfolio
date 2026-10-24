@@ -28,6 +28,7 @@ const lensMap = (width: number, height: number) => {
   const radius = height / 2;
   const edge = Math.round(height * 0.2);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}"><defs><linearGradient id="r" x1="100%" y1="0%" x2="0%" y2="0%"><stop offset="0%" stop-color="#0000"/><stop offset="100%" stop-color="red"/></linearGradient><linearGradient id="b" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#0000"/><stop offset="100%" stop-color="blue"/></linearGradient></defs><rect width="${width}" height="${height}" fill="black"/><rect width="${width}" height="${height}" rx="${radius}" fill="url(#r)"/><rect width="${width}" height="${height}" rx="${radius}" fill="url(#b)" style="mix-blend-mode:difference"/><rect x="${edge}" y="${edge}" width="${width - edge * 2}" height="${height - edge * 2}" rx="${radius - edge}" fill="hsl(0 0% 50%)" style="filter:blur(${edge * 0.6}px)"/></svg>`;
+
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 };
 
@@ -66,9 +67,11 @@ const split = (map: string, y: "B" | "G", amount: number) => (
 const drop = stylex.keyframes({
   from: { opacity: 0, scale: 0.9, translate: "0 calc(-100% - 1rem)" },
 });
+
 const lift = stylex.keyframes({
   from: { opacity: 0, scale: 0.9, translate: "0 calc(100% + 1rem)" },
 });
+
 const pop = stylex.keyframes({
   from: { filter: "blur(4px)", opacity: 0, scale: 0.9 },
 });
@@ -394,6 +397,7 @@ const styles = stylex.create({
 
 export const SiteNav = ({ locale }: { locale: Locale }) => {
   const t = getTranslator(locale);
+
   const labels = {
     about: t("navigation.about", "About"),
     contact: t("navigation.contact", "Say hi"),
@@ -401,6 +405,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
     projects: t("navigation.projects", "Made"),
     work: t("navigation.work", "Work"),
   };
+
   const router = useRouter();
   const pills = useRef<(HTMLElement | null)[]>([]);
   const blob = useRef<HTMLSpanElement>(null);
@@ -408,6 +413,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
   const previous = useRef(-1);
   const [active, setActive] = useState(-1);
   const [open, setOpen] = useState(false);
+
   const [glass, setGlass] = useState<{
     liquid: boolean;
     sizes: { height: number; width: number }[];
@@ -416,6 +422,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
   useEffect(() => {
     const targets = sections.map((id) => document.querySelector(`#${id}`));
     let frame = 0;
+
     const update = () => {
       frame = 0;
       const root = document.documentElement;
@@ -430,11 +437,13 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
             )
       );
     };
+
     const schedule = () => {
       if (frame === 0) {
         frame = requestAnimationFrame(update);
       }
     };
+
     schedule();
     addEventListener("scroll", schedule, { passive: true });
     addEventListener("resize", schedule);
@@ -450,11 +459,13 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
         })),
       });
     });
+
     for (const el of pills.current) {
       if (el) {
         observer.observe(el);
       }
     }
+
     return () => {
       cancelAnimationFrame(frame);
       removeEventListener("scroll", schedule);
@@ -467,9 +478,11 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
     const link = links.current[active];
     const el = blob.current;
     const size = glass?.sizes[0];
+
     if (!el || !link || !size) {
       return;
     }
+
     const forward = active > previous.current;
     el.style.transitionProperty =
       previous.current === -1 ? "opacity, scale" : "";
@@ -530,17 +543,20 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
                 ) {
                   return;
                 }
+
                 event.preventDefault();
                 const root = document.documentElement;
                 document.startViewTransition({
                   types: ["locale"],
                   update: async () => {
                     const swapped = Promise.withResolvers<string>();
+
                     const observer = new MutationObserver(() => {
                       if (root.lang === code) {
                         swapped.resolve(root.lang);
                       }
                     });
+
                     observer.observe(root, { attributeFilter: ["lang"] });
                     const timeout = setTimeout(swapped.resolve, 3000);
                     router.push(href, { scroll: false });

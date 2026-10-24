@@ -57,6 +57,7 @@ const patch = (
 ): Spot => ({ color, rx, ry, turn, x, y });
 
 const RED = "#e0321c";
+
 const looks: Record<KindId, Look> = {
   demekin: {
     bulge: true,
@@ -193,6 +194,7 @@ const looks: Record<KindId, Look> = {
 const outlineOf = (length: number, half: number) => {
   const L = length;
   const h = half;
+
   return [
     `M${n(0.5 * L)} 0`,
     `C${n(0.5 * L)} ${n(-0.55 * h)} ${n(0.36 * L)} ${n(-h)} ${n(0.14 * L)} ${n(-h)}`,
@@ -208,10 +210,12 @@ export const tailJoint = (kind: KindId) => -0.42 * kinds[kind].length;
 const eyesOf = (kind: KindId, half: number) => {
   const L = kinds[kind].length;
   const look = looks[kind];
+
   if (look.bulge) {
     return [-1, 1]
       .map((side) => {
         const y = side * (half + 0.03 * L);
+
         return [
           ellipse(0.32 * L, y, 0.1 * L, 0.085 * L, `fill="#120c14"`),
           ellipse(0.34 * L, y, 0.055 * L, 0.05 * L, `fill="#000"`),
@@ -226,9 +230,11 @@ const eyesOf = (kind: KindId, half: number) => {
       })
       .join("");
   }
+
   return [-1, 1]
     .map((side) => {
       const y = side * 0.62 * half;
+
       return [
         ellipse(
           0.38 * L,
@@ -253,6 +259,7 @@ const eyesOf = (kind: KindId, half: number) => {
 const finsOf = (kind: KindId, half: number) => {
   const L = kinds[kind].length;
   const { tail } = looks[kind];
+
   return [-1, 1]
     .map((side) =>
       ellipse(
@@ -274,6 +281,7 @@ const fishBody = (kind: KindId): Sprite => {
   const id = `k-${kind}`;
   const reach = half + (look.bulge ? 0.16 * L : 0.1 * L);
   const box = { h: reach * 2, w: L + 0.16 * L, x: -0.58 * L, y: -reach };
+
   const spots = look.spots
     .map((each) =>
       ellipse(
@@ -285,9 +293,11 @@ const fishBody = (kind: KindId): Sprite => {
       )
     )
     .join("");
+
   const scales = look.scales
     ? `<rect x="${n(-0.5 * L)}" y="${n(-half)}" width="${n(L)}" height="${n(half * 2)}" fill="url(#${id}-scales)"/>`
     : "";
+
   return {
     body: [
       "<defs>",
@@ -337,6 +347,7 @@ const fishBody = (kind: KindId): Sprite => {
 const lobe = (length: number, spread: number, root: number, side: number) => {
   const s = side * spread;
   const r = side * root;
+
   return `M0 ${n(r * 0.4)}C${n(-0.35 * length)} ${n(r)} ${n(-0.7 * length)} ${n(s)} ${n(-length)} ${n(s * 1.05)}C${n(-0.86 * length)} ${n(s * 0.45)} ${n(-0.74 * length)} ${n(s * 0.12)} ${n(-0.58 * length)} 0L0 0Z`;
 };
 
@@ -347,6 +358,7 @@ const fishTail = (kind: KindId): Sprite => {
   const spread = look.tail.spread * length;
   const root = ((look.width * L) / 2) * 0.2;
   const id = `t-${kind}`;
+
   const lobes = look.tail.double
     ? [
         lobe(length, spread, root, -1),
@@ -355,13 +367,16 @@ const fishTail = (kind: KindId): Sprite => {
         lobe(length * 0.86, spread * 0.45, root, 1),
       ]
     : [lobe(length, spread, root, -1), lobe(length, spread, root, 1)];
+
   const rays = Array.from({ length: 9 }, (_, i) => {
     const t = (i / 8) * 2 - 1;
+
     return path(
       `M0 0L${n(-length * (0.9 - Math.abs(t) * 0.05))} ${n(t * spread)}`,
       `stroke="${look.tail.root}" stroke-opacity="0.35" stroke-width="${n(0.008 * L)}"`
     );
   }).join("");
+
   return {
     body: [
       "<defs>",
@@ -459,14 +474,17 @@ const fibres = (id: string, seed: number) =>
 const HOLE = Array.from({ length: 15 }, (_, i) => {
   const angle = (i / 15) * Math.PI * 2;
   const r = 30 + (i % 2 === 0 ? 14 : 0) + Math.sin(i * 2.3) * 6;
+
   return { x: 8 + Math.cos(angle) * r, y: -4 + Math.sin(angle) * r * 0.8 };
 });
 
 const paperBody = (id: string, torn: boolean) => {
   const circle = `M${-POI.r} 0A${POI.r} ${POI.r} 0 1 0 ${POI.r} 0A${POI.r} ${POI.r} 0 1 0 ${-POI.r} 0Z`;
+
   const hole = torn
     ? `M${HOLE.map(({ x, y }) => `${n(x)} ${n(y)}`).join("L")}Z`
     : "";
+
   const flaps = torn
     ? HOLE.filter((_, i) => i % 4 === 0)
         .map(({ x, y }) =>
@@ -477,6 +495,7 @@ const paperBody = (id: string, torn: boolean) => {
         )
         .join("")
     : "";
+
   return [
     `<defs>${fibres(`${id}-fibre`, torn ? 9 : 4)}${radial(
       `${id}-light`,
@@ -590,6 +609,7 @@ const LANTERNS = [
 const tubPath = (inset: number, r: number) => {
   const a = inset;
   const b = SCENE - inset;
+
   return `M${a + r} ${a}L${b - r} ${a}Q${b} ${a} ${b} ${a + r}L${b} ${b - r}Q${b} ${b} ${b - r} ${b}L${a + r} ${b}Q${a} ${b} ${a} ${b - r}L${a} ${a + r}Q${a} ${a} ${a + r} ${a}Z`;
 };
 
@@ -597,6 +617,7 @@ export const backdrop = (width: number, height: number, frame: Frame) => {
   const k = frame.size / SCENE;
   const glow = seeded(17);
   const water = tubPath(TUB.inner, TUB.r - 30);
+
   return [
     "<defs>",
     linear(
@@ -729,6 +750,7 @@ export const bowlSpots = (count: number) =>
   Array.from({ length: count }, (_, i) => {
     const angle = i * 2.4 + 0.6;
     const r = (BOWL.r - 34) * Math.sqrt((i + 0.5) / Math.max(count, 1));
+
     return {
       heading: angle + Math.PI / 2,
       x: BOWL.x + Math.cos(angle) * r,
@@ -739,9 +761,11 @@ export const bowlSpots = (count: number) =>
 const fishOf = (swimmer: Swimmer, scale: number, withShadow: boolean) => {
   const L = kinds[swimmer.kind].length;
   const turn = deg(swimmer.heading);
+
   const shade = withShadow
     ? `<use href="#use-shadow" transform="translate(${n(swimmer.x + 10)} ${n(swimmer.y + 16)}) rotate(${turn}) scale(${n((L / 100) * scale)})"/>`
     : "";
+
   return `${shade}<g transform="translate(${n(swimmer.x)} ${n(swimmer.y)}) rotate(${turn}) scale(${n(scale)})"><use href="#use-tail-${swimmer.kind}" transform="translate(${n(tailJoint(swimmer.kind))} 0) rotate(${deg(swimmer.sway)})"/><use href="#use-body-${swimmer.kind}"/></g>`;
 };
 
@@ -750,6 +774,7 @@ const defsOf = (pose: Pose, inBowl: readonly KindId[]) => {
     (id) =>
       inBowl.includes(id) || pose.swimmers.some((each) => each.kind === id)
   );
+
   return `<defs><g id="use-shadow">${shadow.body}</g>${used
     .map(
       (id) =>
@@ -769,10 +794,12 @@ const bowlBody = (inBowl: readonly KindId[]) =>
 
 const poseBody = (pose: Pose) => {
   const inBowl = pose.bowl?.slice(0, 8) ?? [];
+
   const poi =
     pose.poi === null
       ? ""
       : `<g transform="translate(${n(pose.poi.x)} ${n(pose.poi.y)}) rotate(${deg(TILT)})">${(pose.poi.torn ? torn : paper).body}${poiFrame.body}</g>`;
+
   return [
     defsOf(pose, inBowl),
     ...pose.swimmers.map((swimmer) => fishOf(swimmer, 1, true)),
@@ -791,12 +818,15 @@ const CLEAR = [
 export const posed = (seed: number, count: number) => {
   const random = seeded(seed);
   const placed: Swimmer[] = [];
+
   for (let tries = 0; placed.length < count && tries < 400; tries += 1) {
     const x = 150 + random() * 700;
     const y = 140 + random() * 700;
+
     const crowded =
       placed.some((other) => Math.hypot(other.x - x, other.y - y) < 150) ||
       CLEAR.some((spot) => Math.hypot(spot.x - x, spot.y - y) < spot.r);
+
     if (!crowded) {
       placed.push({
         heading: random() * Math.PI * 2,
@@ -807,6 +837,7 @@ export const posed = (seed: number, count: number) => {
       });
     }
   }
+
   return placed;
 };
 

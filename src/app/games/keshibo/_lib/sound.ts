@@ -4,6 +4,7 @@ const CHIME = [659.25, 523.25, 587.33, 392];
 
 export const createSound = () => {
   let slide: GainNode | null = null;
+
   const { close, mute, spray, tone, unlock } = createAudio(
     (audio, out, noise) => {
       const source = audio.createBufferSource();
@@ -35,9 +36,11 @@ export const createSound = () => {
   return {
     clack: (strength: number, pitch: number) => {
       const level = Math.min(1, strength / 240);
+
       if (level < 0.04) {
         return;
       }
+
       tone(1150 + pitch * 380, {
         bend: 1.12,
         length: 0.05,
@@ -94,6 +97,7 @@ export const createSound = () => {
     },
     strike: (run: number) => {
       const notes = run >= 3 ? [...CHIME, ...CHIME.toReversed()] : CHIME;
+
       for (const [i, note] of notes.entries()) {
         bell(note, i * 0.17, 0.065);
       }

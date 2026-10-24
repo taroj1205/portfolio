@@ -53,6 +53,7 @@ const layoutOf = (w: number, h: number): Layout => {
   const top = Math.min(h * 0.19, 150);
   const bottom = Math.min(h * 0.15, 120);
   const room = Math.min((w - 20) / 2, (h - top - bottom) / 2);
+
   return {
     cx: w / 2,
     cy: top + (h - top - bottom) / 2,
@@ -67,16 +68,20 @@ const makeCanvas = (w: number, h: number) => {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(w));
   canvas.height = Math.max(1, Math.round(h));
+
   return canvas;
 };
 
 const paintNebula = (side: number) => {
   const canvas = makeCanvas(side, side);
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return canvas;
   }
+
   const c = side / 2;
+
   const clouds: [number, number, number, string][] = [
     [-0.18, -0.12, 0.62, "rgb(122 92 214 / 0.32)"],
     [0.22, 0.16, 0.55, "rgb(64 120 220 / 0.26)"],
@@ -84,6 +89,7 @@ const paintNebula = (side: number) => {
     [-0.26, 0.2, 0.36, "rgb(255 170 110 / 0.12)"],
     [0, 0, 0.3, "rgb(255 236 200 / 0.18)"],
   ];
+
   for (const [x, y, r, color] of clouds) {
     const gradient = ctx.createRadialGradient(
       c + x * c,
@@ -93,26 +99,33 @@ const paintNebula = (side: number) => {
       c + y * c,
       r * c
     );
+
     gradient.addColorStop(0, color);
     gradient.addColorStop(1, "rgb(0 0 0 / 0)");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, side, side);
   }
+
   return canvas;
 };
 
 const paintSpiral = (side: number) => {
   const canvas = makeCanvas(side, side);
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return canvas;
   }
+
   const c = side / 2;
   let seed = 7;
+
   const roll = () => {
     seed = (seed * 16_807) % 2_147_483_647;
+
     return seed / 2_147_483_647;
   };
+
   for (let i = 0; i < 900; i += 1) {
     const arm = i % 2;
     const t = roll();
@@ -129,19 +142,24 @@ const paintSpiral = (side: number) => {
     ctx.arc(x, y, size, 0, Math.PI * 2);
     ctx.fill();
   }
+
   return canvas;
 };
 
 export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const context = canvas.getContext("2d");
+
   if (!context) {
     throw new Error("Canvas 2D is not available");
   }
+
   const ctx = context;
+
   const font =
     getComputedStyle(document.documentElement)
       .getPropertyValue("--font-mincho")
       .trim() || "serif";
+
   let sparks: Spark[] = [];
   let waves: Wave[] = [];
   let floaters: Floater[] = [];
@@ -149,11 +167,13 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   let band = 0;
   let shake = 0;
   let layout: Layout = { cx: 0, cy: 0, scale: 100 };
+
   let backdrop: {
     key: string;
     nebula: HTMLCanvasElement;
     spiral: HTMLCanvasElement;
   } | null = null;
+
   let dpr = 1;
 
   const toScreen = (x: number, y: number) => ({
@@ -164,6 +184,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const spray = (merge: Merge, tier: number, count: number) => {
     const { glow, light } = kindOf(tier);
     const power = 0.5 + tier * 0.09;
+
     for (let i = 0; i < count; i += 1) {
       const angle = Math.random() * Math.PI * 2;
       const speed = power * (0.35 + Math.random() * 0.9);
@@ -186,6 +207,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     shake = calm ? 0 : 18;
     const colors = ["#cfd8ff", "#ffd9a0", "#ff9fd0", "#9fe3ff", "#ffffff"];
     const count = calm ? 60 : 320;
+
     for (let i = 0; i < count; i += 1) {
       const arm = i % 2;
       const t = Math.random();
@@ -202,6 +224,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         y: merge.y,
       });
     }
+
     waves.push({
       age: 0,
       color: "#fff4dc",
@@ -225,10 +248,13 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       x: merge.x,
       y: merge.y,
     });
+
     if (merge.made === null) {
       galaxy(merge);
+
       return;
     }
+
     const tier = merge.made;
     const { radius, glow } = kindOf(tier);
     spray(merge, tier, calm ? 6 : 12 + tier * 6);
@@ -241,9 +267,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       x: merge.x,
       y: merge.y,
     });
+
     if (!calm && tier >= 6) {
       shake = Math.max(shake, (tier - 5) * 2.4);
     }
+
     if (tier === TOP) {
       flash = Math.max(flash, 0.55);
     }
@@ -251,6 +279,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const age = (dt: number) => {
     const drag = Math.exp(-2.4 * dt);
+
     for (const spark of sparks) {
       spark.age += dt;
       spark.vx *= drag;
@@ -258,14 +287,19 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       spark.x += spark.vx * dt;
       spark.y += spark.vy * dt;
     }
+
     sparks = sparks.filter((spark) => spark.age < spark.life);
+
     for (const wave of waves) {
       wave.age += dt;
     }
+
     waves = waves.filter((wave) => wave.age < wave.life);
+
     for (const floater of floaters) {
       floater.age += dt;
     }
+
     floaters = floaters.filter((floater) => floater.age < FLOAT_LIFE);
     flash = Math.max(0, flash - dt * 1.1);
     band = Math.max(0, band - dt * 0.32);
@@ -276,6 +310,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
+
     if (
       canvas.width !== Math.round(w * dpr) ||
       canvas.height !== Math.round(h * dpr)
@@ -283,12 +318,15 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
     }
+
     layout = layoutOf(w, h);
     const side = Math.round(layout.scale * 3.4 * dpr);
     const key = `${side}`;
+
     if (backdrop?.key !== key) {
       backdrop = { key, nebula: paintNebula(side), spiral: paintSpiral(side) };
     }
+
     return { h, w };
   };
 
@@ -296,6 +334,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (!backdrop) {
       return;
     }
+
     const size = layout.scale * 3.4;
     ctx.save();
     ctx.translate(layout.cx, layout.cy);
@@ -323,6 +362,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const { danger } = world;
     ctx.save();
     ctx.translate(layout.cx, layout.cy);
+
     const edge = ctx.createRadialGradient(
       0,
       0,
@@ -331,6 +371,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       0,
       limit * 1.02
     );
+
     edge.addColorStop(0, "rgb(120 140 255 / 0)");
     edge.addColorStop(
       1,
@@ -352,6 +393,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.arc(0, 0, limit, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
+
     if (danger > 0) {
       ctx.save();
       ctx.translate(layout.cx, layout.cy);
@@ -373,9 +415,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const drawAim = (frame: Frame) => {
     const { world, aim, clock } = frame;
+
     if (world.over) {
       return;
     }
+
     const [tier] = world.queue;
     const kind = kindOf(tier);
     const reach = launchRadius(tier);
@@ -384,20 +428,25 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const ox = dx * reach;
     const oy = dy * reach;
     let hit = reach;
+
     for (const orb of world.orbs) {
       if (orb.falling) {
         continue;
       }
+
       const gap = kind.radius + kindOf(orb.tier).radius;
       const mx = ox - orb.x;
       const my = oy - orb.y;
       const b = -(mx * dx + my * dy);
       const disc = b * b - (mx * mx + my * my - gap * gap);
+
       if (disc < 0 || -b + Math.sqrt(disc) < 0) {
         continue;
       }
+
       hit = Math.min(hit, Math.max(0, -b - Math.sqrt(disc)));
     }
+
     const ready = Math.min(1, 1 - (world.ready - world.time) / COOLDOWN);
     const start = toScreen(ox, oy);
     const end = toScreen(ox - dx * hit, oy - dy * hit);
@@ -447,6 +496,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const drawOrbs = (frame: Frame) => {
     const { world, clock } = frame;
     const ordered = world.orbs.toSorted((a, b) => a.tier - b.tier);
+
     for (const orb of ordered) {
       const kind = kindOf(orb.tier);
       const since = world.time - orb.born;
@@ -469,6 +519,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         dpr,
         clock
       );
+
       if (orb.outside > 0) {
         const beat = 0.5 + 0.5 * Math.sin(clock * 16);
         ctx.save();
@@ -485,6 +536,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const drawEffects = (w: number, h: number) => {
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
+
     for (const wave of waves) {
       const t = wave.age / wave.life;
       const ease = 1 - (1 - t) ** 3;
@@ -496,6 +548,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.arc(at.x, at.y, r, 0, Math.PI * 2);
       ctx.stroke();
     }
+
     for (const spark of sparks) {
       const t = spark.age / spark.life;
       const at = toScreen(spark.x, spark.y);
@@ -504,6 +557,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.arc(at.x, at.y, spark.size * (1 - t * 0.6), 0, Math.PI * 2);
       ctx.fill();
     }
+
     if (band > 0) {
       ctx.save();
       ctx.translate(w / 2, h / 2);
@@ -522,15 +576,18 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.fill();
       ctx.restore();
     }
+
     if (flash > 0) {
       ctx.fillStyle = `rgb(255 248 236 / ${flash ** 2 * 0.75})`;
       ctx.fillRect(0, 0, w, h);
     }
+
     ctx.restore();
 
     ctx.save();
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+
     for (const floater of floaters) {
       const t = floater.age / FLOAT_LIFE;
       const at = toScreen(floater.x, floater.y);
@@ -543,6 +600,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.fillStyle = floater.gold ? "#ffd27a" : "#fffaf3";
       ctx.fillText(floater.text, at.x, at.y - rise);
     }
+
     ctx.restore();
   };
 
@@ -554,17 +612,20 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
       ctx.save();
+
       if (shake > 0.2) {
         ctx.translate(
           (Math.random() - 0.5) * shake,
           (Math.random() - 0.5) * shake
         );
       }
+
       drawCore(frame.clock, frame.world);
       drawOrbs(frame);
       drawAim(frame);
       drawEffects(w, h);
       ctx.restore();
+
       if (frame.world.over) {
         ctx.fillStyle = "rgb(4 6 14 / 0.35)";
         ctx.fillRect(0, 0, w, h);

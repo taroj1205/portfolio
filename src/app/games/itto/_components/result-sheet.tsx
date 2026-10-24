@@ -200,14 +200,18 @@ const styles = stylex.create({
 
 const versusOf = (small: number, challenge: Result, lang: Lang) => {
   const theirs = pieceOf(challenge);
+
   if (theirs === null) {
     return null;
   }
+
   const words = copy[lang].challenge;
   const gap = errorOf(theirs.split.small) - errorOf(small);
+
   if (gap > 0) {
     return { text: words.won(tenths(gap)), won: true };
   }
+
   return { text: gap < 0 ? words.lost(tenths(-gap)) : words.tied, won: false };
 };
 
@@ -233,13 +237,16 @@ export const ResultSheet = ({
   const { small } = piece.split;
   const rank = rankOf(small);
   const rare = isRare(piece.food.kind);
+
   const versus =
     challenged && challenge !== null ? versusOf(small, challenge, lang) : null;
+
   const id = useId();
   const again = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     again.current?.focus({ preventScroll: true });
   }, []);
+
   return (
     <section
       aria-labelledby={`${id}-ratio`}

@@ -70,6 +70,7 @@ export const settleDuel = (
   { call, reaction, at, seconds }: Duel
 ) => {
   const early = call.kind === "early" && call.side === "left";
+
   return {
     record:
       reaction !== null &&

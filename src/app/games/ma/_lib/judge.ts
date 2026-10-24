@@ -91,9 +91,11 @@ export const rankOf = (gap: number): Rank =>
 
 export const nextOf = (gap: number) => {
   const { level } = rankOf(gap);
+
   const next = bands.find(
     (band) => band.level === level + 1 && onSide(band, gap)
   );
+
   return next === undefined
     ? null
     : { closer: Math.abs(gap) - next.within, rank: next };
@@ -101,6 +103,7 @@ export const nextOf = (gap: number) => {
 
 export const moonsOf = (level: number) => {
   const full = Math.min(MOONS, level);
+
   return `${"🌕".repeat(full)}${"🌑".repeat(MOONS - full)}${level === PERFECT ? "✨" : ""}`;
 };
 
@@ -111,9 +114,11 @@ export const formatTime = (time: number) => (time / 100).toFixed(2);
 
 export const formatGap = (gap: number) => {
   const size = formatTime(Math.abs(gap));
+
   if (gap === 0) {
     return `±${size}`;
   }
+
   return gap > 0 ? `+${size}` : `−${size}`;
 };
 

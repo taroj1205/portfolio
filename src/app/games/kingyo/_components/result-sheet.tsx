@@ -205,18 +205,22 @@ const styles = stylex.create({
 const versus = (count: number, challenge: Result, lang: Lang) => {
   const words = copy[lang].result;
   const theirs = countOf(challenge);
+
   if (count > theirs) {
     return { strong: true, text: words.won };
   }
+
   if (count < theirs) {
     return { strong: false, text: words.lost };
   }
+
   return { strong: true, text: words.tied };
 };
 
 const nextText = (count: number, lang: Lang) => {
   const words = copy[lang].result;
   const next = nextOf(count);
+
   return next === null
     ? words.top
     : words.more(next.rank.name[lang], next.more);
@@ -244,14 +248,17 @@ export const ResultSheet = ({
   const against = challenge === null ? null : versus(count, challenge, lang);
   const caught = kindIds.filter((id) => result.catches[id] > 0);
   const again = useRef<HTMLButtonElement>(null);
+
   const focus = () => {
     again.current?.focus({ preventScroll: true });
   };
+
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
       again.current?.focus({ preventScroll: true });
     }
   }, []);
+
   return (
     <section
       aria-labelledby="kingyo-result"

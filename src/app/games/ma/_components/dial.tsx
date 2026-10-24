@@ -248,6 +248,7 @@ const Example = ({ lang }: { lang: Lang }) => (
 
 const Goal = ({ lang, target }: { lang: Lang; target: number }) => {
   const words = copy[lang];
+
   return (
     <>
       <p {...stylex.props(styles.eyebrow)}>{words.modes.label}</p>
@@ -275,11 +276,13 @@ const Shown = ({
   const gap = reveal.time - reveal.target;
   const perfect = rankOf(gap).level === PERFECT;
   let lean = words.result.exact;
+
   if (gap < 0) {
     lean = words.result.early;
   } else if (gap > 0) {
     lean = words.result.late;
   }
+
   return (
     <>
       {perfect && !reveal.demo ? (
@@ -344,6 +347,7 @@ export const Dial = ({
   onLand,
 }: DialProps) => {
   const words = copy[lang];
+
   if (reveal !== null) {
     return (
       <section aria-live="polite" {...stylex.props(styles.dial)}>
@@ -356,6 +360,7 @@ export const Dial = ({
       </section>
     );
   }
+
   if (phase === "ready" || phase === "done") {
     return (
       <section {...stylex.props(styles.dial)}>
@@ -363,7 +368,9 @@ export const Dial = ({
       </section>
     );
   }
+
   const demo = phase === "demo";
+
   return (
     <section {...stylex.props(styles.dial)}>
       {demo ? <Example lang={lang} /> : <p {...stylex.props(styles.eyebrow)} />}

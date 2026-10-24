@@ -37,6 +37,7 @@ const Eraser = ({ design }: { design: typeof firstDesign }) => {
   const { plates, x, y, width, height } = isoEraser(design);
   const box = 330;
   const fit = Math.min(box / width, (box * 0.75) / height);
+
   return (
     <svg
       height={height * fit}
@@ -59,6 +60,7 @@ const Eraser = ({ design }: { design: typeof firstDesign }) => {
 
 const Sheet = ({ rolls }: { rolls: number[] }) => {
   const frames = framesOf(rolls);
+
   return (
     <div
       style={{
@@ -72,6 +74,7 @@ const Sheet = ({ rolls }: { rolls: number[] }) => {
     >
       {frameSlots.map(({ index, last, boxes }) => {
         const frame = frames.at(index);
+
         return (
           <div
             key={index}
@@ -97,6 +100,7 @@ const Sheet = ({ rolls }: { rolls: number[] }) => {
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
               {boxes.map((box) => {
                 const mark = frame?.marks.at(box) ?? "";
+
                 return (
                   <div
                     key={box}
@@ -143,10 +147,13 @@ export const GET = async (request: NextRequest) => {
   const design = result?.design ?? firstDesign;
   const score = result === null ? null : scoreOf(result.rolls);
   const rank = score === null ? null : rankOf(score);
+
   const headline =
     score === null ? pitch[lang].headline : pointsText(score, lang);
+
   const caption = rank === null ? pitch[lang].detail : rank.name[lang];
   const dare = score === null ? "" : copy[lang].challenge.dare(score);
+
   const font = await loadMincho(
     `${headline}${caption}${dare}${copy.ja.name}${copy.ja.reading}${copy.en.reading}0123456789X/-点`
   );

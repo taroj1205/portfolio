@@ -35,8 +35,10 @@ export const paint = {
 
 export const seeded = (seed: number) => {
   let state = seed;
+
   return () => {
     state = (state * 16_807) % 2_147_483_647;
+
     return state / 2_147_483_647;
   };
 };
@@ -48,6 +50,7 @@ const jag = seeded(31);
 export const splash = Array.from({ length: 26 }, (_, i) => {
   const a = (i / 26) * Math.PI * 2;
   const r = 1 + (jag() - 0.5) * (i % 3 === 0 ? 0.5 : 0.18);
+
   return { x: round(Math.cos(a) * r), y: round(Math.sin(a) * r) };
 });
 
@@ -154,6 +157,7 @@ export const layoutOf = (w: number, h: number) => {
   const scale = Math.min(w * 0.0028, h * 0.0024);
   const gap = Math.min(w * 0.24, 150 * scale);
   const r = Math.min(w, h) * (tall ? 0.25 : 0.24);
+
   return {
     gap,
     ground,

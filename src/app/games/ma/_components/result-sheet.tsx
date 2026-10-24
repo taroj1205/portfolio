@@ -169,12 +169,15 @@ const versus = (result: Result, challenge: Result, lang: Lang) => {
   const words = copy[lang].result;
   const mine = Math.abs(gapOf(result));
   const theirs = Math.abs(gapOf(challenge));
+
   if (mine < theirs) {
     return { strong: true, text: words.won(formatTime(theirs - mine)) };
   }
+
   if (mine > theirs) {
     return { strong: false, text: words.lost(formatTime(mine - theirs)) };
   }
+
   return { strong: true, text: words.tied };
 };
 
@@ -202,14 +205,17 @@ export const ResultSheet = ({
   const shared = kept ?? result;
   const against = challenge === null ? null : versus(result, challenge, lang);
   const again = useRef<HTMLButtonElement>(null);
+
   const focus = () => {
     again.current?.focus({ preventScroll: true });
   };
+
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
       again.current?.focus({ preventScroll: true });
     }
   }, []);
+
   return (
     <section
       aria-labelledby="ma-result"

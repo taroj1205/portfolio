@@ -253,6 +253,7 @@ const useFirstFocus = () => {
   useEffect(() => {
     ref.current?.focus({ preventScroll: true });
   }, []);
+
   return ref;
 };
 
@@ -298,6 +299,7 @@ const Run = ({
   const rank = rankOf(result.reach);
   const again = useFirstFocus();
   const fooled = isEarly(result.end);
+
   return (
     <section
       aria-labelledby="iai-result"
@@ -379,12 +381,15 @@ const Run = ({
 const challengeLine = (verdict: Verdict, lang: Lang) => {
   const words = copy[lang].challenge;
   const { call, left, right } = verdict;
+
   if (call.kind === "early") {
     return { text: words.early, won: false };
   }
+
   if (call.kind === "draw") {
     return { text: words.tied, won: false };
   }
+
   if (
     call.kind === "cut" &&
     call.side === "left" &&
@@ -393,6 +398,7 @@ const challengeLine = (verdict: Verdict, lang: Lang) => {
   ) {
     return { text: words.won(formatMs(right - left)), won: true };
   }
+
   return {
     text:
       left === null || right === null
@@ -406,6 +412,7 @@ const sealOf = (verdict: Verdict) => {
   if (verdict.call.kind === "draw") {
     return "分";
   }
+
   return verdict.call.kind === "cut" && verdict.call.side === "left"
     ? "勝"
     : "負";
@@ -434,6 +441,7 @@ const Duel = ({
   const again = useFirstFocus();
   const line = challengeLine(verdict, lang);
   const seal = sealOf(verdict);
+
   return (
     <section
       aria-labelledby="iai-result"
@@ -523,6 +531,7 @@ export const ResultSheet = ({
       />
     );
   }
+
   return challenge === null ? null : (
     <Duel
       challenge={challenge}

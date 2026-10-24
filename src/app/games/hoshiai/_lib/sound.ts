@@ -6,6 +6,7 @@ const SCALE = [0, 2, 4, 7, 9];
 const note = (step: number) => {
   const octave = Math.floor(step / SCALE.length);
   const degree = SCALE[step - octave * SCALE.length] ?? 0;
+
   return 261.63 * 2 ** ((degree + 12 * octave) / 12);
 };
 
@@ -22,6 +23,7 @@ export const createSound = () => {
       hush.gain.value = 0.03;
       wind.connect(low).connect(hush).connect(out);
       wind.start();
+
       for (const frequency of [65.41, 98, 130.81]) {
         const hum = audio.createOscillator();
         hum.frequency.value = frequency;
@@ -55,6 +57,7 @@ export const createSound = () => {
     },
     galaxy: () => {
       boom(0.4);
+
       for (let i = 0; i < 10; i += 1) {
         bell(note(10 + i), 0.1, 1.6, i * 0.07);
       }
@@ -70,6 +73,7 @@ export const createSound = () => {
     merge: (made: number, chain: number) => {
       const step = 14 - made + (chain - 1) * 2;
       bell(note(step), 0.16, 0.7 + made * 0.09);
+
       if (made >= 5) {
         tone(note(step - 5), {
           bend: 1,
@@ -78,9 +82,11 @@ export const createSound = () => {
           type: "triangle",
         });
       }
+
       if (made >= 8) {
         boom(0.18 + (made - 8) * 0.08);
       }
+
       if (made === TOP) {
         spray(5200, 0.6, 1.2);
       }

@@ -14,9 +14,11 @@ export const useInView = <T extends Element>() => {
       },
       { rootMargin: "0px 0px -15% 0px" }
     );
+
     if (ref.current) {
       observer.observe(ref.current);
     }
+
     return () => {
       observer.disconnect();
     };

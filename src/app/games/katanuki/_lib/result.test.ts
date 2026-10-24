@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, it } from "vite-plus/test";
 
 import { postUrl } from "../../_lib/share";
 import { moulds } from "./moulds";
@@ -33,7 +33,7 @@ const broke = (carved: number): Result => ({
 });
 
 describe("share links", () => {
-  test("round-trip a clear and a break with their shape", () => {
+  it("round-trip a clear and a break with their shape", () => {
     const clear: Result = { carved: 100, mould: "umbrella", time: 423 };
     assert.deepEqual(roundTrip(clear), clear);
     assert.deepEqual(roundTrip(broke(87)), broke(87));
@@ -42,7 +42,7 @@ describe("share links", () => {
     assert.equal(queryOf(broke(87)), "m=star&c=87");
   });
 
-  test("reject broken, mixed and tampered links", () => {
+  it("reject broken, mixed and tampered links", () => {
     const bad = [
       {},
       { m: "star" },
@@ -62,6 +62,7 @@ describe("share links", () => {
       { m: "star", t: ["423", "424"] },
       { m: "star", t: "9".repeat(5000) },
     ];
+
     for (const params of bad) {
       assert.equal(readResult(params), null, JSON.stringify(params));
     }
@@ -69,7 +70,7 @@ describe("share links", () => {
 });
 
 describe("ranks", () => {
-  test("clears rank by pace against the shape's length, breaks by how far they got", () => {
+  it("clears rank by pace against the shape's length, breaks by how far they got", () => {
     assert.equal(rankOf(cleared("star", 0.9)).level, PERFECT);
     assert.equal(rankOf(cleared("star", 1.2)).name.ja, "名人");
     assert.equal(rankOf(cleared("star", 1.8)).name.ja, "職人");
@@ -80,7 +81,7 @@ describe("ranks", () => {
     assert.equal(rankOf(broke(0)).name.ja, "粉々");
   });
 
-  test("the same time ranks higher on a longer shape", () => {
+  it("the same time ranks higher on a longer shape", () => {
     const time = Math.floor(parOf("circle") * 1.2 * 10);
     assert.equal(
       rankOf({ carved: 100, mould: "circle", time }).name.ja,
@@ -89,7 +90,7 @@ describe("ranks", () => {
     assert.equal(rankOf({ carved: 100, mould: "sakura", time }).level, PERFECT);
   });
 
-  test("the next rank says how much further or faster", () => {
+  it("the next rank says how much further or faster", () => {
     assert.equal(nextOf(broke(87))?.carved, 13);
     assert.equal(nextOf(broke(87))?.rank.name.ja, "抜けた");
     assert.equal(nextOf(broke(12))?.carved, 28);
@@ -99,7 +100,7 @@ describe("ranks", () => {
     assert.equal(nextOf(cleared("star", 1)), null);
   });
 
-  test("the bar shows where it broke, or the shape when it came out", () => {
+  it("the bar shows where it broke, or the shape when it came out", () => {
     assert.equal(barOf(broke(87)), "🟧🟧🟧🟧🟧🟧🟧🟧💥⬜");
     assert.equal(barOf(broke(0)), "💥⬜⬜⬜⬜⬜⬜⬜⬜⬜");
     assert.equal(barOf(broke(99)), "🟧🟧🟧🟧🟧🟧🟧🟧🟧💥");
@@ -109,7 +110,7 @@ describe("ranks", () => {
 });
 
 describe("share text", () => {
-  test("a break names the shape, how far it got and the bar", () => {
+  it("a break names the shape, how far it got and the bar", () => {
     const share = shareOf(broke(87), "https://x.y", "ja");
     assert.equal(
       share.text,
@@ -120,12 +121,13 @@ describe("share text", () => {
     assert.equal(new URL(postUrl(share)).hostname, "x.com");
   });
 
-  test("a clear names the time and dares a faster one", () => {
+  it("a clear names the time and dares a faster one", () => {
     const { text } = shareOf(
       { carved: 100, mould: "umbrella", time: 3000 },
       "https://x.y",
       "en"
     );
+
     assert.ok(
       text.startsWith(
         `Breathless Carve ${moulds.umbrella.name.en}\nCut out in 300.0s`

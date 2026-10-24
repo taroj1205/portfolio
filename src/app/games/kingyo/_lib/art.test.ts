@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, it } from "vite-plus/test";
 
 import { spriteDoc } from "../../_lib/svg";
 import { SPRITES, backdrop, posed, sceneDoc } from "./art";
@@ -43,16 +43,17 @@ const documents = [
 ];
 
 describe("the svg", () => {
-  test("never repeats an id inside one document", () => {
+  it("never repeats an id inside one document", () => {
     for (const svg of documents) {
       const ids = idsOf(svg);
       assert.equal(new Set(ids).size, ids.length);
     }
   });
 
-  test("only points at ids it defines", () => {
+  it("only points at ids it defines", () => {
     for (const svg of documents) {
       const ids = new Set(idsOf(svg));
+
       for (const match of svg.matchAll(/(?:url\(#|href="#)(?<id>[^)"]+)/gu)) {
         const id = match.groups?.id ?? "";
         assert.ok(ids.has(id), id);
@@ -60,7 +61,7 @@ describe("the svg", () => {
     }
   });
 
-  test("has no missing numbers", () => {
+  it("has no missing numbers", () => {
     for (const svg of documents) {
       assert.doesNotMatch(svg, /NaN|undefined|Infinity/u);
     }

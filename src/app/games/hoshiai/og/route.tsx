@@ -32,6 +32,7 @@ const STARS = Array.from({ length: 140 }, (_, i) => {
   const b = Math.sin(i * 78.233) * 12_543.1234;
   const u = a - Math.floor(a);
   const v = b - Math.floor(b);
+
   return {
     o: 0.3 + ((u * 7) % 1) * 0.6,
     r: 0.6 + ((v * 5) % 1) * 1.6,
@@ -55,15 +56,18 @@ const heroRadius = (tier: number) => {
   if (tier === TOP) {
     return 120;
   }
+
   if (tier === TIER.saturn) {
     return 130;
   }
+
   return Math.min(175, 70 + tier * 12);
 };
 
 const cardOf = (params: Record<string, string>, lang: Lang) => {
   const words = copy[lang];
   const result = readResult(params);
+
   if (result) {
     return {
       detail: words.result.stats(result.merges, result.chain),
@@ -73,7 +77,9 @@ const cardOf = (params: Record<string, string>, lang: Lang) => {
       top: result.top,
     };
   }
+
   const career = readCareer(params);
+
   if (career) {
     return {
       detail: words.career.summary(career.runs, career.merges, career.chain),
@@ -83,6 +89,7 @@ const cardOf = (params: Record<string, string>, lang: Lang) => {
       top: career.top,
     };
   }
+
   return null;
 };
 
@@ -93,12 +100,15 @@ export const GET = async (request: NextRequest) => {
   const card = cardOf(params, lang);
   const hero = card?.top ?? TIER.saturn;
   const reached = card?.top ?? TOP;
+
   const { caption, detail } = card
     ? { caption: titleOf(card, lang), detail: card.detail }
     : pitch[lang];
+
   const headline = card ? formatScore(card.score, lang) : words.name;
   const unit = card ? words.points : "";
   const tag = card?.tag ?? "";
+
   const font = await loadMincho(
     `${headline}${unit}${caption}${detail}${tag}星合ほしあい`
   );
@@ -174,6 +184,7 @@ export const GET = async (request: NextRequest) => {
         {bodies.map((kind, tier) => {
           const r = 9 + tier * 1.6;
           const x = 96 + tier * 43 + tier * tier * 0.6;
+
           return tier <= reached ? (
             <g key={kind.name.en}>{orbSvg({ id: "og", r, tier, x, y: 540 })}</g>
           ) : (

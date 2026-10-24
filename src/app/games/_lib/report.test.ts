@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, it } from "vite-plus/test";
 
 import { reportUrls } from "./report";
 
 describe("report links", () => {
-  test("both links carry the game path in the reader's language", () => {
+  it("both links carry the game path in the reader's language", () => {
     const ja = reportUrls("/games/senko", "ja");
     const en = reportUrls("/games/senko", "en");
 

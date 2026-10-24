@@ -29,7 +29,9 @@ const langOf = async (param: string | string[] | undefined) => {
   if (param !== undefined) {
     return langFrom(param);
   }
+
   const incoming = await headers();
+
   return langFromHeader(incoming.get("accept-language"));
 };
 
@@ -42,6 +44,7 @@ export const generateMetadata = async ({
   const career = shared === null ? readCareer(params) : null;
   let title = copy[lang].name;
   let query = new URLSearchParams();
+
   if (shared) {
     title = `${titleOf(shared, lang)} · ${scoreText(shared.score, lang)} | ${copy[lang].name}`;
     query = new URLSearchParams(queryOf(shared));
@@ -49,13 +52,16 @@ export const generateMetadata = async ({
     title = `${copy[lang].career.title} · ${titleOf(career, lang)} · ${scoreText(career.best, lang)} | ${copy[lang].name}`;
     query = new URLSearchParams(careerQuery(career));
   }
+
   query.set("l", lang);
+
   const image = {
     alt: title,
     height: 630,
     url: `/games/hoshiai/og?${query.toString()}`,
     width: 1200,
   };
+
   return {
     description: DESCRIPTION[lang],
     openGraph: {
@@ -76,6 +82,7 @@ export const generateMetadata = async ({
 
 const Page = async ({ searchParams }: PageProps<"/games/hoshiai">) => {
   const params = await searchParams;
+
   return (
     <div {...stylex.props(styles.page)}>
       <Sky />

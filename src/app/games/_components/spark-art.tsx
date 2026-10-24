@@ -78,6 +78,7 @@ export const SparkArt = () => {
     x: HERO.x,
     y: HERO.y,
   });
+
   const second = sparklerParts({
     id: "spark-art",
     phase: 2,
@@ -87,6 +88,7 @@ export const SparkArt = () => {
     x: HERO.x,
     y: HERO.y,
   });
+
   return (
     <svg
       aria-hidden="true"

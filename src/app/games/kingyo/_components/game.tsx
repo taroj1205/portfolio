@@ -97,6 +97,7 @@ const paintMeter = (
   if (count) {
     count.textContent = countText(values.caught, values.lang);
   }
+
   if (paper) {
     paper.style.transform = `scaleX(${values.paper.toFixed(3)})`;
   }
@@ -147,6 +148,7 @@ export const Game = ({
             settings: setSettings,
           });
     session.current?.language(langRef.current);
+
     return () => {
       session.current?.stop();
       session.current = null;

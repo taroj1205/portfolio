@@ -180,6 +180,7 @@ export const Game = ({
             save: setSave,
             settings: setSettings,
           });
+
     return () => {
       session.current?.stop();
       session.current = null;

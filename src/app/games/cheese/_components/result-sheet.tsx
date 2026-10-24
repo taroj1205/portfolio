@@ -211,9 +211,11 @@ const Versus = ({
 }) => {
   const words = copy[lang].result;
   const gap = lengthText(Math.abs(cmOf(result) - cmOf(challenge)), lang);
+
   if (result.mm === challenge.mm) {
     return <span {...stylex.props(styles.won)}>{words.tied}</span>;
   }
+
   return result.mm > challenge.mm ? (
     <span {...stylex.props(styles.won)}>{words.won(gap)}</span>
   ) : (
@@ -247,6 +249,7 @@ export const ResultSheet = ({
   useEffect(() => {
     again.current?.focus({ preventScroll: true });
   }, []);
+
   return (
     <section
       aria-labelledby="cheese-result"

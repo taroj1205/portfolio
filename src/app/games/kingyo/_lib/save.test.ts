@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { afterEach, describe, test, vi } from "vite-plus/test";
+import { afterEach, describe, it, vi } from "vite-plus/test";
 
 import type { KindId } from "./fish";
 import { resultOf } from "./result";
@@ -21,14 +21,14 @@ describe("kingyo save", () => {
     vi.unstubAllGlobals();
   });
 
-  test("an older or partial save fills in every field instead of resetting", () => {
+  it("an older or partial save fills in every field instead of resetting", () => {
     vi.stubGlobal("localStorage", {
       getItem: () => JSON.stringify({ best: 4, runs: 7 }),
     });
     assert.deepEqual(loadSave(), { ...fresh, best: 4, runs: 7 });
   });
 
-  test("keeps the totals a player profile would need", () => {
+  it("keeps the totals a player profile would need", () => {
     const first = play(fresh, ["wakin", "wakin", "demekin"], 5000).save;
     const second = play(first, [], 9000).save;
     assert.deepEqual(second, {
@@ -47,7 +47,7 @@ describe("kingyo save", () => {
     assert.deepEqual(foundOf(second), ["wakin", "demekin"]);
   });
 
-  test("a first catch of a kind is flagged once, and the first run is never a record", () => {
+  it("a first catch of a kind is flagged once, and the first run is never a record", () => {
     const first = play(fresh, ["wakin", "ogon"]);
     assert.equal(first.record, false);
     assert.deepEqual(first.firsts, ["wakin", "ogon"]);

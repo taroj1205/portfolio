@@ -75,6 +75,7 @@ export const smoothness = (pounds: number) =>
 
 export const nextOf = (pounds: number) => {
   const next = ranks[rankOf(pounds).level + 1];
+
   return next === undefined ? null : { more: next.least - pounds, rank: next };
 };
 
@@ -101,6 +102,7 @@ export const barOf = (result: Result) => {
   const done = Math.min(CELLS, Math.floor((result.pounds / top) * CELLS));
   const end = result.ending === "hand" ? "🤚💥" : "💨";
   const shine = rankOf(result.pounds).level === PERFECT ? "✨" : "";
+
   return `${"⬜".repeat(done)}${"▫️".repeat(CELLS - done)}${end}${shine}`;
 };
 
@@ -123,10 +125,13 @@ export const readResult = (
   params: Record<string, string | string[] | undefined>
 ): Result | null => {
   const parsed = shared.safeParse(params);
+
   if (!parsed.success) {
     return null;
   }
+
   const { b, e, p } = parsed.data;
+
   return { ending: e === "h" ? "hand" : "miss", pounds: p, tempo: b };
 };
 
@@ -146,20 +151,25 @@ const lineOf = (result: Result, lang: Lang) => {
   const rank = rankOf(result.pounds).name[lang];
   const bar = barOf(result);
   const tempo = tempoText(result.tempo);
+
   if (lang === "en") {
     const how =
       result.ending === "hand"
         ? "then hit my partner's hand"
         : "then lost the beat";
+
     return `Mochi Master: ${poundsText(result.pounds, lang)} · ${rank}\nUp to ${tempo}, ${how}\n${bar}\nCan you pound more?`;
   }
+
   const how = result.ending === "hand" ? "相方の手をついた" : "リズムが崩れた";
+
   return `餅つきマスター ${poundsText(result.pounds, lang)} · ${rank}\n最高${tempo}で${how}\n${bar}\nこれより多くつける？`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
+
   return {
     image: `${origin}/games/mochitsuki/og?${query.toString()}`,
     text: [

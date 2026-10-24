@@ -40,7 +40,9 @@ const langOf = async (param: string | string[] | undefined) => {
   if (param !== undefined) {
     return langFrom(param);
   }
+
   const incoming = await headers();
+
   return langFromHeader(incoming.get("accept-language"));
 };
 
@@ -52,16 +54,19 @@ export const generateMetadata = async ({
   const shared = readResult(params);
   const query = new URLSearchParams(shared ? queryOf(shared) : "");
   query.set("l", lang);
+
   const title =
     shared === null
       ? copy[lang].name
       : `${headlineOf(shared, lang)} | ${copy[lang].name}`;
+
   const image = {
     alt: title,
     height: 630,
     url: `/games/iai/og?${query.toString()}`,
     width: 1200,
   };
+
   return {
     description: DESCRIPTION[lang],
     openGraph: {
@@ -82,6 +87,7 @@ export const generateMetadata = async ({
 
 const Page = async ({ searchParams }: PageProps<"/games/iai">) => {
   const params = await searchParams;
+
   return (
     <div {...stylex.props(styles.page)}>
       <Game

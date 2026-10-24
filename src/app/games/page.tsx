@@ -211,6 +211,7 @@ export const metadata: Metadata = {
 
 const Page = async () => {
   const incoming = await headers();
+
   return (
     <GamesIndex
       games={GAMES}

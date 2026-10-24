@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { afterEach, describe, test, vi } from "vite-plus/test";
+import { afterEach, describe, it, vi } from "vite-plus/test";
 
 import { postUrl } from "../../_lib/share";
 import { ladder, slowestOf } from "./duel";
@@ -21,6 +21,7 @@ const run: Result = { average: 274, best: 231, end: "slow", reach: 4 };
 
 const empty = () => {
   vi.stubGlobal("localStorage", { getItem: () => null });
+
   return loadSave();
 };
 
@@ -28,7 +29,7 @@ const roundTrip = (result: Result) =>
   readResult(Object.fromEntries(new URLSearchParams(queryOf(result))));
 
 describe("a run's result", () => {
-  test("best and average come from the reactions, rounded to the millisecond", () => {
+  it("best and average come from the reactions, rounded to the millisecond", () => {
     assert.deepEqual(resultOf(3, [301, 255, 280], "slow"), {
       average: 279,
       best: 255,
@@ -43,7 +44,7 @@ describe("a run's result", () => {
     });
   });
 
-  test("the rank follows how far the run got", () => {
+  it("the rank follows how far the run got", () => {
     assert.equal(rankOf(0).name.ja, "素人");
     assert.equal(rankOf(4).name.ja, "剣豪");
     assert.equal(rankOf(ladder.length).name.ja, "剣聖");
@@ -52,7 +53,7 @@ describe("a run's result", () => {
     assert.equal(reachText(2, "en"), "2 of 5");
   });
 
-  test("a run that ended on a fake-out says what you fell for", () => {
+  it("a run that ended on a fake-out says what you fell for", () => {
     const cat: Result = { average: null, best: null, end: "cat", reach: 0 };
     assert.ok(isEarly("cat"));
     assert.ok(!isEarly("slow"));
@@ -63,7 +64,7 @@ describe("a run's result", () => {
 });
 
 describe("sharing a result", () => {
-  test("a result round-trips through the link, with or without times", () => {
+  it("a result round-trips through the link, with or without times", () => {
     assert.deepEqual(roundTrip(run), run);
     const fooled: Result = { average: null, best: null, end: "wind", reach: 0 };
     assert.deepEqual(roundTrip(fooled), fooled);
@@ -71,7 +72,7 @@ describe("sharing a result", () => {
     assert.deepEqual(roundTrip(clear), clear);
   });
 
-  test("the link carries only the totals", () => {
+  it("the link carries only the totals", () => {
     assert.deepEqual([...new URLSearchParams(queryOf(run)).keys()].toSorted(), [
       "a",
       "b",
@@ -80,9 +81,10 @@ describe("sharing a result", () => {
     ]);
   });
 
-  test("broken, oversized and tampered links are rejected", () => {
+  it("broken, oversized and tampered links are rejected", () => {
     const base = { a: "274", b: "231", e: "slow", r: "4" };
     assert.deepEqual(readResult(base), run);
+
     const broken: Record<string, string | string[] | undefined>[] = [
       {},
       { ...base, r: "6" },
@@ -107,12 +109,13 @@ describe("sharing a result", () => {
       { e: "slow", r: "1" },
       { a: "900", b: "800", e: "clear", r: "5" },
     ];
+
     for (const params of broken) {
       assert.equal(readResult(params), null, JSON.stringify(params));
     }
   });
 
-  test("a zero-win run may carry a slow reaction, a winning one must be fast enough", () => {
+  it("a zero-win run may carry a slow reaction, a winning one must be fast enough", () => {
     assert.deepEqual(readResult({ a: "640", b: "610", e: "slow", r: "0" }), {
       average: 640,
       best: 610,
@@ -126,7 +129,7 @@ describe("sharing a result", () => {
     );
   });
 
-  test("the share text names the reach, rank and times, and the link opens the game", () => {
+  it("the share text names the reach, rank and times, and the link opens the game", () => {
     const share = shareOf(run, "https://x.y", "ja");
     assert.equal(
       share.text,
@@ -144,7 +147,7 @@ describe("sharing a result", () => {
     );
   });
 
-  test("a fake-out ending is shared as the funny moment it was", () => {
+  it("a fake-out ending is shared as the funny moment it was", () => {
     const zero: Result = { average: null, best: null, end: "cat", reach: 0 };
     assert.equal(
       shareOf(zero, "https://x.y", "ja").text,
@@ -179,7 +182,7 @@ describe("the save", () => {
     vi.unstubAllGlobals();
   });
 
-  test("a save missing newer fields keeps what it had", () => {
+  it("a save missing newer fields keeps what it had", () => {
     vi.stubGlobal("localStorage", {
       getItem: () => JSON.stringify({ bestReaction: 244, runs: 3 }),
     });
@@ -201,34 +204,41 @@ describe("the save", () => {
     });
   });
 
-  test("duels add up the totals a profile needs, and the first reaction is not a record", () => {
+  it("duels add up the totals a profile needs, and the first reaction is not a record", () => {
     const won = settleDuel(empty(), {
       at: 1000,
       call: { kind: "cut", reaction: 280, side: "left" },
       reaction: 280,
       seconds: 4.26,
     });
+
     assert.equal(won.record, false);
+
     const faster = settleDuel(won.save, {
       at: 2000,
       call: { kind: "cut", reaction: 251, side: "left" },
       reaction: 251,
       seconds: 3,
     });
+
     assert.equal(faster.record, true);
+
     const lost = settleDuel(faster.save, {
       at: 3000,
       call: { kind: "cut", reaction: 300, side: "right" },
       reaction: 340,
       seconds: 3,
     });
+
     assert.equal(lost.record, false);
+
     const fooled = settleDuel(lost.save, {
       at: 4000,
       call: { fake: "cat", kind: "early", reaction: null, side: "left" },
       reaction: null,
       seconds: 2,
     });
+
     assert.deepEqual(fooled.save, {
       bestReach: 0,
       bestReaction: 251,
@@ -247,7 +257,7 @@ describe("the save", () => {
     });
   });
 
-  test("runs keep the furthest reach and count clears, two-player games are counted apart", () => {
+  it("runs keep the furthest reach and count clears, two-player games are counted apart", () => {
     const first = settleRun(empty(), 2);
     assert.equal(first.record, false);
     const clear = settleRun(first.save, ladder.length);

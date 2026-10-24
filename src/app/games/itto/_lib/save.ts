@@ -86,6 +86,7 @@ export const settleCut = (
   { kind, small, seconds, at, challenged }: Slice
 ) => {
   const error = errorOf(small);
+
   return {
     record: save.bestCut !== null && error < save.bestCut,
     save: {

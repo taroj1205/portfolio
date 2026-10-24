@@ -34,6 +34,7 @@ const titles: Record<Lang, (path: string) => string> = {
 
 export const reportUrls = (path: string, lang: Lang) => {
   const title = titles[lang](path);
+
   return {
     github: `${REPO_URL}/issues/new?${new URLSearchParams({ game: path, template: issueTemplates[lang], title }).toString()}`,
     x: `https://x.com/intent/tweet?${new URLSearchParams({ text: `${HANDLE} ${title}: ` }).toString()}`,

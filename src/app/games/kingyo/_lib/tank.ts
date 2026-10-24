@@ -87,15 +87,18 @@ const spawn = (tank: Tank, away: Point | null, age: number): Fish => {
   const bossAround = tank.fish.some((fish) => fish.kind === "nushi");
   const kind = pickKind(random, tank.caught.length, bossAround);
   let at: Point = { x: 500, y: 500 };
+
   for (let tries = 0; tries < 40; tries += 1) {
     at = {
       x: WATER.left + 60 + random() * (WATER.right - WATER.left - 120),
       y: WATER.top + 60 + random() * (WATER.bottom - WATER.top - 120),
     };
+
     if (away === null || distance(at, away) > 260) {
       break;
     }
   }
+
   return {
     age,
     fright: 0,
@@ -132,13 +135,16 @@ export const createTank = (random: () => number): Tank => {
     random,
     scoops: 0,
   };
+
   restock(tank, null, 10);
+
   return tank;
 };
 
 const scare = (tank: Tank, at: Point, radius: number) => {
   for (const fish of tank.fish) {
     const gap = distance(fish, at);
+
     if (gap < radius) {
       fish.heading =
         Math.atan2(fish.y - at.y, fish.x - at.x) + (tank.random() - 0.5) * 0.8;
@@ -166,11 +172,13 @@ const tear = (tank: Tank): Outcome => {
   tank.poi.paper = 0;
   surface(tank);
   scare(tank, tank.poi, SWIM.splash);
+
   return { at: { x: tank.poi.x, y: tank.poi.y }, fish, type: "tear" };
 };
 
 const wear = (tank: Tank, amount: number): Outcome[] => {
   tank.poi.paper = Math.max(0, tank.poi.paper - amount);
+
   return tank.poi.paper <= 0 ? [tear(tank)] : [];
 };
 
@@ -193,28 +201,39 @@ export const hover = (tank: Tank, at: Point) => {
 
 export const dip = (tank: Tank, at: Point): Outcome[] => {
   const { poi } = tank;
+
   if (poi.down || poi.torn) {
     return [];
   }
+
   Object.assign(poi, inWater(at), { down: true, flow: { x: 0, y: 0 } });
+
   for (const fish of inside(tank)) {
     fish.under = true;
   }
+
   scare(tank, poi, SWIM.splash * 0.67);
+
   return wear(tank, PAPER.dip);
 };
 
 export const drag = (tank: Tank, at: Point, seconds: number): Outcome[] => {
   const { poi } = tank;
+
   if (!poi.down || poi.torn) {
     hover(tank, at);
+
     return [];
   }
+
   const to = inWater(at);
+
   if (seconds <= 0) {
     Object.assign(poi, to);
+
     return [];
   }
+
   const k = 1 - Math.exp(-seconds / STEADY);
   poi.flow = {
     x: poi.flow.x + ((to.x - poi.x) / seconds - poi.flow.x) * k,
@@ -223,10 +242,13 @@ export const drag = (tank: Tank, at: Point, seconds: number): Outcome[] => {
   Object.assign(poi, to);
   const speed = Math.hypot(poi.flow.x, poi.flow.y);
   const spook = SWIM.spook * (1 - waryOf(tank) * 0.5);
+
   if (speed > spook) {
     scare(tank, poi, POI.ring + Math.min(160, speed * 0.25));
   }
+
   const over = Math.max(0, speed - PAPER.wearFrom) / PAPER.wearScale;
+
   return wear(tank, over * over * PAPER.wear * seconds);
 };
 
@@ -237,29 +259,38 @@ const loadOf = (fish: readonly Fish[]) =>
 
 export const lift = (tank: Tank): Outcome[] => {
   const { poi } = tank;
+
   if (!poi.down || poi.torn) {
     return [];
   }
+
   const below = inside(tank).filter((each) => each.under);
   const fish = catchable(tank);
+
   if (fish.length === 0) {
     poi.down = false;
     surface(tank);
     const missed = wear(tank, PAPER.empty);
+
     if (below.length === 0) {
       return missed;
     }
+
     const under: Outcome = {
       at: { x: poi.x, y: poi.y },
       fish: below,
       type: "under",
     };
+
     return [under, ...missed];
   }
+
   const load = loadOf(fish);
+
   if (load > capacityOf(poi.paper)) {
     return [tear(tank)];
   }
+
   poi.down = false;
   surface(tank);
   const room = MOST - tank.caught.length;
@@ -269,11 +300,13 @@ export const lift = (tank: Tank): Outcome[] => {
   tank.scoops += 1;
   tank.biggest = Math.max(tank.biggest, kept.length);
   restock(tank, poi, 0);
+
   const scooped: Outcome = {
     at: { x: poi.x, y: poi.y },
     fish: kept,
     type: "scoop",
   };
+
   return [scooped, ...wear(tank, PAPER.lift + load * PAPER.load)];
 };
 
@@ -282,22 +315,28 @@ const steerOf = (tank: Tank, fish: Fish, wary: number) => {
     x: fish.x + Math.cos(fish.heading) * SWIM.margin,
     y: fish.y + Math.sin(fish.heading) * SWIM.margin,
   };
+
   let steer = fish.turn;
+
   const outside =
     ahead.x < WATER.left + 30 ||
     ahead.x > WATER.right - 30 ||
     ahead.y < WATER.top + 30 ||
     ahead.y > WATER.bottom - 30;
+
   if (outside) {
     steer += wrap(Math.atan2(500 - fish.y, 500 - fish.x) - fish.heading) * 3.2;
   }
+
   const { poi } = tank;
+
   if (poi.down && wary > 0 && distance(ahead, poi) < POI.ring + 50 * wary) {
     steer +=
       wrap(Math.atan2(fish.y - poi.y, fish.x - poi.x) - fish.heading) *
       2.4 *
       wary;
   }
+
   for (const other of tank.fish) {
     if (other !== fish && distance(other, fish) < 46) {
       steer +=
@@ -305,6 +344,7 @@ const steerOf = (tank: Tank, fish: Fish, wary: number) => {
         0.8;
     }
   }
+
   return steer;
 };
 
@@ -335,11 +375,14 @@ const swim = (tank: Tank, fish: Fish, dt: number, wary: number) => {
 
 export const step = (tank: Tank, dt: number): Outcome[] => {
   const wary = waryOf(tank);
+
   for (const fish of tank.fish) {
     swim(tank, fish, dt, wary);
+
     if (fish.under && distance(fish, tank.poi) >= POI.reach) {
       fish.under = false;
     }
   }
+
   return tank.poi.down ? wear(tank, PAPER.soak * dt) : [];
 };

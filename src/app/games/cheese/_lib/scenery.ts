@@ -57,6 +57,7 @@ const ink = {
 
 export const smooth = (value: number, low: number, high: number) => {
   const t = Math.max(0, Math.min(1, (value - low) / (high - low)));
+
   return t * t * (3 - 2 * t);
 };
 
@@ -83,6 +84,7 @@ const rect = (
   const top = sy(cam, y + h);
   const width = w * cam.scale;
   const height = h * cam.scale;
+
   if (visible(cam, left, top, left + width, top + height)) {
     ctx.fillRect(left, top, width, height);
   }
@@ -92,10 +94,12 @@ const paths = new Map<string, Path2D>();
 
 const pathFor = (d: string) => {
   let found = paths.get(d);
+
   if (found === undefined) {
     found = new Path2D(d);
     paths.set(d, found);
   }
+
   return found;
 };
 
@@ -110,15 +114,18 @@ const drawMark = (
   if (alpha <= 0.01 || size < 1.5) {
     return;
   }
+
   const k = size / mark.size;
   ctx.save();
   ctx.globalAlpha *= alpha;
   ctx.translate(x, y);
   ctx.scale(k, k);
   const fill = ctx.createLinearGradient(0, 0, 0, -mark.size);
+
   for (const [offset, colour] of mark.fill) {
     fill.addColorStop(offset, colour);
   }
+
   ctx.fillStyle = fill;
   ctx.fill(pathFor(mark.d));
   ctx.restore();
@@ -135,6 +142,7 @@ const glowAt = (
   if (r < 1 || alpha <= 0.01) {
     return;
   }
+
   const g = ctx.createRadialGradient(x, y, 0, x, y, r);
   g.addColorStop(0, colour);
   g.addColorStop(1, "rgba(0,0,0,0)");
@@ -156,6 +164,7 @@ export const drawSky = (ctx: Context, cam: Camera, look: Look) => {
 
 const STARS = (() => {
   const roll = seeded(97);
+
   return Array.from({ length: 220 }, () => ({
     phase: roll() * Math.PI * 2,
     r: 0.4 + roll() ** 3 * 1.6,
@@ -168,7 +177,9 @@ export const drawStars = (ctx: Context, cam: Camera, look: Look) => {
   if (look.stars <= 0.01) {
     return;
   }
+
   ctx.fillStyle = ink.white;
+
   for (const star of STARS) {
     ctx.globalAlpha =
       look.stars * (0.45 + 0.4 * Math.sin(cam.clock * 1.3 + star.phase));
@@ -176,6 +187,7 @@ export const drawStars = (ctx: Context, cam: Camera, look: Look) => {
     ctx.arc(star.x * cam.width, star.y * cam.height, star.r, 0, Math.PI * 2);
     ctx.fill();
   }
+
   ctx.globalAlpha = 1;
 };
 
@@ -195,9 +207,11 @@ const skyline = (
   high: number
 ) => {
   const roll = seeded(seed);
+
   return Array.from({ length: count }, (_, i): Block => {
     const side = i % 2 === 0 ? 1 : -1;
     const reach = near + (far - near) * roll() ** 1.6;
+
     return {
       h: low + (high - low) * roll() ** 2.2,
       seed: Math.floor(roll() * 10_000),
@@ -212,13 +226,16 @@ const NEAR = skyline(5, 70, 2000, 140_000, 1200, 9000);
 
 const windows = (ctx: Context, cam: Camera, block: Block) => {
   const width = block.w * cam.scale;
+
   if (width < 26) {
     return;
   }
+
   const roll = seeded(block.seed + 1);
   const cols = Math.max(2, Math.floor(block.w / 400));
   const rows = Math.max(2, Math.floor(block.h / 380));
   ctx.fillStyle = ink.lit;
+
   for (let r = 0; r < rows; r += 1) {
     for (let c = 0; c < cols; c += 1) {
       if (roll() < 0.45) {
@@ -246,23 +263,28 @@ const drawBlocks = (
   if (alpha <= 0.01) {
     return;
   }
+
   ctx.save();
   ctx.globalAlpha = alpha;
+
   for (const block of blocks) {
     if (block.h * cam.scale >= 1) {
       ctx.fillStyle = colour;
       rect(ctx, cam, block.x - block.w / 2, 0, block.w, block.h);
+
       if (lit) {
         windows(ctx, cam, { ...block, x: block.x - block.w / 2 });
       }
     }
   }
+
   ctx.restore();
 };
 
 const drawFuji = (ctx: Context, cam: Camera) => {
   const alpha =
     smooth(cam.altitude, 4.9, 5.6) * (1 - smooth(cam.altitude, 7.2, 7.8));
+
   const size = 377_600 * cam.scale;
   drawMark(
     ctx,
@@ -301,6 +323,7 @@ const drawTowers = (ctx: Context, cam: Camera) => {
 
 const CLOUDS = (() => {
   const roll = seeded(61);
+
   return Array.from({ length: 46 }, () => ({
     h: 120_000 + roll() ** 1.4 * 800_000,
     w: 80_000 + roll() * 360_000,
@@ -311,14 +334,18 @@ const CLOUDS = (() => {
 const drawClouds = (ctx: Context, cam: Camera, look: Look) => {
   const alpha =
     smooth(cam.altitude, 5.1, 5.6) * (1 - smooth(cam.altitude, 6.9, 7.4));
+
   if (alpha <= 0.01) {
     return;
   }
+
   ctx.save();
+
   for (const cloud of CLOUDS) {
     const x = sx(cam, cloud.x);
     const y = sy(cam, cloud.h);
     const w = cloud.w * cam.scale;
+
     if (w > 2 && visible(cam, x - w, y - w, x + w, y + w)) {
       const g = ctx.createRadialGradient(x, y, 0, x, y, w / 2);
       g.addColorStop(0, ink.cloud);
@@ -331,11 +358,13 @@ const drawClouds = (ctx: Context, cam: Camera, look: Look) => {
       ctx.fill();
     }
   }
+
   ctx.restore();
 };
 
 const BOKEH = (() => {
   const roll = seeded(29);
+
   return Array.from({ length: 16 }, (_, i) => ({
     colour: ink.bokeh[i % ink.bokeh.length] ?? ink.glow,
     depth: 0.4 + roll(),
@@ -347,14 +376,18 @@ const BOKEH = (() => {
 
 const drawBokeh = (ctx: Context, cam: Camera) => {
   const fade = 1 - smooth(cam.altitude, 1.4, 2.2);
+
   if (fade <= 0.01) {
     return;
   }
+
   for (const light of BOKEH) {
     const r = light.r * cam.base * (1 + light.depth * 0.3);
     const x = light.x * cam.width;
+
     const y =
       light.y * cam.height + cam.altitude * light.depth * cam.height * 0.12;
+
     glowAt(ctx, x, y, r, light.colour, 0.28 * fade);
   }
 };
@@ -363,12 +396,14 @@ const drawRoom = (ctx: Context, cam: Camera, look: Look) => {
   if (ROOM.half * 2 * cam.scale < 3) {
     return;
   }
+
   const wall = ctx.createLinearGradient(
     0,
     sy(cam, ROOM.ceiling),
     0,
     sy(cam, 0)
   );
+
   wall.addColorStop(0, ink.plaster[1]);
   wall.addColorStop(1, ink.plaster[0]);
   ctx.fillStyle = wall;
@@ -411,6 +446,7 @@ const drawBuilding = (ctx: Context, cam: Camera) => {
   if (1200 * cam.scale < 2) {
     return;
   }
+
   ctx.fillStyle = ink.cityMid;
   rect(ctx, cam, -1500, 0, 880, 1500);
   rect(ctx, cam, 620, 0, 880, 850);
@@ -421,6 +457,7 @@ const drawBuilding = (ctx: Context, cam: Camera) => {
   ctx.fillStyle = ink.parapet;
   rect(ctx, cam, -630, 1100, 1260, 40);
   rect(ctx, cam, 250, 1140, 160, 120);
+
   for (const floor of [430, 740]) {
     for (const x of [-480, -230, 70, 320]) {
       ctx.fillStyle = ink.buildingDark;
@@ -429,10 +466,12 @@ const drawBuilding = (ctx: Context, cam: Camera) => {
       rect(ctx, cam, x, floor, 160, 180);
     }
   }
+
   ctx.fillStyle = ink.sign;
   rect(ctx, cam, -320, 322, 640, 76);
   const size = 44 * cam.scale;
   const signY = sy(cam, 360);
+
   if (size > 5 && size < 300 && signY > -size && signY < cam.height + size) {
     ctx.fillStyle = ink.signText;
     ctx.font = `800 ${size}px "Hiragino Sans", system-ui, sans-serif`;
@@ -440,6 +479,7 @@ const drawBuilding = (ctx: Context, cam: Camera) => {
     ctx.textBaseline = "middle";
     ctx.fillText("CHEESE", sx(cam, 0), signY);
   }
+
   for (let i = 0; i < 12; i += 1) {
     ctx.fillStyle = ink.awning[i % 2] ?? ink.white;
     rect(ctx, cam, -ROOM.half + i * 75, 292, 75, 30);
@@ -465,6 +505,7 @@ const drawTable = (ctx: Context, cam: Camera) => {
   ctx.save();
   ctx.globalAlpha *= 0.8;
   ctx.fillStyle = ink.check;
+
   for (let y = 0; y * check < drop; y += 1) {
     for (let x = 0; x * check < width * 1.04; x += 1) {
       if ((x + y) % 2 === 0) {
@@ -477,6 +518,7 @@ const drawTable = (ctx: Context, cam: Camera) => {
       }
     }
   }
+
   ctx.restore();
 };
 
@@ -506,6 +548,7 @@ const drawEarth = (ctx: Context, cam: Camera) => {
   const r = EARTH * cam.scale;
   const cy = cam.ground + r;
   ctx.save();
+
   const halo = ctx.createRadialGradient(
     cam.ox,
     cy,
@@ -514,12 +557,14 @@ const drawEarth = (ctx: Context, cam: Camera) => {
     cy,
     r * 1.06
   );
+
   halo.addColorStop(0, "rgba(120,180,255,0.9)");
   halo.addColorStop(1, "rgba(120,180,255,0)");
   ctx.fillStyle = halo;
   ctx.beginPath();
   ctx.arc(cam.ox, cy, r * 1.06, 0, Math.PI * 2);
   ctx.fill();
+
   const sea = ctx.createRadialGradient(
     cam.ox - r * 0.35,
     cy - r * 0.45,
@@ -528,6 +573,7 @@ const drawEarth = (ctx: Context, cam: Camera) => {
     cy,
     r
   );
+
   sea.addColorStop(0, ink.ocean[0]);
   sea.addColorStop(0.6, ink.ocean[1]);
   sea.addColorStop(1, ink.ocean[2]);
@@ -536,6 +582,7 @@ const drawEarth = (ctx: Context, cam: Camera) => {
   ctx.arc(cam.ox, cy, r, 0, Math.PI * 2);
   ctx.fill();
   ctx.clip();
+
   for (const [i, [x, depth, rx, ry, angle]] of LANDS.entries()) {
     ctx.fillStyle = ink.land[i % ink.land.length] ?? ink.land[0];
     ctx.beginPath();
@@ -550,6 +597,7 @@ const drawEarth = (ctx: Context, cam: Camera) => {
     );
     ctx.fill();
   }
+
   const night = ctx.createLinearGradient(cam.ox - r, 0, cam.ox + r, 0);
   night.addColorStop(0.55, "rgba(2,4,16,0)");
   night.addColorStop(1, "rgba(2,4,16,0.75)");
@@ -561,6 +609,7 @@ const drawEarth = (ctx: Context, cam: Camera) => {
 const drawFlyers = (ctx: Context, cam: Camera) => {
   const plane =
     smooth(cam.altitude, 5.6, 6) * (1 - smooth(cam.altitude, 7, 7.5));
+
   if (plane > 0.01) {
     const x = sx(cam, -300_000 + ((cam.clock * 25_000) % 600_000));
     const y = sy(cam, 1_060_000);
@@ -574,8 +623,10 @@ const drawFlyers = (ctx: Context, cam: Camera) => {
     ctx.globalAlpha = 1;
     drawMark(ctx, landmarks.airliner, x, y, size, plane);
   }
+
   const station =
     smooth(cam.altitude, 7.1, 7.5) * (1 - smooth(cam.altitude, 9, 9.4));
+
   drawMark(
     ctx,
     landmarks.iss,
@@ -584,8 +635,10 @@ const drawFlyers = (ctx: Context, cam: Camera) => {
     Math.max(10_900 * cam.scale, cam.base * 0.13),
     station
   );
+
   const geo =
     smooth(cam.altitude, 8.8, 9.2) * (1 - smooth(cam.altitude, 10.3, 10.6));
+
   drawMark(
     ctx,
     landmarks.satellite,
@@ -602,6 +655,7 @@ export const drawWorld = (ctx: Context, cam: Camera, look: Look) => {
   } else {
     drawEarth(ctx, cam);
   }
+
   drawFuji(ctx, cam);
   drawClouds(ctx, cam, look);
   drawBlocks(
@@ -623,6 +677,7 @@ export const drawWorld = (ctx: Context, cam: Camera, look: Look) => {
   );
   drawBuilding(ctx, cam);
   const indoors = 1 - smooth(cam.altitude, 2.05, 2.5);
+
   if (indoors > 0.01) {
     ctx.save();
     ctx.globalAlpha = indoors;
@@ -631,5 +686,6 @@ export const drawWorld = (ctx: Context, cam: Camera, look: Look) => {
     drawTable(ctx, cam);
     ctx.restore();
   }
+
   drawFlyers(ctx, cam);
 };

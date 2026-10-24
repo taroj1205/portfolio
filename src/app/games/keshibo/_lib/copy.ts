@@ -66,15 +66,19 @@ export const copy: Record<Lang, Copy> = {
       if (call.kind === "strike") {
         return enStreak[call.run] ?? `${call.run} strikes in a row!`;
       }
+
       if (call.kind === "spare") {
         return "Spare!";
       }
+
       if (call.kind === "gutter") {
         return "Off the desk";
       }
+
       if (call.kind === "miss") {
         return "Miss";
       }
+
       return call.pins === 1 ? "1 pin" : `${call.pins} pins`;
     },
     challenge: {
@@ -145,15 +149,19 @@ export const copy: Record<Lang, Copy> = {
       if (call.kind === "strike") {
         return jaStreak[call.run] ?? `${call.run}連続ストライク！`;
       }
+
       if (call.kind === "spare") {
         return "スペア！";
       }
+
       if (call.kind === "gutter") {
         return "机から落ちた";
       }
+
       if (call.kind === "miss") {
         return "ミス";
       }
+
       return `${call.pins}本`;
     },
     challenge: {

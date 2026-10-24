@@ -6,6 +6,7 @@ const GAP = 0.035;
 const note = (step: number) => {
   const octave = Math.floor(step / SCALE.length);
   const degree = SCALE[step - octave * SCALE.length] ?? 0;
+
   return 293.66 * 2 ** ((degree + 12 * octave) / 12);
 };
 
@@ -13,6 +14,7 @@ export const createSound = () => {
   let hiss: { audio: AudioContext; gain: GainNode } | null = null;
   let popped = 0;
   let awake = false;
+
   const { close, mute, spray, tone, unlock } = createAudio(
     (audio, out, noise) => {
       const night = audio.createBufferSource();
@@ -40,9 +42,11 @@ export const createSound = () => {
       depth.gain.value = 0.0035;
       breath.connect(depth).connect(swell.gain);
       cricket.connect(pulse).connect(swell).connect(out);
+
       for (const node of [cricket, trill, breath]) {
         node.start();
       }
+
       const fire = audio.createBufferSource();
       fire.buffer = noise;
       fire.loop = true;
@@ -71,9 +75,11 @@ export const createSound = () => {
     close,
     crackle: (count: number, loud: number) => {
       const now = performance.now() / 1000;
+
       if (!awake || count === 0 || now - popped < GAP) {
         return;
       }
+
       popped = now;
       spray(
         2600 + Math.random() * 3800,

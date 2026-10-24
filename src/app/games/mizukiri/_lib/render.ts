@@ -148,6 +148,7 @@ interface Camera {
   speed: number;
   pitch: number;
 }
+
 interface View {
   w: number;
   h: number;
@@ -156,6 +157,7 @@ interface View {
   far: number;
   camera: Camera;
 }
+
 interface Screen {
   x: number;
   y: number;
@@ -171,33 +173,42 @@ const GOLD = "#ffd27a";
 
 const hash = (a: number, b = 0) => {
   const v = Math.sin(a * 127.1 + b * 311.7) * 43_758.5453;
+
   return v - Math.floor(v);
 };
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
 const ease = (v: number) => {
   const t = clamp01(v);
+
   return t * t * (3 - 2 * t);
 };
 
 const rgbCache = new Map<string, string>();
+
 const rgba = (hex: string, alpha: number) => {
   let rgb = rgbCache.get(hex);
+
   if (rgb === undefined) {
     rgb = [1, 3, 5]
       .map((at) => Number.parseInt(hex.slice(at, at + 2), 16))
       .join(" ");
     rgbCache.set(hex, rgb);
   }
+
   return `rgb(${rgb} / ${clamp01(alpha).toFixed(3)})`;
 };
 
 const project = (view: View, p: Vec): Screen | null => {
   const d = p.z - view.camera.z;
+
   if (d < NEAR) {
     return null;
   }
+
   const s = view.focal / d;
+
   return {
     d,
     s,
@@ -210,13 +221,16 @@ const flatten = (view: View, d: number) => view.camera.y / d;
 
 const shakeAt = (flight: Flight, time: number) => {
   let shake = 0;
+
   for (const bump of flight.bumps) {
     const k = time - bump.time;
+
     if (k >= 0 && k < 0.45) {
       const power = bump.kind === "rock" ? 0.09 : 0.04;
       shake += (1 - k / 0.45) * power * Math.sin(k * 80);
     }
   }
+
   return shake;
 };
 
@@ -236,11 +250,14 @@ export const cameraFor = (
     y: 1.15 + Math.sin(clock * 0.31) * 0.04,
     z: -1.8,
   };
+
   if (!flight) {
     return idle;
   }
+
   const t =
     flight.ending === null ? time : Math.min(time, flight.duration - 1e-6);
+
   const now = stoneAt(flight, t);
   const lead = stoneAt(flight, t + LOOK_AHEAD) ?? now;
   const x = lead?.x ?? 0;
@@ -248,14 +265,18 @@ export const cameraFor = (
   const speed = speedAt(flight, t);
   const rush = clamp01((speed - 14) / 40);
   const ahead = stoneAt(flight, t + 0.05);
+
   const sway =
     ahead && now ? (ahead.x - now.x) / Math.max(0.05, ahead.z - now.z) : 0;
+
   const settle =
     flight.ending === null ? 0 : ease((time - flight.duration) / 2.4);
+
   const shake = shakeAt(flight, time);
   const blend = ease(time / 0.9);
   const climb = Math.max(0, y - CLIMB_FROM);
   const height = 1.05 + Math.min(3, (y / 6) * 0.45) + climb * 0.75 + rush * 0.5;
+
   return {
     pitch: 0.07 * blend,
     roll: idle.roll * (1 - blend) - sway * 0.35 + shake * 0.6,
@@ -279,7 +300,9 @@ export const follow = (
   if (rig === null) {
     return target;
   }
+
   const k = 1 - Math.exp(-dt * 7);
+
   return {
     pitch: rig.pitch + (target.pitch - rig.pitch) * k,
     roll: rig.roll + (target.roll - rig.roll) * k,
@@ -309,22 +332,28 @@ const ridgeLine = (
 ) => {
   const phases = [random() * TAU, random() * TAU, random() * TAU];
   const points: number[] = [];
+
   for (let x = 0; x <= w + 4; x += 4) {
     const u = x / span;
+
     let lift =
       amp *
       (0.5 +
         0.3 * Math.sin(u * 5.1 + (phases[0] ?? 0)) +
         0.15 * Math.sin(u * 13.7 + (phases[1] ?? 0)) +
         0.05 * Math.sin(u * 37.3 + (phases[2] ?? 0)));
+
     if (fuji) {
       const away = Math.abs(x - fuji.x) / fuji.width;
+
       if (away < 1) {
         lift = Math.max(lift, fuji.height * Math.min(0.94, (1 - away) ** 1.35));
       }
     }
+
     points.push(base - lift);
   }
+
   return points;
 };
 
@@ -336,9 +365,11 @@ const fillRidge = (
 ) => {
   ctx.beginPath();
   ctx.moveTo(0, floor);
+
   for (const [i, y] of points.entries()) {
     ctx.lineTo(i * 4, y);
   }
+
   ctx.lineTo(points.length * 4, floor);
   ctx.closePath();
   ctx.fillStyle = fill;
@@ -386,6 +417,7 @@ const paintCastle = (
   ctx.lineTo(x + size * 0.55, base - size * 0.35);
   ctx.lineTo(x + size * 0.7, base);
   ctx.fill();
+
   for (let tier = 0; tier < 3; tier += 1) {
     const half = size * (0.5 - tier * 0.12);
     const floor = base - size * (0.35 + tier * 0.28);
@@ -423,6 +455,7 @@ const paintCloudSea = (
   bank.addColorStop(1, "rgb(248 250 255 / 0.9)");
   ctx.fillStyle = bank;
   ctx.fillRect(0, horizon - h * 0.05, w, h * 0.05);
+
   for (let i = 0; i < 26; i += 1) {
     const cx = random() * w;
     const cy = horizon - h * (0.005 + random() * 0.03);
@@ -452,12 +485,14 @@ const paintMilkyWay = (
   band.addColorStop(1, "rgb(160 140 255 / 0)");
   ctx.fillStyle = band;
   ctx.fillRect(-w, -horizon * 0.22, w * 2, horizon * 0.44);
+
   for (let i = 0; i < 700; i += 1) {
     const spread = (random() + random() + random() - 1.5) * horizon * 0.18;
     const size = random() > 0.97 ? 1.6 : 0.7;
     ctx.fillStyle = `rgb(255 255 255 / ${(0.25 + random() * 0.6).toFixed(3)})`;
     ctx.fillRect((random() - 0.5) * w * 2, spread, size, size);
   }
+
   ctx.restore();
 };
 
@@ -471,9 +506,11 @@ const paintBackdrop = (
 ) => {
   const look = scenery[coast];
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return;
   }
+
   const { w, h, horizon } = view;
   canvas.width = Math.round(w * dpr);
   canvas.height = Math.round(h * dpr);
@@ -490,6 +527,7 @@ const paintBackdrop = (
   const sunX = w * palette.sunX;
   const sunY = horizon - horizon * palette.sunY;
   const sunR = Math.max(w, h) * palette.sunSize;
+
   const glow = ctx.createRadialGradient(
     sunX,
     sunY,
@@ -498,6 +536,7 @@ const paintBackdrop = (
     sunY,
     Math.max(w, h) * 0.55
   );
+
   glow.addColorStop(0, rgba(palette.glow, 0.75));
   glow.addColorStop(0.18, rgba(palette.glow, 0.28));
   glow.addColorStop(1, rgba(palette.glow, 0));
@@ -541,7 +580,9 @@ const paintBackdrop = (
           x: w * (0.15 + random() * 0.7),
         }
       : null;
+
   const far = ridgeLine(random, w, Math.max(w, h), horizon, h * look.far, fuji);
+
   const near = ridgeLine(
     random,
     w,
@@ -555,28 +596,36 @@ const paintBackdrop = (
   farFill.addColorStop(0, palette.ridges[0]);
   farFill.addColorStop(1, rgba(palette.ridges[0], 0.75));
   fillRidge(ctx, far, horizon, farFill);
+
   if (fuji) {
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(0, 0);
+
     for (let x = 0; x <= w; x += 6) {
       const jag =
         Math.sin(x * 0.11) * h * 0.006 + (hash(x, river.seed) - 0.5) * h * 0.01;
+
       ctx.lineTo(x, horizon - fuji.height * 0.62 + jag);
     }
+
     ctx.lineTo(w, 0);
     ctx.closePath();
     ctx.clip();
     fillRidge(ctx, far, horizon, rgba(palette.snow, 0.85));
     ctx.restore();
   }
+
   fillRidge(ctx, near, horizon, palette.ridges[1]);
+
   if (look.tint) {
     fillRidge(ctx, near, horizon, rgba(look.tint[0], look.tint[1]));
   }
+
   if (coast === "town") {
     paintCastle(ctx, w * 0.64, horizon - h * 0.02, h * 0.07, palette.ridges[1]);
   }
+
   if (coast === "cloud") {
     paintCloudSea(ctx, w, h, horizon, random);
   }
@@ -618,8 +667,10 @@ const paintStars = (
   for (let i = 0; i < 90; i += 1) {
     const x = hash(i, 1) * view.w;
     const y = hash(i, 2) ** 1.6 * view.horizon * 0.92;
+
     const twinkle =
       0.35 + 0.65 * (0.5 + 0.5 * Math.sin(clock * (1 + hash(i, 3) * 2) + i));
+
     ctx.fillStyle = `rgb(255 255 255 / ${(twinkle * (0.3 + hash(i, 4) * 0.6)).toFixed(3)})`;
     ctx.fillRect(
       x,
@@ -636,12 +687,14 @@ const paintMist = (
   palette: Palette
 ) => {
   const band = view.h * 0.07;
+
   const mist = ctx.createLinearGradient(
     0,
     view.horizon - band,
     0,
     view.horizon + band
   );
+
   mist.addColorStop(0, rgba(palette.mist, 0));
   mist.addColorStop(0.5, rgba(palette.mist, palette.mistAlpha));
   mist.addColorStop(1, rgba(palette.mist, 0));
@@ -657,15 +710,19 @@ const lattice = (
 ) => {
   const first = Math.ceil((view.camera.z + 0.8) / spacing);
   const last = Math.floor(Math.min(limit, view.camera.z + 60) / spacing);
+
   for (let n = first; n <= last; n += 1) {
     const d = n * spacing - view.camera.z;
     let stride = 1;
+
     if (d > 13) {
       stride = 2;
     }
+
     if (d > 28) {
       stride = 4;
     }
+
     if (n % stride === 0) {
       visit(n, n * spacing);
     }
@@ -684,16 +741,21 @@ const paintWater = (
       const x =
         (hash(n, k) - 0.5) * 2.4 * river.shore +
         Math.sin(clock * 0.6 + n + k) * 0.18;
+
       const p = project(view, { x, y: 0, z });
+
       if (!p) {
         continue;
       }
+
       const length = Math.min(
         (0.4 + hash(n, k + 9) * 0.8) * p.s,
         view.w * 0.16
       );
+
       const fade =
         (1 - clamp01(p.d / 60)) * (0.3 + 0.7 * clamp01((p.d - 1.5) / 6));
+
       const light = hash(n, k + 3) > 0.45;
       ctx.fillStyle = light
         ? rgba(palette.glint, (0.05 + hash(n, k + 5) * 0.1) * fade)
@@ -705,19 +767,25 @@ const paintWater = (
   const sunX = view.w * palette.sunX;
   lattice(view, view.far, 0.3, (n, z) => {
     const p = project(view, { x: 0, y: 0, z });
+
     if (!p) {
       return;
     }
+
     const sparkle = Math.sin(clock * (2.4 + hash(n, 2)) + n * 1.7);
+
     if (sparkle < 0.1) {
       return;
     }
+
     const spread = view.w * 0.05 + p.s * 0.35;
     const x = sunX + (hash(n, 1) - 0.5) * spread * 2;
+
     const length = Math.min(
       (0.2 + hash(n, 3) * 0.6) * (p.s * 0.5 + view.w * 0.02),
       view.w * 0.12
     );
+
     ctx.fillStyle = rgba(
       palette.glint,
       sparkle *
@@ -737,27 +805,35 @@ const paintFarShore = (
 ) => {
   const back = view.camera.z + 160;
   const ground = project(view, { x: 0, y: 0, z: back - 4 });
+
   if (!ground || openWater(zoneOf(back).coast)) {
     return;
   }
+
   const top: [number, number][] = [];
   const phase = (river.seed % 1000) / 100;
+
   for (let x = -120; x <= 120; x += 1) {
     const tall =
       6 +
       2 * Math.sin(x * 0.07 + phase) +
       1.2 * Math.sin(x * 0.23 + phase * 2) +
       0.5 * Math.abs(Math.sin(x * 0.9 + phase));
+
     const p = project(view, { x: x + view.camera.x, y: tall, z: back });
+
     if (p) {
       top.push([p.x, p.y]);
     }
   }
+
   ctx.beginPath();
   ctx.moveTo(-10, ground.y);
+
   for (const [x, y] of top) {
     ctx.lineTo(x, y);
   }
+
   ctx.lineTo(view.w + 10, ground.y);
   ctx.closePath();
   ctx.fillStyle = palette.trees;
@@ -771,15 +847,19 @@ const solid = (
   fill: string
 ) => {
   const points = corners.map((corner) => project(view, corner));
+
   if (points.some((point) => point === null)) {
     return;
   }
+
   ctx.beginPath();
+
   for (const point of points) {
     if (point) {
       ctx.lineTo(point.x, point.y);
     }
   }
+
   ctx.closePath();
   ctx.fillStyle = fill;
   ctx.fill();
@@ -800,6 +880,7 @@ const paintTorii = (
   palette: Palette
 ) => {
   const ink = "#1b1414";
+
   for (const side of [-1, 1]) {
     const x = cx + side * 1.1;
     solid(
@@ -815,14 +896,17 @@ const paintTorii = (
     );
     solid(ctx, view, box(x - 0.18, x + 0.18, 0, 0.35, z), ink);
   }
+
   solid(ctx, view, box(cx - 1.45, cx + 1.45, 2.8, 2.96, z), palette.torii);
   solid(ctx, view, box(cx - 0.1, cx + 0.1, 2.96, 3.5, z), palette.torii);
   const lintel: Vec[] = [];
+
   for (let i = 0; i <= 12; i += 1) {
     const u = i / 12;
     const x = cx - 1.9 + u * 3.8;
     lintel.push({ x, y: 3.5 + 0.3 * (2 * u - 1) ** 6, z });
   }
+
   const upper = lintel.map((p) => ({ ...p, y: p.y + 0.24 })).toReversed();
   solid(ctx, view, [...lintel, ...upper], palette.torii);
   const cap = lintel.map((p) => ({ ...p, y: p.y + 0.24 }));
@@ -854,9 +938,11 @@ const paintLantern = (
     stone
   );
   const light = project(view, { x, y: 1.16, z });
+
   if (light) {
     const flicker = 0.75 + 0.25 * Math.sin(clock * 9 + z);
     const r = Math.max(3, 0.6 * light.s);
+
     const glow = ctx.createRadialGradient(
       light.x,
       light.y,
@@ -865,6 +951,7 @@ const paintLantern = (
       light.y,
       r
     );
+
     glow.addColorStop(0, `rgb(255 214 140 / ${(0.85 * flicker).toFixed(3)})`);
     glow.addColorStop(1, "rgb(255 190 110 / 0)");
     ctx.fillStyle = glow;
@@ -881,6 +968,7 @@ const paintPost = (
   solid(ctx, view, box(x - 0.06, x + 0.06, 0, 1.3, z), "#4a3826");
   solid(ctx, view, box(x - 0.5, x + 0.5, 1.05, 1.55, z), "#efe6d4");
   const label = project(view, { x, y: 1.3, z });
+
   if (label && label.s > 14) {
     ctx.fillStyle = "#2a2018";
     ctx.font = `700 ${Math.round(0.3 * label.s)}px "Hiragino Mincho ProN", serif`;
@@ -898,6 +986,7 @@ const paintEmbankment = (
 ) => {
   const top: Screen[] = [];
   const bottom: Screen[] = [];
+
   for (
     let z = view.far;
     z >= view.camera.z + NEAR + 0.05;
@@ -906,33 +995,42 @@ const paintEmbankment = (
     if (openWater(zoneOf(z).coast)) {
       continue;
     }
+
     const x = side * shoreAt(river, z);
     const a = project(view, { x, y: 0.45, z });
     const b = project(view, { x, y: 0, z });
+
     if (a && b) {
       top.push(a);
       bottom.push(b);
     }
   }
+
   if (top.length < 2) {
     return;
   }
+
   ctx.beginPath();
+
   for (const point of top) {
     ctx.lineTo(point.x, point.y);
   }
+
   for (const point of bottom.toReversed()) {
     ctx.lineTo(point.x, point.y);
   }
+
   ctx.closePath();
   ctx.fillStyle = "#5e5a53";
   ctx.fill();
   ctx.strokeStyle = "rgb(255 255 255 / 0.12)";
   ctx.lineWidth = 1;
   ctx.beginPath();
+
   for (const point of top) {
     ctx.lineTo(point.x, point.y);
   }
+
   ctx.stroke();
 };
 
@@ -948,9 +1046,11 @@ const paintReed = (
 ) => {
   const base = project(view, { x, y: 0.4, z });
   const tip = project(view, { x: x + sway, y: tall, z });
+
   if (!base || !tip) {
     return;
   }
+
   ctx.strokeStyle = palette.reed;
   ctx.lineWidth = Math.max(0.6, 0.03 * base.s);
   ctx.beginPath();
@@ -983,9 +1083,11 @@ const paintBamboo = (
 ) => {
   const base = project(view, { x, y: 0.4, z });
   const tip = project(view, { x: x + sway, y: tall, z });
+
   if (!base || !tip) {
     return;
   }
+
   const width = Math.max(1, 0.09 * base.s);
   const stalk = ctx.createLinearGradient(base.x - width, 0, base.x + width, 0);
   stalk.addColorStop(0, "#2d5a2e");
@@ -999,6 +1101,7 @@ const paintBamboo = (
   ctx.stroke();
   ctx.strokeStyle = "rgb(20 40 20 / 0.6)";
   ctx.lineWidth = Math.max(0.6, width * 0.3);
+
   for (let node = 1; node < 6; node += 1) {
     const u = node / 6;
     const nx = base.x + (tip.x - base.x) * u * u;
@@ -1008,7 +1111,9 @@ const paintBamboo = (
     ctx.lineTo(nx + width * 0.6, ny);
     ctx.stroke();
   }
+
   ctx.fillStyle = rgba(palette.tint.alpha > 0.3 ? "#1f3a24" : "#3f7a3a", 0.85);
+
   for (let leaf = 0; leaf < 5; leaf += 1) {
     const lx = tip.x + Math.sin(leaf * 2.3) * base.s * 0.5;
     const ly = tip.y + leaf * base.s * 0.12;
@@ -1037,9 +1142,11 @@ const paintTree = (
 ) => {
   const base = project(view, { x, y: 0.4, z });
   const crown = project(view, { x, y: 3.6, z });
+
   if (!base || !crown) {
     return;
   }
+
   ctx.strokeStyle = "#3b2418";
   ctx.lineWidth = Math.max(1, 0.18 * base.s);
   ctx.beginPath();
@@ -1051,12 +1158,15 @@ const paintTree = (
     crown.y
   );
   ctx.stroke();
+
   for (let k = 0; k < 9; k += 1) {
     const r = (0.7 + hash(seed, k) * 0.7) * base.s;
+
     const cx =
       crown.x +
       (hash(seed, k + 10) - 0.5) * 2.6 * base.s +
       Math.sin(clock * 0.8 + k) * 0.03 * base.s;
+
     const cy = crown.y + (hash(seed, k + 20) - 0.6) * 1.4 * base.s;
     ctx.fillStyle = leaves[k % leaves.length] ?? "#c8321f";
     ctx.globalAlpha = 0.9;
@@ -1064,6 +1174,7 @@ const paintTree = (
     ctx.arc(cx, cy, r, 0, TAU);
     ctx.fill();
   }
+
   ctx.globalAlpha = 1;
 };
 
@@ -1097,6 +1208,7 @@ const paintHouse = (
     "#26232a"
   );
   const glow = project(view, { x: x + side * wide * 0.4, y: tall * 0.55, z });
+
   if (glow) {
     const flicker = 0.8 + 0.2 * Math.sin(clock * 6 + seed);
     const size = Math.max(2, 0.5 * glow.s);
@@ -1115,9 +1227,11 @@ const paintBuoy = (
   const bob = Math.sin(clock * 2 + z) * 0.08;
   const base = project(view, { x, y: bob, z });
   const top = project(view, { x, y: 1.1 + bob, z });
+
   if (!base || !top) {
     return;
   }
+
   ctx.fillStyle = "#d8452f";
   ctx.beginPath();
   ctx.ellipse(base.x, base.y, 0.35 * base.s, 0.18 * base.s, 0, 0, TAU);
@@ -1128,6 +1242,7 @@ const paintBuoy = (
   ctx.moveTo(base.x, base.y);
   ctx.lineTo(top.x, top.y);
   ctx.stroke();
+
   if (top.s > 14) {
     ctx.fillStyle = "#f2efe8";
     ctx.font = `700 ${Math.round(0.32 * top.s)}px "Hiragino Mincho ProN", serif`;
@@ -1149,6 +1264,7 @@ interface Bank {
 const paintLand = ({ ctx, view, river, palette, side }: Bank) => {
   const edge = side < 0 ? -40 : view.w + 40;
   const line: Screen[] = [];
+
   for (
     let z = view.far;
     z >= view.camera.z + NEAR + 0.05;
@@ -1157,21 +1273,28 @@ const paintLand = ({ ctx, view, river, palette, side }: Bank) => {
     if (openWater(zoneOf(z).coast)) {
       continue;
     }
+
     const p = project(view, { x: side * shoreAt(river, z), y: 0.4, z });
+
     if (p) {
       line.push(p);
     }
   }
+
   const first = line.at(0);
   const last = line.at(-1);
+
   if (first === undefined || last === undefined) {
     return;
   }
+
   ctx.beginPath();
   ctx.moveTo(edge, first.y);
+
   for (const point of line) {
     ctx.lineTo(point.x, point.y);
   }
+
   ctx.lineTo(last.x, view.h + 40);
   ctx.lineTo(edge, view.h + 40);
   ctx.closePath();
@@ -1184,15 +1307,19 @@ const paintLandmark = (bank: Bank, n: number) => {
   const z = n * 6;
   const { coast } = zoneOf(z);
   const shore = shoreAt(river, z);
+
   if (z % 100 === 0) {
     if (openWater(coast)) {
       paintBuoy(ctx, view, side * 3, z, clock);
     } else if (side < 0) {
       paintPost(ctx, view, -(shore + 0.9), z);
     }
+
     return;
   }
+
   const toriiSide = (z / 120) % 2 === (side < 0 ? 0 : 1);
+
   if (coast === "village" && z % 120 === 0 && toriiSide) {
     paintTorii(ctx, view, side * (shore + 3.2), z, palette);
   } else if (LEAVES.has(coast) && hash(n, side) > 0.35) {
@@ -1211,12 +1338,16 @@ const paintLandmark = (bank: Bank, n: number) => {
 const paintVerge = (bank: Bank, n: number, z: number) => {
   const { ctx, view, river, palette, clock, side } = bank;
   const { coast } = zoneOf(z);
+
   if (openWater(coast) || coast === "town") {
     return;
   }
+
   const shore = shoreAt(river, z);
+
   for (let k = 0; k < 2; k += 1) {
     const x = side * (shore + 0.1 + hash(n * side, k) * 1.6);
+
     if (coast === "bamboo") {
       if (k === 0 && n % 2 === 0) {
         const tall = 5 + hash(n * side, k + 2) * 3;
@@ -1243,9 +1374,11 @@ const paintShores = (
     paintLand(bank);
     paintEmbankment(ctx, view, river, side);
     const start = Math.ceil((view.camera.z + 1) / 6);
+
     for (let n = Math.floor(view.far / 6); n >= start; n -= 1) {
       paintLandmark(bank, n);
     }
+
     lattice(view, view.far, 0.7, (n, z) => {
       paintVerge(bank, n, z);
     });
@@ -1262,17 +1395,23 @@ const paintSplashes = (
 ) => {
   for (const [i, splash] of shot.splashes.entries()) {
     const age = time - splash.time;
+
     if (age < 0 || age > 5 || splash.y > 0) {
       continue;
     }
+
     const p = project(view, { x: splash.x, y: 0, z: splash.z });
+
     if (!p) {
       continue;
     }
+
     const squash = flatten(view, p.d);
+
     if (rings) {
       for (let k = 0; k < 3; k += 1) {
         const a = age - k * 0.2;
+
         if (a > 0) {
           const r = (0.08 + a * 0.9 * (1 - a * 0.06)) * p.s;
           ctx.strokeStyle = rgba(
@@ -1286,10 +1425,13 @@ const paintSplashes = (
         }
       }
     }
+
     if (age > 0.9) {
       continue;
     }
+
     const heavy = splash.big || splash.event !== null;
+
     if (age < 0.4) {
       const puff = (0.25 + age * 1.6) * p.s * (heavy ? 1.6 : 1);
       const mist = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, puff);
@@ -1300,23 +1442,30 @@ const paintSplashes = (
       ctx.ellipse(p.x, p.y, puff, puff * Math.max(0.35, squash * 2), 0, 0, TAU);
       ctx.fill();
     }
+
     const count = heavy ? 22 : 12;
     ctx.lineCap = "round";
+
     for (let j = 0; j < count; j += 1) {
       const angle = hash(i, j) * TAU;
       const out = 0.3 + hash(i, j + 20) * (heavy ? 1.4 : 0.8);
       const up = (heavy ? 2 : 1.1) + hash(i, j + 40) * 1.6;
+
       const spot = (t: number): Vec => ({
         x: splash.x + Math.cos(angle) * out * t,
         y: up * t - 4.9 * t * t,
         z: splash.z + Math.sin(angle) * out * t * 0.6,
       });
+
       const head = spot(age);
+
       if (head.y < 0) {
         continue;
       }
+
       const a = project(view, head);
       const b = project(view, spot(Math.max(0, age - 0.035)));
+
       if (a && b) {
         ctx.strokeStyle = rgba(palette.ring, 0.9 * (1 - age / 0.9));
         ctx.lineWidth = Math.max(0.8, 0.016 * a.s);
@@ -1326,6 +1475,7 @@ const paintSplashes = (
         ctx.stroke();
       }
     }
+
     ctx.lineCap = "butt";
   }
 };
@@ -1338,20 +1488,27 @@ const paintBursts = (
 ) => {
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
+
   for (const splash of shot.splashes) {
     const age = time - splash.time;
+
     const bright =
       splash.grade === "perfect" ||
       (splash.event !== null && splash.event !== "wall");
+
     if (!bright || age < 0 || age > 0.5) {
       continue;
     }
+
     const p = project(view, { x: splash.x, y: splash.y + 0.05, z: splash.z });
+
     if (!p) {
       continue;
     }
+
     const hue =
       splash.event === "lotus" || splash.event === "fish" ? "#a8f08a" : GOLD;
+
     const fade = 1 - age / 0.5;
     const size = Math.max(40, 1.6 * p.s) * (0.6 + age);
     const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size);
@@ -1361,6 +1518,7 @@ const paintBursts = (
     ctx.fillRect(p.x - size, p.y - size, size * 2, size * 2);
     ctx.strokeStyle = rgba(hue, 0.8 * fade);
     ctx.lineCap = "round";
+
     for (let k = 0; k < 4; k += 1) {
       const a = (k / 4) * TAU + Math.PI / 4;
       const long = size * (k % 2 === 0 ? 1.2 : 0.7);
@@ -1373,15 +1531,18 @@ const paintBursts = (
       ctx.lineTo(p.x + Math.cos(a) * long, p.y + Math.sin(a) * long);
       ctx.stroke();
     }
+
     if (splash.y > 0) {
       continue;
     }
+
     const ring = (0.4 + age * 6) * p.s;
     ctx.lineWidth = Math.max(1.2, 0.05 * p.s * fade);
     ctx.beginPath();
     ctx.ellipse(p.x, p.y, ring, ring * flatten(view, p.d), 0, 0, TAU);
     ctx.stroke();
   }
+
   ctx.restore();
 };
 
@@ -1401,30 +1562,38 @@ const darken = (source: HTMLCanvasElement) => {
   canvas.width = source.width;
   canvas.height = source.height;
   const ctx = canvas.getContext("2d");
+
   if (ctx) {
     ctx.drawImage(source, 0, 0);
     ctx.globalCompositeOperation = "source-atop";
     ctx.fillStyle = "rgb(12 12 16 / 0.7)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
+
   return canvas;
 };
 
 const createSprites = (tint: Tint, look: Look): Sprites => {
   const stone = stoneSprite(colorOf(look.color), look.form, look.pattern);
   const cache = new Map<string, HTMLCanvasElement>();
+
   const memo = (key: string, make: () => HTMLCanvasElement) => {
     const hit = cache.get(key);
+
     if (hit) {
       return hit;
     }
+
     if (cache.size > 240) {
       cache.clear();
     }
+
     const made = make();
     cache.set(key, made);
+
     return made;
   };
+
   return {
     duck: duckSprite(tint),
     leaf: (prop) =>
@@ -1447,9 +1616,11 @@ const paintFlat = (
   spin: number
 ) => {
   const p = project(view, { x: prop.x, y: 0, z: prop.z });
+
   if (!p) {
     return;
   }
+
   const w = size * p.s;
   ctx.save();
   ctx.translate(p.x, p.y);
@@ -1468,9 +1639,11 @@ const paintRock = (
   clock: number
 ) => {
   const p = project(view, { x: prop.x, y: 0, z: prop.z });
+
   if (!p) {
     return;
   }
+
   const squash = flatten(view, p.d);
   ctx.strokeStyle = rgba(
     palette.ring,
@@ -1499,18 +1672,23 @@ const paintDuck = (
     y: Math.sin(clock * 1.8 + prop.turn) * 0.015,
     z: prop.z,
   };
+
   if (flown !== null) {
     at.x += Math.cos(prop.turn) * 2 * flown;
     at.y += 2.4 * flown;
     at.z += 1.4 * flown;
   }
+
   const p = project(view, at);
+
   if (!p) {
     return;
   }
+
   const w = 0.62 * p.s;
   const h = (w * 200) / 280;
   const facing = Math.cos(prop.turn) >= 0 ? 1 : -1;
+
   const draw = (flip: number, alpha: number) => {
     ctx.save();
     ctx.globalAlpha = alpha;
@@ -1519,6 +1697,7 @@ const paintDuck = (
     ctx.drawImage(sprite, (-132 / 280) * w, (-160 / 200) * h, w, h);
     ctx.restore();
   };
+
   if (flown === null) {
     draw(-0.55, 0.22);
     ctx.strokeStyle = rgba(palette.ring, 0.3);
@@ -1530,7 +1709,9 @@ const paintDuck = (
     ctx.lineTo(p.x - facing * w * 1.1, p.y + w * 0.09);
     ctx.stroke();
   }
+
   draw(1, 1);
+
   if (flown !== null) {
     const flap = Math.sin(flown * 28) * w * 0.45;
     ctx.fillStyle = "#6f6458";
@@ -1550,22 +1731,28 @@ const paintDragonfly = (
   flown: number | null
 ) => {
   const facing = Math.cos(prop.turn) >= 0 ? 1 : -1;
+
   const at: Vec = {
     x: prop.x + Math.sin(clock * 1.3 + prop.turn) * 0.06,
     y: prop.y + Math.sin(clock * 2.1 + prop.turn * 2) * 0.04,
     z: prop.z,
   };
+
   if (flown !== null) {
     at.x += facing * 3 * flown;
     at.y += 1.8 * flown;
     at.z += 4 * flown;
   }
+
   const p = project(view, at);
+
   if (!p) {
     return;
   }
+
   const L = Math.max(6, 0.36 * p.s);
   const shadow = project(view, { x: at.x, y: 0, z: at.z });
+
   if (shadow) {
     const r = L * (0.45 + 0.3 * at.y);
     ctx.save();
@@ -1580,6 +1767,7 @@ const paintDragonfly = (
     ctx.fill();
     ctx.restore();
   }
+
   if (flown === null) {
     const r = L * (1.1 + 0.15 * Math.sin(clock * 3 + prop.turn));
     const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
@@ -1588,6 +1776,7 @@ const paintDragonfly = (
     ctx.fillStyle = glow;
     ctx.fillRect(p.x - r, p.y - r, r * 2, r * 2);
   }
+
   ctx.save();
   ctx.translate(p.x, p.y);
   ctx.scale(facing, 1);
@@ -1595,6 +1784,7 @@ const paintDragonfly = (
   ctx.fillStyle = "rgb(236 244 255 / 0.55)";
   ctx.strokeStyle = "rgb(30 40 60 / 0.45)";
   ctx.lineWidth = Math.max(0.75, L * 0.025);
+
   for (const [x, lean] of [
     [0.12, -0.5],
     [-0.02, -0.75],
@@ -1614,6 +1804,7 @@ const paintDragonfly = (
       ctx.stroke();
     }
   }
+
   ctx.strokeStyle = "#c8432b";
   ctx.lineCap = "round";
   ctx.lineWidth = Math.max(1, L * 0.06);
@@ -1740,9 +1931,11 @@ const lineColor = (trail: string, k: number, time: number) => {
   if (trail === "rainbow") {
     return `hsl(${Math.round((k * 28 + time * 240) % 360)} 90% 72%)`;
   }
+
   if (trail === "fox") {
     return "#8fd8ff";
   }
+
   return null;
 };
 
@@ -1761,14 +1954,17 @@ const paintTrail = (
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
   ctx.lineCap = "round";
+
   for (let k = 1; k <= reach; k += 1) {
     const a = stoneAt(flight, time - (k - 1) * 0.02);
     const b = stoneAt(flight, time - k * 0.02);
     const pa = a ? project(view, a) : null;
     const pb = b ? project(view, b) : null;
+
     if (!pa || !pb) {
       continue;
     }
+
     const fade = 1 - k / (reach + 1);
     const tone = lineColor(trail, k, time);
     ctx.globalAlpha = Math.min(1, (hot ? 0.5 : 0.3) + 0.1 * tier) * fade;
@@ -1779,6 +1975,7 @@ const paintTrail = (
     ctx.lineTo(pb.x, pb.y);
     ctx.stroke();
     ctx.globalAlpha = 1;
+
     if (speck !== undefined) {
       const seed = Math.floor((time - k * 0.02) * 50);
       const spread = Math.max(4, 0.3 * pa.s);
@@ -1793,6 +1990,7 @@ const paintTrail = (
       });
     }
   }
+
   ctx.restore();
 };
 
@@ -1809,6 +2007,7 @@ const poseOf = (flight: Flight, at: Vec, time: number, view: View) => {
   const wobble = Math.exp(-since * 5) * Math.sin(since * 27) * 0.22;
   const landed = flight.ending !== null && time > flight.duration;
   const d = Math.max(0.5, at.z - view.camera.z);
+
   return {
     pitch: landed ? 0 : base * 0.55 + climb * 0.6 + kick,
     roll: landed ? 0 : wobble + Math.sin(time * 3.1) * 0.05,
@@ -1829,18 +2028,24 @@ const paintStone = (
   time: number
 ) => {
   const at = stoneAt(flight, time);
+
   if (!at) {
     return;
   }
+
   const moving = flight.ending === null || time <= flight.duration;
+
   if (moving) {
     paintTrail(ctx, view, flight, trail, palette, time);
   }
+
   const shadow = project(view, { ...at, y: 0 });
   const p = project(view, at);
+
   if (!p) {
     return;
   }
+
   if (shadow && at.y > 0.03) {
     ctx.fillStyle = `rgb(0 0 0 / ${(0.3 / (1 + at.y * 3)).toFixed(3)})`;
     ctx.beginPath();
@@ -1855,7 +2060,9 @@ const paintStone = (
     );
     ctx.fill();
   }
+
   const len = Math.max(3, STONE * p.s);
+
   if (len < 14) {
     const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, len * 2 + 8);
     halo.addColorStop(0, rgba(palette.ring, 0.45));
@@ -1868,13 +2075,16 @@ const paintStone = (
       len * 4 + 16
     );
   }
+
   const pose = poseOf(flight, at, time, view);
   const face = Math.min(1, Math.max(0.14, Math.sin(pose.view + pose.pitch)));
   const thick = len * 0.11 * Math.cos(pose.view + pose.pitch);
+
   if (moving && pose.speed > 12) {
     for (let k = 3; k >= 1; k -= 1) {
       const ghost = stoneAt(flight, time - k * 0.012);
       const q = ghost ? project(view, ghost) : null;
+
       if (q) {
         ctx.save();
         ctx.globalAlpha = 0.12 * (4 - k);
@@ -1887,6 +2097,7 @@ const paintStone = (
       }
     }
   }
+
   ctx.save();
   ctx.translate(p.x, p.y);
   ctx.rotate(pose.roll);
@@ -1900,6 +2111,7 @@ const paintStone = (
   ctx.rotate(pose.spin);
   ctx.drawImage(sprite, -len / 2, (-len * 0.625) / 2, len, len * 0.625);
   ctx.restore();
+
   if (moving && time < 1.4) {
     const fade = Math.min(1, (1.4 - time) / 0.4);
     ctx.save();
@@ -1971,10 +2183,12 @@ const paintHand = (
   ctx.shadowOffsetY = 10;
   ctx.save();
   ctx.scale(1, 0.42);
+
   for (let k = 3; k >= 1; k -= 1) {
     ctx.drawImage(edge, -size / 2, -size * 0.3125 + k * 5, size, size * 0.625);
     ctx.shadowColor = "transparent";
   }
+
   ctx.drawImage(stone, -size / 2, -size * 0.3125, size, size * 0.625);
   ctx.restore();
   ctx.restore();
@@ -1988,11 +2202,13 @@ export const cameraAt = (
   clock: number
 ) => {
   let rig = camera;
+
   for (let t = time; t < until;) {
     const step = Math.min(FRAME, until - t);
     t += step;
     rig = follow(rig, cameraFor(flight, t, clock + t - time), step);
   }
+
   return rig;
 };
 
@@ -2005,15 +2221,20 @@ const paintApproach = (
   distant: boolean
 ) => {
   const contact = nextContact(flight);
+
   if (contact === null) {
     return;
   }
+
   const remain = contact - time;
+
   if (remain < 0 || remain > 0.9) {
     return;
   }
+
   const landing = contact - 1e-4;
   const at = stoneAt(flight, landing);
+
   const sight =
     !distant && speedAt(flight, time) > RING_FOLLOW_SPEED
       ? viewOf(
@@ -2022,11 +2243,14 @@ const paintApproach = (
           view.h
         )
       : view;
+
   const airborne = (flight.pending?.y ?? 0) > 0;
   const p = at ? project(sight, airborne ? at : { ...at, y: 0 }) : null;
+
   if (!p) {
     return;
   }
+
   const squash = airborne ? 1 : flatten(sight, p.d);
   const y = Math.min(p.y, view.h);
   const win = windowFor(flight);
@@ -2034,12 +2258,15 @@ const paintApproach = (
   const target = radiusAt(win.perfect);
   const ring = radiusAt(remain);
   let color = "rgb(255 255 255 / 0.55)";
+
   if (remain <= win.good) {
     color = "rgb(255 255 255 / 0.95)";
   }
+
   if (remain <= win.perfect) {
     color = GOLD;
   }
+
   ctx.fillStyle = rgba(GOLD, 0.12);
   ctx.beginPath();
   ctx.ellipse(p.x, y, target, target * squash, 0, 0, TAU);
@@ -2050,6 +2277,7 @@ const paintApproach = (
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
   ctx.strokeStyle = color;
+
   for (const [width, alpha] of [
     [0.16, 0.12],
     [0.08, 0.25],
@@ -2061,6 +2289,7 @@ const paintApproach = (
     ctx.ellipse(p.x, y, ring, ring * squash, 0, 0, TAU);
     ctx.stroke();
   }
+
   ctx.restore();
 };
 
@@ -2071,17 +2300,21 @@ const paintFish = (
   age: number
 ) => {
   const u = (age + 0.2) / 0.75;
+
   if (u < 0 || u > 1) {
     return;
   }
+
   const p = project(view, {
     x: at.x,
     y: 1.1 * 4 * u * (1 - u),
     z: at.z + (u - 0.5) * 0.9,
   });
+
   if (!p) {
     return;
   }
+
   const L = 0.5 * p.s;
   ctx.save();
   ctx.translate(p.x, p.y);
@@ -2110,6 +2343,7 @@ const paintFireflies = (
 ) => {
   lattice(view, view.far, 1.9, (n, z) => {
     const side = n % 2 === 0 ? -1 : 1;
+
     const p = project(view, {
       x:
         side * (river.shore - 0.6 + hash(n, 1) * 2.4) +
@@ -2117,9 +2351,11 @@ const paintFireflies = (
       y: 0.5 + hash(n, 2) * 1.1 + Math.sin(clock * 0.7 + n * 2) * 0.15,
       z,
     });
+
     if (!p) {
       return;
     }
+
     const pulse = 0.5 + 0.5 * Math.sin(clock * (1.4 + hash(n, 3)) + n);
     const r = Math.max(2, 0.06 * p.s) * (1.5 + pulse);
     const glow = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
@@ -2138,11 +2374,13 @@ const paintDrift = (
 ) => {
   for (let i = 0; i < 36; i += 1) {
     const fall = 18 + hash(i, 6) * 30;
+
     const x =
       (((hash(i, 7) * view.w + Math.sin(clock * 0.7 + i) * 24 - clock * 12) %
         view.w) +
         view.w) %
       view.w;
+
     const y = (hash(i, 8) * view.h + clock * fall) % view.h;
     const size = 2 + hash(i, 9) * 3.5;
     ctx.fillStyle = colors[i % colors.length] ?? "#ffffff";
@@ -2151,6 +2389,7 @@ const paintDrift = (
     ctx.ellipse(x, y, size, size * 0.55, clock * 1.5 + i, 0, TAU);
     ctx.fill();
   }
+
   ctx.globalAlpha = 1;
 };
 
@@ -2159,8 +2398,10 @@ const makeGrain = () => {
   tile.width = 160;
   tile.height = 160;
   const ctx = tile.getContext("2d");
+
   if (ctx) {
     const image = ctx.createImageData(160, 160);
+
     for (let i = 0; i < image.data.length; i += 4) {
       const v = Math.random() * 255;
       image.data[i] = v;
@@ -2168,8 +2409,10 @@ const makeGrain = () => {
       image.data[i + 2] = v;
       image.data[i + 3] = 255;
     }
+
     ctx.putImageData(image, 0, 0);
   }
+
   return tile;
 };
 
@@ -2180,6 +2423,7 @@ const paintFilm = (
   clock: number
 ) => {
   const { w, h } = view;
+
   const vignette = ctx.createRadialGradient(
     w / 2,
     h * 0.45,
@@ -2188,10 +2432,12 @@ const paintFilm = (
     h * 0.5,
     Math.max(w, h) * 0.8
   );
+
   vignette.addColorStop(0, "rgb(0 0 0 / 0)");
   vignette.addColorStop(1, "rgb(0 0 0 / 0.42)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, w, h);
+
   if (pattern) {
     ctx.save();
     ctx.globalAlpha = 0.045;
@@ -2214,9 +2460,11 @@ const paintScene = (
   rings: boolean
 ) => {
   const { shot, time, clock } = frame;
+
   const props = propsIn(frame.river, view.camera.z + NEAR, view.far).toSorted(
     (a, b) => b.z - a.z
   );
+
   for (const prop of props) {
     if (prop.kind === "lotus") {
       paintFlat(
@@ -2238,15 +2486,19 @@ const paintScene = (
       );
     }
   }
+
   if (shot) {
     paintSplashes(ctx, view, shot, palette, time, rings);
     paintApproach(ctx, view, shot, time, frame.clock, frame.distantRing);
   }
+
   const flownOf = (prop: Prop) => {
     const hit =
       shot?.bumps.find((bump) => sameProp(bump.prop, prop))?.time ?? null;
+
     return hit !== null && time > hit ? time - hit : null;
   };
+
   for (const prop of props) {
     if (prop.kind === "rock") {
       paintRock(ctx, view, prop, sprites.rock(prop), palette, clock);
@@ -2256,11 +2508,13 @@ const paintScene = (
       paintDragonfly(ctx, view, prop, clock, flownOf(prop));
     }
   }
+
   for (const bump of shot?.bumps ?? []) {
     if (bump.kind === "fish") {
       paintFish(ctx, view, bump.at, time - bump.time);
     }
   }
+
   if (shot) {
     paintStone(
       ctx,
@@ -2279,6 +2533,7 @@ const paintScene = (
 const mixHex = (a: string, b: string, t: number) => {
   const pa = [1, 3, 5].map((at) => Number.parseInt(a.slice(at, at + 2), 16));
   const pb = [1, 3, 5].map((at) => Number.parseInt(b.slice(at, at + 2), 16));
+
   return `#${pa
     .map((v, i) =>
       Math.round(v + ((pb[i] ?? v) - v) * t)
@@ -2305,9 +2560,11 @@ const waterTint: Record<Coast, [string, number]> = {
 const transitionAt = (z: number) => {
   const index = zoneIndex(z);
   const next = zones.at(index + 1);
+
   if (next === undefined) {
     return { blend: 0, index, next: index };
   }
+
   return {
     blend: clamp01((z - (next.from - 220)) / 220),
     index,
@@ -2341,20 +2598,27 @@ const paintWorld = (
   tier: number
 ) => {
   const { coast } = zoneOf(view.camera.z);
+
   if (palette.stars || coast === "stars") {
     paintStars(ctx, view, frame.clock);
   }
+
   paintFarShore(ctx, view, frame.river, palette);
   paintMist(ctx, view, palette);
+
   if (flat) {
     paintWater(ctx, view, frame.river, palette, frame.clock);
   }
+
   paintShores(ctx, view, frame.river, palette, frame.clock);
   paintScene(ctx, view, frame, palette, sprites, flat);
+
   if ((palette.fireflies || coast === "firefly") && tier > 0) {
     paintFireflies(ctx, view, frame.river, frame.clock);
   }
+
   const drift = LEAVES.get(coast);
+
   if (drift !== undefined && tier > 0) {
     paintDrift(ctx, view, frame.clock, drift);
   }
@@ -2364,8 +2628,10 @@ const TIER_KEY = "mizukiri.quality";
 
 const guessTier = () => {
   const cores = navigator.hardwareConcurrency || 4;
+
   const memory =
     "deviceMemory" in navigator ? Number(navigator.deviceMemory) : 4;
+
   return cores <= 4 || memory <= 2 ? 1 : 2;
 };
 
@@ -2373,6 +2639,7 @@ const startingTier = () => {
   try {
     const stored = localStorage.getItem(TIER_KEY);
     const tier = Number(stored);
+
     return stored !== null && [0, 1, 2].includes(tier) ? tier : guessTier();
   } catch {
     return guessTier();
@@ -2382,6 +2649,7 @@ const startingTier = () => {
 const keepTier = (tier: number) => {
   try {
     localStorage.setItem(TIER_KEY, String(tier));
+
     return true;
   } catch {
     return false;
@@ -2394,9 +2662,11 @@ export const createRenderer = (surfaces: {
 }) => {
   const canvas = surfaces.scene;
   const context = canvas.getContext("2d");
+
   if (!context) {
     throw new Error("Canvas 2D is not available");
   }
+
   const ctx = context;
   const water = createWater(surfaces.water);
   const pattern = ctx.createPattern(makeGrain(), "repeat");
@@ -2423,12 +2693,15 @@ export const createRenderer = (surfaces: {
 
   const measure = (dt: number) => {
     frames += 1;
+
     if (dt <= 0 || frames < 45) {
       return;
     }
+
     pace = pace * 0.9 + dt * 0.1;
     strain = pace > 0.024 ? strain + 1 : Math.max(0, strain - 2);
     calm = pace < 0.0185 ? calm + 1 : 0;
+
     if (strain > 45 && ceiling > 0) {
       settle(ceiling - 1);
     } else if (calm > 1200 && ceiling < 2) {
@@ -2444,9 +2717,11 @@ export const createRenderer = (surfaces: {
     dpr: number
   ) => {
     const cached = backdrops.get(index);
+
     if (cached) {
       return cached;
     }
+
     const made = document.createElement("canvas");
     paintBackdrop(
       made,
@@ -2457,6 +2732,7 @@ export const createRenderer = (surfaces: {
       dpr
     );
     backdrops.set(index, made);
+
     return made;
   };
 
@@ -2468,6 +2744,7 @@ export const createRenderer = (surfaces: {
     const dpr = Math.min(window.devicePixelRatio || 1, [1, 1.5, 2][tier] ?? 2);
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
+
     if (
       canvas.width !== Math.round(w * dpr) ||
       canvas.height !== Math.round(h * dpr)
@@ -2475,16 +2752,20 @@ export const createRenderer = (surfaces: {
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
     }
+
     const palette = palettes[frame.river.sky];
     const { look } = frame;
     const spriteKey = `${frame.river.seed}:${look.color}:${look.form}:${look.pattern}`;
+
     if (sprites?.key !== spriteKey) {
       sprites = { key: spriteKey, set: createSprites(palette.tint, look) };
     }
+
     if (frame.shot !== lastShot) {
       rig = null;
       lastShot = frame.shot;
     }
+
     rig = follow(rig, cameraFor(frame.shot, frame.time, frame.clock), dt);
     const camera = rig;
     const zoom = 1 + Math.abs(camera.roll) * 1.6;
@@ -2494,11 +2775,13 @@ export const createRenderer = (surfaces: {
     const still: View = { ...view, horizon: level };
 
     const key = `${w}x${h}@${dpr}:${frame.river.seed}`;
+
     if (key !== backdropKey) {
       backdrops.clear();
       backdropKey = key;
       uploaded = "";
     }
+
     const stage = transitionAt(Math.max(0, camera.z));
     const current = backdropFor(stage.index, still, frame.river, palette, dpr);
     const next = backdropFor(stage.next, still, frame.river, palette, dpr);
@@ -2507,12 +2790,15 @@ export const createRenderer = (surfaces: {
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
+
     if (water) {
       const pair = `${key}:${stage.index}:${stage.next}`;
+
       if (pair !== uploaded) {
         water.skies(current, next);
         uploaded = pair;
       }
+
       water.draw({
         blend: stage.blend,
         camera,
@@ -2545,17 +2831,21 @@ export const createRenderer = (surfaces: {
     ctx.rotate(camera.roll);
     ctx.scale(zoom, zoom);
     ctx.translate(-w / 2, -h / 2);
+
     if (!water) {
       ctx.drawImage(current, 0, shift, w, h);
       ctx.globalAlpha = stage.blend;
       ctx.drawImage(next, 0, shift, w, h);
       ctx.globalAlpha = 1;
     }
+
     paintWorld(ctx, view, frame, palette, sprites.set, water === null, tier);
     ctx.restore();
+
     if (!frame.shot) {
       paintHand(ctx, view, sprites.set, frame.tilt, frame.clock, frame.surface);
     }
+
     paintFilm(ctx, view, tier > 0 ? pattern : null, frame.clock);
   };
 };

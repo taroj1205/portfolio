@@ -310,6 +310,7 @@ const Segments = <Id extends string>({
       aria-label={label}
       onValueChange={([next]) => {
         const id = ids.find((each) => each === next);
+
         if (id !== undefined) {
           onPick(id);
         }
@@ -346,6 +347,7 @@ const Swatches = <Id extends string>({
       aria-label={label}
       onValueChange={([next]) => {
         const id = ids.find((each) => each === next);
+
         if (id !== undefined) {
           onPick(id);
         }
@@ -403,11 +405,13 @@ export const Workshop = ({
 }: WorkshopProps) => {
   const words = copy[lang].workshop;
   const stats = statsOf(design);
+
   const pick =
     <Key extends keyof Design>(key: Key) =>
     (id: Design[Key]) => {
       onDesign({ ...design, [key]: id });
     };
+
   return (
     <Drawer.Root
       onOpenChange={(next) => {

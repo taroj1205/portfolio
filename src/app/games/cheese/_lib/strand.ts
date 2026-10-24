@@ -19,6 +19,7 @@ export const pointAt = (
   const c1x = from.x + (mid - from.x) * pinch;
   const c2x = to.x + (mid - to.x) * pinch;
   const v = 1 - u;
+
   return {
     x:
       v ** 3 * from.x +
@@ -35,6 +36,7 @@ const footOf = (thread: Thread) => {
     thread.to.x - thread.from.x,
     thread.to.y - thread.from.y
   );
+
   return Math.max(
     0.03,
     Math.min(0.3, (thread.ends * 1.7) / Math.max(1, length))
@@ -43,6 +45,7 @@ const footOf = (thread: Thread) => {
 
 const widthAt = (thread: Thread, u: number, foot = footOf(thread)) => {
   const t = Math.min(1, Math.min(u, 1 - u) / foot);
+
   return (
     thread.ends +
     ((thread.neck - thread.ends) * (1 - Math.cos(Math.PI * t))) / 2
@@ -61,6 +64,7 @@ export const ribbonOf = (thread: Thread, steps = STEPS): Point[] => {
   const spine = us.map((u) => pointAt(thread, u));
   const left: Point[] = [];
   const right: Point[] = [];
+
   for (const [i, point] of spine.entries()) {
     const before = spine[Math.max(0, i - 1)] ?? point;
     const after = spine[Math.min(spine.length - 1, i + 1)] ?? point;
@@ -77,6 +81,7 @@ export const ribbonOf = (thread: Thread, steps = STEPS): Point[] => {
       y: point.y - (dx / length) * half,
     });
   }
+
   return [...left, ...right.toReversed()];
 };
 

@@ -166,28 +166,34 @@ export const paint = {
 
 const rakuganTints = ["#f4c1cf", "#c6dda9", "#c3d8ee", "#dccdf0"] as const;
 const rakuganSides = ["#dc9aad", "#a3c283", "#97b6d8", "#b8a2d8"] as const;
+
 export const nerikiriTints = [
   ["#fff6f8", "#f3aec1", "#e993ab"],
   ["#fff0f3", "#ea6d89", "#d94b6b"],
   ["#f6f1ff", "#a88ad8", "#8d6cc6"],
 ] as const;
+
 export const netaTints = [
   [paint.maguro, "#9c1f2d"],
   [paint.salmon, "#dd6a37"],
   [paint.egg, paint.eggDeep],
 ] as const;
+
 export const onigiriFillings = [paint.ume, paint.salmon, paint.nori] as const;
+
 const senbeiTints = [
   [paint.soy, paint.soyDeep],
   [paint.soy, paint.soyDeep],
   [paint.zarame, paint.soyDeep],
   [paint.shio, paint.zarame],
 ] as const;
+
 export const makiFillings = [
   [paint.maguro, "#e2626f"],
   [paint.cucumber, paint.cucumberCore],
   [paint.kanpyo, "#d7a463"],
 ] as const;
+
 const dangoTints = [
   [paint.sakura, paint.sakuraSide],
   [paint.mochi, paint.mochiShade],
@@ -233,6 +239,7 @@ const taiyakiLook = (art: Art, gold: boolean): Look => ({
 
 const nigiriLook = (variant: number): Look => {
   const neta = netaTints[variant] ?? netaTints[0];
+
   return {
     ...plain,
     depth: 0.17,
@@ -289,6 +296,7 @@ export const looks: Record<Kind, (art: Art, part: number) => Look> = {
   }),
   dango: (art, part) => {
     const tint = dangoTints[unitOf(art, part)] ?? dangoTints[1];
+
     return {
       ...plain,
       depth: 0.1,
@@ -349,6 +357,7 @@ export const looks: Record<Kind, (art: Art, part: number) => Look> = {
   }),
   fuji: ({ variant }) => {
     const red = variant === 1;
+
     return {
       ...plain,
       depth: 0.16,
@@ -443,6 +452,7 @@ export const looks: Record<Kind, (art: Art, part: number) => Look> = {
   }),
   maki: ({ variant }) => {
     const filling = makiFillings[variant] ?? makiFillings[0];
+
     return {
       ...plain,
       depth: 0.22,
@@ -508,6 +518,7 @@ export const looks: Record<Kind, (art: Art, part: number) => Look> = {
   }),
   nerikiri: ({ variant }) => {
     const tint = nerikiriTints[variant] ?? nerikiriTints[0];
+
     return {
       ...plain,
       depth: 0.13,
@@ -547,6 +558,7 @@ export const looks: Record<Kind, (art: Art, part: number) => Look> = {
   }),
   rakugan: ({ variant }) => {
     const tint = variant % 4;
+
     return {
       ...plain,
       depth: 0.09,
@@ -571,6 +583,7 @@ export const looks: Record<Kind, (art: Art, part: number) => Look> = {
   }),
   senbei: (art, part) => {
     const tint = senbeiTints[unitOf(art, part)] ?? senbeiTints[0];
+
     return {
       ...plain,
       depth: 0.09,
@@ -618,7 +631,9 @@ export const looks: Record<Kind, (art: Art, part: number) => Look> = {
         top: paint.negiWhite,
       };
     }
+
     const shio = art.variant === 1;
+
     return {
       ...plain,
       depth: 0.11,

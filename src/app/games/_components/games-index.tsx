@@ -142,6 +142,7 @@ let last: { raw: string; value: Settings } | null = null;
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
+
   return () => {
     listeners.delete(listener);
   };
@@ -151,6 +152,7 @@ const snapshot = (): Settings => {
   const value = loadSettings();
   const raw = JSON.stringify(value);
   last = last?.raw === raw ? last : { raw, value };
+
   return last.value;
 };
 
@@ -158,6 +160,7 @@ const noSettings = () => null;
 
 const update = (next: Settings) => {
   storeSettings(next);
+
   for (const listener of listeners) {
     listener();
   }

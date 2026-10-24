@@ -22,8 +22,10 @@ export const LAST = phases.length - 1;
 
 export const phaseOf = (index: number): Phase => {
   const phase = phases[index];
+
   if (phase === undefined) {
     throw new RangeError(`No phase at ${index}`);
   }
+
   return phase;
 };

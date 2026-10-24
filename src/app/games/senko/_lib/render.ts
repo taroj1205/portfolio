@@ -82,6 +82,7 @@ const LIMIT = 1600;
 const POP_LIFE = 0.08;
 const EMBER_LIFE = 0.6;
 const BANDS = 6;
+
 const HANDLE = [
   "#b2332a",
   "#6d3b8f",
@@ -167,11 +168,13 @@ const tint = (heat: number) => {
   if (heat > 0.66) {
     return "255 246 214";
   }
+
   return heat > 0.33 ? "255 196 106" : "255 128 52";
 };
 
 const bands = Array.from({ length: BANDS }, (_, band) => {
   const heat = (band + 0.5) / BANDS;
+
   return `rgb(${tint(heat)} / ${(0.3 + heat * 0.7).toFixed(2)})`;
 });
 
@@ -192,15 +195,19 @@ const sizeAt = (phase: number, progress: number) => {
     case 0: {
       return 0.018 + 0.05 * smooth(progress);
     }
+
     case 1: {
       return 0.068 + 0.006 * Math.sin(progress * Math.PI);
     }
+
     case 2: {
       return 0.066 - 0.006 * progress;
     }
+
     case 3: {
       return 0.06 - 0.008 * progress;
     }
+
     default: {
       return 0.052 - 0.024 * progress - Math.max(0, progress - 0.85) * 0.1;
     }
@@ -212,15 +219,19 @@ const heatAt = (phase: number, progress: number) => {
     case 0: {
       return 0.45 + 0.45 * progress;
     }
+
     case 1: {
       return 0.95;
     }
+
     case 2: {
       return 1;
     }
+
     case 3: {
       return 0.88 - 0.16 * progress;
     }
+
     default: {
       return Math.max(
         0,
@@ -234,29 +245,36 @@ const makeCanvas = (w: number, h: number) => {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(w));
   canvas.height = Math.max(1, Math.round(h));
+
   return canvas;
 };
 
 const paintGlow = (stops: [number, string][]) => {
   const canvas = makeCanvas(128, 128);
   const ctx = canvas.getContext("2d");
+
   if (ctx) {
     const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+
     for (const [at, color] of stops) {
       gradient.addColorStop(at, color);
     }
+
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 128, 128);
   }
+
   return canvas;
 };
 
 const paintBackdrop = (w: number, h: number, dpr: number, ground: number) => {
   const canvas = makeCanvas(w * dpr, h * dpr);
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return canvas;
   }
+
   ctx.scale(dpr, dpr);
   const sky = ctx.createLinearGradient(0, 0, 0, h);
   sky.addColorStop(0, "rgb(4 3 9 / 0.35)");
@@ -265,10 +283,13 @@ const paintBackdrop = (w: number, h: number, dpr: number, ground: number) => {
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, w, h);
   let seed = 11;
+
   const roll = () => {
     seed = (seed * 16_807) % 2_147_483_647;
+
     return seed / 2_147_483_647;
   };
+
   for (let i = 0; i < 9; i += 1) {
     const x = roll() * w;
     const y = ground - h * (0.1 + roll() * 0.22);
@@ -282,12 +303,14 @@ const paintBackdrop = (w: number, h: number, dpr: number, ground: number) => {
     ctx.fillStyle = light;
     ctx.fillRect(x - r, y - r, r * 2, r * 2);
   }
+
   const floor = ctx.createLinearGradient(0, ground - 30, 0, h);
   floor.addColorStop(0, "rgb(30 20 18 / 0)");
   floor.addColorStop(0.3, "rgb(24 17 15 / 0.75)");
   floor.addColorStop(1, "rgb(10 7 7 / 1)");
   ctx.fillStyle = floor;
   ctx.fillRect(0, ground - 30, w, h - ground + 30);
+
   const vignette = ctx.createRadialGradient(
     w / 2,
     h * 0.42,
@@ -296,35 +319,43 @@ const paintBackdrop = (w: number, h: number, dpr: number, ground: number) => {
     h * 0.42,
     Math.max(w, h) * 0.8
   );
+
   vignette.addColorStop(0, "rgb(0 0 0 / 0)");
   vignette.addColorStop(1, "rgb(0 0 0 / 0.6)");
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, w, h);
+
   return canvas;
 };
 
 export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const context = canvas.getContext("2d");
+
   if (!context) {
     throw new Error("Canvas 2D is not available");
   }
+
   const ctx = context;
+
   const glow = paintGlow([
     [0, "rgb(255 250 225 / 1)"],
     [0.18, "rgb(255 214 140 / 0.75)"],
     [0.45, "rgb(255 140 60 / 0.22)"],
     [1, "rgb(255 90 30 / 0)"],
   ]);
+
   const warmth = paintGlow([
     [0, "rgb(255 150 70 / 0.55)"],
     [0.4, "rgb(240 100 40 / 0.18)"],
     [1, "rgb(120 30 10 / 0)"],
   ]);
+
   const haze = paintGlow([
     [0, "rgb(190 180 175 / 0.5)"],
     [0.5, "rgb(150 140 140 / 0.2)"],
     [1, "rgb(120 110 110 / 0)"],
   ]);
+
   let sparks: Spark[] = [];
   let puffs: Puff[] = [];
   let pops: Pop[] = [];
@@ -344,6 +375,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
+
     if (
       canvas.width !== Math.round(w * dpr) ||
       canvas.height !== Math.round(h * dpr)
@@ -351,11 +383,14 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
     }
+
     layout = layoutOf(w, h);
     const key = `${w}x${h}@${dpr}`;
+
     if (backdrop?.key !== key) {
       backdrop = { image: paintBackdrop(w, h, dpr, layout.ground), key };
     }
+
     return { h, w };
   };
 
@@ -369,6 +404,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const sceneOf = (run: Run): Scene => {
     const phase = phaseAt(run.stick, run.time);
     const progress = progressAt(run.stick, run.time);
+
     return {
       bob: toScreen(run.bob),
       heat: run.end === "burned" ? 0 : heatAt(phase, progress),
@@ -387,6 +423,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const angle = kind.droop
       ? Math.PI * (0.15 + Math.random() * 0.7)
       : Math.random() * TAU;
+
     const speed = between(kind.speed) * unit();
     sparks.push({
       age: 0,
@@ -404,18 +441,22 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const kind = kinds[scene.phase] ?? mum;
     const scale = run.stick.vigour * (calm ? 0.35 : 1);
     owed += kind.rate(scene.progress) * scale * dt;
+
     if (kind === peony && Math.random() < dt * 2 * scale) {
       owed += 8 + Math.random() * 7;
     }
+
     while (owed >= 1 && sparks.length < LIMIT) {
       owed -= 1;
       emit(kind, scene);
     }
+
     owed = Math.min(owed, 16);
   };
 
   const exhale = (scene: Scene, lit: boolean, dt: number) => {
     smoke += dt * (scene.phase === 0 && lit ? 7 : 2.5) * (calm ? 0.5 : 1);
+
     while (smoke >= 1) {
       smoke -= 1;
       puffs.push({
@@ -433,12 +474,15 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const split = (spark: Spark) => {
     const { kind } = spark;
     const depth = calm ? Math.min(1, kind.depth) : kind.depth;
+
     if (spark.depth >= depth || sparks.length > LIMIT) {
       return;
     }
+
     const heading = Math.atan2(spark.vy, spark.vx);
     const count = Math.round(between(kind.fork));
     const speed = between(kind.speed) * unit() * 0.42 ** (spark.depth + 1);
+
     for (let i = 0; i < count; i += 1) {
       const turn = heading + (Math.random() * 2 - 1) * kind.spread;
       sparks.push({
@@ -452,6 +496,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         y: spark.y,
       });
     }
+
     if (!calm) {
       pops.push({
         age: 0,
@@ -461,30 +506,38 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       });
       flash = Math.min(1, flash + 0.025);
     }
+
     crackle += 1;
   };
 
   const age = (dt: number, wind: number) => {
     const push = wind * 900 * unit();
     const alive: Spark[] = [];
+
     for (const spark of sparks) {
       spark.age += dt;
+
       if (spark.age >= spark.life) {
         split(spark);
         continue;
       }
+
       const drag = Math.exp(-spark.kind.drag * dt);
       spark.vx = spark.vx * drag + push * dt;
       spark.vy = spark.vy * drag + spark.kind.fall * unit() * dt;
       spark.x += spark.vx * dt;
       spark.y += spark.vy * dt;
+
       if (spark.y > layout.ground) {
         embers.push({ age: 0, size: 1.2, x: spark.x, y: layout.ground });
         continue;
       }
+
       alive.push(spark);
     }
+
     sparks = alive;
+
     for (const puff of puffs) {
       puff.age += dt;
       puff.vx += (wind * 260 - puff.vx * 0.6) * dt;
@@ -492,10 +545,13 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       puff.y += puff.vy * dt;
       puff.size += 9 * dt * unit();
     }
+
     puffs = puffs.filter((puff) => puff.age < puff.life);
+
     for (const pop of [...pops, ...embers]) {
       pop.age += dt;
     }
+
     pops = pops.filter((pop) => pop.age < POP_LIFE);
     embers = embers.filter((ember) => ember.age < EMBER_LIFE).slice(-200);
     flash *= Math.exp(-10 * dt);
@@ -503,6 +559,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const sizzle = (at: Drop) => {
     flash = Math.min(1, flash + 0.4);
+
     for (let i = 0; i < (calm ? 6 : 18); i += 1) {
       const angle = -Math.PI * (0.1 + Math.random() * 0.8);
       const speed = between([60, 200]) * unit();
@@ -523,13 +580,17 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (drop === null) {
       return;
     }
+
     drop.heat *= Math.exp(-(drop.landed ? 0.7 : 0.15) * dt);
+
     if (drop.landed) {
       return;
     }
+
     drop.vy += 1900 * unit() * dt;
     drop.x += drop.vx * dt;
     drop.y += drop.vy * dt;
+
     if (drop.y + drop.r >= layout.ground) {
       drop.y = layout.ground - drop.r;
       drop.landed = true;
@@ -539,32 +600,40 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const drawSparks = () => {
     ctx.lineCap = "round";
+
     for (let band = 0; band < BANDS; band += 1) {
       ctx.beginPath();
       let width = 1;
+
       for (const spark of sparks) {
         const heat = 1 - spark.age / spark.life;
+
         if (Math.min(BANDS - 1, Math.floor(heat * BANDS)) !== band) {
           continue;
         }
+
         const tail = spark.kind.streak * (calm ? 0.6 : 1);
         ctx.moveTo(spark.x - spark.vx * tail, spark.y - spark.vy * tail);
         ctx.lineTo(spark.x, spark.y);
         width = spark.kind.width * (spark.depth === 0 ? 1 : 0.75);
       }
+
       ctx.lineWidth = width;
       ctx.strokeStyle = bands[band] ?? "#fff";
       ctx.stroke();
     }
+
     for (const pop of pops) {
       ctx.globalAlpha = (1 - pop.age / POP_LIFE) * 0.8;
       const size = pop.size * (1 + pop.age * 8);
       ctx.drawImage(glow, pop.x - size, pop.y - size, size * 2, size * 2);
     }
+
     for (const ember of embers) {
       ctx.globalAlpha = (1 - ember.age / EMBER_LIFE) * 0.6;
       ctx.drawImage(warmth, ember.x - 3, ember.y - 2, 6, 4);
     }
+
     ctx.globalAlpha = 1;
   };
 
@@ -579,15 +648,18 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         puff.size * 2
       );
     }
+
     ctx.globalAlpha = 1;
   };
 
   const drawHandle = (pivot: Point, light: number, ball: Point) => {
     const top = -12;
     const length = pivot.y - top;
+
     if (length <= 0) {
       return;
     }
+
     const { x } = pivot;
     ctx.save();
     ctx.beginPath();
@@ -600,6 +672,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.fillStyle = "#2a211d";
     ctx.fillRect(x - 3, top, 6, length);
     const painted = pivot.y - length * 0.42;
+
     for (let i = 0; painted - i * 9 > top; i += 1) {
       const y = painted - i * 9;
       ctx.fillStyle = HANDLE[i % HANDLE.length] ?? "#b2332a";
@@ -610,8 +683,10 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.lineTo(x - 3, y - 6);
       ctx.fill();
     }
+
     ctx.strokeStyle = "rgb(0 0 0 / 0.35)";
     ctx.lineWidth = 0.6;
+
     for (let i = 0; pivot.y - i * 3.2 > painted; i += 1) {
       const y = pivot.y - i * 3.2;
       ctx.beginPath();
@@ -619,6 +694,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.lineTo(x + 3, y - 2.4);
       ctx.stroke();
     }
+
     const shade = ctx.createLinearGradient(x - 2, 0, x + 2, 0);
     shade.addColorStop(0, "rgb(255 220 180 / 0.18)");
     shade.addColorStop(0.5, "rgb(0 0 0 / 0)");
@@ -635,10 +711,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const drawString = (scene: Scene, end: Point, ember: number) => {
     const { pivot, motion } = scene;
+
     const mid = {
       x: (pivot.x + end.x) / 2 - motion.x * 0.025,
       y: (pivot.y + end.y) / 2 - motion.y * 0.01,
     };
+
     const paint = ctx.createLinearGradient(pivot.x, pivot.y, end.x, end.y);
     paint.addColorStop(0, "#2c221d");
     paint.addColorStop(0.78, "#251b17");
@@ -660,13 +738,17 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (r <= 0.2) {
       return;
     }
+
     const boil = calm
       ? 1
       : 1 + 0.05 * Math.sin(clock * 23) * Math.sin(clock * 7.3);
+
     const size = r * boil;
     const hot = Math.min(1, heat * 1.1);
+
     const channel = (cold: number, warm: number) =>
       Math.round(cold + (warm - cold) * hot);
+
     const body = ctx.createRadialGradient(
       at.x - size * 0.28,
       at.y - size * 0.32,
@@ -675,6 +757,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       at.y,
       size
     );
+
     body.addColorStop(
       0,
       `rgb(${channel(74, 255)} ${channel(26, 254)} ${channel(14, 230)})`
@@ -689,10 +772,13 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.beginPath();
     ctx.arc(at.x, at.y, size, 0, TAU);
     ctx.fill();
+
     if (hot <= 0.3 || calm) {
       return;
     }
+
     ctx.fillStyle = `rgb(255 252 230 / ${(hot * 0.8).toFixed(3)})`;
+
     for (let i = 0; i < 3; i += 1) {
       const turn = clock * (2.1 + i * 0.7) + i * 2.1;
       ctx.beginPath();
@@ -717,6 +803,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (light <= 0.01) {
       return;
     }
+
     ctx.globalCompositeOperation = "lighter";
     const wash = Math.max(w, h) * (0.55 + 0.35 * light);
     ctx.globalAlpha = 0.34 * light;
@@ -736,10 +823,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const bloom = Math.max(r, 2) * 34;
     ctx.globalAlpha = 0.22 * light;
     ctx.drawImage(glow, at.x - bloom, at.y - bloom, bloom * 2, bloom * 2);
+
     if (!calm) {
       ctx.globalAlpha = 0.14 * light;
       ctx.drawImage(glow, at.x - r * 46, at.y - r * 0.9, r * 92, r * 1.8);
     }
+
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = "source-over";
   };
@@ -748,6 +837,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (drop === null) {
       return Math.max(heat, 0.25 * Math.exp(-cooled));
     }
+
     return drop.landed ? 0.1 : 0.35;
   };
 
@@ -759,22 +849,29 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   ) => {
     const { w, h } = size;
     const { bob, pivot } = scene;
+
     const flicker = calm
       ? 1
       : 0.9 + 0.1 * Math.sin(clock * 31) * Math.sin(clock * 17.3);
+
     const light = Math.min(1.2, scene.heat * flicker + flash * 0.6);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.globalCompositeOperation = "source-over";
     ctx.clearRect(0, 0, w, h);
+
     if (backdrop) {
       ctx.drawImage(backdrop.image, 0, 0, w, h);
     }
+
     drawLight(bob, scene.r, drop === null ? light : flash * 0.6, w, h);
+
     if (drop !== null) {
       drawLight(drop, drop.r, drop.heat * 0.9, w, h);
     }
+
     drawPuffs();
     drawHandle(pivot, light, bob);
+
     const tip =
       drop === null
         ? bob
@@ -782,10 +879,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
             x: bob.x - (bob.x - pivot.x) * 0.04,
             y: bob.y - (bob.y - pivot.y) * 0.04,
           };
+
     drawString(scene, tip, emberOf(scene.heat));
     ctx.globalCompositeOperation = "lighter";
     drawSparks();
     ctx.globalCompositeOperation = "source-over";
+
     if (drop !== null) {
       drawBall(drop, drop.r, drop.heat, clock);
     } else if (run.end === "burned") {
@@ -799,17 +898,21 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     draw: (frame: Frame) => {
       const { run, clock, dt } = frame;
       const size = resize();
+
       if (run !== current) {
         current = run;
         drop = null;
         cooled = 0;
+
         if (run.time === 0) {
           flash = Math.min(1, flash + 0.6);
         }
       }
+
       const scene = sceneOf(run);
       const lit = run.end === null;
       cooled = run.end === "burned" ? cooled + dt : 0;
+
       if (lit) {
         spawn(run, scene, dt);
       } else if (run.end !== "burned" && drop === null) {
@@ -823,10 +926,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
           y: scene.bob.y,
         };
       }
+
       exhale(scene, lit, dt);
       age(dt, windAt(run.stick, run.time));
       fall(dt);
       paint(run, scene, clock, size);
+
       if (frame.dim > 0) {
         ctx.fillStyle = `rgb(4 3 8 / ${frame.dim.toFixed(3)})`;
         ctx.fillRect(0, 0, size.w, size.h);
@@ -835,6 +940,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     heard: () => {
       const heard = crackle;
       crackle = 0;
+
       return heard;
     },
   };

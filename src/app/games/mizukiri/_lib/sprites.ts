@@ -13,17 +13,21 @@ const surface = (width: number, height: number) => {
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     throw new Error("Canvas 2D is not available");
   }
+
   return { canvas, ctx };
 };
 
 const trace = (ctx: CanvasRenderingContext2D, points: [number, number][]) => {
   ctx.beginPath();
+
   for (const [x, y] of points) {
     ctx.lineTo(x, y);
   }
+
   ctx.closePath();
 };
 
@@ -31,6 +35,7 @@ const shade = (ctx: CanvasRenderingContext2D, tint: Tint) => {
   if (tint.alpha <= 0) {
     return;
   }
+
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalCompositeOperation = "source-atop";
@@ -54,32 +59,41 @@ const lower =
   (by: number, curve: Curve): Curve =>
   (t) => {
     const [x, y] = curve(t);
+
     return [x, y + by];
   };
 
 const crescent: Curve = (t) => {
   const tip = 1.016;
+
   if (t < Math.PI) {
     const a = tip + (t / Math.PI) * (2 * Math.PI - 2 * tip);
+
     return [110 * (Math.cos(a) + 0.24), 80 * Math.sin(a)];
   }
+
   const a = 4.686 - ((t - Math.PI) / Math.PI) * 3.09;
+
   return [110 * (0.79 + 0.85 * Math.cos(a)), 80 * 0.85 * Math.sin(a)];
 };
 
 const fan: Curve = (t) => {
   const outer = t < Math.PI;
   const u = outer ? t / Math.PI : (t - Math.PI) / Math.PI;
+
   const a = outer
     ? (7 * Math.PI) / 6 + u * ((2 * Math.PI) / 3)
     : (11 * Math.PI) / 6 - u * ((2 * Math.PI) / 3);
+
   const r = outer ? 120 : 26;
+
   return [r * Math.cos(a), r * Math.sin(a) + 53];
 };
 
 const fish: Curve = (t) => {
   const tail = Math.exp(-(((t - Math.PI) / 0.45) ** 2));
   const notch = Math.exp(-(((t - Math.PI) / 0.15) ** 2));
+
   return [
     95 * Math.cos(t) - 32 * tail + 26 * notch + 10,
     48 * Math.sin(t) * (1 + 2.2 * tail),
@@ -88,9 +102,11 @@ const fish: Curve = (t) => {
 
 const hexagon: Curve = (t) => {
   const sector = Math.PI / 3;
+
   const r =
     Math.cos(sector / 2) /
     Math.cos((((t % sector) + sector) % sector) - sector / 2);
+
   return [110 * r * Math.cos(t), 78 * r * Math.sin(t)];
 };
 
@@ -102,10 +118,12 @@ const CURVES = new Map<string, Curve>([
     "bean",
     (t) => {
       const [x, y] = ellipse(112, 70)(t);
+
       const dent = Math.atan2(
         Math.sin(t + Math.PI / 2),
         Math.cos(t + Math.PI / 2)
       );
+
       return [x, y + 30 * Math.exp(-((dent / 0.6) ** 2))];
     },
   ],
@@ -175,20 +193,25 @@ const CURVES = new Map<string, Curve>([
 
 export const outlineOf = (form: string): [number, number][] => {
   const curve = CURVES.get(form) ?? ellipse(118, 70);
+
   return Array.from({ length: 97 }, (_, i) => {
     const [x, y] = curve((i / 96) * TAU);
+
     return [128 + x, 80 + y];
   });
 };
 
 const roughen = (outline: [number, number][], random: () => number) => {
   const phases = Array.from({ length: 4 }, () => random() * TAU);
+
   return outline.map(([x, y], i): [number, number] => {
     const a = (i / (outline.length - 1)) * TAU;
+
     const wobble = phases.reduce(
       (sum, phase, k) => sum + (0.03 / (k + 1)) * Math.sin((k + 2) * a + phase),
       1
     );
+
     return [128 + (x - 128) * wobble, 80 + (y - 80) * wobble];
   });
 };
@@ -196,8 +219,10 @@ const roughen = (outline: [number, number][], random: () => number) => {
 const paintWaves = (ctx: CanvasRenderingContext2D) => {
   ctx.strokeStyle = "rgb(255 255 255 / 0.32)";
   ctx.lineWidth = 2.5;
+
   for (let row = 0; row < 9; row += 1) {
     const y = row * 20;
+
     for (let x = row % 2 === 0 ? 0 : 22; x < 300; x += 44) {
       for (const r of [22, 15, 8]) {
         ctx.beginPath();
@@ -213,18 +238,22 @@ const paintCracks = (ctx: CanvasRenderingContext2D, random: () => number) => {
   ctx.shadowColor = "#ffd27a";
   ctx.shadowBlur = 8;
   ctx.lineWidth = 3;
+
   for (let k = 0; k < 3; k += 1) {
     let x = 40 + random() * 60;
     let y = random() * 160;
     ctx.beginPath();
     ctx.moveTo(x, y);
+
     for (let step = 0; step < 7; step += 1) {
       x += 18 + random() * 14;
       y += (random() - 0.5) * 40;
       ctx.lineTo(x, y);
     }
+
     ctx.stroke();
   }
+
   ctx.shadowBlur = 0;
 };
 
@@ -236,6 +265,7 @@ const paintPattern = (
   if (pattern === "stripe") {
     ctx.strokeStyle = "rgb(255 255 255 / 0.28)";
     ctx.lineWidth = 9;
+
     for (let k = 0; k < 4; k += 1) {
       const y = 35 + k * 30;
       ctx.beginPath();
@@ -255,6 +285,7 @@ const paintPattern = (
     paintWaves(ctx);
   } else if (pattern === "checker") {
     ctx.fillStyle = "rgb(0 0 0 / 0.28)";
+
     for (let y = 0; y < 160; y += 22) {
       for (let x = (y / 22) % 2 === 0 ? 0 : 22; x < 256; x += 44) {
         ctx.fillRect(x, y, 22, 22);
@@ -262,6 +293,7 @@ const paintPattern = (
     }
   } else if (pattern === "dots") {
     ctx.fillStyle = "rgb(255 255 255 / 0.4)";
+
     for (let y = 14; y < 160; y += 30) {
       for (let x = (y / 30) % 2 < 1 ? 14 : 29; x < 256; x += 30) {
         ctx.beginPath();
@@ -285,6 +317,7 @@ const H = 160;
 
 const lattice = (x: number, y: number, seed: number) => {
   const n = Math.sin(x * 127.1 + y * 311.7 + seed * 74.7) * 43_758.5453;
+
   return n - Math.floor(n);
 };
 
@@ -295,12 +328,15 @@ const noise = (x: number, y: number, seed: number) => {
   const iy = Math.floor(y);
   const fx = smooth(x - ix);
   const fy = smooth(y - iy);
+
   const top =
     lattice(ix, iy, seed) +
     (lattice(ix + 1, iy, seed) - lattice(ix, iy, seed)) * fx;
+
   const bottom =
     lattice(ix, iy + 1, seed) +
     (lattice(ix + 1, iy + 1, seed) - lattice(ix, iy + 1, seed)) * fx;
+
   return top + (bottom - top) * fy;
 };
 
@@ -319,12 +355,15 @@ const blur = (source: Float32Array, radius: number) => {
   ) => {
     const to = new Float32Array(from.length);
     const width = radius * 2 + 1;
+
     for (let line = 0; line < lines; line += 1) {
       const base = line * (step === 1 ? W : 1);
       let sum = 0;
+
       for (let k = -radius; k <= radius; k += 1) {
         sum += from[base + Math.min(span - 1, Math.max(0, k)) * step] ?? 0;
       }
+
       for (let i = 0; i < span; i += 1) {
         to[base + i * step] = sum / width;
         const add = Math.min(span - 1, i + radius + 1);
@@ -332,12 +371,16 @@ const blur = (source: Float32Array, radius: number) => {
         sum += (from[base + add * step] ?? 0) - (from[base + drop * step] ?? 0);
       }
     }
+
     return to;
   };
+
   let out = source;
+
   for (let k = 0; k < 3; k += 1) {
     out = pass(pass(out, 1, W, H), W, H, W);
   }
+
   return out;
 };
 
@@ -350,18 +393,21 @@ const rgbOf = (hex: string): [number, number, number] => [
 const LIGHT = (() => {
   const [x, y, z] = [-0.45, -0.62, 0.65];
   const length = Math.hypot(x, y, z);
+
   return [x / length, y / length, z / length] as const;
 })();
 
 const HALF = (() => {
   const [x, y, z] = [LIGHT[0], LIGHT[1], LIGHT[2] + 1];
   const length = Math.hypot(x, y, z);
+
   return [x / length, y / length, z / length] as const;
 })();
 
 const alphaOf = (paint: (ctx: CanvasRenderingContext2D) => void) => {
   const { ctx } = surface(W, H);
   paint(ctx);
+
   return ctx.getImageData(0, 0, W, H).data;
 };
 
@@ -373,8 +419,10 @@ const centerOf = (coverage: Float32Array) => {
   let right = 0;
   let top = H;
   let bottom = 0;
+
   for (let i = 0; i < coverage.length; i += 1) {
     const c = coverage[i] ?? 0;
+
     if (c > 0.5) {
       const x = i % W;
       const y = Math.floor(i / W);
@@ -387,6 +435,7 @@ const centerOf = (coverage: Float32Array) => {
       bottom = Math.max(bottom, y);
     }
   }
+
   return {
     cx: sx / Math.max(1, total),
     cy: sy / Math.max(1, total),
@@ -409,10 +458,13 @@ const normalAt = (
   const dx =
     ((height[i + 1] ?? 0) - (height[i - 1] ?? 0)) * 7 +
     ((center.cx - x) / center.rx) * 0.45;
+
   const dy =
     ((height[i + W] ?? 0) - (height[i - W] ?? 0)) * 7 +
     ((center.cy - y) / center.ry) * 0.45;
+
   const length = Math.hypot(dx, dy, 1);
+
   return [-dx / length, -dy / length, 1 / length] as const;
 };
 
@@ -437,12 +489,15 @@ const mineralAt = (
   const [light, mid, dark] = tones;
   const rough = 1 - color.gloss;
   const fine = fbm(x / 9, y / 9, seed + 5);
+
   const tone =
     (fbm(x / 70, y / 70, seed) - 0.5) * 1.3 +
     (fine - 0.5) * rough +
     (lattice(x, y, seed + 9) - 0.5) * 0.3 * rough;
+
   const target = tone < 0 ? dark : light;
   const amount = Math.min(1, Math.abs(tone) * 1.3);
+
   return {
     fine,
     rgb: [0, 1, 2].map(
@@ -461,15 +516,20 @@ const shadeAt = (
   const [nx, ny, nz] = normal;
   const diffuse = Math.max(0, nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]);
   const facing = Math.max(0, nx * HALF[0] + ny * HALF[1] + nz * HALF[2]);
+
   const spec =
     facing ** (18 + color.gloss * 55) * color.gloss * 1.2 + facing ** 6 * 0.08;
+
   const sky = 0.5 - ny * 0.5;
+
   const lit = color.metal
     ? 0.12 + 1.25 * sky * sky + 0.25 * diffuse
     : 0.3 + 0.85 * diffuse;
+
   const occlusion = 0.5 + 0.5 * Math.min(1, h * 1.6);
   const rim = (1 - nz) ** 2 * 33;
   const inner = (0.02 + 0.1 * h * h) * (0.6 + 0.4 * fine);
+
   return albedo.map((value, c) =>
     Math.min(
       255,
@@ -485,36 +545,46 @@ export const stoneSprite = (color: Color, form: string, pattern: string) => {
   const seed = color.mineral[1].length * 97 + form.length * 13;
   const random = randomFrom(seed);
   const outline = roughen(outlineOf(form), random);
+
   const mask = alphaOf((ctx) => {
     ctx.fillStyle = "#ffffff";
     trace(ctx, outline);
     ctx.fill();
   });
+
   const decor = alphaOf((ctx) => {
     paintPattern(ctx, pattern, random);
   });
+
   const coverage = new Float32Array(W * H);
+
   for (let i = 0; i < coverage.length; i += 1) {
     coverage[i] = (mask[i * 4 + 3] ?? 0) / 255;
   }
+
   const surfaceOf: Surface = {
     center: centerOf(coverage),
     height: blur(coverage, 15),
   };
+
   const finish = finishOf(color);
   const { canvas, ctx } = surface(W, H);
   const image = ctx.createImageData(W, H);
   const out = image.data;
+
   for (let y = 1; y < H - 1; y += 1) {
     for (let x = 1; x < W - 1; x += 1) {
       const i = y * W + x;
       const cover = coverage[i] ?? 0;
+
       if (cover > 0) {
         const { fine, rgb } = mineralAt(finish, x, y, seed);
         const paint = (decor[i * 4 + 3] ?? 0) / 255;
+
         const albedo = rgb.map(
           (value, c) => value + ((decor[i * 4 + c] ?? 0) - value) * paint
         );
+
         const shaded = shadeAt(
           finish,
           albedo,
@@ -522,6 +592,7 @@ export const stoneSprite = (color: Color, form: string, pattern: string) => {
           surfaceOf.height[i] ?? 0,
           fine
         );
+
         out[i * 4] = shaded[0] ?? 0;
         out[i * 4 + 1] = shaded[1] ?? 0;
         out[i * 4 + 2] = shaded[2] ?? 0;
@@ -529,7 +600,9 @@ export const stoneSprite = (color: Color, form: string, pattern: string) => {
       }
     }
   }
+
   ctx.putImageData(image, 0, 0);
+
   return canvas;
 };
 
@@ -578,12 +651,14 @@ export const duckSprite = (tint: Tint) => {
   ctx.fill();
   ctx.strokeStyle = "rgb(0 0 0 / 0.25)";
   ctx.lineWidth = 0.008;
+
   for (let i = 0; i < 4; i += 1) {
     ctx.beginPath();
     ctx.moveTo(-0.24 + i * 0.05, -0.2);
     ctx.lineTo(-0.3 + i * 0.05, -0.16);
     ctx.stroke();
   }
+
   ctx.fillStyle = "#3a5fd0";
   ctx.fillRect(-0.2, -0.205, 0.09, 0.03);
   ctx.fillStyle = "rgb(255 255 255 / 0.8)";
@@ -644,6 +719,7 @@ export const duckSprite = (tint: Tint) => {
   ctx.fill();
 
   shade(ctx, tint);
+
   return canvas;
 };
 
@@ -653,12 +729,14 @@ export const rockSprite = (seed: number, tint: Tint) => {
   ctx.beginPath();
   ctx.moveTo(8, 132);
   const peaks = 7;
+
   for (let i = 0; i <= peaks; i += 1) {
     const u = i / peaks;
     const x = 8 + u * 224;
     const y = 132 - Math.sin(u * Math.PI) ** 0.7 * (90 + random() * 30);
     ctx.quadraticCurveTo(x - 14, y - 10 * random(), x, y);
   }
+
   ctx.lineTo(232, 132);
   ctx.closePath();
 
@@ -676,6 +754,7 @@ export const rockSprite = (seed: number, tint: Tint) => {
   glow.addColorStop(1, "rgb(255 255 255 / 0)");
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, 240, 150);
+
   for (let i = 0; i < 6; i += 1) {
     ctx.fillStyle = `rgb(86 112 64 / ${(0.35 + random() * 0.3).toFixed(3)})`;
     ctx.beginPath();
@@ -690,8 +769,10 @@ export const rockSprite = (seed: number, tint: Tint) => {
     );
     ctx.fill();
   }
+
   ctx.strokeStyle = "rgb(0 0 0 / 0.3)";
   ctx.lineWidth = 2;
+
   for (let i = 0; i < 3; i += 1) {
     const x = 40 + random() * 160;
     ctx.beginPath();
@@ -699,11 +780,13 @@ export const rockSprite = (seed: number, tint: Tint) => {
     ctx.lineTo(x + (random() - 0.5) * 30, 90 + random() * 30);
     ctx.stroke();
   }
+
   ctx.fillStyle = "rgb(20 20 24 / 0.55)";
   ctx.fillRect(0, 112, 240, 40);
   ctx.restore();
 
   shade(ctx, tint);
+
   return canvas;
 };
 
@@ -727,6 +810,7 @@ export const lotusSprite = (seed: number, tint: Tint) => {
   ctx.stroke();
   ctx.strokeStyle = "rgb(220 255 190 / 0.35)";
   ctx.lineWidth = 1.5;
+
   for (let i = 1; i < 12; i += 1) {
     const a = notch + (i / 12) * TAU;
     ctx.beginPath();
@@ -734,6 +818,7 @@ export const lotusSprite = (seed: number, tint: Tint) => {
     ctx.lineTo(Math.cos(a) * 86, Math.sin(a) * 86);
     ctx.stroke();
   }
+
   if (random() < 0.35) {
     for (let ring = 0; ring < 2; ring += 1) {
       for (let i = 0; i < 8; i += 1) {
@@ -752,12 +837,15 @@ export const lotusSprite = (seed: number, tint: Tint) => {
         ctx.fill();
       }
     }
+
     ctx.fillStyle = "#f2d14a";
     ctx.beginPath();
     ctx.arc(0, 0, 8, 0, TAU);
     ctx.fill();
   }
+
   shade(ctx, tint);
+
   return canvas;
 };
 
@@ -768,6 +856,7 @@ export const leafSprite = (seed: number, tint: Tint) => {
   const lobes = 7;
   const tips: [number, number][] = [];
   ctx.beginPath();
+
   for (let i = 0; i <= 140; i += 1) {
     const a = (i / 140) * TAU - Math.PI / 2;
     const k = (((a + Math.PI / 2) / TAU) * lobes) % 1;
@@ -777,11 +866,14 @@ export const leafSprite = (seed: number, tint: Tint) => {
     const r = 78 * reach + Math.sin(i * 2.7) * 2.4;
     const x = Math.cos(a) * r;
     const y = Math.sin(a) * r;
+
     if (lobe > 0.97) {
       tips.push([x, y]);
     }
+
     ctx.lineTo(x, y);
   }
+
   ctx.closePath();
   const hue = random();
   const fill = ctx.createRadialGradient(0, 0, 4, 0, 0, 80);
@@ -792,12 +884,14 @@ export const leafSprite = (seed: number, tint: Tint) => {
   ctx.fill();
   ctx.strokeStyle = "rgb(255 220 180 / 0.45)";
   ctx.lineWidth = 1.6;
+
   for (const [x, y] of tips) {
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(x * 0.92, y * 0.92);
     ctx.stroke();
   }
+
   ctx.strokeStyle = "#7a2a17";
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -805,5 +899,6 @@ export const leafSprite = (seed: number, tint: Tint) => {
   ctx.quadraticCurveTo(4, 40, -6, 70);
   ctx.stroke();
   shade(ctx, tint);
+
   return canvas;
 };

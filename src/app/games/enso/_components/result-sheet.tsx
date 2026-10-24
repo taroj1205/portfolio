@@ -162,32 +162,40 @@ const useCount = (target: number) => {
   useEffect(() => {
     const start = performance.now() + COUNT_DELAY;
     let frame = 0;
+
     const step = (now: number) => {
       const k = clamp01((now - start) / COUNT_LENGTH);
       setShown(target * (1 - (1 - k) ** 3));
+
       if (k < 1) {
         frame = requestAnimationFrame(step);
       }
     };
+
     if (!calm()) {
       frame = requestAnimationFrame(step);
     }
+
     return () => {
       cancelAnimationFrame(frame);
     };
   }, [target]);
+
   return shown;
 };
 
 const versus = (score: number, challenge: Result, lang: Lang) => {
   const words = copy[lang].result;
   const gap = Math.round((score - challenge.score) * 10) / 10;
+
   if (gap > 0) {
     return words.won(formatScore(gap));
   }
+
   if (gap < 0) {
     return words.lost(formatScore(-gap));
   }
+
   return words.tied;
 };
 
@@ -213,6 +221,7 @@ export const ResultSheet = ({
   useEffect(() => {
     again.current?.focus({ preventScroll: true });
   }, []);
+
   return (
     <section
       aria-labelledby="enso-result"

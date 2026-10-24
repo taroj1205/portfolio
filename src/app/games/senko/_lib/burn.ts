@@ -50,13 +50,17 @@ export interface Run {
 
 const randomFrom = (seed: number) => {
   let state = (Math.abs(Math.floor(seed)) % (MODULUS - 1)) + 1;
+
   const roll = () => {
     state = (state * 48_271) % MODULUS;
+
     return (state - 1) / (MODULUS - 1);
   };
+
   for (let i = 0; i < WARM_UP; i += 1) {
     roll();
   }
+
   return roll;
 };
 
@@ -68,15 +72,18 @@ export const createStick = (seed: number): Stick => {
   const total = weights.reduce((sum, weight) => sum + weight, 0);
   const starts: number[] = [];
   let at = 0;
+
   for (const weight of weights) {
     starts.push(at);
     at += (weight / total) * seconds;
   }
+
   const vigour = 0.8 + roll() * 0.45;
   const windiness = 0.35 + roll() * 0.65;
   const breeze = (roll() * 2 - 1) * BREEZE * windiness;
   const gusts: Gust[] = [];
   let next = 3 + roll() * 5;
+
   while (next < seconds) {
     const span = 1.4 + roll() * 2.6;
     const side = roll() < 0.5 ? -1 : 1;
@@ -87,14 +94,17 @@ export const createStick = (seed: number): Stick => {
     });
     next += span + 2.5 + roll() * 7;
   }
+
   return { breeze, gusts, length, seed, starts, vigour };
 };
 
 export const phaseAt = (stick: Stick, time: number) => {
   let phase = 0;
+
   while (phase < LAST && time >= (stick.starts[phase + 1] ?? Infinity)) {
     phase += 1;
   }
+
   return phase;
 };
 
@@ -102,17 +112,21 @@ export const progressAt = (stick: Stick, time: number) => {
   const phase = phaseAt(stick, time);
   const start = stick.starts[phase] ?? 0;
   const end = stick.starts[phase + 1] ?? stick.length / 100;
+
   return Math.min(1, Math.max(0, (time - start) / (end - start)));
 };
 
 export const windAt = (stick: Stick, time: number) => {
   let wind = stick.breeze * Math.sin(time * 0.41 + (stick.seed % 7));
+
   for (const gust of stick.gusts) {
     const into = (time - gust.at) / gust.span;
+
     if (into > 0 && into < 1) {
       wind += gust.push * Math.sin(Math.PI * into) ** 2;
     }
   }
+
   return wind;
 };
 
@@ -121,9 +135,11 @@ const limitAt = (stick: Stick, time: number) => {
   const limit = LIMITS[phase] ?? 0;
   const next = stick.starts[phase + 1];
   const following = LIMITS[phase + 1];
+
   if (next === undefined || following === undefined || next - time > BLEND) {
     return limit;
   }
+
   return following + ((limit - following) * (next - time)) / BLEND;
 };
 
@@ -150,14 +166,18 @@ export const step = (run: Run, finger: Point, held: boolean) => {
   if (run.end !== null) {
     return;
   }
+
   if (!held) {
     run.end = "released";
+
     return;
   }
+
   const pace = {
     x: follow(run.hand.x, run.pace.x, finger.x),
     y: follow(run.hand.y, run.pace.y, finger.y),
   };
+
   const hand = { x: run.hand.x + pace.x * TICK, y: run.hand.y + pace.y * TICK };
   run.pace = pace;
   run.hand = hand;
@@ -178,6 +198,7 @@ export const step = (run: Run, finger: Point, held: boolean) => {
   const swing = Math.acos(Math.max(-1, 1 - energy));
   run.sway = swing / limitAt(run.stick, run.time);
   run.time += TICK;
+
   if (run.time >= run.stick.length / 100 - 1e-9) {
     run.time = run.stick.length / 100;
     run.end = "burned";

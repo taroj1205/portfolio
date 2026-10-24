@@ -410,9 +410,11 @@ export const nameOf = ({ color, form }: Stone, lang: Lang) => {
   const kind = colorOf(color).name[lang];
   const cut = formOf(form).name[lang];
   const base = lang === "en" ? `${kind} ${cut}` : `${kind}の${cut}`;
+
   if (combo === null) {
     return base;
   }
+
   return lang === "en"
     ? `${combo.name.en} (${base})`
     : `${combo.name.ja}（${base}）`;
@@ -423,6 +425,7 @@ const known = (options: Option[], id: string | undefined) =>
 
 export const stoneFrom = (code: string): Stone | null => {
   const [color, form] = code.split(".");
+
   return color !== undefined &&
     form !== undefined &&
     known(colors, color) &&

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { afterEach, describe, test, vi } from "vite-plus/test";
+import { afterEach, describe, it, vi } from "vite-plus/test";
 
 import { tempoAt } from "./beat";
 import type { Result } from "./result";
@@ -27,14 +27,14 @@ describe("mochitsuki save", () => {
     vi.unstubAllGlobals();
   });
 
-  test("an older or partial save fills in every field instead of resetting", () => {
+  it("an older or partial save fills in every field instead of resetting", () => {
     vi.stubGlobal("localStorage", {
       getItem: () => JSON.stringify({ best: 40, runs: 3 }),
     });
     assert.deepEqual(loadSave(), { ...fresh, best: 40, runs: 3 });
   });
 
-  test("keeps the totals a player profile would need", () => {
+  it("keeps the totals a player profile would need", () => {
     const first = play(fresh, result(30, "hand"), 5000).save;
     const second = play(first, result(150), 9000).save;
     assert.deepEqual(second, {
@@ -53,7 +53,7 @@ describe("mochitsuki save", () => {
     });
   });
 
-  test("a new best is a record, but the first run is not", () => {
+  it("a new best is a record, but the first run is not", () => {
     const first = play(fresh, result(20));
     assert.equal(first.record, false);
     const better = play(first.save, result(21));

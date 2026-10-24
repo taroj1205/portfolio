@@ -77,6 +77,7 @@ const GHOSTS = 4;
 const SLASH = 760;
 const RAISE = 0.22;
 const SLIDE = 0.2;
+
 const GRASS = {
   back: "#141426",
   backPlume: "rgb(246 212 138 / 0.35)",
@@ -97,6 +98,7 @@ const makeCanvas = (width: number, height: number) => {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(width));
   canvas.height = Math.max(1, Math.round(height));
+
   return canvas;
 };
 
@@ -110,20 +112,26 @@ const ridge = (
   mist: string
 ) => {
   const roll = seeded(seed);
+
   const waves = Array.from({ length: 4 }, () => ({
     a: roll() * Math.PI * 2,
     f: 1 + roll() * 5,
     k: 0.3 + roll() * 0.7,
   }));
+
   ctx.beginPath();
   ctx.moveTo(0, at.h);
+
   for (let x = 0; x <= at.w + 8; x += 8) {
     let y = 0;
+
     for (const wave of waves) {
       y += Math.sin((x / at.w) * wave.f * Math.PI + wave.a) * wave.k;
     }
+
     ctx.lineTo(x, base - height * (0.55 + y * 0.28));
   }
+
   ctx.lineTo(at.w, at.h);
   ctx.closePath();
   const fill = ctx.createLinearGradient(0, base - height, 0, base + height);
@@ -135,16 +143,20 @@ const ridge = (
 
 const paintBackdrop = (base: Layout, dpr: number) => {
   const tall = base.h > base.w;
+
   const at = {
     ...base,
     h: base.h * (tall ? 1 + RAISE : 1),
     w: base.w * (tall ? 1 : 1 + SLIDE),
   };
+
   const canvas = makeCanvas(at.w * dpr, at.h * dpr);
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return canvas;
   }
+
   ctx.scale(dpr, dpr);
   const sky = ctx.createLinearGradient(0, 0, 0, at.ground);
   sky.addColorStop(0, paint.skyTop);
@@ -154,6 +166,7 @@ const paintBackdrop = (base: Layout, dpr: number) => {
   ctx.fillRect(0, 0, at.w, at.h);
 
   const roll = seeded(1021);
+
   for (let i = 0; i < 160; i += 1) {
     const x = roll() * at.w;
     const y = roll() ** 1.4 * at.ground * 0.9;
@@ -163,9 +176,11 @@ const paintBackdrop = (base: Layout, dpr: number) => {
     ctx.arc(x, y, 0.4 + roll() ** 3 * 1.3, 0, Math.PI * 2);
     ctx.fill();
   }
+
   ctx.globalAlpha = 1;
 
   const { moon } = at;
+
   const halo = ctx.createRadialGradient(
     moon.x,
     moon.y,
@@ -174,6 +189,7 @@ const paintBackdrop = (base: Layout, dpr: number) => {
     moon.y,
     moon.r * 3.4
   );
+
   halo.addColorStop(0, "rgb(255 226 160 / 0.34)");
   halo.addColorStop(0.4, "rgb(200 170 255 / 0.08)");
   halo.addColorStop(1, "rgb(120 110 200 / 0)");
@@ -188,6 +204,7 @@ const paintBackdrop = (base: Layout, dpr: number) => {
     moon.y,
     moon.r
   );
+
   face.addColorStop(0, paint.moon);
   face.addColorStop(0.65, paint.moonMid);
   face.addColorStop(1, paint.moonEdge);
@@ -201,6 +218,7 @@ const paintBackdrop = (base: Layout, dpr: number) => {
   ctx.save();
   ctx.clip();
   const pocks = seeded(77);
+
   for (let i = 0; i < 14; i += 1) {
     const a = pocks() * Math.PI * 2;
     const d = pocks() ** 0.7 * moon.r * 0.85;
@@ -217,6 +235,7 @@ const paintBackdrop = (base: Layout, dpr: number) => {
     );
     ctx.fill();
   }
+
   ctx.restore();
   ctx.globalAlpha = 1;
 
@@ -254,6 +273,7 @@ const paintBackdrop = (base: Layout, dpr: number) => {
     at.ground + 10,
     at.w * 0.55
   );
+
   pool.addColorStop(0, "rgb(255 226 160 / 0.16)");
   pool.addColorStop(1, "rgb(255 226 160 / 0)");
   ctx.save();
@@ -270,21 +290,26 @@ const paintBackdrop = (base: Layout, dpr: number) => {
     0,
     at.ground + base.h * 0.04
   );
+
   mist.addColorStop(0, "rgb(170 170 220 / 0)");
   mist.addColorStop(0.5, "rgb(170 170 220 / 0.1)");
   mist.addColorStop(1, "rgb(170 170 220 / 0)");
   ctx.fillStyle = mist;
   ctx.fillRect(0, at.ground - base.h * 0.05, at.w, base.h * 0.09);
+
   return canvas;
 };
 
 const paintVeil = (at: Layout, dpr: number) => {
   const canvas = makeCanvas(at.w * dpr, at.h * dpr);
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return canvas;
   }
+
   ctx.scale(dpr, dpr);
+
   const veil = ctx.createRadialGradient(
     at.mid,
     at.h * 0.5,
@@ -293,20 +318,25 @@ const paintVeil = (at: Layout, dpr: number) => {
     at.h * 0.5,
     Math.hypot(at.w, at.h) * 0.62
   );
+
   veil.addColorStop(0, "rgb(0 0 0 / 0)");
   veil.addColorStop(1, "rgb(0 0 0 / 0.62)");
   ctx.fillStyle = veil;
   ctx.fillRect(0, 0, at.w, at.h);
+
   return canvas;
 };
 
 const paintCloud = (width: number, height: number, seed: number) => {
   const canvas = makeCanvas(width, height);
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return canvas;
   }
+
   const roll = seeded(seed);
+
   for (let i = 0; i < 22; i += 1) {
     const x = width * (0.08 + roll() * 0.84);
     const y = height * (0.35 + roll() * 0.3);
@@ -317,17 +347,21 @@ const paintCloud = (width: number, height: number, seed: number) => {
     ctx.fillStyle = puff;
     ctx.fillRect(x - r, y - r, r * 2, r * 2);
   }
+
   return canvas;
 };
 
 const growBlades = (at: Layout, front: boolean): Blade[] => {
   const roll = seeded(front ? 4242 : 2424);
   const count = Math.round((at.w / (front ? 9 : 5)) * (front ? 1 : 1.1));
+
   return Array.from({ length: count }, () => {
     const depth = roll();
+
     const y = front
       ? at.h - roll() * (at.h - at.ground) * 0.28
       : at.ground - 2 + depth * (at.h - at.ground) * 0.32;
+
     return {
       h:
         at.scale *
@@ -344,10 +378,12 @@ const growBlades = (at: Layout, front: boolean): Blade[] => {
 export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const ctx = canvas.getContext("2d");
   const paths = new Map<string, Path2D>();
+
   const mincho =
     getComputedStyle(document.documentElement)
       .getPropertyValue("--font-mincho")
       .trim() || "serif";
+
   let at = layoutOf(1, 1);
   let dpr = 1;
   let backdrop = makeCanvas(1, 1);
@@ -362,10 +398,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const path = (d: string) => {
     let found = paths.get(d);
+
     if (found === undefined) {
       found = new Path2D(d);
       paths.set(d, found);
     }
+
     return found;
   };
 
@@ -373,9 +411,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
     const ratio = Math.min(2, window.devicePixelRatio || 1);
+
     if (width === at.w && height === at.h && ratio === dpr) {
       return;
     }
+
     dpr = ratio;
     at = layoutOf(width, height);
     canvas.width = Math.max(1, Math.round(width * dpr));
@@ -393,7 +433,9 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (calm) {
       return blade.lean;
     }
+
     const wave = Math.sin(now * 0.0011 + blade.phase + blade.x * 0.004);
+
     return blade.lean + wave * 0.12 + gust * (0.55 + 0.25 * wave);
   };
 
@@ -408,6 +450,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   ) => {
     c.beginPath();
     const tips: { x: number; y: number; bend: number; h: number }[] = [];
+
     for (const blade of blades) {
       const bend = sway(blade, now, gust);
       const tipX = blade.x + bend * blade.h;
@@ -419,17 +462,21 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         tipX,
         tipY
       );
+
       if (blade.plume) {
         tips.push({ bend, h: blade.h, x: tipX, y: tipY });
       }
     }
+
     c.strokeStyle = colour;
     c.lineWidth = width;
     c.lineCap = "round";
     c.stroke();
     c.beginPath();
+
     for (const tip of tips) {
       const reach = tip.h * 0.22;
+
       for (let k = 0; k < 5; k += 1) {
         const along = k / 5;
         const x = tip.x - tip.bend * reach * along * 0.8;
@@ -441,6 +488,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         );
       }
     }
+
     c.strokeStyle = plume;
     c.lineWidth = width * 0.7;
     c.stroke();
@@ -459,6 +507,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const stretch = 1 + gust * 0.6;
     c.strokeStyle = colour;
     c.lineCap = "round";
+
     for (const [lift, length] of [
       [0, 26],
       [5, 20],
@@ -474,6 +523,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       c.lineWidth = 2.4;
       c.stroke();
     }
+
     c.beginPath();
     c.moveTo(kx - 2, ky - 6);
     c.lineTo(kx + 9, ky - 7);
@@ -492,6 +542,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     c.globalAlpha = ghost ?? 1;
     c.translate(x, at.ground);
     c.scale(at.scale * LIFT * (side === "left" ? 1 : -1), at.scale * LIFT);
+
     const passes =
       ghost === undefined
         ? ([
@@ -499,25 +550,32 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
             [0, INK],
           ] as const)
         : ([[0, INK]] as const);
+
     for (const [shift, fill] of passes) {
       c.save();
       c.translate(shift, -shift * 0.9);
       c.fillStyle = fill;
       c.strokeStyle = fill;
       c.lineCap = "round";
+
       for (const d of figure.body) {
         c.fill(path(d));
       }
+
       for (const line of figure.lines) {
         c.lineWidth = line.width;
         c.stroke(path(line.d));
       }
+
       c.restore();
     }
+
     if (ghost !== undefined) {
       c.restore();
+
       return;
     }
+
     if (figure.blade !== null) {
       c.save();
       c.shadowColor = "rgb(255 236 190 / 0.9)";
@@ -526,6 +584,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       c.fill(path(figure.blade));
       c.restore();
     }
+
     drawKnot(c, figure.knot, colour, now, gust, side);
     c.restore();
   };
@@ -538,18 +597,23 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (clash === null) {
       return { dash: 0, pose: "stance", x: home(side) };
     }
+
     const age = now - clash.at;
     const striking = clash.kind === "draw" || clash.side === side;
+
     if (striking) {
       const reach = clash.kind === "early" ? EARLY_REACH : 1;
       const k = (calm ? 1 : easeOut(age / DASH)) * reach;
+
       return {
         dash: k,
         pose: "strike",
         x: lerp(home(side), lunge(side), k),
       };
     }
+
     const fallen = clash.kind === "cut" && age > (calm ? 0 : FALL);
+
     return {
       dash: 0,
       pose: fallen ? "fallen" : "stance",
@@ -584,6 +648,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   ) => {
     const stop = calm || held || (t > 0.42 && t < 0.62);
     let p = 0;
+
     if (!calm) {
       if (t <= 0.42) {
         p = lerp(-1.5, 0, t / 0.42);
@@ -591,6 +656,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         p = lerp(0, 1.5, (t - 0.62) / 0.38);
       }
     }
+
     const x = at.mid + p * at.gap;
     const y = at.ground + 8 * at.scale;
     const size = at.scale * CAT_SIZE;
@@ -602,6 +668,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     c.scale(size, size);
     c.lineCap = "round";
     c.lineWidth = 2.2;
+
     for (const [shift, fill] of [
       [0.9, RIM],
       [0, INK],
@@ -610,10 +677,13 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       c.translate(shift, -shift);
       c.fillStyle = fill;
       c.strokeStyle = fill;
+
       for (const d of cat.body) {
         c.fill(path(d));
       }
+
       c.stroke(path(cat.tail));
+
       for (const [i, [lx, ly]] of cat.legs.entries()) {
         const swing = i % 2 === 0 ? step : -step;
         c.beginPath();
@@ -621,20 +691,25 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         c.lineTo(lx + swing, 0);
         c.stroke();
       }
+
       c.restore();
     }
+
     if (stop) {
       c.globalAlpha = alpha;
       c.fillStyle = paint.eye;
       c.shadowColor = paint.eye;
       c.shadowBlur = 6;
+
       for (const [ex, ey] of cat.eyes) {
         c.beginPath();
         c.ellipse(ex, ey, 1.2, 1.6, 0, 0, Math.PI * 2);
         c.fill();
       }
     }
+
     c.restore();
+
     if (stop) {
       label(
         c,
@@ -704,6 +779,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const strength = calm ? 0.7 : Math.sin(Math.PI * t);
     c.save();
     c.lineCap = "round";
+
     for (let i = 0; i < 6; i += 1) {
       const travel = calm ? 0.5 : t * 1.5 - i * 0.08;
       const x = lerp(-at.w * 0.4, at.w * 1.1, travel);
@@ -724,6 +800,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       );
       c.stroke();
     }
+
     c.restore();
     label(
       c,
@@ -742,6 +819,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     c.save();
     c.translate(x, y);
     c.beginPath();
+
     for (const [i, point] of splash.entries()) {
       if (i === 0) {
         c.moveTo(point.x * r, point.y * r);
@@ -749,6 +827,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         c.lineTo(point.x * r, point.y * r);
       }
     }
+
     c.closePath();
     c.fillStyle = VERMILION;
     c.shadowColor = "rgb(255 80 40 / 0.85)";
@@ -780,12 +859,14 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (bits.length === 0) {
       return;
     }
+
     c.save();
     c.globalAlpha = clamp01(1 - age / 1600);
     c.strokeStyle = "#1a1a26";
     c.lineWidth = 1.6;
     c.lineCap = "round";
     c.beginPath();
+
     for (const bit of bits) {
       bit.vy += 0.0011 * at.scale * dt;
       bit.x += bit.vx * dt;
@@ -797,8 +878,10 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         bit.y + Math.sin(bit.turn) * bit.size
       );
     }
+
     c.stroke();
     c.restore();
+
     if (age > 1600) {
       bits = [];
     }
@@ -812,13 +895,16 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (age > SLASH) {
       return;
     }
+
     const from =
       clash.kind === "draw" ? at.mid - at.gap * 1.2 : home(clash.side);
+
     const to =
       clash.kind === "draw"
         ? at.mid + at.gap * 1.2
         : home(clash.side === "left" ? "right" : "left") +
           (clash.side === "left" ? 1 : -1) * at.gap * 0.5;
+
     const grow = calm ? 1 : easeOut(age / 80);
     const end = lerp(from, to, grow);
     const y = at.ground - BLADE_Y * at.scale * LIFT;
@@ -840,10 +926,13 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (clash === null) {
       seen = null;
       bits = [];
+
       return;
     }
+
     if (clash.at !== seen) {
       seen = clash.at;
+
       if (clash.kind === "cut" && !calm) {
         spawnBits(home(clash.side === "left" ? "right" : "left"), now);
       }
@@ -854,6 +943,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (cue?.kind !== "wind") {
       return 0;
     }
+
     return calm ? 0.5 : Math.sin(Math.PI * cue.t);
   };
 
@@ -867,6 +957,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       const drift = calm
         ? 0.3
         : (now * 0.000012 * (1 + i * 0.4) + i * 0.37) % 1;
+
       const x = lerp(-cloud.width, at.w, drift);
       const y = at.moon.y - at.moon.r * (0.9 - i * 0.55);
       c.drawImage(cloud, x, y - cloud.height / 2);
@@ -880,8 +971,10 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     gust: number
   ) => {
     const { clash, colours, now } = frame;
+
     for (const side of ["left", "right"] as const) {
       const state = actor(side, clash, now);
+
       if (!calm && state.dash > 0 && age < DASH + 160) {
         for (let g = 1; g <= GHOSTS; g += 1) {
           drawFigure(
@@ -899,6 +992,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         }
       }
     }
+
     for (const side of ["left", "right"] as const) {
       const state = actor(side, clash, now);
       drawFigure(
@@ -912,6 +1006,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const drawCue = (c: CanvasRenderingContext2D, frame: Frame) => {
     const { cue, now } = frame;
+
     if (cue?.kind === "cat") {
       drawCat(c, cue.t, cue.held, now);
     } else if (cue?.kind === "leaf") {
@@ -929,6 +1024,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (calm || clash === null || clash.kind === "early" || age >= FLASH) {
       return;
     }
+
     c.fillStyle = `rgb(255 250 235 / ${0.5 * (1 - age / FLASH)})`;
     c.fillRect(-20, -20, at.w + 40, at.h + 40);
   };
@@ -946,6 +1042,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (!ctx) {
       return;
     }
+
     fit();
     const { now, cue, clash } = frame;
     const dt = Math.min(50, Math.max(0, now - last));
@@ -963,19 +1060,24 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     );
     ctx.drawImage(backdrop, 0, 0, backdrop.width / dpr, backdrop.height / dpr);
     drawClouds(ctx, now);
+
     if (cue?.kind === "crow") {
       drawCrow(ctx, cue.t, now);
     }
+
     drawBlades(ctx, back, now, gust, GRASS.back, 1.2, GRASS.backPlume);
     drawActors(ctx, frame, age, gust);
     drawCue(ctx, frame);
+
     if (frame.signal && (clash === null || age < 90)) {
       drawSignal(ctx);
     }
+
     if (clash !== null) {
       drawSlash(ctx, clash, age);
       drawBits(ctx, dt, age);
     }
+
     drawBlades(ctx, front, now, gust, GRASS.front, 2.4, GRASS.frontPlume);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.drawImage(veil, 0, 0, at.w, at.h);
@@ -984,6 +1086,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const side = (x: number, y: number): Side => {
     const rect = canvas.getBoundingClientRect();
+
     const first =
       rect.height >= rect.width
         ? y - rect.top < rect.height / 2
