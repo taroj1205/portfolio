@@ -11,14 +11,14 @@
   "dependencies": {
     "@base-ui/react": "1.9.0",
     "@stylexjs/stylex": "0.19.1",
-    "next": "16.4.2",
+    "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "sharp": "0.35.5",
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@shadcn/lint": "0.2.0",
+    "@shadcn/lint": "0.2.3",
     "@stylexjs/babel-plugin": "0.19.1",
     "@stylexjs/postcss-plugin": "0.19.1",
     "@types/node": "26.6.5",
@@ -26,11 +26,11 @@
     "@types/react-dom": "19.3.0",
     "autoprefixer": "10.6.1",
     "babel-plugin-react-compiler": "1.0.0",
-    "cspell": "10.3.4",
-    "knip": "6.41.0",
+    "cspell": "10.4.0",
+    "knip": "6.43.0",
     "typescript": "7.0.2",
-    "ultracite": "7.12.0",
-    "vite-plus": "1.0.0"
+    "ultracite": "8.0.2",
+    "vite-plus": "1.4.0"
   },
   "engines": {
     "node": ">=24"
