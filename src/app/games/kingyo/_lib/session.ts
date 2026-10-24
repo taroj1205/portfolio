@@ -1,7 +1,7 @@
 import { loadSettings, storeSettings } from "../../_lib/settings";
 import type { Settings } from "../../_lib/settings";
 import type { Point } from "../../_lib/svg";
-import { SCENE } from "./art";
+import { GRIP, SCENE } from "./art";
 import { kinds } from "./fish";
 import type { KindId } from "./fish";
 import { createRenderer } from "./render";
@@ -30,8 +30,8 @@ interface Listeners {
   settings: (settings: Settings) => void;
 }
 
-const LIFT = 56;
-const AIM = { hold: 140, slop: 8 };
+const AIM = { hold: 180, slop: 8 };
+const BARE: Point = { x: 0, y: 0 };
 const SETTLE = 800;
 
 interface Aim {
@@ -55,7 +55,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   let active: number | null = null;
   let aim: Aim | null = null;
   let ending: { at: number; value: Ending } | null = null;
-  let offset = 0;
+  let grip = BARE;
   let last = 0;
   let start = 0;
   let previous = performance.now();
@@ -131,11 +131,12 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     const rect = canvas.getBoundingClientRect();
     const side = Math.min(rect.width, rect.height) || 1;
     return {
-      x: ((event.clientX - rect.left - (rect.width - side) / 2) / side) * SCENE,
+      x:
+        ((event.clientX - rect.left - (rect.width - side) / 2) / side) * SCENE -
+        grip.x,
       y:
-        ((event.clientY - rect.top - (rect.height - side) / 2 - offset) /
-          side) *
-        SCENE,
+        ((event.clientY - rect.top - (rect.height - side) / 2) / side) * SCENE -
+        grip.y,
     };
   };
 
@@ -165,7 +166,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     sound.unlock();
     canvas.setPointerCapture(event.pointerId);
     active = event.pointerId;
-    offset = event.pointerType === "touch" ? LIFT : 0;
+    grip = event.pointerType === "touch" ? GRIP : BARE;
     hover(tank, pointOf(event));
     if (event.pointerType === "touch") {
       aim = { at: event.timeStamp, x: event.clientX, y: event.clientY };
@@ -177,7 +178,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const move = (event: PointerEvent) => {
     if (event.pointerId !== active) {
       if (event.pointerType === "mouse" && phase !== "done") {
-        offset = 0;
+        grip = BARE;
         hover(tank, pointOf(event));
       }
       return;
