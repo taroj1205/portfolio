@@ -209,6 +209,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     active = null;
     if (aim !== null) {
       aim = null;
+      render.hint(tank.poi, now);
     } else if (phase === "scooping") {
       react(lift(tank), now);
     }

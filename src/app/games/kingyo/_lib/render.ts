@@ -52,6 +52,7 @@ interface Floater {
   text: string;
   born: number;
   gold: boolean;
+  at?: Point;
 }
 
 const FLY = 520;
@@ -63,6 +64,7 @@ const SHOWN = 8;
 
 const RIP: Text = { en: "Rip!", ja: "ビリッ" };
 const SLIP: Text = { en: "Slipped!", ja: "するっ" };
+const HOLD: Text = { en: "Hold to dip", ja: "おさえて入れる" };
 
 const ink = {
   gold: ["#fff6d8", "#ffd27a", "#c9862c"],
@@ -374,8 +376,13 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const px = floater.gold ? 58 : 50;
     ctx.font = `700 ${px}px ${font}`;
     const half = ctx.measureText(floater.text).width / 2;
-    const x = Math.min(BOWL.x, SCENE - 24 - half);
-    const y = BOWL.y - BOWL.r - 30 - (calm ? 0 : easeOut(t) * 70);
+    const drift = calm ? 0 : easeOut(t) * 70;
+    const x = floater.at
+      ? Math.min(Math.max(floater.at.x, 24 + half), SCENE - 24 - half)
+      : Math.min(BOWL.x, SCENE - 24 - half);
+    const y = floater.at
+      ? Math.max(px, floater.at.y - POI.ring - 40) - drift * 0.5
+      : BOWL.y - BOWL.r - 30 - drift;
     ctx.globalAlpha = t < 0.7 ? 1 : 1 - (t - 0.7) / 0.3;
     const fill = floater.gold ? ink.gold : ink.white;
     const paint = ctx.createLinearGradient(0, y - px / 2, 0, y + px / 2);
@@ -500,6 +507,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
               ? `+${fish.length}`
               : `${kinds[rare.kind].name[lang]}${lang === "ja" ? "！" : "!"}`,
         },
+      ];
+    },
+    hint: (at: Point, now: number) => {
+      floaters = [
+        ...floaters.filter((floater) => floater.at === undefined).slice(-2),
+        { at: { x: at.x, y: at.y }, born: now, gold: false, text: HOLD[lang] },
       ];
     },
     slip: (at: Point, now: number) => {
