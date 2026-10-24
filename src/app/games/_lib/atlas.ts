@@ -1,7 +1,7 @@
 import { dataUri, docOf, spriteDoc } from "./svg";
 import type { Frame, Sprite } from "./svg";
 
-const rasterize = async (svg: string, width: number, height: number) => {
+export const rasterize = async (svg: string, width: number, height: number) => {
   try {
     const image = new Image();
     image.src = dataUri(svg);
