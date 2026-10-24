@@ -4,7 +4,17 @@ import { describe, test } from "vite-plus/test";
 
 import { seeded } from "../../_lib/svg";
 import type { KindId } from "./fish";
-import { POI, STOCK, WATER, createTank, dip, drag, lift, step } from "./tank";
+import {
+  POI,
+  STOCK,
+  WATER,
+  catchable,
+  createTank,
+  dip,
+  drag,
+  lift,
+  step,
+} from "./tank";
 import type { Fish } from "./tank";
 
 const DT = 1 / 60;
@@ -17,6 +27,7 @@ const still = (kind: KindId, x: number, y: number): Fish => ({
   phase: 0,
   speed: 0,
   turn: 0,
+  under: false,
   x,
   y,
 });
@@ -25,60 +36,6 @@ const tankWith = (fish: Fish[]) => {
   const tank = createTank(seeded(7));
   tank.fish = fish;
   return tank;
-};
-
-const play = (seed: number, chase: number) => {
-  const tank = createTank(seeded(seed));
-  let time = 0;
-  const wait = () => {
-    step(tank, DT);
-    return DT;
-  };
-  while (!tank.poi.torn && time < 900) {
-    const calm = tank.fish.filter((fish) => fish.fright === 0);
-    const [target] = (calm.length > 0 ? calm : tank.fish).toSorted(
-      (a, b) =>
-        Math.hypot(a.x - tank.poi.x, a.y - tank.poi.y) -
-        Math.hypot(b.x - tank.poi.x, b.y - tank.poi.y)
-    );
-    for (let i = 0; i < 20; i += 1) {
-      time += wait();
-    }
-    dip(tank, {
-      x: target.x + Math.cos(target.heading) * target.speed * 1.8,
-      y: target.y + Math.sin(target.heading) * target.speed * 1.8,
-    });
-    let waited = 0;
-    let seen = -1;
-    while (!tank.poi.torn && waited < 4) {
-      time += wait();
-      waited += DT;
-      const gap = Math.hypot(target.x - tank.poi.x, target.y - tank.poi.y);
-      if (gap > 1 && tank.fish.includes(target)) {
-        const k = Math.min(1, (chase * DT) / gap);
-        drag(
-          tank,
-          {
-            x: tank.poi.x + (target.x - tank.poi.x) * k,
-            y: tank.poi.y + (target.y - tank.poi.y) * k,
-          },
-          DT
-        );
-      }
-      const over = tank.fish.some(
-        (fish) =>
-          Math.hypot(fish.x - tank.poi.x, fish.y - tank.poi.y) < POI.reach * 0.8
-      );
-      if (over && seen < 0) {
-        seen = waited;
-      }
-      if (seen >= 0 && waited - seen >= 0.12) {
-        break;
-      }
-    }
-    lift(tank);
-  }
-  return tank.caught.length;
 };
 
 const sweep = (seconds: number) => {
@@ -96,6 +53,7 @@ const trembled = (hz: number) => {
   const tank = tankWith([]);
   const random = seeded(5);
   dip(tank, { x: 500, y: 500 });
+  const before = tank.poi.paper;
   for (let i = 0; i < hz * 5; i += 1) {
     drag(
       tank,
@@ -103,7 +61,65 @@ const trembled = (hz: number) => {
       1 / hz
     );
   }
-  return 1 - tank.poi.paper;
+  return before - tank.poi.paper;
+};
+
+const nearest = (tank: ReturnType<typeof createTank>) =>
+  tank.fish.toSorted(
+    (a, b) =>
+      Math.hypot(a.x - tank.poi.x, a.y - tank.poi.y) -
+      Math.hypot(b.x - tank.poi.x, b.y - tank.poi.y)
+  )[0];
+
+const wait = (tank: ReturnType<typeof createTank>, seconds: number) => {
+  for (let t = 0; t < seconds && !tank.poi.torn; t += DT) {
+    step(tank, DT);
+  }
+  return seconds;
+};
+
+const tapping = (seed: number) => {
+  const tank = createTank(seeded(seed));
+  let time = 0;
+  while (!tank.poi.torn && time < 600) {
+    time += wait(tank, 0.6);
+    const target = nearest(tank);
+    dip(tank, target);
+    lift(tank);
+  }
+  return tank.caught.length;
+};
+
+const leading = (seed: number) => {
+  const tank = createTank(seeded(seed));
+  let time = 0;
+  while (!tank.poi.torn && time < 600) {
+    time += wait(tank, 0.35);
+    const target = nearest(tank);
+    dip(tank, {
+      x: target.x + Math.cos(target.heading) * 130,
+      y: target.y + Math.sin(target.heading) * 130,
+    });
+    let waited = 0;
+    while (!tank.poi.torn && waited < 4 && catchable(tank).length === 0) {
+      waited += wait(tank, DT);
+      const gap = Math.hypot(target.x - tank.poi.x, target.y - tank.poi.y);
+      if (gap > 1 && tank.fish.includes(target)) {
+        const k = Math.min(1, (45 * DT) / gap);
+        drag(
+          tank,
+          {
+            x: tank.poi.x + (target.x - tank.poi.x) * k,
+            y: tank.poi.y + (target.y - tank.poi.y) * k,
+          },
+          DT
+        );
+      }
+    }
+    time += waited + wait(tank, 0.1);
+    lift(tank);
+  }
+  return tank.caught.length;
 };
 
 const mean = (values: number[]) =>
@@ -122,12 +138,49 @@ describe("scooping", () => {
     assert.ok(tank.poi.paper < 1);
   });
 
+  test("dipping right on top of a goldfish leaves it under the paper, and the lift says so", () => {
+    const tank = tankWith([
+      still("wakin", 500, 500),
+      still("sarasa", 500, 590),
+    ]);
+    dip(tank, { x: 500, y: 500 });
+    const [under, beside] = tank.fish;
+    assert.equal(under.under, true);
+    assert.ok(beside.fright > 0);
+    assert.deepEqual(catchable(tank), []);
+    const [outcome] = lift(tank);
+    assert.equal(outcome.type, "under");
+    assert.deepEqual(tank.caught, []);
+    assert.equal(under.under, false);
+  });
+
+  test("a goldfish that swims onto the paper after the dip comes up, even one that was under it before", () => {
+    const tank = tankWith([still("wakin", 500, 500)]);
+    dip(tank, { x: 500, y: 500 });
+    const [fish] = tank.fish;
+    fish.x = 700;
+    step(tank, DT);
+    assert.equal(fish.under, false);
+    fish.x = 500;
+    assert.deepEqual(catchable(tank), [fish]);
+    assert.equal(lift(tank)[0].type, "scoop");
+    assert.deepEqual(tank.caught, ["wakin"]);
+  });
+
+  test("a fish on the edge of the paper still comes up with it", () => {
+    const tank = tankWith([]);
+    dip(tank, { x: 500, y: 500 });
+    tank.fish = [still("wakin", 500 + POI.r - 2, 500)];
+    assert.equal(lift(tank)[0].type, "scoop");
+  });
+
   test("an empty lift catches nothing and costs a little paper", () => {
     const tank = tankWith([still("wakin", 200, 200)]);
     dip(tank, { x: 700, y: 500 });
+    const before = tank.poi.paper;
     assert.deepEqual(lift(tank), []);
     assert.deepEqual(tank.caught, []);
-    assert.ok(tank.poi.paper > 0.97);
+    assert.ok(before - tank.poi.paper < 0.01);
   });
 
   test("too heavy a load tears the paper and every fish drops back", () => {
@@ -155,20 +208,6 @@ describe("scooping", () => {
     assert.equal(lift(worn)[0].type, "tear");
   });
 
-  test("a fish splashed by the dip wriggles off a quick lift, but one that swims in stays", () => {
-    const splashed = tankWith([still("wakin", 500, 500)]);
-    dip(splashed, { x: 500, y: 500 });
-    const [outcome] = lift(splashed);
-    assert.equal(outcome.type, "slip");
-    assert.deepEqual(splashed.caught, []);
-    assert.equal(splashed.poi.down, false);
-    const patient = tankWith([still("wakin", 500, 700)]);
-    dip(patient, { x: 500, y: 500 });
-    patient.fish[0].y = 500;
-    assert.equal(lift(patient)[0].type, "scoop");
-    assert.deepEqual(patient.caught, ["wakin"]);
-  });
-
   test("a fast sweep through the water wears the paper far more than a slow glide", () => {
     const slow = sweep(2);
     const fast = sweep(0.2);
@@ -178,8 +217,8 @@ describe("scooping", () => {
   test("a hand trembling on the spot barely wears the paper, however often the screen samples it", () => {
     const slow = trembled(60);
     const fast = trembled(240);
-    assert.ok(slow < 0.02, `60Hz wore ${slow}`);
-    assert.ok(fast < 0.02, `240Hz wore ${fast}`);
+    assert.ok(slow < 0.01, `60Hz wore ${slow}`);
+    assert.ok(fast < 0.01, `240Hz wore ${fast}`);
   });
 
   test("leaving the poi in the water soaks it through in the end", () => {
@@ -218,11 +257,11 @@ describe("the fish", () => {
     }
   });
 
-  test("careful scooping catches many more than rushing the poi around", () => {
+  test("dipping ahead of a goldfish and following it catches far more than tapping on the fish", () => {
     const seeds = [13, 29, 71, 103, 211, 307];
-    const careful = mean(seeds.map((seed) => play(seed, 60)));
-    const rushed = mean(seeds.map((seed) => play(seed, 220)));
-    assert.ok(careful >= 8, `careful ${careful}`);
-    assert.ok(rushed <= 3, `rushed ${rushed}`);
+    const taps = mean(seeds.map((seed) => tapping(seed)));
+    const ahead = mean(seeds.map((seed) => leading(seed)));
+    assert.ok(taps <= 1, `taps ${taps}`);
+    assert.ok(ahead >= 10, `ahead ${ahead}`);
   });
 });

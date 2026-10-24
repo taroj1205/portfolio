@@ -3,7 +3,7 @@ import { kinds, pickKind } from "./fish";
 import type { KindId } from "./fish";
 
 export const WATER = { bottom: 936, left: 64, right: 936, top: 64 } as const;
-export const POI = { reach: 70, ring: 92, r: 80 } as const;
+export const POI = { reach: 80, ring: 92, r: 80 } as const;
 export const STOCK = 13;
 export const MOST = 999;
 
@@ -41,6 +41,7 @@ export interface Fish {
   phase: number;
   fright: number;
   age: number;
+  under: boolean;
 }
 
 interface Poi {
@@ -62,7 +63,7 @@ export interface Tank {
 }
 
 export interface Outcome {
-  type: "scoop" | "slip" | "tear";
+  type: "scoop" | "under" | "tear";
   fish: Fish[];
   at: Point;
 }
@@ -103,6 +104,7 @@ const spawn = (tank: Tank, away: Point | null, age: number): Fish => {
     phase: random() * 10,
     speed: SWIM.cruise * kinds[kind].speed,
     turn: 0,
+    under: false,
     x: at.x,
     y: at.y,
   };
@@ -148,11 +150,21 @@ const scare = (tank: Tank, at: Point, radius: number) => {
 const inside = (tank: Tank) =>
   tank.fish.filter((fish) => distance(fish, tank.poi) < POI.reach);
 
+export const catchable = (tank: Tank) =>
+  inside(tank).filter((fish) => !fish.under);
+
+const surface = (tank: Tank) => {
+  for (const fish of tank.fish) {
+    fish.under = false;
+  }
+};
+
 const tear = (tank: Tank): Outcome => {
   const fish = inside(tank);
   tank.poi.torn = true;
   tank.poi.down = false;
   tank.poi.paper = 0;
+  surface(tank);
   scare(tank, tank.poi, SWIM.splash);
   return { at: { x: tank.poi.x, y: tank.poi.y }, fish, type: "tear" };
 };
@@ -160,6 +172,17 @@ const tear = (tank: Tank): Outcome => {
 const wear = (tank: Tank, amount: number): Outcome[] => {
   tank.poi.paper = Math.max(0, tank.poi.paper - amount);
   return tank.poi.paper <= 0 ? [tear(tank)] : [];
+};
+
+export const freshen = (tank: Tank) => {
+  Object.assign(tank, { biggest: 0, caught: [], scoops: 0 });
+  Object.assign(tank.poi, {
+    down: false,
+    flow: { x: 0, y: 0 },
+    paper: 1,
+    torn: false,
+  });
+  surface(tank);
 };
 
 export const hover = (tank: Tank, at: Point) => {
@@ -174,7 +197,10 @@ export const dip = (tank: Tank, at: Point): Outcome[] => {
     return [];
   }
   Object.assign(poi, inWater(at), { down: true, flow: { x: 0, y: 0 } });
-  scare(tank, poi, SWIM.splash * 0.55);
+  for (const fish of inside(tank)) {
+    fish.under = true;
+  }
+  scare(tank, poi, SWIM.splash * 0.67);
   return wear(tank, PAPER.dip);
 };
 
@@ -214,26 +240,28 @@ export const lift = (tank: Tank): Outcome[] => {
   if (!poi.down || poi.torn) {
     return [];
   }
-  const over = inside(tank);
-  const fish = over.filter((each) => each.fright === 0);
+  const below = inside(tank).filter((each) => each.under);
+  const fish = catchable(tank);
   if (fish.length === 0) {
     poi.down = false;
-    if (over.length === 0) {
-      return wear(tank, PAPER.empty);
+    surface(tank);
+    const missed = wear(tank, PAPER.empty);
+    if (below.length === 0) {
+      return missed;
     }
-    scare(tank, poi, POI.ring);
-    const slipped: Outcome = {
+    const under: Outcome = {
       at: { x: poi.x, y: poi.y },
-      fish: over,
-      type: "slip",
+      fish: below,
+      type: "under",
     };
-    return [slipped, ...wear(tank, PAPER.empty)];
+    return [under, ...missed];
   }
   const load = loadOf(fish);
   if (load > capacityOf(poi.paper)) {
     return [tear(tank)];
   }
   poi.down = false;
+  surface(tank);
   const room = MOST - tank.caught.length;
   const kept = fish.slice(0, Math.max(0, room));
   tank.fish = tank.fish.filter((each) => !fish.includes(each));
@@ -309,6 +337,9 @@ export const step = (tank: Tank, dt: number): Outcome[] => {
   const wary = waryOf(tank);
   for (const fish of tank.fish) {
     swim(tank, fish, dt, wary);
+    if (fish.under && distance(fish, tank.poi) >= POI.reach) {
+      fish.under = false;
+    }
   }
   return tank.poi.down ? wear(tank, PAPER.soak * dt) : [];
 };
