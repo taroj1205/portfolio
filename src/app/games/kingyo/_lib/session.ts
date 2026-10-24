@@ -10,7 +10,7 @@ import type { Result } from "./result";
 import { loadSave, settle, storeSave } from "./save";
 import type { Save } from "./save";
 import { createSound } from "./sound";
-import { createTank, dip, drag, hover, lift, step } from "./tank";
+import { createTank, dip, drag, hover, lift, snap, step } from "./tank";
 import type { Outcome, Tank } from "./tank";
 
 export type Phase = "ready" | "scooping" | "done";
@@ -38,6 +38,7 @@ interface Aim {
   x: number;
   y: number;
   at: number;
+  tap: Point;
 }
 
 const block = (event: Event) => {
@@ -127,30 +128,42 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     }
   };
 
-  const pointOf = (event: PointerEvent): Point => {
+  const placeOf = (event: PointerEvent): Point => {
     const rect = canvas.getBoundingClientRect();
     const side = Math.min(rect.width, rect.height) || 1;
     return {
-      x:
-        ((event.clientX - rect.left - (rect.width - side) / 2) / side) * SCENE -
-        grip.x,
-      y:
-        ((event.clientY - rect.top - (rect.height - side) / 2) / side) * SCENE -
-        grip.y,
+      x: ((event.clientX - rect.left - (rect.width - side) / 2) / side) * SCENE,
+      y: ((event.clientY - rect.top - (rect.height - side) / 2) / side) * SCENE,
     };
   };
 
-  const plunge = (now: number) => {
+  const pointOf = (event: PointerEvent): Point => {
+    const at = placeOf(event);
+    return { x: at.x - grip.x, y: at.y - grip.y };
+  };
+
+  const begin = (now: number) => {
     aim = null;
     if (phase === "ready") {
       start = now;
       enter("scooping");
     }
+    sound.dip();
+    navigator.vibrate?.(8);
+  };
+
+  const plunge = (now: number) => {
+    begin(now);
     const events = dip(tank, tank.poi);
     last = now;
     render.dip(tank.poi, now);
-    sound.dip();
-    navigator.vibrate?.(8);
+    react(events, now);
+  };
+
+  const strike = (at: Point, now: number) => {
+    begin(now);
+    const events = snap(tank, at);
+    render.dip(tank.poi, now);
     react(events, now);
   };
 
@@ -168,16 +181,21 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     active = event.pointerId;
     grip = event.pointerType === "touch" ? GRIP : BARE;
     hover(tank, pointOf(event));
-    if (event.pointerType === "touch") {
-      aim = { at: event.timeStamp, x: event.clientX, y: event.clientY };
-    } else {
-      plunge(event.timeStamp);
-    }
+    aim = {
+      at: event.timeStamp,
+      tap: placeOf(event),
+      x: event.clientX,
+      y: event.clientY,
+    };
   };
 
   const move = (event: PointerEvent) => {
     if (event.pointerId !== active) {
-      if (event.pointerType === "mouse" && phase !== "done") {
+      if (
+        active === null &&
+        event.pointerType === "mouse" &&
+        phase !== "done"
+      ) {
         grip = BARE;
         hover(tank, pointOf(event));
       }
@@ -185,9 +203,11 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     }
     if (aim !== null) {
       hover(tank, pointOf(event));
-      if (Math.hypot(event.clientX - aim.x, event.clientY - aim.y) > AIM.slop) {
-        aim = { at: event.timeStamp, x: event.clientX, y: event.clientY };
-      }
+      const tap = placeOf(event);
+      aim =
+        Math.hypot(event.clientX - aim.x, event.clientY - aim.y) > AIM.slop
+          ? { at: event.timeStamp, tap, x: event.clientX, y: event.clientY }
+          : { ...aim, tap };
       return;
     }
     const coalesced = event.getCoalescedEvents?.() ?? [];
@@ -205,11 +225,14 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     }
   };
 
-  const release = (now: number) => {
+  const release = (now: number, scoop: boolean) => {
     active = null;
     if (aim !== null) {
+      const { tap } = aim;
       aim = null;
-      render.hint(tank.poi, now);
+      if (scoop) {
+        strike(tap, now);
+      }
     } else if (phase === "scooping") {
       react(lift(tank), now);
     }
@@ -218,13 +241,13 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const up = (event: PointerEvent) => {
     sound.unlock();
     if (event.pointerId === active) {
-      release(event.timeStamp);
+      release(event.timeStamp, event.type === "pointerup");
     }
   };
 
   const hide = () => {
     if (document.visibilityState === "hidden" && active !== null) {
-      release(performance.now());
+      release(performance.now(), false);
     }
   };
 

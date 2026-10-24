@@ -14,6 +14,7 @@ const PAPER = {
   grace: 0.6,
   lift: 0.014,
   load: 0.024,
+  snap: 0.12,
   soak: 0.01,
   wear: 2.4,
   wearFrom: 70,
@@ -247,6 +248,16 @@ export const lift = (tank: Tank): Outcome[] => {
     type: "scoop",
   };
   return [scooped, ...wear(tank, PAPER.lift + load * PAPER.load)];
+};
+
+export const snap = (tank: Tank, at: Point): Outcome[] => {
+  const { poi } = tank;
+  if (poi.down || poi.torn) {
+    return [];
+  }
+  Object.assign(poi, inWater(at), { down: true, flow: { x: 0, y: 0 } });
+  const torn = wear(tank, PAPER.snap);
+  return torn.length > 0 ? torn : lift(tank);
 };
 
 const steerOf = (tank: Tank, fish: Fish, wary: number) => {

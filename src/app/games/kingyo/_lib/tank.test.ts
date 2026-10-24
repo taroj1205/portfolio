@@ -4,7 +4,17 @@ import { describe, test } from "vite-plus/test";
 
 import { seeded } from "../../_lib/svg";
 import type { KindId } from "./fish";
-import { POI, STOCK, WATER, createTank, dip, drag, lift, step } from "./tank";
+import {
+  POI,
+  STOCK,
+  WATER,
+  createTank,
+  dip,
+  drag,
+  lift,
+  snap,
+  step,
+} from "./tank";
 import type { Fish } from "./tank";
 
 const DT = 1 / 60;
@@ -106,6 +116,29 @@ const trembled = (hz: number) => {
   return 1 - tank.poi.paper;
 };
 
+const tapping = (seed: number, aimed: boolean) => {
+  const tank = createTank(seeded(seed));
+  const random = seeded(seed + 7);
+  let time = 0;
+  while (!tank.poi.torn && time < 600) {
+    for (let i = 0; i < 42; i += 1) {
+      step(tank, DT);
+      time += DT;
+    }
+    const calm = tank.fish.filter((fish) => fish.fright === 0);
+    const [target] = (calm.length > 0 ? calm : tank.fish).toSorted(
+      (a, b) =>
+        Math.hypot(a.x - tank.poi.x, a.y - tank.poi.y) -
+        Math.hypot(b.x - tank.poi.x, b.y - tank.poi.y)
+    );
+    snap(
+      tank,
+      aimed ? target : { x: 100 + random() * 800, y: 100 + random() * 800 }
+    );
+  }
+  return tank.caught.length;
+};
+
 const mean = (values: number[]) =>
   values.reduce((sum, value) => sum + value, 0) / values.length;
 
@@ -194,6 +227,15 @@ describe("scooping", () => {
     assert.ok(seconds > 60);
   });
 
+  test("a tap scoops the fish under it in one go without startling it", () => {
+    const tank = tankWith([still("wakin", 500, 500)]);
+    const [outcome] = snap(tank, { x: 500, y: 500 });
+    assert.equal(outcome.type, "scoop");
+    assert.deepEqual(tank.caught, ["wakin"]);
+    assert.equal(tank.poi.down, false);
+    assert.ok(tank.poi.paper < 0.88);
+  });
+
   test("a torn poi takes no more dips", () => {
     const tank = tankWith([]);
     tank.poi.torn = true;
@@ -216,6 +258,19 @@ describe("the fish", () => {
       );
       assert.equal(spots.size, tank.fish.length);
     }
+  });
+
+  test("tapping at fish scores, but careful scooping scores more and blind taps far less", () => {
+    const seeds = [13, 29, 71, 103, 211, 307];
+    const aimed = mean(seeds.map((seed) => tapping(seed, true)));
+    const blind = mean(seeds.map((seed) => tapping(seed, false)));
+    const careful = mean(seeds.map((seed) => play(seed, 60)));
+    assert.ok(aimed >= 4, `aimed taps ${aimed}`);
+    assert.ok(
+      careful >= aimed * 1.6,
+      `careful ${careful}, aimed taps ${aimed}`
+    );
+    assert.ok(blind <= aimed / 2, `blind ${blind}, aimed ${aimed}`);
   });
 
   test("careful scooping catches many more than rushing the poi around", () => {
