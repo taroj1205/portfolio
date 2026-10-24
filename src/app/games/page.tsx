@@ -9,6 +9,7 @@ import { CutArt } from "./_components/cut-art";
 import { EraserArt } from "./_components/eraser-art";
 import type { Game } from "./_components/game-card";
 import { GamesIndex } from "./_components/games-index";
+import { GoldfishArt } from "./_components/goldfish-art";
 import { MergeArt } from "./_components/merge-art";
 import { MochiArt } from "./_components/mochi-art";
 import { PauseArt } from "./_components/pause-art";
@@ -23,6 +24,7 @@ import { copy as itto } from "./itto/_lib/copy";
 import { kinds } from "./itto/_lib/foods";
 import { copy as katanuki } from "./katanuki/_lib/copy";
 import { copy as keshibo } from "./keshibo/_lib/copy";
+import { copy as kingyo } from "./kingyo/_lib/copy";
 import { copy as ma } from "./ma/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
 import { copy as mochitsuki } from "./mochitsuki/_lib/copy";
@@ -182,6 +184,20 @@ const GAMES: Game[] = [
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
     title: { en: keshibo.en.name, ja: keshibo.ja.name },
+  },
+  {
+    art: <GoldfishArt />,
+    blurb: {
+      en: "Festival goldfish scooping with a single paper poi. Dip it gently, lift fish into your bowl, and see how many you get before it tears.",
+      ja: "ポイ一枚で、金魚すくい。そっと入れてお椀へ。破れるまでに、何匹すくえるか。",
+    },
+    href: "/games/kingyo",
+    tags: [
+      { en: "Dip & lift", ja: "入れる・すくう" },
+      { en: "Rare goldfish", ja: "レア金魚" },
+      { en: "Challenge a friend", ja: "友だちに挑戦" },
+    ],
+    title: { en: kingyo.en.name, ja: kingyo.ja.name },
   },
 ];
 

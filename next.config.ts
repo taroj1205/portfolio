@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       "/apple-icon",
       "/games/mochitsuki/art/:layer",
       "/games/cheese/art/:layer",
+      "/games/kingyo/art/:layer",
     ].map((source) => ({ headers: daily, source }));
   },
   rewrites() {

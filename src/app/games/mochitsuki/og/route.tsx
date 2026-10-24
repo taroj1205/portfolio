@@ -4,7 +4,8 @@ import { loadMincho } from "../../_lib/font";
 import { langFrom } from "../../_lib/i18n";
 import type { Lang } from "../../_lib/i18n";
 import { ogImage } from "../../_lib/og";
-import { dataUri, sceneDoc } from "../_lib/art";
+import { dataUri } from "../../_lib/svg";
+import { sceneDoc } from "../_lib/art";
 import { START_BPM } from "../_lib/beat";
 import { copy } from "../_lib/copy";
 import {
