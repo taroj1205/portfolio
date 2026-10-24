@@ -79,9 +79,11 @@ const relief = (
   }: Relief
 ) => {
   const sun = `<feDistantLight azimuth="235" elevation="50"/>`;
+
   const lit = only
     ? ""
     : `<feDiffuseLighting in="height" surfaceScale="${depth}" diffuseConstant="1" lighting-color="${light}" result="diffuse">${sun}</feDiffuseLighting><feComposite in="SourceGraphic" in2="diffuse" operator="arithmetic" k1="${n(1.12 - ambient)}" k2="${ambient}" result="lit"/><feComposite in="lit" in2="specIn" operator="arithmetic" k2="1" k3="1" result="all"/><feComposite in="all" in2="SourceAlpha" operator="in"/>`;
+
   return `<filter id="${id}" filterUnits="userSpaceOnUse" x="${n(box.x)}" y="${n(box.y)}" width="${n(box.w)}" height="${n(box.h)}" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="${soft}" result="soft"/><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="3" result="noise"/><feComposite in="soft" in2="noise" operator="arithmetic" k2="1" k3="${skin}" k4="${n(-skin / 2)}" result="height"/><feSpecularLighting in="height" surfaceScale="${depth}" specularConstant="${shine}" specularExponent="${sharp}" lighting-color="#fffaf2" result="spec">${sun}</feSpecularLighting><feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>${lit}</filter>`;
 };
 
@@ -91,12 +93,14 @@ const transformOf = (place: Place) =>
 const halfWidth = (y: number) => {
   const { rim, base } = USU;
   const t = (y - rim.y) / (base - rim.y);
+
   return rim.rx * (1 - t) ** 2 + 247 * 2 * t * (1 - t) + rim.rx * 0.94 * t * t;
 };
 
 const usuOutline = () => {
   const { cx, rim, base } = USU;
   const low = rim.rx * 0.94;
+
   return [
     `M${cx - rim.rx} ${rim.y}`,
     `Q${cx - 247} 800 ${n(cx - low)} ${base}`,
@@ -108,6 +112,7 @@ const usuOutline = () => {
 
 const frontArc = (y: number, ry: number) => {
   const half = halfWidth(y);
+
   return `M${n(USU.cx - half)} ${n(y)}A${n(half)} ${n(ry)} 0 0 0 ${n(USU.cx + half)} ${n(y)}`;
 };
 
@@ -123,24 +128,29 @@ const rope = () => {
   const half = 15;
   const lean = 9;
   const spine = curve(Array.from({ length: 25 }, (_, i) => ropeAt(i / 24)));
+
   const strands = Array.from({ length: bands }, (_, i) => {
     if (i % 2 === 1) {
       return "";
     }
+
     const from = ropeAt(i / bands);
     const to = ropeAt((i + 1) / bands);
     const length = Math.hypot(to.x - from.x, to.y - from.y) || 1;
     const along = { x: (to.x - from.x) / length, y: (to.y - from.y) / length };
     const across = { x: -along.y, y: along.x };
+
     const corner = (base: Point, side: number) => ({
       x: base.x + across.x * half * side + along.x * lean * side,
       y: base.y + across.y * half * side + along.y * lean * side,
     });
+
     return path(
       `M${n(corner(from, -1).x)} ${n(corner(from, -1).y)}L${n(corner(to, -1).x)} ${n(corner(to, -1).y)}L${n(corner(to, 1).x)} ${n(corner(to, 1).y)}L${n(corner(from, 1).x)} ${n(corner(from, 1).y)}Z`,
       `fill="#c8232f"`
     );
   }).join("");
+
   const twists = [
     `<clipPath id="usu-rope-clip"><path d="${spine}" fill="none" stroke="#000" stroke-width="${half * 2}"/></clipPath>`,
     `<g filter="url(#usu-rope-volume)">`,
@@ -151,19 +161,24 @@ const rope = () => {
     `<g clip-path="url(#usu-rope-clip)">${strands}</g>`,
     "</g>",
   ].join("");
+
   const knot = ropeAt(0.28);
+
   const tassel = (dx: number, fill: string) =>
     path(
       `M${n(knot.x + dx - 5)} ${n(knot.y + 6)}C${n(knot.x + dx - 9)} ${n(knot.y + 40)} ${n(knot.x + dx - 13)} ${n(knot.y + 70)} ${n(knot.x + dx - 11)} ${n(knot.y + 90)}L${n(knot.x + dx + 3)} ${n(knot.y + 90)}C${n(knot.x + dx + 3)} ${n(knot.y + 70)} ${n(knot.x + dx + 3)} ${n(knot.y + 40)} ${n(knot.x + dx + 5)} ${n(knot.y + 6)}Z`,
       `fill="url(#${fill})" stroke="#2a0606" stroke-opacity="0.4" stroke-width="1"`
     );
+
   const fringe = Array.from({ length: 6 }, (_, i) => {
     const x = knot.x - 22 + i * 7;
+
     return path(
       `M${n(x)} ${n(knot.y + 80)}l${i % 2 === 0 ? -1 : 1} 14`,
       `stroke="${i < 3 ? "#d22f3a" : "#f4ece0"}" stroke-width="2" stroke-linecap="round"`
     );
   }).join("");
+
   return [
     path(
       frontArc(ROPE.y - 2, ROPE.drop),
@@ -194,19 +209,23 @@ const rope = () => {
 const rings = (count: number, from: number, to: number, seed: number) => {
   const { cx, rim, bowl } = USU;
   const wobble = seeded(seed);
+
   return Array.from({ length: count }, (_, i) => {
     const t = (i + 1) / (count + 1);
     const rx = bowl.rx + (rim.rx - bowl.rx) * t;
     const ry = bowl.ry + (rim.ry - bowl.ry) * t;
     const dx = (wobble() - 0.5) * 3;
+
     const start = {
       x: cx + dx + Math.cos(from) * rx,
       y: rim.y + Math.sin(from) * ry,
     };
+
     const end = {
       x: cx + dx + Math.cos(to) * rx,
       y: rim.y + Math.sin(to) * ry,
     };
+
     return path(
       `M${n(start.x)} ${n(start.y)}A${n(rx)} ${n(ry)} 0 ${to - from > Math.PI ? 1 : 0} 1 ${n(end.x)} ${n(end.y)}`,
       `fill="none" stroke="#6e3c18" stroke-opacity="${n(0.16 + (i % 3) * 0.08)}" stroke-width="1.4"`
@@ -360,8 +379,10 @@ const MOCHI_BOX: Box = { h: 190, w: 480, x: 260, y: 530 };
 
 const lumpTop = Array.from({ length: 17 }, (_, i) => {
   const t = -1 + (2 * i) / 16;
+
   const swell =
     1 + 0.07 * Math.sin(3.1 * t + 0.4) + 0.04 * Math.sin(7.3 * t + 1.1);
+
   return {
     x: USU.cx + MOCHI.rx * t,
     y: MOCHI.y - (MOCHI.h + 6) * (1 - t * t) ** 0.62 * swell,
@@ -477,6 +498,7 @@ const ricePoints = Array.from({ length: 300 }, () => {
   const v = grainRoll() ** 0.8;
   const x = USU.cx + u * MOCHI.rx * 0.97;
   const y = MOCHI.y + 8 - (MOCHI.h + 14) * (1 - u * u) ** 0.62 * v;
+
   return { turn: n(grainRoll() * 180), x, y };
 });
 
@@ -550,15 +572,18 @@ const KINE_BOX: Box = { h: 260, w: 970, x: -320, y: -130 };
 
 const kineBody = () => {
   const { reach: d, r, head: l } = KINE;
+
   const stripes = Array.from({ length: 6 }, (_, k) =>
     path(`M${32 + k * 17} -16l9 0l-14 32l-9 0Z`, `fill="#c8283a"`)
   ).join("");
+
   const ridges = Array.from({ length: 11 }, (_, k) =>
     path(
       `M${34 + k * 8.5} -16l0 32`,
       `stroke="#000" stroke-opacity="0.12" stroke-width="1"`
     )
   ).join("");
+
   const band = (y: number) =>
     [
       `<rect x="${d - r - 2}" y="${y}" width="${2 * r + 4}" height="14" rx="3" fill="url(#kine-iron)"/>`,
@@ -566,6 +591,7 @@ const kineBody = () => {
         ellipse(d + k * r, y + 7, 2.6, 2.6, `fill="#c9cbd4" fill-opacity="0.8"`)
       ),
     ].join("");
+
   return [
     "<defs>",
     linear(
@@ -685,6 +711,7 @@ const sleeveOutline = `M-40 -78C80 -74 200 -60 ${SLEEVE} -46Q${SLEEVE + 16} 0 ${
 
 const crosses = () => {
   const marks: string[] = [];
+
   for (let row = 0; row < 4; row += 1) {
     for (let col = 0; col < 7; col += 1) {
       const x = -10 + col * 44 + (row % 2) * 22;
@@ -697,6 +724,7 @@ const crosses = () => {
       );
     }
   }
+
   return marks.join("");
 };
 
@@ -798,6 +826,7 @@ const FINGERS = [
 
 const fingerPath = (len: number, y: number) => {
   const tip = 68 + len;
+
   return `M68 ${y - 7}C${n(68 + len * 0.5)} ${y - 8} ${tip - 10} ${y - 3} ${tip - 3} ${y + 1}Q${tip + 2} ${y + 5} ${tip - 3} ${y + 10}C${tip - 10} ${y + 12} ${n(68 + len * 0.5)} ${y + 9} 68 ${y + 7}Z`;
 };
 
@@ -1048,14 +1077,17 @@ const segment = (from: Point, to: Point, length: number): Place => ({
 
 export const armPose = (reach: number, swell = 1) => {
   const arc = Math.sin(reach * Math.PI) * 90;
+
   const wrist = {
     x: mix(REST.x, PRESS.x, reach),
     y: mix(REST.y, PRESS.y, reach) - arc,
   };
+
   const elbow = {
     x: mix(SHOULDER.x, wrist.x, 0.5) - 15,
     y: mix(SHOULDER.y, wrist.y, 0.5) + 50 * (1 - reach) + 12,
   };
+
   return {
     forearm: segment(elbow, wrist, FOREARM),
     hand: {
@@ -1072,6 +1104,7 @@ export const armPose = (reach: number, swell = 1) => {
 export const toWorld = (place: Place, x: number, y: number): Point => {
   const cos = Math.cos(place.angle);
   const sin = Math.sin(place.angle);
+
   return {
     x: place.x + cos * x * place.sx - sin * y * place.sy,
     y: place.y + sin * x * place.sx + cos * y * place.sy,
@@ -1088,6 +1121,7 @@ interface Stage {
 
 const stageOf = (width: number, height: number, frame: Frame): Stage => {
   const s = frame.size / SCENE;
+
   return {
     height,
     s,
@@ -1102,6 +1136,7 @@ export const lanternsOf = (width: number, height: number, frame: Frame) => {
   const gap = 230 * at.s;
   const first = at.x(500) - Math.ceil(at.x(500) / gap + 1) * gap;
   const spots: { x: number; y: number; size: number }[] = [];
+
   for (let x = first; x < width + gap; x += gap) {
     const t = (x - frame.x) / frame.size;
     spots.push({
@@ -1110,6 +1145,7 @@ export const lanternsOf = (width: number, height: number, frame: Frame) => {
       y: at.y(176 + 26 * Math.cos((t - 0.5) * Math.PI * 1.2)),
     });
   }
+
   return spots;
 };
 
@@ -1122,6 +1158,7 @@ const lanternBody = [
   ),
   ...[-0.56, -0.36, -0.16, 0.04, 0.24, 0.44, 0.62].map((y) => {
     const half = 0.34 + 0.24 * Math.cos((y / 0.76) * (Math.PI / 2));
+
     return path(
       `M${n(-half)} ${y}Q0 ${n(y + 0.05)} ${n(half)} ${y}`,
       `fill="none" stroke="#7a1410" stroke-opacity="0.5" stroke-width="0.024"`
@@ -1140,6 +1177,7 @@ const roof = (cx: number, base: number, width: number, tall: number) => {
   const left = cx - width / 2;
   const right = cx + width / 2;
   const ridge = `M${n(left - width * 0.06)} ${n(base)}C${n(left + width * 0.2)} ${n(base - tall * 0.18)} ${n(cx - width * 0.2)} ${n(base - tall * 0.86)} ${n(cx)} ${n(base - tall)}C${n(cx + width * 0.2)} ${n(base - tall * 0.86)} ${n(right - width * 0.2)} ${n(base - tall * 0.18)} ${n(right + width * 0.06)} ${n(base)}`;
+
   return [
     path(`${ridge}Z`, `fill="#0a0918"`),
     path(
@@ -1157,6 +1195,7 @@ const curtainOf = (at: Stage) => {
   const start = at.x(500) - Math.ceil(at.x(500) / stripe + 1) * stripe;
   const parts: string[] = [];
   const count = Math.ceil((at.width - start) / stripe) + 1;
+
   for (let i = 0; i < count; i += 1) {
     const x = start + i * stripe;
     const d = `M${n(x)} ${n(top)}L${n(x + stripe)} ${n(top)}L${n(x + stripe)} ${n(bottom + (i % 2 === 0 ? sway : 0))}Q${n(x + stripe / 2)} ${n(bottom + sway * 1.6)} ${n(x)} ${n(bottom + (i % 2 === 0 ? 0 : sway))}Z`;
@@ -1165,6 +1204,7 @@ const curtainOf = (at: Stage) => {
       path(d, `fill="url(#bd-fold)"`)
     );
   }
+
   return [
     `<g filter="url(#bd-depth)">`,
     ...parts,
@@ -1178,12 +1218,16 @@ const curtainOf = (at: Stage) => {
 const groundOf = (at: Stage) => {
   const horizon = at.y(575);
   const vanishing = { x: at.x(500), y: at.y(380) };
+
   const rows = [600, 640, 700, 790, 920, 1100, 1350].flatMap((v) => {
     const y = at.y(v);
+
     return y < at.height ? [y] : [];
   });
+
   const columns = Array.from({ length: 23 }, (_, i) => at.x(-1600 + i * 190));
   const reach = (at.height - vanishing.y) / (horizon - vanishing.y);
+
   const joints = [
     ...rows.map((y) =>
       path(
@@ -1198,6 +1242,7 @@ const groundOf = (at: Stage) => {
       )
     ),
   ].join("");
+
   return [
     `<rect x="0" y="${n(horizon)}" width="${n(at.width)}" height="${n(at.height - horizon)}" fill="url(#bd-ground)"/>`,
     `<g clip-path="url(#bd-ground-clip)">${joints}</g>`,
@@ -1214,9 +1259,11 @@ const groundOf = (at: Stage) => {
 
 const snowfall = (width: number, height: number, s: number) => {
   const fall = seeded(91);
+
   return Array.from({ length: 60 }, () => {
     const near = fall() < 0.18;
     const r = (near ? 5 + fall() * 5 : 1.2 + fall() * 2.2) * s;
+
     return ellipse(
       fall() * width,
       fall() * height,
@@ -1338,13 +1385,16 @@ export const backdrop = (
   const at = stageOf(width, height, frame);
   const stars = seeded(13);
   const lanterns = lanternsOf(width, height, frame);
+
   const line = lanterns
     .map(
       (spot, i) =>
         `${i === 0 ? "M" : "L"}${n(spot.x)} ${n(spot.y - 1.4 * spot.size)}`
     )
     .join("");
+
   const corner = 210 * at.s;
+
   return [
     backdropDefs(at),
     `<rect width="${n(width)}" height="${n(height)}" fill="url(#bd-sky)"/>`,
@@ -1358,6 +1408,7 @@ export const backdrop = (
     ),
     Array.from({ length: 90 }, () => {
       const r = 0.5 + stars() * 1.3;
+
       return ellipse(
         stars() * width,
         stars() * at.y(320),
@@ -1413,9 +1464,11 @@ export interface Piece {
 
 const piecesOf = ({ lift, reach, hurt, smooth }: Pose): Piece[] => {
   const arm = armPose(reach, hurt ? 1.1 : 1);
+
   const bruised: Piece[] = hurt
     ? [{ group: "arm", key: "bruise", place: arm.hand, sprite: bruise }]
     : [];
+
   return [
     { key: "mat", sprite: mat },
     { key: "tub", sprite: tub },
@@ -1444,6 +1497,7 @@ const piecesBody = (pieces: readonly Piece[]) =>
         piece.alpha === undefined
           ? piece.sprite.body
           : `<g opacity="${n(piece.alpha)}">${piece.sprite.body}</g>`;
+
       return piece.place === undefined
         ? body
         : `<g transform="${transformOf(piece.place)}">${body}</g>`;

@@ -23,29 +23,37 @@ const round = (value: number) => Math.round(value * 100) / 100;
 
 const makeStars = () => {
   let seed = 20_261_021;
+
   const roll = () => {
     seed = (seed * 16_807) % 2_147_483_647;
+
     return seed / 2_147_483_647;
   };
+
   const star = (x: number, y: number): Star => ({
     o: round(0.4 + roll() * 0.6),
     r: round(0.05 + roll() ** 3 * 0.14),
     x: round(x),
     y: round(y),
   });
+
   const stars: Star[] = [];
+
   for (let i = 0; i < 150; i += 1) {
     stars.push(star(roll() * 100, roll() * 100));
   }
+
   while (stars.length < 430) {
     const t = roll();
     const spread = (roll() + roll() + roll() - 1.5) * 15;
     const x = -10 + t * 120;
     const y = 85 - t * 70 + spread;
+
     if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
       stars.push(star(x, y));
     }
   }
+
   return {
     blinkA: stars.filter((_, i) => i % 9 === 0),
     blinkB: stars.filter((_, i) => i % 9 === 4),

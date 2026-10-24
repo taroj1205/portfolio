@@ -172,6 +172,7 @@ export const Lately = ({
   locale: Locale;
 }) => {
   const t = getTranslator(locale);
+
   return (
     <div {...stylex.props(styles.grid)}>
       <ContributionsChart
@@ -189,6 +190,7 @@ export const Lately = ({
           {recent.map((pr) => {
             const { type, text } = splitTitle(pr.title);
             const [owner = ""] = pr.repo.split("/");
+
             return (
               <li key={pr.url} {...stylex.props(styles.item)}>
                 <a href={pr.url} {...stylex.props(styles.row)}>

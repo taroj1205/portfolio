@@ -14,6 +14,7 @@ export const dateOf = (day: number) =>
 
 export const dayFrom = (date: string) => {
   const day = Date.parse(`${date}T00:00:00Z`) / DAY - FIRST + 1;
+
   return Number.isInteger(day) && day >= 1 && dateOf(day) === date ? day : null;
 };
 
@@ -21,9 +22,11 @@ const PRIME = 67_108_859;
 
 const mix = (value: number) => {
   let state = (value * 2_654_435 + 1_013_904) % PRIME;
+
   for (let round = 0; round < 4; round += 1) {
     state = (state * state + 7919) % PRIME;
   }
+
   return state;
 };
 

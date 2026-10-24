@@ -66,6 +66,7 @@ const CONTACT = "rgb(24 14 8 / 0.55)";
 const CRUMB: Rgb = [214, 208, 198];
 const CURVE = 0.004;
 const GUIDE = "rgb(255 248 236 / 0.9)";
+
 const POWER: readonly Rgb[] = [
   [255, 246, 226],
   [255, 196, 110],
@@ -76,10 +77,13 @@ const ease = (t: number) => 1 - (1 - Math.min(1, Math.max(0, t))) ** 3;
 
 const bounce = (t: number) => {
   const p = Math.min(1, Math.max(0, t));
+
   if (p < 0.7) {
     return (p / 0.7) ** 2;
   }
+
   const q = (p - 0.85) / 0.15;
+
   return 1 - 0.08 * (1 - q * q);
 };
 
@@ -95,6 +99,7 @@ const PIN_RIG: Rig = { eyeY: 50, eyeZ: 28, lookY: 98, x: 0 };
 
 const followRig = (ball: Ball): Rig => {
   const y = Math.min(ball.y, 56);
+
   return { eyeY: y - 34, eyeZ: 24 + y * 0.08, lookY: y + 46, x: ball.x * 0.5 };
 };
 
@@ -102,6 +107,7 @@ const rigOf = (scene: Scene, calm: boolean): Rig => {
   if (calm || scene.shot === "aim") {
     return AIM_RIG;
   }
+
   if (
     scene.shot === "pins" ||
     scene.world.ball.y > 64 ||
@@ -109,6 +115,7 @@ const rigOf = (scene: Scene, calm: boolean): Rig => {
   ) {
     return PIN_RIG;
   }
+
   return followRig(scene.world.ball);
 };
 
@@ -121,12 +128,15 @@ const blend = (from: Rig, to: Rig, k: number): Rig => ({
 
 const pickLevel = ({ levels }: Texture, cmPerPixel: number) => {
   let [picked] = levels;
+
   for (const level of levels) {
     picked = level;
+
     if (level.scale * cmPerPixel <= 1.4) {
       break;
     }
   }
+
   return picked;
 };
 
@@ -142,27 +152,36 @@ const strips = (
   band: number
 ) => {
   const { height } = ctx.canvas;
+
   const hit = (row: number) => {
     const b = -(row - view.cy) / view.focal;
     const dy = b * view.sin + view.cos;
     const dz = b * view.cos - view.sin;
+
     if (plane.kind === "flat") {
       if (dz >= -1e-5) {
         return null;
       }
+
       const t = (plane.z - view.eye.z) / dz;
       const along = view.eye.y + t * dy;
+
       return along > plane.max ? null : { along, t };
     }
+
     if (dy <= 1e-5) {
       return null;
     }
+
     const t = (plane.y - view.eye.y) / dy;
     const along = view.eye.z + t * dz;
+
     return along < FLOOR ? null : { along, t };
   };
+
   for (let row = 0; row < height; row += band) {
     const here = hit(row + band / 2);
+
     if (
       here === null ||
       here.t <= 0 ||
@@ -171,12 +190,15 @@ const strips = (
     ) {
       continue;
     }
+
     const next = hit(row + band * 1.5);
     const step = next === null ? 0 : Math.abs(next.along - here.along) / band;
     const level = pickLevel(texture, Math.max(here.t / view.focal, step));
+
     const v = texture.flip
       ? (texture.a1 - here.along) * level.scale
       : (here.along - texture.a0) * level.scale;
+
     const perCm = view.focal / here.t;
     ctx.drawImage(
       level.canvas,
@@ -198,14 +220,17 @@ const polygon = (
   points: readonly Vec[]
 ) => {
   ctx.beginPath();
+
   for (const [i, point] of points.entries()) {
     const at = project(view, point);
+
     if (i === 0) {
       ctx.moveTo(at.x, at.y);
     } else {
       ctx.lineTo(at.x, at.y);
     }
   }
+
   ctx.closePath();
 };
 
@@ -216,6 +241,7 @@ const deskSpans = [
 
 const paintFrame = (ctx: CanvasRenderingContext2D, view: View) => {
   const half = LANE.width / 2;
+
   for (const { y0, y1 } of deskSpans.toReversed()) {
     const legs = [
       [-half + 2, y1 - 2],
@@ -223,18 +249,22 @@ const paintFrame = (ctx: CanvasRenderingContext2D, view: View) => {
       [-half + 2, y0 + 2],
       [half - 2, y0 + 2],
     ] as const;
+
     for (const [x, y] of legs) {
       const top = project(view, { x, y, z: -DESK.thick });
       const bottom = project(view, { x, y, z: FLOOR });
+
       if (top.depth < 1 || bottom.depth < 1) {
         continue;
       }
+
       const gradient = ctx.createLinearGradient(
         top.x,
         top.y,
         bottom.x,
         bottom.y
       );
+
       gradient.addColorStop(0, css(lit(STEEL, 0.7, 0.05)));
       gradient.addColorStop(1, css(STEEL_DARK));
       ctx.strokeStyle = gradient;
@@ -245,6 +275,7 @@ const paintFrame = (ctx: CanvasRenderingContext2D, view: View) => {
       ctx.lineTo(bottom.x, bottom.y);
       ctx.stroke();
     }
+
     const inner = half - DESK.inset;
     const front = y0 + DESK.inset;
     ctx.fillStyle = css(lit(STEEL, 0.62, 0.02));
@@ -260,10 +291,12 @@ const paintFrame = (ctx: CanvasRenderingContext2D, view: View) => {
 
 const paintDeskEdges = (ctx: CanvasRenderingContext2D, view: View) => {
   const half = LANE.width / 2;
+
   for (const { y0 } of deskSpans.toReversed()) {
     if (view.eye.y >= y0) {
       continue;
     }
+
     ctx.fillStyle = css(lit(EDGE_FACE, 0.72, 0.1));
     polygon(ctx, view, [
       { x: -half, y: y0, z: 0 },
@@ -273,10 +306,12 @@ const paintDeskEdges = (ctx: CanvasRenderingContext2D, view: View) => {
     ]);
     ctx.fill();
   }
+
   for (const side of [-1, 1]) {
     if (Math.abs(view.eye.x) <= half || Math.sign(view.eye.x) !== side) {
       continue;
     }
+
     ctx.fillStyle = css(lit(EDGE_FACE, 0.6, side < 0 ? 0.4 : 0));
     polygon(ctx, view, [
       { x: side * half, y: 0, z: 0 },
@@ -293,21 +328,27 @@ const turn = (o: Point, a: Point, b: Point) =>
 
 const chain = (points: Point[]) => {
   const kept: Point[] = [];
+
   for (const point of points) {
     while (kept.length >= 2) {
       const [before, last] = kept.slice(-2);
+
       if (turn(before, last, point) > 0) {
         break;
       }
+
       kept.pop();
     }
+
     kept.push(point);
   }
+
   return kept.slice(0, -1);
 };
 
 const hull = (points: Point[]) => {
   const sorted = points.toSorted((a, b) => a.x - b.x || a.y - b.y);
+
   return [...chain(sorted), ...chain(sorted.toReversed())];
 };
 
@@ -326,14 +367,17 @@ const softFill = (
   ctx.shadowOffsetX = OFFSET;
   ctx.fillStyle = "#000";
   ctx.beginPath();
+
   for (const [i, point] of outline.entries()) {
     const at = project(view, { x: point.x, y: point.y, z: 0 });
+
     if (i === 0) {
       ctx.moveTo(at.x - OFFSET, at.y);
     } else {
       ctx.lineTo(at.x - OFFSET, at.y);
     }
   }
+
   ctx.closePath();
   ctx.fill();
   ctx.restore();
@@ -342,25 +386,31 @@ const softFill = (
 const paintShadow = (ctx: CanvasRenderingContext2D, view: View, box: Box) => {
   const corners = cornersOf(box);
   const lowest = Math.min(...corners.map((point) => point.z));
+
   if (lowest < -0.5 || lowest > 30) {
     return;
   }
+
   const base = project(view, box.center);
   const sun = sunOn(box.center.x, box.center.y, 0);
+
   const cast = hull(
     corners.map((point) => ({
       x: point.x - (LIGHT.x * point.z) / LIGHT.z,
       y: point.y - (LIGHT.y * point.z) / LIGHT.z,
     }))
   );
+
   ctx.globalAlpha =
     box.alpha * (0.25 + sun * 0.75) * Math.max(0, 1 - lowest / 30);
   softFill(ctx, view, cast, SHADOW, (0.9 * view.focal) / base.depth);
+
   const contact = hull(
     corners
       .filter((point) => point.z < lowest + 0.6)
       .map((point) => ({ x: point.x, y: point.y }))
   );
+
   ctx.globalAlpha = box.alpha * Math.max(0, 1 - lowest / 3);
   softFill(ctx, view, contact, CONTACT, (0.5 * view.focal) / base.depth);
   ctx.globalAlpha = 1;
@@ -384,11 +434,14 @@ const fontFamily = () =>
 
 const boxesOf = (scene: Scene) => {
   const { world } = scene;
+
   const boxes: Box[] = world.pins.map((pin, i) => {
     const knocked = isDown(pin);
     const enter = scene.rack === null ? 1 : bounce(scene.rack * 1.6 - i * 0.06);
+
     return pinBox(pin, (1 - enter) * 26, knocked ? scene.fade : 1);
   });
+
   const ballIn = scene.ballIn === null ? 1 : bounce(scene.ballIn);
   boxes.push(
     ballBox(
@@ -398,6 +451,7 @@ const boxesOf = (scene: Scene) => {
       scene.ballIn === null ? 1 : ease(scene.ballIn * 2)
     )
   );
+
   return boxes;
 };
 
@@ -407,6 +461,7 @@ const fontReady = async (family: string) => {
       `700 30px ${family}`,
       "消しボウ大会めざせ３００点！月日日直"
     );
+
     return true;
   } catch {
     return false;
@@ -415,9 +470,11 @@ const fontReady = async (family: string) => {
 
 export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const context = canvas.getContext("2d", { alpha: false });
+
   if (!context) {
     throw new Error("Canvas 2D is not available");
   }
+
   const ctx = context;
   const desk = deskTexture();
   const floor = floorTexture();
@@ -428,6 +485,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   let dpr = 1;
   let width = 0;
   let height = 0;
+
   let view: View = {
     cos: 1,
     cx: 0,
@@ -436,12 +494,14 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     focal: 1,
     sin: 0,
   };
+
   let rig: Rig = AIM_RIG;
   let previous = 0;
   let shake = 0;
   let crumbs: Crumb[] = [];
   let crumbFade = 1;
   const roll = seeded(1205);
+
   const motes: Mote[] = Array.from({ length: 46 }, () => ({
     phase: roll() * Math.PI * 2,
     size: 0.6 + roll() * 1.6,
@@ -456,15 +516,18 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       cached = "";
     }
   };
+
   void loadWall();
 
   const fit = () => {
     const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
     const nextWidth = canvas.clientWidth;
     const nextHeight = canvas.clientHeight;
+
     if (nextWidth === width && nextHeight === height && nextDpr === dpr) {
       return;
     }
+
     width = nextWidth;
     height = nextHeight;
     dpr = nextDpr;
@@ -479,6 +542,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const pitch = Math.atan2(rig.eyeZ, rig.lookY - rig.eyeY);
     const focal = Math.min(width * 2.1, height * 0.98) * dpr;
     const wobble = shaking * dpr;
+
     return {
       cos: Math.cos(pitch),
       cx: (width / 2) * dpr + (roll() - 0.5) * wobble,
@@ -501,21 +565,27 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ]
       .map((value) => value.toFixed(2))
       .join(",");
+
     if (key === cached) {
       return;
     }
+
     cached = key;
     const band = Math.max(1, Math.round(dpr * 1.5));
     const back = under.getContext("2d");
     const front = top.getContext("2d");
+
     if (!back || !front) {
       return;
     }
+
     back.fillStyle = CEILING;
     back.fillRect(0, 0, under.width, under.height);
+
     if (wall) {
       strips(back, view, wall, { kind: "wall", y: ROOM.wall.y }, band);
     }
+
     if (floor) {
       strips(
         back,
@@ -525,9 +595,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         band
       );
     }
+
     paintFrame(back, view);
     front.clearRect(0, 0, top.width, top.height);
     paintDeskEdges(front, view);
+
     if (desk) {
       strips(front, view, desk, { kind: "flat", max: LANE.length, z: 0 }, band);
     }
@@ -537,28 +609,35 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (crumbs.length === 0) {
       return;
     }
+
     ctx.save();
     ctx.globalAlpha = crumbFade;
+
     for (const crumb of crumbs) {
       crumb.vz -= 981 * dt;
       crumb.z = Math.max(0, crumb.z + crumb.vz * dt);
+
       if (crumb.z === 0) {
         crumb.vz = 0;
         crumb.vx *= 1 - Math.min(1, 9 * dt);
         crumb.vy *= 1 - Math.min(1, 9 * dt);
       }
+
       crumb.x += crumb.vx * dt;
       crumb.y += crumb.vy * dt;
       const at = project(view, crumb);
+
       if (at.depth < 2) {
         continue;
       }
+
       const size = (crumb.size * view.focal) / at.depth;
       ctx.fillStyle = css(lit(CRUMB, 0.78 - crumb.tone * 0.2, 0.2));
       ctx.beginPath();
       ctx.ellipse(at.x, at.y, size, size * 0.45, crumb.turn, 0, Math.PI * 2);
       ctx.fill();
     }
+
     ctx.restore();
   };
 
@@ -567,16 +646,20 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const along = { x: Math.sin(aim.angle), y: Math.cos(aim.angle) };
     const start = ball.d / 2 + 1.5;
     const bend = aim.curl * CURVE * (1.4 - aim.power);
+
     const at = (s: number) => {
       const side = bend * (s - start) ** 2;
+
       return project(view, {
         x: ball.x + along.x * s + along.y * side,
         y: ball.y + along.y * s - along.x * side,
         z: 0.05,
       });
     };
+
     ctx.save();
     ctx.lineCap = "round";
+
     for (let s = start; s < start + length; s += 2.2) {
       const fade = 1 - (s - start) / length;
       const a = at(s);
@@ -589,6 +672,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.lineTo(b.x, b.y);
       ctx.stroke();
     }
+
     ctx.restore();
   };
 
@@ -596,6 +680,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (aim.finger === null) {
       return;
     }
+
     const center = project(view, { x: ball.x, y: ball.y, z: ball.h / 2 });
     const finger = { x: aim.finger.x * dpr, y: aim.finger.y * dpr };
     const hops = hopsAt(ball);
@@ -616,10 +701,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.beginPath();
     ctx.arc(finger.x, finger.y, radius, 0, Math.PI * 2);
     ctx.stroke();
+
     const arc = (from: number, to: number, color: string) => {
       if (to <= from) {
         return;
       }
+
       ctx.strokeStyle = color;
       ctx.lineWidth = 4 * dpr;
       ctx.beginPath();
@@ -632,8 +719,10 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       );
       ctx.stroke();
     };
+
     arc(0, Math.min(aim.power, hops), safe);
     arc(hops, aim.power, css(POWER[2]));
+
     if (hops < 1) {
       const mark = -Math.PI / 2 + hops * Math.PI * 2;
       ctx.strokeStyle = GUIDE;
@@ -649,6 +738,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       );
       ctx.stroke();
     }
+
     ctx.restore();
   };
 
@@ -657,6 +747,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const h = canvas.height;
     ctx.save();
     ctx.globalCompositeOperation = "screen";
+
     for (const [i, offset] of [0.02, 0.24, 0.5].entries()) {
       const breathe = calm ? 1 : 0.85 + 0.15 * Math.sin(now / 2600 + i * 1.7);
       const shaft = ctx.createLinearGradient(0, 0, w, h * 0.6);
@@ -666,6 +757,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.fillStyle = shaft;
       ctx.fillRect(0, 0, w, h);
     }
+
     for (const mote of motes) {
       const t = calm ? 0 : now / 1000;
       const x = ((mote.x + t * mote.speed) % 1) * w;
@@ -676,7 +768,9 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.arc(x, y, mote.size * dpr, 0, Math.PI * 2);
       ctx.fill();
     }
+
     ctx.globalCompositeOperation = "source-over";
+
     const vignette = ctx.createRadialGradient(
       w / 2,
       h * 0.48,
@@ -685,6 +779,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       h * 0.5,
       Math.hypot(w, h) * 0.62
     );
+
     vignette.addColorStop(0, "rgb(18 8 4 / 0)");
     vignette.addColorStop(1, "rgb(18 8 4 / 0.55)");
     ctx.fillStyle = vignette;
@@ -697,8 +792,10 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       if (calm || crumbs.length > 180) {
         return;
       }
+
       crumbFade = 1;
       const count = Math.min(6, Math.floor(strength / 40));
+
       for (let i = 0; i < count; i += 1) {
         const angle = roll() * Math.PI * 2;
         const speed = 10 + roll() * strength * 0.3;
@@ -729,33 +826,43 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       paintLayers();
       ctx.drawImage(under, 0, 0);
       const boxes = boxesOf(scene);
+
       const sorted = boxes.toSorted(
         (a, b) => depthOf(view, b.center) - depthOf(view, a.center)
       );
+
       for (const box of sorted) {
         if (box.center.z < -DESK.thick && depthOf(view, box.center) > 2) {
           paintBox(ctx, view, box, false);
         }
       }
+
       ctx.drawImage(top, 0, 0);
       ctx.save();
       clipDesk(ctx, view);
+
       for (const box of boxes) {
         paintShadow(ctx, view, box);
       }
+
       paintCrumbs(dt);
+
       if (scene.aim) {
         guide(scene.aim, scene.world.ball);
       }
+
       ctx.restore();
+
       for (const box of sorted) {
         if (box.center.z >= -DESK.thick && depthOf(view, box.center) > 2) {
           paintBox(ctx, view, box);
         }
       }
+
       if (scene.aim) {
         powerRing(scene.aim, scene.world.ball);
       }
+
       atmosphere(now);
     },
     sweep: () => {
@@ -767,6 +874,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     },
     screenOf: (at: Point): Point => {
       const spot = project(view, { x: at.x, y: at.y, z: 0 });
+
       return { x: spot.x / dpr, y: spot.y / dpr };
     },
     toLane: (client: Point): Point | null => {
@@ -777,10 +885,13 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       const b = -(sy - view.cy) / view.focal;
       const dy = b * view.sin + view.cos;
       const dz = b * view.cos - view.sin;
+
       if (dz >= -1e-5) {
         return null;
       }
+
       const t = -view.eye.z / dz;
+
       return { x: view.eye.x + t * a, y: view.eye.y + t * dy };
     },
   };

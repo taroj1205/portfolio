@@ -166,11 +166,14 @@ const needFor = (target: number) => Math.round(150 * target ** 1.8);
 
 export const progressOf = (xp: number) => {
   let reached = 0;
+
   while (xp >= needFor(reached + 1)) {
     reached += 1;
   }
+
   const floor = needFor(reached);
   const ceiling = needFor(reached + 1);
+
   return { level: reached, part: (xp - floor) / (ceiling - floor) };
 };
 
@@ -185,15 +188,19 @@ const isOpen = (unlock: Unlock, progress: Progress) => {
   if (unlock.kind === "level") {
     return progress.level >= unlock.level;
   }
+
   if (unlock.kind === "combo") {
     return progress.combo >= unlock.combo;
   }
+
   if (unlock.kind === "zone") {
     return progress.zone >= unlock.zone;
   }
+
   if (unlock.kind === "divine") {
     return progress.divine;
   }
+
   return true;
 };
 
@@ -202,19 +209,25 @@ export const isUnlocked = (standing: Standing, part: Part, option: Option) =>
 
 export const conditionOf = (unlock: Unlock, lang: Lang) => {
   const en = lang === "en";
+
   if (unlock.kind === "level") {
     return `Lv.${unlock.level}`;
   }
+
   if (unlock.kind === "combo") {
     return en ? `Combo ${unlock.combo}` : `コンボ${unlock.combo}`;
   }
+
   if (unlock.kind === "zone") {
     const area = zones[unlock.zone]?.name[lang] ?? "";
+
     return en ? `Reach ${area}` : `${area}に到達`;
   }
+
   if (unlock.kind === "divine") {
     return en ? "Perfect throw" : "神投げ";
   }
+
   return "";
 };
 
@@ -249,9 +262,11 @@ export const spend = (
   if (step === 1 && pointsLeft(training) <= 0) {
     return null;
   }
+
   if (step === -1 && training.gear[key] === 0) {
     return null;
   }
+
   return { ...training.gear, [key]: training.gear[key] + step };
 };
 
@@ -267,9 +282,11 @@ export const earn = <S extends Standing & { unseen: string[] }>(
       (flight.quality >= 90 ? 40 : 0) +
       (flight.quality === 100 ? 160 : 0)
   );
+
   const next = { ...after, xp: before.xp + gained };
   const known = new Set(opened(before).map(keyOf));
   const unlocked = opened(next).filter((item) => !known.has(keyOf(item)));
+
   return {
     climbed: progressOf(next.xp).level - progressOf(before.xp).level,
     gained,
@@ -293,6 +310,7 @@ const earned = (points: number) =>
 
 const eased = (points: number) => {
   const total = earned(points);
+
   return total / (total + 1);
 };
 
@@ -301,12 +319,15 @@ export const traitsOf = (gear: Gear, look: Stone): Traits => {
     PERKS.get(`color:${look.color}`) ?? {},
     PERKS.get(`form:${look.form}`) ?? {},
   ];
+
   const steps = (axis: Axis) =>
     perks.reduce((sum, entry) => sum + (entry[axis] ?? 0), 0);
+
   const scale = (axis: Axis) => (1 + STEP[axis]) ** steps(axis);
   const pair = comboOf(look);
   const pairPerks = pair === null ? {} : comboPerksOf(pair);
   const worth = (axis: Axis) => 1 + WORTH_STEP * (pairPerks[axis] ?? 0);
+
   const points = {
     focus: gear.focus * worth("focus"),
     impact: gear.impact * worth("impact"),
@@ -314,6 +335,7 @@ export const traitsOf = (gear: Gear, look: Stone): Traits => {
     power: gear.power * worth("speed"),
     stone: gear.stone * worth("keep"),
   };
+
   return {
     focus: scale("focus"),
     good: 0.22 + 0.18 * eased(points.focus),
@@ -350,14 +372,18 @@ export const scoresOf = (
 export const perksNote = (perks: Perks, lang: Lang) => {
   const marks = axes.flatMap(({ key, label }) => {
     const step = perks[key] ?? 0;
+
     if (step === 0) {
       return [];
     }
+
     return [`${label[lang]}${(step > 0 ? "↑" : "↓").repeat(Math.abs(step))}`];
   });
+
   if (marks.length > 0) {
     return marks.join(" ");
   }
+
   return lang === "en" ? "Balanced" : "クセなし";
 };
 
@@ -365,8 +391,10 @@ export const peaksOf = (perks: Perks): Perks => {
   const ranked = axes
     .map(({ key }) => ({ key, step: perks[key] ?? 0 }))
     .toSorted((a, b) => b.step - a.step);
+
   const best = ranked.at(0);
   const worst = ranked.at(-1);
+
   return {
     ...(best !== undefined && best.step > 0 && { [best.key]: best.step }),
     ...(worst !== undefined && worst.step < 0 && { [worst.key]: worst.step }),

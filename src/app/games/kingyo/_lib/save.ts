@@ -55,15 +55,19 @@ export const settle = (
   const { level } = rankOf(caught);
   const kinds = { ...save.kinds };
   const firsts: KindId[] = [];
+
   for (const id of kindIds) {
     const got = result.catches[id];
+
     if (got > 0) {
       if ((kinds[id] ?? 0) === 0) {
         firsts.push(id);
       }
+
       kinds[id] = (kinds[id] ?? 0) + got;
     }
   }
+
   return {
     firsts,
     record: save.runs > 0 && caught > save.best,

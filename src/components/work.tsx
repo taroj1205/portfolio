@@ -221,6 +221,7 @@ const tilts = stylex.create({
     },
   },
 });
+
 const tiltOrder = [tilts.a, tilts.b, tilts.c];
 
 interface Project {
@@ -254,6 +255,7 @@ const Row = ({
   locale: Locale;
 }) => {
   const t = getTranslator(locale);
+
   return (
     <li data-reveal {...stylex.props(styles.row)}>
       <div {...stylex.props(styles.text, flip && styles.textFlip)}>
@@ -306,6 +308,7 @@ export const Work = ({
   locale: Locale;
 }) => {
   const t = getTranslator(locale);
+
   const upstreamNotes = new Map([
     [
       "anomalyco/opencode",
@@ -336,6 +339,7 @@ export const Work = ({
       ),
     ],
   ]);
+
   const work: Project[] = [
     {
       body: t(
@@ -420,6 +424,7 @@ export const Work = ({
       stats: [],
     },
   ];
+
   const byReach = upstream.toSorted(
     (a, b) => (b.prs[0]?.stars ?? 0) - (a.prs[0]?.stars ?? 0)
   );

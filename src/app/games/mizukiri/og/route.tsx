@@ -22,20 +22,27 @@ const HORIZON = 360;
 
 const ridge = (base: number, amp: number, fuji: boolean) => {
   const points: string[] = [`0,${HORIZON}`];
+
   for (let x = 0; x <= W; x += 10) {
     const u = x / W;
+
     let lift =
       amp *
       (0.5 + 0.3 * Math.sin(u * 5.1 + 1.3) + 0.15 * Math.sin(u * 13.7 + 0.4));
+
     if (fuji) {
       const away = Math.abs(x - 1010) / 360;
+
       if (away < 1) {
         lift = Math.max(lift, 150 * Math.min(0.94, (1 - away) ** 1.35));
       }
     }
+
     points.push(`${x},${(base - lift).toFixed(1)}`);
   }
+
   points.push(`${W},${HORIZON}`);
+
   return points.join(" ");
 };
 
@@ -47,14 +54,17 @@ const headlineSize = (
   if (result) {
     return 190;
   }
+
   return career === null && lang === "en" ? 92 : 150;
 };
 
 const cardText = (result: Result | null, career: Career | null, lang: Lang) => {
   const en = lang === "en";
+
   if (career) {
     const story = describeCareer(career, lang);
     const [value, unit] = distanceParts(career.best);
+
     return {
       caption: story.title,
       detail: `${copy[lang].best} · ${story.reached}`,
@@ -65,16 +75,21 @@ const cardText = (result: Result | null, career: Career | null, lang: Lang) => {
       value,
     };
   }
+
   const story = result ? describe(result, lang) : null;
+
   const [value, unit] = result
     ? distanceParts(result.distance)
     : [copy[lang].name, ""];
+
   let detail = en ? "Just flick your phone" : "スマホではじくだけ";
+
   if (result) {
     detail = en
       ? `${result.skips} skips · throw ${result.quality}%`
       : `${result.skips}回跳ねた · 投げの質 ${result.quality}%`;
   }
+
   return {
     caption:
       story?.title ?? (en ? "How far will it skip?" : "どこまで跳ねる？"),
@@ -93,26 +108,32 @@ export const GET = async (request: NextRequest) => {
   const career = result === null ? readCareer(params) : null;
   const palette = palettes[result?.sky ?? "dusk"];
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
+
   const { caption, detail, facts, mode, rarity, unit, value } = cardText(
     result,
     career,
     lang
   );
+
   const font = await loadMincho(
     `${value}${unit}${caption}${detail}${rarity ?? ""}${mode ?? ""}${facts
       .map((fact) => `${fact.label}${fact.value}`)
       .join("")}天の川水切り石`
   );
+
   const branded = result !== null || career !== null;
   const sunX = W * Math.max(palette.sunX, 0.62);
   const sunY = HORIZON - Math.max(HORIZON * palette.sunY, 64);
+
   const mist = `${palette.mist}${Math.round(palette.mistAlpha * 255)
     .toString(16)
     .padStart(2, "0")}`;
+
   const rings = Array.from(
     { length: career === null ? Math.min(result?.skips ?? 9, 14) : 0 },
     (_, i) => {
       const d = 1.6 + i * 1.1;
+
       return { r: 260 / d, x: 820 + i * 9, y: HORIZON + 300 / d };
     }
   );

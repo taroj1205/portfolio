@@ -485,6 +485,7 @@ const styles = stylex.create({
 
 const Marked = ({ text }: { text: string }) => {
   const [before, ...rest] = text.split(MARK);
+
   return (
     <>
       {before}
@@ -535,6 +536,7 @@ const Speaker = ({ muted }: { muted: boolean }) => (
 
 const Steps = ({ lang, rung }: { lang: Lang; rung: number }) => {
   const words = copy[lang];
+
   return (
     <ol aria-label={words.ladder} {...stylex.props(styles.steps)}>
       {words.rivals.map((rival, index) => (
@@ -568,6 +570,7 @@ const Primary = ({
   useEffect(() => {
     ref.current?.focus({ preventScroll: true });
   }, []);
+
   return (
     <button
       onClick={onClick}
@@ -588,6 +591,7 @@ const Zones = ({
   tally: Record<Side, number>;
 }) => {
   const words = copy[lang];
+
   return (
     <div aria-hidden="true" {...stylex.props(styles.zones)}>
       {(["left", "right"] as const).map((side) => (
@@ -626,11 +630,13 @@ const demoText = (beat: Beat, lang: Lang) => {
   if (beat === null) {
     return null;
   }
+
   return beat === "cut" ? formatMs(DEMO_REACTION) : copy[lang].demo[beat];
 };
 
 const Caption = ({ beat, lang }: { beat: Beat; lang: Lang }) => {
   const text = demoText(beat, lang);
+
   return text === null ? null : (
     <p
       aria-hidden="true"
@@ -652,19 +658,23 @@ const introOf = (
   lang: Lang
 ) => {
   const words = copy[lang];
+
   if (mode === "versus") {
     return {
       label: words.ready,
       name: `${words.players.left} × ${words.players.right}`,
     };
   }
+
   if (mode === "challenge" && challenge !== null) {
     return {
       label: words.challenge.received,
       name: `${words.challenge.who} ${formatMs(challenge.best)}`,
     };
   }
+
   const rival = words.rivals[Math.min(rung, ladder.length - 1)];
+
   return { label: words.ordinal(rung), name: `${rival.title} ${rival.name}` };
 };
 
@@ -684,6 +694,7 @@ const ChallengeCard = ({
 }) => {
   const words = copy[lang];
   const rank = rankOf(challenge.reach);
+
   return (
     <div {...stylex.props(glass.surface, styles.card)}>
       <span aria-hidden="true" {...stylex.props(styles.seal)}>
@@ -711,6 +722,7 @@ interface TitleProps {
 
 const Title = ({ lang, challenge, save, onStart }: TitleProps) => {
   const words = copy[lang];
+
   const record =
     save !== null && save.runs > 0
       ? words.record(
@@ -718,6 +730,7 @@ const Title = ({ lang, challenge, save, onStart }: TitleProps) => {
           save.bestReaction === null ? null : formatMs(save.bestReaction)
         )
       : null;
+
   return (
     <div {...stylex.props(styles.panel)}>
       {challenge === null ? null : (
@@ -775,12 +788,15 @@ const Title = ({ lang, challenge, save, onStart }: TitleProps) => {
 
 const nextLabel = (mode: Mode, verdict: Verdict | null, lang: Lang) => {
   const words = copy[lang];
+
   if (mode === "versus") {
     return words.rematch;
   }
+
   if (verdict === null) {
     return words.ready;
   }
+
   return verdict.call.kind === "draw" ? words.retry : words.next;
 };
 
@@ -807,6 +823,7 @@ const Ready = ({
 }: ReadyProps) => {
   const words = copy[lang];
   const rival = words.rivals[Math.min(rung, ladder.length - 1)];
+
   return (
     <div {...stylex.props(styles.panel)}>
       {verdict === null ? null : <Outcome lang={lang} verdict={verdict} />}

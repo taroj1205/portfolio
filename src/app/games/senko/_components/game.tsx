@@ -62,13 +62,17 @@ export const Game = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
+
     const nextId = () => {
       ids.current += 1;
+
       return ids.current;
     };
+
     const tell = (text: string) => {
       setNotice({ id: nextId(), text });
     };
+
     session.current =
       canvas === null
         ? null
@@ -93,6 +97,7 @@ export const Game = ({
             settings: setSettings,
             stage: (next) => {
               setStage(next);
+
               if (next === "burning") {
                 setNotice(null);
               }
@@ -103,6 +108,7 @@ export const Game = ({
               }
             },
           });
+
     return () => {
       session.current?.stop();
       session.current = null;

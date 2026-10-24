@@ -251,6 +251,7 @@ export const Header = ({
 }: HeaderProps) => {
   const words = copy[lang];
   const other: Lang = lang === "ja" ? "en" : "ja";
+
   return (
     <header {...stylex.props(styles.top)}>
       <div {...stylex.props(styles.brand)}>
@@ -305,6 +306,7 @@ const Primary = ({
       ref.current?.focus({ preventScroll: true });
     }
   }, [focus]);
+
   return (
     <button
       onClick={onClick}
@@ -326,9 +328,11 @@ const ChallengeCard = ({
 }) => {
   const words = copy[lang];
   const piece = pieceOf(challenge);
+
   if (piece === null) {
     return null;
   }
+
   return (
     <div {...stylex.props(glass.surface, styles.card)}>
       <CutThumb piece={piece} xstyle={styles.thumb} />
@@ -364,6 +368,7 @@ export const Panel = ({
   onStart,
 }: PanelProps) => {
   const words = copy[lang];
+
   if (view.stage === "title") {
     return (
       <div {...stylex.props(styles.panel)}>
@@ -412,8 +417,10 @@ export const Panel = ({
       </div>
     );
   }
+
   if (view.stage === "play") {
     const fumble = view.fumble?.kind;
+
     return (
       <div {...stylex.props(styles.panel)}>
         <p
@@ -427,5 +434,6 @@ export const Panel = ({
       </div>
     );
   }
+
   return null;
 };

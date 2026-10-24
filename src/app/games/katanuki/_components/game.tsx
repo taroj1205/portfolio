@@ -96,9 +96,11 @@ const paintMeter = (
   if (bar) {
     bar.style.transform = `scaleX(${values.carved / 100})`;
   }
+
   if (percent) {
     percent.textContent = `${values.carved}%`;
   }
+
   if (stress) {
     stress.style.transform = `scaleX(${values.tension.toFixed(3)})`;
   }
@@ -153,6 +155,7 @@ export const Game = ({
             save: setSave,
             settings: setSettings,
           });
+
     return () => {
       session.current?.stop();
       session.current = null;

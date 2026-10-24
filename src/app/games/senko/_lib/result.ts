@@ -31,12 +31,15 @@ export const titleOf = (result: Result, lang: Lang) => {
   if (finished(result)) {
     return lang === "en" ? "Burned all the way down" : "燃え尽きるまで";
   }
+
   const { name } = phaseOf(reachedOf(result));
+
   return lang === "en" ? `Made it to ${name.en}` : `${name.ja}まで`;
 };
 
 export const trailOf = (result: Result) => {
   const reached = reachedOf(result);
+
   return (
     phases
       .map((phase, index) => (index <= reached ? phase.emoji : "▫️"))
@@ -53,10 +56,13 @@ export const readResult = (
   params: Record<string, string | string[] | undefined>
 ): Result | null => {
   const parsed = shared.safeParse(params);
+
   if (!parsed.success) {
     return null;
   }
+
   const { s, t } = parsed.data;
+
   return t > createStick(s).length ? null : { seed: s, time: t };
 };
 
@@ -69,15 +75,18 @@ export const queryOf = (result: Result) =>
 const lineOf = (result: Result, lang: Lang) => {
   const done = finished(result);
   const { name } = phaseOf(reachedOf(result));
+
   if (lang === "en") {
     return `An Ember's Life ${timeText(result.time, "en")}, ${done ? "burned all the way down" : `made it to ${name.en}`}`;
   }
+
   return `火玉の一生 ${timeText(result.time, "ja")} ${done ? "完走" : `${name.ja}まで`}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
+
   return {
     image: `${origin}/games/senko/og?${query.toString()}`,
     text: [

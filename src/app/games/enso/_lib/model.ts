@@ -15,6 +15,7 @@ export const modelSamples: readonly Sample[] = [
     const progress = u - (Math.sin(u * Math.PI * 2) / (Math.PI * 2)) * 0.55;
     const angle = START - progress * SWEEP;
     const r = 0.34 * (1 + 0.01 * Math.sin(angle * 3 + 1) - 0.025 * progress);
+
     return {
       t: DWELL + u * DURATION,
       x: 0.5 + Math.cos(angle) * r,
@@ -25,10 +26,13 @@ export const modelSamples: readonly Sample[] = [
 
 const brush = createBrush(11);
 const [head, ...rest] = modelSamples;
+
 brush.press(head);
+
 for (const sample of rest) {
   brush.move(sample);
 }
+
 brush.lift();
 
 export const modelTrace = simplify(brush.trace());

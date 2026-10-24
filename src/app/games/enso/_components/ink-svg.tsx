@@ -18,6 +18,7 @@ const FIBRES = Array.from({ length: 56 }, () => {
   const y = 0.1 + roll() * 0.8;
   const angle = roll() * Math.PI * 2;
   const reach = 0.03 + roll() * 0.08;
+
   return {
     light: roll() > 0.6,
     x0: x,
@@ -31,6 +32,7 @@ const FLECKS = Array.from({ length: 26 }, (_, i) => {
   const spread = roll() ** 2 * 0.3;
   const along = roll();
   const near = i % 2 === 0;
+
   return {
     r: 0.003 + roll() ** 2 * 0.011,
     x: 0.02 + (near ? spread : 0.96 - spread * along),
@@ -97,6 +99,7 @@ export const inkSvg = ({
   trace,
 }: Place & { trace: Trace[] }) => {
   const { body, streaks } = inkPaths(trace, { size, x, y });
+
   return (
     <>
       <defs>

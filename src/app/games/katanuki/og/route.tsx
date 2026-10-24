@@ -36,20 +36,24 @@ const pathOf = (points: readonly Point[], closed: boolean) =>
   `${points
     .map((point, i) => {
       const { x, y } = toCanvas(point);
+
       return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(" ")}${closed ? " Z" : ""}`;
 
 const crackOf = (at: Point) => {
   const angle = Math.atan2(0.5 - at.y, 0.5 - at.x) + 0.35;
+
   const points = Array.from({ length: 71 }, (_, i) => {
     const walked = (i - 35) * 0.014;
     const wobble = Math.sin(i * 1.7) * 0.008 + Math.sin(i * 0.6) * 0.006;
+
     return {
       x: at.x + Math.cos(angle) * walked - Math.sin(angle) * wobble,
       y: at.y + Math.sin(angle) * walked + Math.cos(angle) * wobble,
     };
   });
+
   return points.filter(
     (point) => Math.hypot(point.x - 0.5, point.y - 0.5) < 0.43
   );
@@ -79,6 +83,7 @@ interface Face {
 const faceOf = (result: Result | null, mould: MouldId, lang: Lang): Face => {
   const words = copy[lang];
   const name = moulds[mould].name[lang];
+
   if (result === null) {
     return {
       caption: pitch[lang].detail,
@@ -90,7 +95,9 @@ const faceOf = (result: Result | null, mould: MouldId, lang: Lang): Face => {
       tag: name,
     };
   }
+
   const rank = rankOf(result);
+
   return {
     caption: rank.name[lang],
     clear: result.time !== null,
@@ -115,6 +122,7 @@ const Candy = ({
   const broke = result !== null && result.time === null;
   const clear = result !== null && result.time !== null;
   const end = outline[Math.max(0, cut.length - 1)];
+
   return (
     <svg
       height={H}
@@ -201,14 +209,17 @@ export const GET = async (request: NextRequest) => {
   const result = readResult(params);
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
   const mould = result?.mould ?? "umbrella";
+
   const { tag, headline, caption, detail, dare, clear, perfect } = faceOf(
     result,
     mould,
     lang
   );
+
   const font = await loadMincho(
     `${tag}${headline}${caption}${detail}${dare}${copy.ja.name}${copy.ja.reading}${copy.en.reading}0123456789.%秒s#·`
   );
+
   const accent = clear ? ink.gold : ink.text;
 
   return await ogImage(

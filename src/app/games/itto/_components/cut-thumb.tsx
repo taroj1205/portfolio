@@ -14,6 +14,7 @@ export const CutThumb = ({
   xstyle: StyleXStyles;
 }) => {
   const scene = useId().replaceAll(":", "");
+
   return (
     <svg
       aria-hidden="true"

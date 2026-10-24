@@ -19,6 +19,7 @@ export const day = (iso: string, locale: Locale = "en") =>
 
 export const splitTitle = (title: string) => {
   const match = /^(?<type>\w+)(?:\([^)]*\))?!?:\s*(?<text>.*)$/u.exec(title);
+
   return {
     text: match?.groups?.text ?? title,
     type: match?.groups?.type ?? "",

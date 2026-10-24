@@ -90,9 +90,11 @@ const emptyCatches = (): Catches => ({
 
 export const resultOf = (caught: readonly KindId[]): Result => {
   const catches = emptyCatches();
+
   for (const kind of caught) {
     catches[kind] += 1;
   }
+
   return { catches };
 };
 
@@ -104,6 +106,7 @@ export const rankOf = (count: number): Rank =>
 
 export const nextOf = (count: number) => {
   const next = ranks[rankOf(count).level + 1];
+
   return next === undefined ? null : { more: next.least - count, rank: next };
 };
 
@@ -126,12 +129,15 @@ export const shelfOf = (result: Result, limit = SHELF) =>
 
 export const barOf = (result: Result) => {
   const count = countOf(result);
+
   if (count === 0) {
     return "💧";
   }
+
   const shown = shelfOf(result, CELLS)
     .map((id) => icons[kinds[id].tier])
     .join("");
+
   return count > CELLS ? `${shown}+${count - CELLS}` : shown;
 };
 
@@ -152,13 +158,17 @@ export const readResult = (
   params: Record<string, string | string[] | undefined>
 ): Result | null => {
   const parsed = shared.safeParse(params);
+
   if (!parsed.success) {
     return null;
   }
+
   const catches = emptyCatches();
+
   for (const [i, id] of kindIds.entries()) {
     catches[id] = parsed.data.f[i] ?? 0;
   }
+
   return { catches };
 };
 
@@ -172,9 +182,11 @@ export const countText = (count: number, lang: Lang) =>
 
 export const bragOf = (kind: KindId, lang: Lang) => {
   const { name, tier } = kinds[kind];
+
   if (lang === "ja") {
     return `${name.ja}も、すくった`;
   }
+
   return tier === "legend"
     ? "Even landed the old boss of the tank"
     : `Even got a ${name.en.toLowerCase()}`;
@@ -184,15 +196,18 @@ const lineOf = (result: Result, lang: Lang) => {
   const count = countOf(result);
   const rank = rankOf(count).name[lang];
   const rarest = rarestOf(result);
+
   const special =
     rarest !== null && kinds[rarest].tier !== "common"
       ? [`${bragOf(rarest, lang)} ${icons[kinds[rarest].tier]}`]
       : [];
+
   if (lang === "en") {
     const how =
       count === 0
         ? "Tore my poi without catching a single fish"
         : `Scooped ${countText(count, lang)} with one poi`;
+
     return [
       copy.en.name,
       `${how} · ${rank}`,
@@ -201,10 +216,12 @@ const lineOf = (result: Result, lang: Lang) => {
       count === 0 ? "Can you catch one?" : "Can you scoop more?",
     ].join("\n");
   }
+
   const how =
     count === 0
       ? "1匹もすくえずに破れた"
       : `ポイ一枚で${countText(count, lang)}すくった`;
+
   return [
     copy.ja.name,
     `${how} · ${rank}`,
@@ -217,6 +234,7 @@ const lineOf = (result: Result, lang: Lang) => {
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
+
   return {
     image: `${origin}/games/kingyo/og?${query.toString()}`,
     text: [

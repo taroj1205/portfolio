@@ -138,6 +138,7 @@ export const startSession = (
   const takeSeconds = () => {
     const seconds = played;
     played = 0;
+
     return seconds;
   };
 
@@ -145,10 +146,13 @@ export const startSession = (
     if (mode === "versus") {
       return planDuel(random, null, VERSUS_FAKES);
     }
+
     if (mode === "challenge" && challenge !== null) {
       return planDuel(random, challenge.best, CHALLENGE_FAKES);
     }
+
     const current = ladder[rung];
+
     return planDuel(random, rivalOf(current, random), current.fakes);
   };
 
@@ -156,6 +160,7 @@ export const startSession = (
     if (stage !== "ready" && stage !== "title" && stage !== "result") {
       return;
     }
+
     sound.unlock();
     sound.still();
     sound.drum();
@@ -194,25 +199,31 @@ export const startSession = (
     const result = resultOf(rung, reactions, end);
     const run = settleRun(save, rung);
     keep(run.save);
+
     if (end === "clear") {
       sound.clear();
       navigator.vibrate?.([20, 60, 30, 60, 60]);
     }
+
     enter("result");
     on.over({ fastest, furthest: run.record, mode: "solo", result });
   };
 
   const conclude = (current: Duel, call: Call) => {
     const { plan, startedAt, signalAt, taps } = current;
+
     const reaction = (side: Side) =>
       call.kind === "draw" || (call.kind === "cut" && call.side === side)
         ? call.reaction
         : reactionOf(taps, side, startedAt, signalAt);
+
     const left = reaction("left");
     let right = call.kind === "early" ? null : plan.rival;
+
     if (mode === "versus" || call.kind === "draw") {
       right = reaction("right");
     }
+
     const verdict: Verdict = { call, left, mode, right, rung };
     duel = null;
 
@@ -220,16 +231,20 @@ export const startSession = (
       if (call.kind === "cut") {
         tally = { ...tally, [call.side]: tally[call.side] + 1 };
       }
+
       if (call.kind === "early") {
         const winner = other(call.side);
         tally = { ...tally, [winner]: tally[winner] + 1 };
       }
+
       if (call.kind === "cut" || call.kind === "early") {
         keep(settleVersus(save, Date.now(), takeSeconds()));
       }
+
       on.tally(tally);
       on.verdict(verdict);
       enter("ready");
+
       return;
     }
 
@@ -239,32 +254,44 @@ export const startSession = (
       reaction: left,
       seconds: takeSeconds(),
     });
+
     keep(settled.save);
     fastest ||= settled.record;
+
     if (left !== null) {
       reactions.push(left);
     }
+
     if (mode === "challenge") {
       enter("result");
       on.over({ fastest, mode: "challenge", verdict });
+
       return;
     }
+
     if (call.kind === "draw") {
       on.verdict(verdict);
       enter("ready");
+
       return;
     }
+
     if (call.kind === "cut" && call.side === "left") {
       rung += 1;
+
       if (rung === ladder.length) {
         finish("clear");
+
         return;
       }
+
       on.rung(rung);
       on.verdict(verdict);
       enter("ready");
+
       return;
     }
+
     finish(call.kind === "early" ? (call.fake ?? "early") : "slow");
   };
 
@@ -272,6 +299,7 @@ export const startSession = (
     current.call = call;
     current.calledAt = now;
     sound.still();
+
     if (call.kind === "early") {
       clash = { at: now, kind: "early", side: call.side };
       const cue = current.plan.cues.find((each) => each.kind === call.fake);
@@ -294,13 +322,17 @@ export const startSession = (
           ? { at: now, kind: "cut", side: call.side }
           : { at: now, kind: "draw" };
       sound.strike();
+
       if (call.kind === "cut") {
         sound.cut();
       }
+
       const won =
         mode === "versus" || (call.kind === "cut" && call.side === "left");
+
       navigator.vibrate?.(won ? 18 : [30, 50, 60]);
     }
+
     enter("cut");
   };
 
@@ -308,28 +340,34 @@ export const startSession = (
     if (current.drawnAt !== null && current.signalAt === null) {
       current.signalAt = now;
     }
+
     if (current.call !== null) {
       if (now - current.calledAt >= HOLD) {
         conclude(current, current.call);
       }
+
       return;
     }
+
     if (!current.hushed && now >= current.startedAt) {
       current.hushed = true;
       sound.silence();
     }
+
     for (const cue of current.plan.cues) {
       if (!current.heard.has(cue.kind) && now >= current.startedAt + cue.at) {
         current.heard.add(cue.kind);
         sound.fake(cue.kind);
       }
     }
+
     if (
       current.drawnAt === null &&
       now >= current.startedAt + current.plan.wait
     ) {
       current.drawnAt = now;
     }
+
     const call = decide({
       now,
       plan: current.plan,
@@ -337,6 +375,7 @@ export const startSession = (
       startedAt: current.startedAt,
       taps: current.taps,
     });
+
     if (call !== null) {
       strike(current, call, now);
     }
@@ -344,26 +383,34 @@ export const startSession = (
 
   const demoFrame = (now: number): Scene => {
     const colours = tints.duel;
+
     if (calm) {
       tell("calm");
+
       return { clash: null, colours, cue: null, now, signal: true };
     }
+
     let t = now - demoAt;
+
     if (t > DEMO_LENGTH) {
       demoAt = now;
       demos += 1;
       t = 0;
     }
+
     const kind = fakes[demos % fakes.length];
+
     const plan: Plan = {
       cues: [{ at: DEMO.cue, kind, length: fakeLength[kind] }],
       rival: null,
       wait: DEMO.wait,
     };
+
     const startedAt = demoAt + DEMO.intro;
     const signalAt = startedAt + DEMO.wait;
     const cutAt = signalAt + DEMO_REACTION;
     const cue = cueAt(plan, startedAt, now);
+
     if (now >= cutAt) {
       tell("cut");
     } else if (now >= signalAt) {
@@ -373,6 +420,7 @@ export const startSession = (
     } else {
       tell("fake");
     }
+
     return {
       clash: now >= cutAt ? { at: cutAt, kind: "cut", side: "left" } : null,
       colours,
@@ -384,6 +432,7 @@ export const startSession = (
 
   const duelFrame = (now: number): Scene => {
     const colours = mode === "versus" ? tints.versus : tints.duel;
+
     if (duel === null || duel.call !== null) {
       return {
         clash,
@@ -393,7 +442,9 @@ export const startSession = (
         signal: duel !== null && duel.drawnAt !== null,
       };
     }
+
     const live = cueAt(duel.plan, duel.startedAt, now);
+
     return {
       clash,
       colours,
@@ -412,6 +463,7 @@ export const startSession = (
     ) {
       return;
     }
+
     duel.taps.push({ at, side });
   };
 
@@ -423,6 +475,7 @@ export const startSession = (
     ) {
       return;
     }
+
     event.preventDefault();
     push(
       mode === "versus" ? render.side(event.clientX, event.clientY) : "left",
@@ -435,8 +488,10 @@ export const startSession = (
       if (event.code === "KeyF") {
         return "left";
       }
+
       return event.code === "KeyJ" ? "right" : null;
     }
+
     return event.key === " " || event.code === "Space" ? "left" : null;
   };
 
@@ -449,11 +504,15 @@ export const startSession = (
     ) {
       return;
     }
+
     const side = keySide(event);
+
     if (side === null) {
       return;
     }
+
     event.preventDefault();
+
     if (!event.repeat) {
       push(side, event.timeStamp);
     }
@@ -481,6 +540,7 @@ export const startSession = (
     if (stage !== "duel" || duel === null || duel.call !== null) {
       return;
     }
+
     duel = null;
     clash = null;
     held = null;
@@ -507,34 +567,42 @@ export const startSession = (
     if (stage === "result") {
       return 1;
     }
+
     return stage === "title" ? framed : 0;
   };
 
   let frame = 0;
+
   const tick = (now: number) => {
     const dt = Math.min(100, Math.max(0, now - last));
     last = now;
+
     if (!paused) {
       if (stage === "ready" || stage === "duel" || stage === "cut") {
         played += dt / 1000;
       }
+
       if (duel !== null) {
         advance(duel, now);
       }
+
       render.draw({
         ...(stage === "title" ? demoFrame(now) : duelFrame(now)),
         raise: raiseFor(),
         slide: stage === "result" ? 1 : 0,
       });
     }
+
     frame = requestAnimationFrame(tick);
   };
+
   frame = requestAnimationFrame(tick);
 
   return {
     engage,
     pause: (value: boolean) => {
       paused = value;
+
       if (value) {
         sound.silence();
       } else {

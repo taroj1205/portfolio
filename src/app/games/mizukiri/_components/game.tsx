@@ -47,19 +47,24 @@ const releaseCall = ({ tilt, quality }: Release): Call => {
   if (quality === 100) {
     return { say: (words) => words.release.divine, tone: "gold" };
   }
+
   let lean: "steep" | "flat" | null = null;
+
   if (tilt > 23) {
     lean = "steep";
   } else if (tilt < 17) {
     lean = "flat";
   }
+
   const hint = (words: Copy) => (lean === null ? "" : words.release[lean]);
+
   if (quality >= 90) {
     return {
       say: (words) => `${words.release.close(quality)}${hint(words)}`,
       tone: "gold",
     };
   }
+
   return {
     say: (words) => `${words.release.plain(quality)}${hint(words)}`,
     tone: quality >= 60 ? "white" : "grey",
@@ -89,12 +94,15 @@ const beatCall = ({ event, grade }: Beat): Call | null => {
       tone: eventTones[event],
     };
   }
+
   if (event !== null) {
     return { say: (words) => words.events[event], tone: eventTones[event] };
   }
+
   if (grade === null) {
     return null;
   }
+
   return { say: (words) => words.grades[grade], tone: gradeTones[grade] };
 };
 
@@ -128,10 +136,12 @@ export const Game = ({
   useEffect(() => {
     const canvas = canvasRef.current;
     const waterCanvas = waterRef.current;
+
     const shout = (call: Call) => {
       shouts.current += 1;
       setPopup({ ...call, id: shouts.current });
     };
+
     session.current =
       canvas === null || waterCanvas === null
         ? null
@@ -142,12 +152,14 @@ export const Game = ({
                 setSkips(beat.skips);
                 setCombo(beat.combo);
                 const call = beatCall(beat);
+
                 if (call) {
                   shout(call);
                 }
               },
               distance: (meters) => {
                 const [value, unit] = distanceParts(meters);
+
                 if (meterValue.current && meterUnit.current) {
                   meterValue.current.textContent = value;
                   meterUnit.current.textContent = unit;
@@ -163,9 +175,11 @@ export const Game = ({
               },
               phase: (next) => {
                 setPhase(next);
+
                 if (next === "ready" || next === "flying") {
                   setBanner(null);
                 }
+
                 if (next === "ready") {
                   setSkips(0);
                   setCombo(0);
@@ -192,6 +206,7 @@ export const Game = ({
             },
             duelOnly
           );
+
     return () => {
       session.current?.stop();
       session.current = null;
@@ -199,6 +214,7 @@ export const Game = ({
   }, [duelOnly]);
 
   let lang: Lang = hint ?? "ja";
+
   if (settings !== null) {
     lang = settings.lang ?? hint ?? guessLang();
   }

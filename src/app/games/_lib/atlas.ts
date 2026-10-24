@@ -12,6 +12,7 @@ export const rasterize = async (svg: string, width: number, height: number) => {
     bitmap
       .getContext("2d")
       ?.drawImage(image, 0, 0, bitmap.width, bitmap.height);
+
     return bitmap;
   } catch {
     return null;
@@ -37,6 +38,7 @@ export const createAtlas = (sprites: readonly Sprite[], backdrop: Backdrop) => {
       sprite.box.w * target,
       sprite.box.h * target
     );
+
     if (bitmap !== null && scale === target) {
       bitmaps.set(sprite, bitmap);
     }
@@ -50,6 +52,7 @@ export const createAtlas = (sprites: readonly Sprite[], backdrop: Backdrop) => {
     frame: Frame
   ) => {
     const image = await rasterize(svg, width, height);
+
     if (image !== null && wanted === key) {
       current = { frame, image };
     }
@@ -61,7 +64,9 @@ export const createAtlas = (sprites: readonly Sprite[], backdrop: Backdrop) => {
       if (scale > 0 && Math.abs(nextScale / scale - 1) < 0.08) {
         return;
       }
+
       scale = nextScale;
+
       for (const sprite of sprites) {
         void bake(sprite, nextScale);
       }
@@ -71,9 +76,11 @@ export const createAtlas = (sprites: readonly Sprite[], backdrop: Backdrop) => {
       const key = [width, height, frame.x, frame.y, frame.size, dpr]
         .map(Math.round)
         .join(":");
+
       if (key === wanted) {
         return;
       }
+
       wanted = key;
       void paint(
         docOf(

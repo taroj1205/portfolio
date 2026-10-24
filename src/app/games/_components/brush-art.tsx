@@ -16,11 +16,13 @@ const ink = {
 
 const PAPER = { size: 252, x: 194, y: 54 };
 const MARGIN = 24;
+
 const INK = {
   size: PAPER.size - MARGIN * 2,
   x: PAPER.x + MARGIN,
   y: PAPER.y + MARGIN,
 };
+
 const { spine } = inkPaths(modelTrace, INK);
 
 const STARS = [

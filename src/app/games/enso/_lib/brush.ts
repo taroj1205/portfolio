@@ -61,14 +61,17 @@ export const KINDS = 3;
 
 export const seeded = (seed: number) => {
   let state = seed % 2_147_483_647 || 1;
+
   return () => {
     state = (state * 16_807) % 2_147_483_647;
+
     return state / 2_147_483_647;
   };
 };
 
 const hash = (value: number) => {
   const s = Math.sin(value * 12.9898) * 43_758.5453;
+
   return s - Math.floor(s);
 };
 
@@ -76,13 +79,16 @@ const streak = (at: number) => {
   const cell = Math.floor(at);
   const f = at - cell;
   const ease = f * f * (3 - 2 * f);
+
   return hash(cell) + (hash(cell + 1) - hash(cell)) * ease;
 };
 
 export const createBrush = (seed: number) => {
   const roll = seeded(seed);
+
   const bristles: Bristle[] = Array.from({ length: COUNT }, (_, i) => {
     const offset = -1 + (2 * i) / (COUNT - 1) + (roll() - 0.5) * 0.05;
+
     return {
       floor: Math.abs(offset) < 0.35 ? 0.2 : 0,
       grain: roll() * 1000,
@@ -95,6 +101,7 @@ export const createBrush = (seed: number) => {
       y: 0,
     };
   });
+
   const trace: Trace[] = [];
   let last: Sample = { t: 0, x: 0, y: 0 };
   let tip = { x: 0, y: 0 };
@@ -133,11 +140,13 @@ export const createBrush = (seed: number) => {
     const nx = -uy;
     const ny = ux;
     const fast = clamp01(pace / FAST);
+
     for (const bristle of bristles) {
       const fray =
         (streak(bristle.grain * 0.37 + along * 45) - 0.5) *
         0.16 *
         Math.abs(bristle.offset);
+
       const tx = x + nx * (bristle.offset + fray) * (w / 2);
       const ty = y + ny * (bristle.offset + fray) * (w / 2);
       const travel = Math.hypot(tx - bristle.x, ty - bristle.y);
@@ -145,11 +154,15 @@ export const createBrush = (seed: number) => {
         bristle.floor,
         bristle.ink - travel * DRAIN * bristle.thirst * (0.8 + 0.3 * fast)
       );
+
       const show =
         clamp01(bristle.ink / DRY) ** 1.4 * (1 - 0.3 * clamp01(fast - 0.3));
+
       const size =
         (w / COUNT) * 2.6 * bristle.thick * (0.65 + 0.35 * bristle.ink);
+
       const tone = (1 - bristle.ink) * 0.6 + bristle.shade;
+
       if (show >= 0.999) {
         out.marks.push({
           size,
@@ -161,10 +174,12 @@ export const createBrush = (seed: number) => {
         });
       } else if (show > 0) {
         const pieces = Math.max(1, Math.ceil(travel / PIECE));
+
         for (let k = 0; k < pieces; k += 1) {
           const from = k / pieces;
           const to = (k + 1) / pieces;
           const at = along + (travel * (from + to)) / 2;
+
           if (streak(bristle.grain + at * 18) < show) {
             out.marks.push({
               size,
@@ -177,12 +192,15 @@ export const createBrush = (seed: number) => {
           }
         }
       }
+
       bristle.x = tx;
       bristle.y = ty;
     }
+
     if (along - bled > BLEED_STEP) {
       bled = along;
       const wet = wetness();
+
       if (wet > 0.25) {
         bleed(
           out,
@@ -204,7 +222,9 @@ export const createBrush = (seed: number) => {
     const length =
       Math.hypot(last.x - tip.x, last.y - tip.y) +
       Math.hypot(to.x - last.x, to.y - last.y);
+
     const steps = Math.max(1, Math.ceil(length / STEP));
+
     for (let j = 1; j <= steps; j += 1) {
       const t = j / steps;
       const a = (1 - t) ** 2;
@@ -213,6 +233,7 @@ export const createBrush = (seed: number) => {
       const dx = 2 * (1 - t) * (last.x - tip.x) + 2 * t * (to.x - last.x);
       const dy = 2 * (1 - t) * (last.y - tip.y) + 2 * t * (to.y - last.y);
       const speed = Math.hypot(dx, dy);
+
       if (speed > 1e-9) {
         const turn = 1 - Math.exp(-length / steps / 0.01);
         const vx = ux + (dx / speed - ux) * turn;
@@ -221,6 +242,7 @@ export const createBrush = (seed: number) => {
         ux = vx / norm;
         uy = vy / norm;
       }
+
       along += length / steps;
       advance(
         out,
@@ -229,6 +251,7 @@ export const createBrush = (seed: number) => {
         from + ((w - from) * j) / steps
       );
     }
+
     tip = { x: to.x, y: to.y };
   };
 
@@ -237,6 +260,7 @@ export const createBrush = (seed: number) => {
       const out: Strokes = { bleeds: [], marks: [] };
       sweep(out, last, width, width);
       const reach = Math.min(0.06, Math.max(0.006, pace * 0.022));
+
       for (let j = 1; j <= TAIL; j += 1) {
         const x = last.x + ux * reach * (j / TAIL);
         const y = last.y + uy * reach * (j / TAIL);
@@ -245,6 +269,7 @@ export const createBrush = (seed: number) => {
         advance(out, x, y, w);
         trace.push({ w, x, y });
       }
+
       return out;
     },
     move: (sample: Sample): Strokes => {
@@ -253,8 +278,10 @@ export const createBrush = (seed: number) => {
       const dy = sample.y - last.y;
       const dist = Math.hypot(dx, dy);
       const dt = Math.max(1, sample.t - last.t);
+
       if (dist < 1e-4) {
         const resting = sample.t - last.t;
+
         if (resting - soaked >= DWELL && resting < SOAK) {
           soaked = resting;
           bleed(
@@ -266,14 +293,18 @@ export const createBrush = (seed: number) => {
             sample.t
           );
         }
+
         return out;
       }
+
       soaked = 0;
       pace += ((dist / dt) * 1000 - pace) * (1 - Math.exp(-dt / 50));
       const press = Math.min(1, (sample.t - start) / PRESS);
+
       const target =
         (NARROW + (WIDE - NARROW) * clamp01(1 - pace / FAST) ** 0.8) *
         (0.6 + 0.4 * press);
+
       const from = width;
       width += (target - width) * (1 - Math.exp(-dt / 60));
       sweep(
@@ -284,6 +315,7 @@ export const createBrush = (seed: number) => {
       );
       last = sample;
       trace.push({ w: width, x: sample.x, y: sample.y });
+
       return out;
     },
     press: (sample: Sample): Strokes => {
@@ -291,6 +323,7 @@ export const createBrush = (seed: number) => {
       last = sample;
       tip = { x: sample.x, y: sample.y };
       start = sample.t;
+
       for (const bristle of bristles) {
         const angle = roll() * Math.PI * 2;
         const reach = Math.sqrt(roll()) * width * 0.55;
@@ -305,6 +338,7 @@ export const createBrush = (seed: number) => {
           y1: bristle.y,
         });
       }
+
       out.marks.push({
         size: width * 1.1,
         tone: 0,
@@ -315,6 +349,7 @@ export const createBrush = (seed: number) => {
       });
       bleed(out, sample.x, sample.y, width * 1.9, 0.32);
       trace.push({ w: width, x: sample.x, y: sample.y });
+
       return out;
     },
     trace: (): readonly Trace[] => trace,

@@ -45,10 +45,12 @@ export const Game = ({
   const [stage, setStage] = useState<Stage>("title");
   const [mode, setMode] = useState<Mode>("solo");
   const [rung, setRung] = useState(0);
+
   const [tally, setTally] = useState<Record<Side, number>>({
     left: 0,
     right: 0,
   });
+
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [beat, setBeat] = useState<Beat>(null);
   const [duels, setDuels] = useState(0);
@@ -78,6 +80,7 @@ export const Game = ({
             settings: setSettings,
             stage: (next) => {
               setStage(next);
+
               if (next === "duel") {
                 setDuels((count) => count + 1);
                 setInterrupted(false);
@@ -87,6 +90,7 @@ export const Game = ({
             tally: setTally,
             verdict: setVerdict,
           });
+
     return () => {
       session.current?.stop();
       session.current = null;

@@ -24,11 +24,14 @@ const patterns = new Map<string, HTMLCanvasElement>();
 
 const patternSprite = (id: string) => {
   const cached = patterns.get(id);
+
   if (cached) {
     return cached;
   }
+
   const made = stoneSprite(colorOf("river"), "round", id);
   patterns.set(id, made);
+
   return made;
 };
 
@@ -65,8 +68,10 @@ export const Preview = ({ part, option }: { part: Part; option: Option }) => {
       </svg>
     );
   }
+
   if (part === "color") {
     const [light, mid, dark] = colorOf(option.id).mineral;
+
     return (
       <span
         {...stylex.props(
@@ -77,6 +82,7 @@ export const Preview = ({ part, option }: { part: Part; option: Option }) => {
       />
     );
   }
+
   if (part === "pattern") {
     return (
       <canvas
@@ -92,6 +98,7 @@ export const Preview = ({ part, option }: { part: Part; option: Option }) => {
       />
     );
   }
+
   return (
     <span
       {...stylex.props(styles.swatch(TRAIL_PREVIEW.get(option.id) ?? ""))}

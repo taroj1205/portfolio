@@ -80,13 +80,16 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const feed = (until: number) => {
     while (fed < modelSamples.length) {
       const model = modelSamples[fed];
+
       if (model.t > until) {
         return;
       }
+
       const sample = { ...model, t: demoAt + model.t };
       render.add(fed === 0 ? brush.press(sample) : brush.move(sample));
       fed += 1;
     }
+
     if (fed === modelSamples.length) {
       render.add(brush.lift());
       fed += 1;
@@ -96,12 +99,15 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const playDemo = (now: number) => {
     if (calm) {
       feed(MODEL_END);
+
       return;
     }
+
     const elapsed = now - demoAt;
     feed(elapsed);
     const after = elapsed - MODEL_END;
     render.fade(after < HOLD ? 1 : Math.max(0, 1 - (after - HOLD) / FADE));
+
     if (after > HOLD + FADE + REST) {
       render.clear();
       brush = createBrush(newSeed());
@@ -118,6 +124,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     ) {
       return;
     }
+
     event.preventDefault();
     sound.unlock();
     canvas.setPointerCapture(event.pointerId);
@@ -135,15 +142,19 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (event.pointerId !== active) {
       return;
     }
+
     const rect = canvas.getBoundingClientRect();
     const from = samples.at(-1);
     const coalesced = event.getCoalescedEvents?.() ?? [];
+
     for (const each of coalesced.length > 0 ? coalesced : [event]) {
       const sample = sampleAt(each, rect);
       samples.push(sample);
       render.add(brush.move(sample));
     }
+
     const to = samples.at(-1);
+
     if (from && to && to.t > from.t) {
       sound.brush(
         (Math.hypot(to.x - from.x, to.y - from.y) / (to.t - from.t)) * 1000
@@ -155,22 +166,27 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (event.pointerId !== active) {
       return;
     }
+
     active = null;
     sound.brush(0);
     render.add(brush.lift());
     const verdict = judge(samples);
+
     if (verdict.flaw === "short") {
       missAt = performance.now();
       sound.tap();
       enter("ready");
       on.miss();
+
       return;
     }
+
     const settled = settle(save, {
       at: Date.now(),
       score: verdict.score,
       seconds: ((samples.at(-1)?.t ?? 0) - (samples[0]?.t ?? 0)) / 1000,
     });
+
     keep(settled.save);
     sound.ring(verdict.score, settled.record);
     navigator.vibrate?.(settled.record ? [20, 60, 30] : 18);
@@ -187,6 +203,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (event.pointerId !== active) {
       return;
     }
+
     active = null;
     sound.brush(0);
     render.clear();
@@ -201,16 +218,21 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   canvas.addEventListener("contextmenu", hold);
 
   let frame = 0;
+
   const tick = (now: number) => {
     if (phase === "demo") {
       playDemo(now);
     }
+
     const held = samples.at(-1);
+
     if (active !== null && held && now - held.t > PAUSE) {
       render.add(brush.move({ ...held, t: now }));
     }
+
     if (missAt !== null) {
       const left = calm ? 0 : 1 - (now - missAt) / MISS_FADE;
+
       if (left > 0) {
         render.fade(left);
       } else {
@@ -218,9 +240,11 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         render.clear();
       }
     }
+
     render.draw(now);
     frame = requestAnimationFrame(tick);
   };
+
   frame = requestAnimationFrame(tick);
 
   return {

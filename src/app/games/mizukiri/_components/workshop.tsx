@@ -413,6 +413,7 @@ const TunePanel = ({
   const lang = useLang();
   const copy = useCopy();
   const left = pointsLeft(save.tuning);
+
   const levels = {
     focus: (save.tuning.focus + LIMIT) / (2 * LIMIT),
     impact: (save.tuning.impact + LIMIT) / (2 * LIMIT),
@@ -420,6 +421,7 @@ const TunePanel = ({
     lift: (save.tuning.lift + LIMIT) / (2 * LIMIT),
     speed: (save.tuning.speed + LIMIT) / (2 * LIMIT),
   };
+
   const shown = {
     focus: scoreOf(save.tuning.focus),
     impact: scoreOf(save.tuning.impact),
@@ -427,6 +429,7 @@ const TunePanel = ({
     lift: scoreOf(save.tuning.lift),
     speed: scoreOf(save.tuning.speed),
   };
+
   return (
     <>
       <p {...stylex.props(styles.tuneNote)}>{copy.workshop.tuneNote}</p>
@@ -486,6 +489,7 @@ const SkillPanel = ({
   const progress = progressOf(save.xp);
   const left = pointsToTrain(save);
   const stats = statsOf(journeyTraits(save.gear, save.look));
+
   return (
     <>
       <div {...stylex.props(styles.level)}>
@@ -500,6 +504,7 @@ const SkillPanel = ({
       <Radar levels={stats} shown={scoresOf(stats)} />
       {axes.map((axis) => {
         const gear = GEAR_OF[axis.key];
+
         return (
           <div key={axis.key} {...stylex.props(styles.row)}>
             <span>

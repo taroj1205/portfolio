@@ -47,9 +47,11 @@ const feelOf = ({ load, loose }: Meter): Feel => {
   if (loose) {
     return "loose";
   }
+
   if (load > 1) {
     return "tight";
   }
+
   return load >= SWEET ? "sweet" : "slack";
 };
 
@@ -82,9 +84,11 @@ export const Game = ({
   const [dish, setDish] = useState<DishId | null>(null);
   const [alive, setAlive] = useState(0);
   const [strands, setStrands] = useState(0);
+
   const [shout, setShout] = useState<{ id: number; index: number } | null>(
     null
   );
+
   const [notice, setNotice] = useState<Notice | null>(null);
   const [ending, setEnding] = useState<Ending | null>(null);
   const [end, setEnd] = useState<End | null>(null);
@@ -98,13 +102,17 @@ export const Game = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
+
     const nextId = () => {
       ids.current += 1;
+
       return ids.current;
     };
+
     const tell = (text: string) => {
       setNotice({ id: nextId(), text });
     };
+
     const showLength = (cm: number) => {
       const { unit, value } = measure(cm);
       write(valueRef.current, value);
@@ -120,20 +128,26 @@ export const Game = ({
             )
       );
     };
+
     const showMeter = (meter: Meter) => {
       const { load, heat } = meter;
       const feel = feelOf(meter);
+
       if (needleRef.current) {
         needleRef.current.style.left = `${(Math.min(1.5, load) / 1.5) * 100}%`;
       }
+
       if (heatRef.current) {
         heatRef.current.style.transform = `scaleX(${Math.max(0, heat).toFixed(3)})`;
       }
+
       if (feelRef.current) {
         feelRef.current.style.color = tint[feel];
       }
+
       write(feelRef.current, copy[langRef.current].feel[feel]);
     };
+
     session.current =
       canvas === null
         ? null
@@ -163,6 +177,7 @@ export const Game = ({
             settings: setSettings,
             stage: (next) => {
               setStage(next);
+
               if (next === "pulling") {
                 setNotice(null);
                 setShout(null);
@@ -170,6 +185,7 @@ export const Game = ({
               }
             },
           });
+
     return () => {
       session.current?.stop();
       session.current = null;

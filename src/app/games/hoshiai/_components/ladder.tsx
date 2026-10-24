@@ -56,6 +56,7 @@ const styles = stylex.create({
 
 const sizeOf = (tier: number, scale: number) => {
   const px = (16 + tier * 2.2) * scale;
+
   return `min(${px.toFixed(1)}px, ${(px / 4).toFixed(2)}vw)`;
 };
 
@@ -77,6 +78,7 @@ export const Ladder = ({
     {bodies.map((kind, tier) => {
       const known = tier <= reached;
       const next = goal && tier === reached + 1;
+
       return (
         <span
           key={kind.name.en}

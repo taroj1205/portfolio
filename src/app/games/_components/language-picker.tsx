@@ -107,11 +107,13 @@ export const LanguagePicker = ({
   onSettings,
 }: LanguagePickerProps) => {
   const other: Lang = lang === "ja" ? "en" : "ja";
+
   const onPick = (choice: Lang) => {
     if (settings !== null) {
       onSettings({ ...settings, lang: choice });
     }
   };
+
   return (
     <Dialog.Root
       onOpenChange={(next) => {

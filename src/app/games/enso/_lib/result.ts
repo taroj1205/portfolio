@@ -81,10 +81,13 @@ export const formatScore = (score: number) => `${score.toFixed(1)}%`;
 const shared = z.object({
   d: z.string().transform((text, context) => {
     const trace = unpack(text);
+
     if (trace === null) {
       context.addIssue({ code: "custom", message: "Unreadable stroke" });
+
       return z.NEVER;
     }
+
     return trace;
   }),
   s: z.coerce.number().int().min(0).max(1000),
@@ -94,6 +97,7 @@ export const readResult = (
   params: Record<string, string | string[] | undefined>
 ): Result | null => {
   const parsed = shared.safeParse(params);
+
   return parsed.success
     ? { score: parsed.data.s / 10, trace: parsed.data.d }
     : null;
@@ -108,6 +112,7 @@ export const queryOf = (result: Result) =>
 const lineOf = (result: Result, lang: Lang) => {
   const score = formatScore(result.score);
   const rank = rankOf(result.score).name[lang];
+
   return lang === "en"
     ? `I drew a ${score} circle in one stroke on One-Brush Moon (${rank}).\nCan you draw a rounder one?`
     : `ひと筆の月で、${score}の円を描いた（${rank}）\nこれより丸く描ける？`;
@@ -116,6 +121,7 @@ const lineOf = (result: Result, lang: Lang) => {
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
+
   return {
     image: `${origin}/games/enso/og?${query.toString()}`,
     text: [

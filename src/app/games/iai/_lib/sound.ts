@@ -3,6 +3,7 @@ import type { Fake } from "./duel";
 
 export const createSound = () => {
   let air: { audio: AudioContext; gain: GainNode } | null = null;
+
   const { close, mute, spray, tone, unlock } = createAudio(
     (audio, out, noise) => {
       const wind = audio.createBufferSource();

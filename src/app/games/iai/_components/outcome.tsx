@@ -88,24 +88,30 @@ const styles = stylex.create({
 export const verdictTitle = (verdict: Verdict, lang: Lang) => {
   const words = copy[lang].verdict;
   const { call, mode } = verdict;
+
   if (call.kind === "draw") {
     return { title: words.draw, won: false };
   }
+
   if (call.kind === "none") {
     return { title: words.none, won: false };
   }
+
   if (mode === "versus") {
     const winner = call.kind === "cut" ? call.side : other(call.side);
+
     return {
       title: words.wins(copy[lang].players[winner]),
       won: true,
     };
   }
+
   if (call.kind === "cut") {
     return call.side === "left"
       ? { title: words.won, won: true }
       : { title: words.lost, won: false };
   }
+
   return {
     title: call.fake === null ? words.early : words.fooled[call.fake],
     won: false,
@@ -115,20 +121,26 @@ export const verdictTitle = (verdict: Verdict, lang: Lang) => {
 const verdictNote = (verdict: Verdict, lang: Lang) => {
   const words = copy[lang];
   const { call } = verdict;
+
   if (call.kind !== "early") {
     return null;
   }
+
   if (call.reaction !== null) {
     const guess = words.verdict.guess(call.reaction);
+
     return verdict.mode === "versus"
       ? `${words.players[call.side]} · ${guess}`
       : guess;
   }
+
   if (verdict.mode !== "versus") {
     return null;
   }
+
   const reason =
     call.fake === null ? words.verdict.early : words.verdict.fooled[call.fake];
+
   return `${words.players[call.side]} · ${reason}`;
 };
 
@@ -136,6 +148,7 @@ const fasterOf = (verdict: Verdict): Side | null => {
   if (verdict.left === null) {
     return verdict.right === null ? null : "right";
   }
+
   return verdict.right === null || verdict.left < verdict.right
     ? "left"
     : "right";
@@ -143,11 +156,14 @@ const fasterOf = (verdict: Verdict): Side | null => {
 
 const Times = ({ verdict, lang }: { verdict: Verdict; lang: Lang }) => {
   const words = copy[lang];
+
   const names =
     verdict.mode === "versus"
       ? words.players
       : { left: words.you, right: words.rival };
+
   const faster = fasterOf(verdict);
+
   return (
     <p {...stylex.props(styles.times)}>
       {(["left", "right"] as const).map((side) => (
@@ -176,6 +192,7 @@ export const Outcome = ({
 }) => {
   const title = verdictTitle(verdict, lang);
   const note = verdictNote(verdict, lang);
+
   return (
     <div aria-live="polite" {...stylex.props(styles.verdict)}>
       <p

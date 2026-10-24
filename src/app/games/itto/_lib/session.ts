@@ -84,6 +84,7 @@ export const startSession = (
   let challenged = false;
   let round = 0;
   let demo = demoOf(0);
+
   let view: View = {
     aim: null,
     beat: null,
@@ -94,6 +95,7 @@ export const startSession = (
     split: null,
     stage: "title",
   };
+
   let active: { id: number; from: Point; to: Point } | null = null;
   let played = 0;
   let since: number | null = null;
@@ -113,9 +115,11 @@ export const startSession = (
 
   const clock = (running: boolean) => {
     const now = performance.now();
+
     if (since !== null) {
       played += (now - since) / 1000;
     }
+
     since = running && document.visibilityState === "visible" ? now : null;
   };
 
@@ -123,18 +127,22 @@ export const startSession = (
     clock(false);
     const seconds = played;
     played = 0;
+
     return seconds;
   };
 
   const beat = (next: Beat) => {
     clearTimeout(timer);
+
     if (view.stage !== "title") {
       return;
     }
+
     if (next === "show") {
       round += 1;
       demo = demoOf(round);
     }
+
     show({
       beat: next,
       food: demo.food,
@@ -163,6 +171,7 @@ export const startSession = (
       split: calm ? demo.split : null,
       stage: "title",
     });
+
     if (!calm) {
       timer = window.setTimeout(() => {
         beat("slice");
@@ -172,9 +181,11 @@ export const startSession = (
 
   const toObject = (event: PointerEvent): Point | null => {
     const rect = box();
+
     if (rect === null || rect.width === 0 || rect.height === 0) {
       return null;
     }
+
     return {
       x: ((event.clientX - rect.left) / rect.width) * SPAN - SPAN / 2,
       y: ((event.clientY - rect.top) / rect.height) * SPAN - SPAN / 2,
@@ -184,9 +195,11 @@ export const startSession = (
   const freshSeed = () => {
     const last = view.stage === "title" ? null : view.food.kind;
     let next = randomSeed();
+
     while (kindOf(next) === last) {
       next = randomSeed();
     }
+
     return next;
   };
 
@@ -212,11 +225,13 @@ export const startSession = (
   const fumble = (kind: Fumble, slash: Slash | null) => {
     fumbles += 1;
     keep(settleMiss(save));
+
     if (kind === "partial") {
       sound.nick();
     } else {
       sound.fumble();
     }
+
     navigator.vibrate?.(kind === "partial" ? [12, 40, 12] : 8);
     show({ fumble: { count: fumbles, kind, slash } });
   };
@@ -225,10 +240,13 @@ export const startSession = (
     const { food } = view;
     const split = splitBy(food.parts, cut);
     const knife = reachOf(food.parts, cut);
+
     if (split === null) {
       fumble("miss", knife);
+
       return;
     }
+
     const settled = settleCut(save, {
       at: Date.now(),
       challenged,
@@ -236,6 +254,7 @@ export const startSession = (
       seconds: takeSeconds(),
       small: split.small,
     });
+
     keep(settled.save);
     sound.cut(split.small);
     navigator.vibrate?.(split.small === 500 ? [16, 50, 16, 50, 40] : 16);
@@ -252,8 +271,10 @@ export const startSession = (
     if (view.stage === "title" && event.isPrimary) {
       event.preventDefault();
       start(challenge !== null);
+
       return;
     }
+
     if (
       view.stage !== "play" ||
       active !== null ||
@@ -261,10 +282,13 @@ export const startSession = (
     ) {
       return;
     }
+
     const from = toObject(event);
+
     if (from === null) {
       return;
     }
+
     event.preventDefault();
     sound.unlock();
     board.setPointerCapture(event.pointerId);
@@ -277,7 +301,9 @@ export const startSession = (
     if (active === null || event.pointerId !== active.id) {
       return;
     }
+
     const to = toObject(event);
+
     if (to !== null) {
       active.to = to;
       on.trail({ from: active.from, to });
@@ -288,16 +314,22 @@ export const startSession = (
     if (active === null || event.pointerId !== active.id) {
       return;
     }
+
     const { from } = active;
+
     const to =
       event.type === "pointerup" ? (toObject(event) ?? active.to) : active.to;
+
     active = null;
     on.trail(null);
     const swipe = judgeSwipe(view.food.parts, from, to);
+
     if (swipe.kind === "cut") {
       slice(swipe.cut);
+
       return;
     }
+
     fumble(swipe.kind, swipe.kind === "tap" ? null : { from, to });
   };
 
@@ -314,15 +346,19 @@ export const startSession = (
     ) {
       return;
     }
+
     const aim = view.aim ?? { angle: 0, offset: 0 };
     const steered = steer(aim, event.key, event.shiftKey);
+
     if (steered !== null) {
       show({ aim: steered, fumble: null });
     } else if (event.key === "Enter" || event.key === " ") {
       if (event.repeat) {
         event.preventDefault();
+
         return;
       }
+
       if (view.aim === null) {
         show({ aim, fumble: null });
       } else {
@@ -332,6 +368,7 @@ export const startSession = (
     } else {
       return;
     }
+
     event.preventDefault();
   };
 

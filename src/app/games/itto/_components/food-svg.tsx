@@ -25,10 +25,12 @@ const facing = (points: readonly Point[]) =>
 
 const sweep = (points: readonly Point[], by: Point, line: Line | null) => {
   const parts = [ring(moved(points, by))];
+
   for (let i = 0; i < points.length; i += 1) {
     const a = points[i];
     const b = points[(i + 1) % points.length];
     const outward = (b.y - a.y) * by.x - (b.x - a.x) * by.y;
+
     if (outward > 0 && (line === null || !isCutEdge(line, a, b))) {
       parts.push(
         ring(
@@ -42,6 +44,7 @@ const sweep = (points: readonly Point[], by: Point, line: Line | null) => {
       );
     }
   }
+
   return parts.join("");
 };
 
@@ -58,6 +61,7 @@ const faceQuad = (
   const dy = face.to.y - face.from.y;
   const a = { x: face.from.x + dx * inset, y: face.from.y + dy * inset };
   const b = { x: face.to.x - dx * inset, y: face.to.y - dy * inset };
+
   return ring(
     facing([
       { x: a.x + by.x * from, y: a.y + by.y * from },
@@ -74,6 +78,7 @@ const placeOf = (food: Food) =>
 const placed = (food: Food, p: Point) => {
   const angle = (food.place.turn * Math.PI) / 180;
   const { scale } = food.place;
+
   return {
     x: (p.x * Math.cos(angle) - p.y * Math.sin(angle)) * scale + food.place.x,
     y: (p.x * Math.sin(angle) + p.y * Math.cos(angle)) * scale + food.place.y,
@@ -82,6 +87,7 @@ const placed = (food: Food, p: Point) => {
 
 const spotOf = (food: Food, part: number) => {
   const unit = food.parts.length > 1 ? food.art.units[part] : undefined;
+
   return unit === undefined
     ? { r: 1, x: 0, y: 0 }
     : { ...placed(food, unit), r: unit.r * food.place.scale };
@@ -103,6 +109,7 @@ const lightDefs = (scene: string, food: Food, parts: readonly number[]) => (
     </radialGradient>
     {parts.map((part) => {
       const spot = spotOf(food, part);
+
       return (
         <g key={part}>
           <radialGradient
@@ -165,6 +172,7 @@ export const pieceSvg = ({
   const line = split?.line ?? null;
   const parts = [...new Set(chunks.map((chunk) => chunk.part))];
   const { stick } = food.art;
+
   return (
     <g>
       {lightDefs(id, food, parts)}
@@ -199,6 +207,7 @@ export const pieceSvg = ({
       {chunks.map((chunk) => {
         const look = lookOf(chunk.part);
         const by = depthOf(look);
+
         return (
           <g key={`sides-${keyOf(chunk)}`}>
             {look.sides.map((band) => (
@@ -219,6 +228,7 @@ export const pieceSvg = ({
       {faces.map((face) => {
         const look = lookOf(face.part);
         const by = depthOf(look);
+
         return (
           <g key={`face-${n(face.from.x)}-${n(face.from.y)}`}>
             {look.inside.map((band) => (
@@ -263,6 +273,7 @@ export const pieceSvg = ({
         {chunks.map((chunk) => {
           const look = lookOf(chunk.part);
           const top = ring(chunk.points);
+
           return (
             <g key={`light-${keyOf(chunk)}`}>
               {look.round ? (
@@ -310,6 +321,7 @@ export const tagAt = (side: Split["sides"][number], apart: number) => {
   const nx = side.push.x / gap;
   const ny = side.push.y / gap;
   let reach = 0;
+
   for (const { points } of side.chunks) {
     for (const p of points) {
       reach = Math.max(
@@ -318,7 +330,9 @@ export const tagAt = (side: Split["sides"][number], apart: number) => {
       );
     }
   }
+
   const out = 0.08 + reach * 0.5;
+
   return {
     x: side.centre.x + side.push.x * apart + nx * out,
     y: side.centre.y + side.push.y * apart + ny * out,
@@ -331,6 +345,7 @@ const wholeOf = (food: Food): Chunk[] =>
 export const layersOf = (split: Split) => {
   const [plus, minus] = split.sides;
   const back = split.line.nx * LEAN + split.line.ny < 0;
+
   return [
     {
       faces: split.faces,

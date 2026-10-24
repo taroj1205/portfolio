@@ -168,6 +168,7 @@ export const ResultSheet = ({ lang, ending, onAgain }: ResultSheetProps) => {
   useEffect(() => {
     again.current?.focus({ preventScroll: true });
   }, []);
+
   return (
     <section
       aria-labelledby="hoshiai-result"

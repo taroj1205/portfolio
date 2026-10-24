@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { afterEach, describe, test, vi } from "vite-plus/test";
+import { afterEach, describe, it, vi } from "vite-plus/test";
 
 import { dishes } from "./dishes";
 import {
@@ -24,7 +24,7 @@ const play = (save: Save, result: Result, at = 1000) =>
   settle(save, { at, end: "set", result, seconds: 20, snaps: 2, sweet: 6 });
 
 describe("cheese results", () => {
-  test("a shared link round-trips and rejects anything it can't trust", () => {
+  it("a shared link round-trips and rejects anything it can't trust", () => {
     const query = Object.fromEntries(new URLSearchParams(queryOf(tower)));
     assert.deepEqual(readResult(query), tower);
     assert.equal(readResult({ d: "sushi", m: "1000" }), null);
@@ -34,7 +34,7 @@ describe("cheese results", () => {
     assert.equal(readResult({}), null);
   });
 
-  test("lengths read in the unit a person would say", () => {
+  it("lengths read in the unit a person would say", () => {
     assert.deepEqual(measure(3), { unit: "cm", value: "3.0" });
     assert.deepEqual(measure(1234), { unit: "m", value: "12.3" });
     assert.deepEqual(measure(377_600), { unit: "km", value: "3.78" });
@@ -43,14 +43,14 @@ describe("cheese results", () => {
     assert.equal(lengthText(1234, "ja"), "12.3m");
   });
 
-  test("a run reaching the Moon is stored as exactly the Moon", () => {
+  it("a run reaching the Moon is stored as exactly the Moon", () => {
     const run = createRun(dishes.fondue, 1);
     run.length = MOON;
     assert.deepEqual(resultOf(run), { dish: "fondue", mm: MOON * 10 });
     assert.equal(titleOf(resultOf(run), "ja"), "月まで届いた");
   });
 
-  test("the share text names the length, the height and the tags", () => {
+  it("the share text names the length, the height and the tags", () => {
     const share = shareOf(tower, "https://example.com", "ja");
     assert.equal(
       share.text,
@@ -75,14 +75,14 @@ describe("cheese save", () => {
     vi.unstubAllGlobals();
   });
 
-  test("an older or partial save fills in every field instead of resetting", () => {
+  it("an older or partial save fills in every field instead of resetting", () => {
     vi.stubGlobal("localStorage", {
       getItem: () => JSON.stringify({ best: 4000, runs: 3 }),
     });
     assert.deepEqual(loadSave(), { ...fresh, best: 4000, runs: 3 });
   });
 
-  test("keeps the totals a player profile would need", () => {
+  it("keeps the totals a player profile would need", () => {
     const first = play(fresh, { dish: "corndog", mm: 9000 }, 5000);
     assert.equal(first.record, false);
     const second = play(first.save, tower, 9000);

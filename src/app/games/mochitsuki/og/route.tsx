@@ -20,6 +20,7 @@ import type { Result } from "../_lib/result";
 
 const W = 1200;
 const H = 630;
+
 const ink = {
   dim: "rgba(255,246,240,0.66)",
   gold: "#ffd27a",
@@ -59,8 +60,10 @@ const faceOf = (result: Result | null, lang: Lang): Face => {
       tag: tempoText(START_BPM),
     };
   }
+
   const rank = rankOf(result.pounds);
   const words = copy[lang];
+
   return {
     caption: rank.name[lang],
     dare: words.challenge.dare,
@@ -99,10 +102,12 @@ export const GET = async (request: NextRequest) => {
   const params = Object.fromEntries(request.nextUrl.searchParams);
   const result = readResult(params);
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
+
   const { tag, headline, caption, detail, dare, perfect } = faceOf(
     result,
     lang
   );
+
   const font = await loadMincho(
     `${tag}${headline}${caption}${detail}${dare}${copy.ja.name}${copy.ja.reading}${copy.en.reading}0123456789BPM回·`
   );

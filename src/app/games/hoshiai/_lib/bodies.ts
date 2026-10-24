@@ -131,8 +131,10 @@ export const GALAXY: Text = { en: "Milky Way", ja: "天の川" };
 
 export const kindOf = (tier: number): Kind => {
   const kind = bodies[tier];
+
   if (kind === undefined) {
     throw new RangeError(`No body at tier ${tier}`);
   }
+
   return kind;
 };

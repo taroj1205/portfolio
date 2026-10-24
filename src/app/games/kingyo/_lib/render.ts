@@ -76,21 +76,27 @@ const ink = {
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 const easeOut = (t: number) => 1 - (1 - clamp(t)) ** 3;
+
 const easeInOut = (t: number) => {
   const c = clamp(t);
+
   return c < 0.5 ? 4 * c * c * c : 1 - (-2 * c + 2) ** 3 / 2;
 };
 
 export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const context = canvas.getContext("2d");
+
   if (!context) {
     throw new Error("Canvas 2D is not available");
   }
+
   const ctx = context;
+
   const font =
     getComputedStyle(document.documentElement)
       .getPropertyValue("--font-mincho")
       .trim() || "serif";
+
   const atlas = createAtlas(SPRITES, backdrop);
   let width = 0;
   let height = 0;
@@ -111,6 +117,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
     const nextWidth = canvas.clientWidth;
     const nextHeight = canvas.clientHeight;
+
     if (nextWidth !== width || nextHeight !== height || nextDpr !== dpr) {
       width = nextWidth;
       height = nextHeight;
@@ -118,6 +125,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
     }
+
     const size = Math.min(width, height);
     frame = { size, x: (width - size) / 2, y: (height - size) / 2 };
     atlas.prepare((size / SCENE) * dpr);
@@ -131,6 +139,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const put = (sprite: Sprite) => {
     const bitmap = atlas.sprite(sprite);
+
     if (bitmap !== null) {
       const { box } = sprite;
       ctx.drawImage(bitmap, box.x, box.y, box.w, box.h);
@@ -142,6 +151,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.fillStyle = ink.night;
     ctx.fillRect(0, 0, width, height);
     const layer = atlas.backdrop();
+
     if (layer) {
       const k = frame.size / layer.frame.size;
       ctx.drawImage(
@@ -156,9 +166,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const shimmer = (now: number) => {
     const tile = atlas.sprite(caustics);
+
     if (tile === null) {
       return;
     }
+
     scene();
     ctx.save();
     ctx.beginPath();
@@ -171,21 +183,25 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.clip();
     ctx.globalCompositeOperation = "lighter";
     const size = caustics.box.w;
+
     const drifts = [
       { alpha: 0.1, x: 0.011, y: 0.007 },
       { alpha: 0.08, x: -0.008, y: 0.012 },
     ];
+
     for (const drift of drifts) {
       const t = calm ? 0 : now;
       const ox = (((t * drift.x) % size) + size) % size;
       const oy = (((t * drift.y) % size) + size) % size;
       ctx.globalAlpha = drift.alpha;
+
       for (let x = -size + ox; x < SCENE; x += size) {
         for (let y = -size + oy; y < SCENE; y += size) {
           ctx.drawImage(tile, x, y, size, size);
         }
       }
     }
+
     ctx.restore();
   };
 
@@ -193,10 +209,13 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ripples = ripples.filter((ripple) => now - ripple.born < RIPPLE);
     ctx.save();
     ctx.strokeStyle = ink.ripple;
+
     for (const ripple of ripples) {
       const t = (now - ripple.born) / RIPPLE;
+
       for (const lag of [0, 0.18]) {
         const u = t - lag;
+
         if (u > 0) {
           ctx.globalAlpha = (1 - u) * 0.45;
           ctx.lineWidth = 3 * (1 - u) + 0.5;
@@ -212,6 +231,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         }
       }
     }
+
     ctx.restore();
   };
 
@@ -227,6 +247,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const { length } = kinds[kind];
     ctx.save();
     ctx.globalAlpha = alpha;
+
     if (withShadow) {
       ctx.save();
       ctx.translate(at.x + 10 * scale, at.y + 16 * scale);
@@ -235,6 +256,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       put(shadow);
       ctx.restore();
     }
+
     ctx.translate(at.x, at.y);
     ctx.rotate(heading);
     ctx.scale(scale, scale);
@@ -249,9 +271,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const swimmer = (fish: Fish) => {
     const effort = Math.min(1, fish.speed / 200);
+
     const sway = calm
       ? 0
       : Math.sin(fish.phase) * (0.22 + effort * 0.3) + fish.turn * 0.12;
+
     fishAt(
       fish.kind,
       fish,
@@ -267,6 +291,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (finger === null) {
       return;
     }
+
     const [fill, edge] = ink.finger;
     ctx.save();
     ctx.fillStyle = fill;
@@ -283,6 +308,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const { poi } = tank;
     const sheet = poi.torn ? torn : paper;
     const scale = 1 + lifted * 0.06;
+
     if (lifted > 0.02) {
       ctx.save();
       ctx.globalAlpha = 0.5 * lifted;
@@ -292,6 +318,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       put(shadow);
       ctx.restore();
     }
+
     ctx.save();
     ctx.translate(poi.x, poi.y);
     ctx.rotate(TILT);
@@ -302,6 +329,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     put(sheet);
     ctx.globalAlpha = 1;
     put(poiFrame);
+
     if (lifted < 0.98) {
       ctx.globalAlpha = 1 - lifted;
       ctx.fillStyle = ink.tint;
@@ -309,6 +337,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.arc(0, 0, POI.ring + 2, 0, Math.PI * 2);
       ctx.fill();
     }
+
     ctx.restore();
   };
 
@@ -318,6 +347,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     put(bowlBase);
     ctx.restore();
     const spin = calm ? 0 : now / 2600;
+
     for (const [i, spot] of bowlSpots(bowl.length).entries()) {
       const dir = i % 2 === 0 ? 1 : -1;
       const angle = spin * dir;
@@ -335,6 +365,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         false
       );
     }
+
     ctx.save();
     ctx.translate(BOWL.x, BOWL.y);
     put(bowlRim);
@@ -345,11 +376,14 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const landed = flights.filter(
       (flight) => now - flight.born - flight.delay >= FLY
     );
+
     for (const flight of landed) {
       bowl = [...bowl, flight.kind].slice(-SHOWN);
       ripples.push({ born: now, size: 50, x: BOWL.x, y: BOWL.y });
     }
+
     flights = flights.filter((flight) => !landed.includes(flight));
+
     for (const flight of flights) {
       const t = clamp((now - flight.born - flight.delay) / FLY);
       const u = easeInOut(t);
@@ -373,6 +407,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     drops = drops.filter((drop) => now - drop.born < DROP);
     ctx.save();
     ctx.fillStyle = ink.ripple;
+
     for (const drop of drops) {
       const t = (now - drop.born) / 1000;
       ctx.globalAlpha = 0.8 * (1 - (now - drop.born) / DROP);
@@ -386,6 +421,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       );
       ctx.fill();
     }
+
     ctx.restore();
   };
 
@@ -399,9 +435,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.globalAlpha = t < 0.7 ? 1 : 1 - (t - 0.7) / 0.3;
     const fill = floater.gold ? ink.gold : ink.white;
     const paint = ctx.createLinearGradient(0, y - px / 2, 0, y + px / 2);
+
     for (const [i, color] of fill.entries()) {
       paint.addColorStop(i / Math.max(1, fill.length - 1), color);
     }
+
     ctx.lineWidth = px * 0.12;
     ctx.strokeStyle = ink.stroke;
     ctx.strokeText(floater.text, x, y);
@@ -415,9 +453,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.lineJoin = "round";
+
     for (const floater of floaters) {
       label(floater, now);
     }
+
     ctx.restore();
   };
 
@@ -425,7 +465,9 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (shown === null && atlas.ready()) {
       shown = now;
     }
+
     const t = shown === null ? 0 : clamp((now - shown) / REVEAL);
+
     if (t < 1) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.globalAlpha = calm && shown !== null ? 0 : 1 - easeOut(t);
@@ -439,6 +481,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (calm) {
       return;
     }
+
     for (let i = 0; i < count; i += 1) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 120 + Math.random() * 260;
@@ -451,6 +494,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         y: at.y + Math.sin(angle) * POI.r * 0.6,
       });
     }
+
     drops = drops.slice(-90);
   };
 
@@ -471,25 +515,32 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       scene();
       rings(now);
       const sunk = tank.poi.down || tank.poi.torn;
+
       if (sunk) {
         for (const fish of tank.fish) {
           if (fish.under) {
             swimmer(fish);
           }
         }
+
         poiAt(tank, 0);
       }
+
       for (const fish of tank.fish) {
         if (sunk && fish.under) {
           continue;
         }
+
         swimmer(fish);
       }
+
       bowlSwim(now);
       fingertip();
+
       if (!sunk) {
         poiAt(tank, rise);
       }
+
       fly(now);
       splash(now);
       words(now);

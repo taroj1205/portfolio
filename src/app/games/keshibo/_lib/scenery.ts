@@ -18,6 +18,7 @@ export const LIGHT = (() => {
   const y = 0.26;
   const z = 0.58;
   const length = Math.hypot(x, y, z);
+
   return { x: x / length, y: y / length, z: z / length };
 })();
 
@@ -28,8 +29,10 @@ const AMBIENT: Rgb = [0.84, 0.88, 1.02];
 
 export const seeded = (seed: number) => {
   let state = (Math.abs(Math.floor(seed)) % 2_147_483_646) + 1;
+
   return () => {
     state = (state * 16_807) % 2_147_483_647;
+
     return (state - 1) / 2_147_483_646;
   };
 };
@@ -38,8 +41,10 @@ const createNoise = (seed: number) => {
   const roll = seeded(seed);
   const size = 256;
   const table = Float32Array.from({ length: size * size }, () => roll());
+
   const at = (x: number, y: number) =>
     table[(((y % size) + size) % size) * size + (((x % size) + size) % size)];
+
   return (x: number, y: number) => {
     const ix = Math.floor(x);
     const iy = Math.floor(y);
@@ -49,6 +54,7 @@ const createNoise = (seed: number) => {
     const sy = fy * fy * (3 - 2 * fy);
     const top = at(ix, iy) + (at(ix + 1, iy) - at(ix, iy)) * sx;
     const bottom = at(ix, iy + 1) + (at(ix + 1, iy + 1) - at(ix, iy + 1)) * sx;
+
     return top + (bottom - top) * sy;
   };
 };
@@ -61,6 +67,7 @@ const fbm =
 
 const smooth = (edge0: number, edge1: number, value: number) => {
   const t = Math.min(1, Math.max(0, (value - edge0) / (edge1 - edge0)));
+
   return t * t * (3 - 2 * t);
 };
 
@@ -95,6 +102,7 @@ const pane = (along: number) => {
   const width = 96;
   const bar = 9;
   const local = (((along % width) + width) % width) - width / 2;
+
   return smooth(width / 2 - bar, width / 2 - bar - 6, Math.abs(local));
 };
 
@@ -104,6 +112,7 @@ export const sunOn = (x: number, y: number, z: number) => {
   const along = y + reach * LIGHT.y + 30;
   const sill = smooth(78, 92, height) * smooth(262, 248, height);
   const transom = 1 - 0.85 * smooth(4, 0, Math.abs(height - 178));
+
   return pane(along) * sill * transom;
 };
 
@@ -120,6 +129,7 @@ export const makeCanvas = (width: number, height: number) => {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(width));
   canvas.height = Math.max(1, Math.round(height));
+
   return canvas;
 };
 
@@ -131,18 +141,22 @@ const mips = (
   const levels = [{ canvas: base, scale }];
   let current = base;
   let currentScale = scale;
+
   while (currentScale / 2 >= floorScale) {
     const next = makeCanvas(current.width / 2, current.height / 2);
     const ctx = next.getContext("2d");
+
     if (!ctx) {
       break;
     }
+
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(current, 0, 0, next.width, next.height);
     currentScale /= 2;
     levels.push({ canvas: next, scale: currentScale });
     current = next;
   }
+
   return levels;
 };
 
@@ -151,11 +165,14 @@ const fillPixels = (
   shade: (u: number, v: number) => Rgb
 ) => {
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return null;
   }
+
   const image = ctx.createImageData(canvas.width, canvas.height);
   const { data } = image;
+
   for (let v = 0; v < canvas.height; v += 1) {
     for (let u = 0; u < canvas.width; u += 1) {
       const [r, g, b] = shade(u, v);
@@ -166,7 +183,9 @@ const fillPixels = (
       data[i + 3] = 255;
     }
   }
+
   ctx.putImageData(image, 0, 0);
+
   return ctx;
 };
 
@@ -178,6 +197,7 @@ const EDGE_SHINE: Rgb = [250, 236, 210];
 
 const deskEdge = (x: number, y: number) => {
   const from = y < LANE.seam ? y : y - LANE.seam;
+
   return Math.min(
     from,
     LANE.seam - from,
@@ -190,6 +210,7 @@ const deskShade = (scale: number) => {
   const grain = fbm(createNoise(11));
   const fine = createNoise(29);
   const blotch = fbm(createNoise(47));
+
   return (u: number, v: number): Rgb => {
     const x = u / scale - LANE.width / 2;
     const y = v / scale;
@@ -198,13 +219,16 @@ const deskShade = (scale: number) => {
     const ring = Math.sin((x + warp) * 1.9 + Math.sin(y * 0.03 + desk) * 0.8);
     const streak = (0.5 + 0.5 * ring) ** 6;
     const speck = Math.max(0, fine(u * 0.9, v * 0.25) - 0.82) * 2.4;
+
     let color = mix(
       OAK,
       OAK_DARK,
       streak * 0.55 + blotch(x * 0.05, y * 0.03) * 0.3
     );
+
     color = mix(color, OAK_DEEP, speck * 0.6);
     const edge = deskEdge(x, y);
+
     if (edge < 0.9) {
       color = mix(
         mix(EDGE, OAK_DARK, edge / 0.9),
@@ -212,10 +236,13 @@ const deskShade = (scale: number) => {
         smooth(0.5, 0.2, edge) * 0.35
       );
     }
+
     if (Math.abs(y - LANE.seam) < 0.18) {
       color = [58, 38, 24];
     }
+
     const sun = sunOn(x, y, 0);
+
     return lit(color, 0.74, sun * 0.44 + 0.06);
   };
 };
@@ -266,6 +293,7 @@ const pencil = (ctx: CanvasRenderingContext2D, scale: number) => {
     ctx,
     Array.from({ length: 6 }, (_, i): [number, number] => {
       const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+
       return [-15 + Math.cos(angle) * 1.8, 104 + Math.sin(angle) * 1.8];
     })
   );
@@ -274,6 +302,7 @@ const pencil = (ctx: CanvasRenderingContext2D, scale: number) => {
   ctx.lineWidth = 0.08;
   const roll = seeded(83);
   ctx.beginPath();
+
   for (let i = 0; i < 46; i += 1) {
     const x = (roll() - 0.5) * (LANE.width - 3);
     const y = 4 + roll() * (LANE.length - 8);
@@ -282,6 +311,7 @@ const pencil = (ctx: CanvasRenderingContext2D, scale: number) => {
     ctx.moveTo(x, y);
     ctx.lineTo(x + Math.sin(angle) * length, y + Math.cos(angle) * length);
   }
+
   ctx.stroke();
   ctx.fillStyle = "rgb(40 60 140 / 0.35)";
   ctx.beginPath();
@@ -294,10 +324,13 @@ export const deskTexture = (): Texture | null => {
   const scale = 10;
   const canvas = makeCanvas(LANE.width * scale, LANE.length * scale);
   const ctx = fillPixels(canvas, deskShade(scale));
+
   if (!ctx) {
     return null;
   }
+
   pencil(ctx, scale);
+
   return {
     a0: 0,
     a1: LANE.length,
@@ -318,10 +351,12 @@ const deskShadow = (x: number, y: number) => {
   const height = -FLOOR;
   const sx = x + (height * LIGHT.x) / LIGHT.z;
   const sy = y + (height * LIGHT.y) / LIGHT.z;
+
   const outside = Math.hypot(
     Math.max(0, Math.abs(sx) - LANE.width / 2),
     Math.max(0, Math.abs(sy - LANE.length / 2) - LANE.length / 2)
   );
+
   return smooth(14, 0, outside);
 };
 
@@ -329,6 +364,7 @@ const floorShade = (scale: number) => {
   const grain = fbm(createNoise(5));
   const plank = createNoise(91);
   const { x0, y0 } = ROOM.floor;
+
   return (u: number, v: number): Rgb => {
     const x = u / scale + x0;
     const y = v / scale + y0;
@@ -338,20 +374,25 @@ const floorShade = (scale: number) => {
     const tone = plank(column * 1.7, board * 2.3);
     const acrossSeam = x - column * BOARD_WIDTH;
     const alongSeam = ((shifted % BOARD_LENGTH) + BOARD_LENGTH) % BOARD_LENGTH;
+
     let color = mix(
       FLOOR_WOOD,
       FLOOR_DARK,
       tone * 0.6 + grain(x * 0.6, y * 0.02) * 0.35
     );
+
     if (acrossSeam < 0.3 || alongSeam < 0.5) {
       color = mix(color, FLOOR_SEAM, 0.7);
     }
+
     const under = Math.hypot(
       Math.max(0, Math.abs(x) - LANE.width / 2),
       Math.max(0, Math.abs(y - LANE.length / 2) - LANE.length / 2)
     );
+
     const occluded = smooth(22, 0, under);
     const sun = sunOn(x, y, FLOOR) * (1 - deskShadow(x, y) * 0.92);
+
     return lit(color, 0.6 - occluded * 0.26, sun * 0.72 + 0.04);
   };
 };
@@ -360,9 +401,11 @@ export const floorTexture = (): Texture | null => {
   const scale = 1.6;
   const { x0, x1, y0, y1 } = ROOM.floor;
   const canvas = makeCanvas((x1 - x0) * scale, (y1 - y0) * scale);
+
   if (!fillPixels(canvas, floorShade(scale))) {
     return null;
   }
+
   return {
     a0: y0,
     a1: y1,
@@ -399,12 +442,14 @@ const boardColor = (x: number, z: number, dust: number): Rgb | null => {
   ) {
     return null;
   }
+
   const edge = Math.min(
     x - BOARD_BOX.x0,
     BOARD_BOX.x1 - x,
     z - BOARD_BOX.z0,
     BOARD_BOX.z1 - z
   );
+
   return edge < 3
     ? mix(ALUMINIUM, ALUMINIUM_DARK, edge / 3)
     : mix(BOARD, BOARD_DUST, dust * 0.45);
@@ -414,18 +459,23 @@ const wallShade = (scale: number, top: number) => {
   const grain = fbm(createNoise(17));
   const dust = fbm(createNoise(63));
   const { x0 } = ROOM.wall;
+
   return (u: number, v: number): Rgb => {
     const x = u / scale + x0;
     const z = top - v / scale;
     const height = z - FLOOR;
     let color = mix(PLASTER, PLASTER_DARK, grain(x * 0.02, z * 0.02) * 0.6);
+
     if (height < 92) {
       color = mix(PANEL, PANEL_DARK, grain(x * 0.5, z * 0.01) * 0.7);
+
       if (((x % 60) + 60) % 60 < 0.8 || height < 9) {
         color = mix(color, PANEL_SEAM, 0.6);
       }
     }
+
     color = boardColor(x, z, dust(x * 0.03, z * 0.05)) ?? color;
+
     if (
       Math.abs(z - BOARD_BOX.z0) < 2.5 &&
       x > BOARD_BOX.x0 - 4 &&
@@ -433,7 +483,9 @@ const wallShade = (scale: number, top: number) => {
     ) {
       color = mix(ALUMINIUM, ALUMINIUM_DARK, (z - BOARD_BOX.z0 + 2.5) / 6);
     }
+
     const sun = sunOn(x, ROOM.wall.y, z) * smooth(-40, -160, x);
+
     return lit(color, 0.66, sun * 0.6 + 0.05);
   };
 };
@@ -444,6 +496,7 @@ const roughen = (ctx: CanvasRenderingContext2D) => {
   ctx.save();
   ctx.globalCompositeOperation = "destination-out";
   ctx.fillStyle = "rgb(0 0 0 / 0.55)";
+
   for (let i = 0; i < 2600; i += 1) {
     ctx.fillRect(
       roll() * width,
@@ -452,6 +505,7 @@ const roughen = (ctx: CanvasRenderingContext2D) => {
       0.2 + roll() * 0.5
     );
   }
+
   ctx.restore();
 };
 
@@ -472,15 +526,19 @@ const boardWriting = (
 ) => {
   const layer = makeCanvas(ctx.canvas.width, ctx.canvas.height);
   const chalk = layer.getContext("2d");
+
   if (!chalk) {
     return;
   }
+
   const u = (x: number) => (x - ROOM.wall.x0) * scale;
   const v = (z: number) => (top - z) * scale;
+
   const write = (text: string, x: number, z: number, size: number) => {
     chalk.font = `700 ${size * scale}px ${family}`;
     chalk.fillText(text, u(x), v(z));
   };
+
   const mid = (BOARD_BOX.z0 + BOARD_BOX.z1) / 2;
   chalk.textAlign = "center";
   chalk.textBaseline = "middle";
@@ -501,9 +559,11 @@ const boardWriting = (
   chalk.lineWidth = 1.2 * scale;
   chalk.lineCap = "round";
   chalk.beginPath();
+
   for (const [dx, row] of RACK_DRAWING) {
     chalk.rect(u(-150 + dx - 2), v(mid + 22 - row * 11), 4 * scale, 8 * scale);
   }
+
   chalk.moveTo(u(-150), v(mid - 30));
   chalk.lineTo(u(-150), v(mid - 8));
   chalk.moveTo(u(-154), v(mid - 13));
@@ -513,9 +573,11 @@ const boardWriting = (
   roughen(chalk);
   ctx.drawImage(layer, 0, 0);
   ctx.fillStyle = "rgb(250 250 244 / 0.92)";
+
   for (const [i, x] of [-120, -100, 60, 70].entries()) {
     ctx.fillRect(u(x), v(BOARD_BOX.z0 + 1.6), (6 + i) * scale, 1.1 * scale);
   }
+
   ctx.fillStyle = "rgb(40 40 46 / 0.95)";
   ctx.fillRect(u(120), v(BOARD_BOX.z0 + 4.4), 13 * scale, 3 * scale);
   ctx.fillStyle = "rgb(190 70 60 / 0.95)";
@@ -535,6 +597,7 @@ const clock = (ctx: CanvasRenderingContext2D, scale: number, top: number) => {
   ctx.fill();
   ctx.stroke();
   ctx.lineCap = "round";
+
   const hand = (turn: number, from: number, to: number, width: number) => {
     const angle = turn * Math.PI * 2;
     ctx.lineWidth = width * scale;
@@ -543,9 +606,11 @@ const clock = (ctx: CanvasRenderingContext2D, scale: number, top: number) => {
     ctx.lineTo(cx + Math.sin(angle) * to, cy - Math.cos(angle) * to);
     ctx.stroke();
   };
+
   for (let i = 0; i < 12; i += 1) {
     hand(i / 12, r * 0.78, r * 0.9, i % 3 === 0 ? 0.9 : 0.4);
   }
+
   hand((3 + 40 / 60) / 12, 0, r * 0.5, 1);
   hand(40 / 60, 0, r * 0.74, 0.6);
   ctx.restore();
@@ -557,11 +622,14 @@ export const wallTexture = (family: string): Texture | null => {
   const { x0, x1 } = ROOM.wall;
   const canvas = makeCanvas((x1 - x0) * scale, (top - FLOOR) * scale);
   const ctx = fillPixels(canvas, wallShade(scale, top));
+
   if (!ctx) {
     return null;
   }
+
   boardWriting(ctx, scale, top, family);
   clock(ctx, scale, top);
+
   return {
     a0: FLOOR,
     a1: top,

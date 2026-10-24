@@ -10,9 +10,11 @@ export const GET = async (
   { params }: RouteContext<"/games/kingyo/art/[layer]">
 ) => {
   const { layer } = await params;
+
   if (!isCardLayer(layer)) {
     return new Response(null, { status: 404 });
   }
+
   return new Response(cardDoc(layer), {
     headers: { "Content-Type": "image/svg+xml" },
   });

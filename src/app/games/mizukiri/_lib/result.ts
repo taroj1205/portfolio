@@ -36,9 +36,11 @@ export const distanceParts = (meters: number): [string, string] => {
   if (meters < 1000) {
     return [meters.toFixed(1), "m"];
   }
+
   if (meters < 100_000) {
     return [(meters / 1000).toFixed(2), "km"];
   }
+
   return [Math.round(meters / 1000).toLocaleString("ja-JP"), "km"];
 };
 
@@ -128,20 +130,26 @@ export const describe = (result: Result, lang: Lang): Story => {
   const copy = lines[lang];
   const distance = formatDistance(result.distance).replace(" ", "");
   const title = titleOf(result.distance, lang);
+
   if (result.ending === "plop") {
     return { ...copy.plop, rarity: null };
   }
+
   const told =
     result.highlight === null
       ? ""
       : notes[lang][result.highlight](result.times);
+
   let note = "";
+
   if (told !== "") {
     note = lang === "en" ? ` (${told})` : `（${told}）`;
   }
+
   if (result.ending === "leaf") {
     return copy.leaf(result.skips, distance, note);
   }
+
   if (result.quality === 100) {
     return {
       line: copy.divine(result.skips, distance, note),
@@ -149,6 +157,7 @@ export const describe = (result: Result, lang: Lang): Story => {
       title,
     };
   }
+
   return {
     line: copy.flew(result.skips, distance, note),
     rarity: result.highlight === "fish" ? copy.rarity.carp : null,
@@ -158,12 +167,15 @@ export const describe = (result: Result, lang: Lang): Story => {
 
 export const resultOf = (flight: Flight, save: Save): Result => {
   const counts = new Map<Boost, number>();
+
   for (const bump of flight.splashes) {
     if (bump.event !== null && bump.event !== "wall") {
       counts.set(bump.event, (counts.get(bump.event) ?? 0) + 1);
     }
   }
+
   const highlight = rank.find((kind) => counts.has(kind)) ?? null;
+
   return {
     distance: Math.round(flight.distance * 10) / 10,
     ending: flight.ending ?? "sink",
@@ -197,10 +209,13 @@ export const readResult = (
   params: Record<string, string | string[] | undefined>
 ): Result | null => {
   const parsed = shared.safeParse(params);
+
   if (!parsed.success) {
     return null;
   }
+
   const { b, e, h, j, k, lv, m, n, q, s, t } = parsed.data;
+
   return {
     distance: m,
     ending: e,
@@ -224,47 +239,59 @@ export const queryOf = (result: Result) => {
     q: String(result.quality),
     s: result.sky,
   });
+
   if (result.stone !== null) {
     query.set("b", codeOf(result.stone));
   }
+
   if (result.tuning !== null) {
     query.set("t", tuningCode(result.tuning));
   }
+
   if (result.journey) {
     query.set("j", "1");
+
     if (result.level !== null) {
       query.set("lv", String(result.level));
     }
   }
+
   if (result.highlight !== null) {
     query.set("h", result.highlight);
     query.set("k", String(result.times));
   }
+
   return query.toString();
 };
 
 export const journeyTag = (level: number | null, lang: Lang) => {
   const { name } = gameCopy[lang].workshop.mode.journey;
+
   return level === null ? name : `${name} Lv.${level}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
+
   const stone =
     result.stone === null
       ? null
       : `${lang === "en" ? "Stone: " : "石："}${nameOf(result.stone, lang)}`;
+
   const told = describe(result, lang).line;
   let post = told;
+
   if (result.journey) {
     const tag = journeyTag(result.level, lang);
     post = lang === "en" ? `[${tag}] ${told}` : `【${tag}】${told}`;
   }
+
   const build =
     result.tuning === null
       ? null
       : `${lang === "en" ? "Tuning: " : "配分："}${noteOf(result.tuning, lang)}`;
+
   return {
     text: [
       post,

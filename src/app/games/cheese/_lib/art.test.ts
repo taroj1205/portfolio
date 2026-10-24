@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, it } from "vite-plus/test";
 
 import { spriteDoc } from "../../_lib/svg";
 import { cheeseMoon, landmarkBody, moon, plates, pullDoc } from "./art";
@@ -28,16 +28,17 @@ const documents = [
 ];
 
 describe("the cheese svg", () => {
-  test("never repeats an id inside one document", () => {
+  it("never repeats an id inside one document", () => {
     for (const svg of documents) {
       const ids = idsOf(svg);
       assert.equal(new Set(ids).size, ids.length);
     }
   });
 
-  test("only points at gradients, filters and clips it defines", () => {
+  it("only points at gradients, filters and clips it defines", () => {
     for (const svg of documents) {
       const ids = new Set(idsOf(svg));
+
       for (const match of svg.matchAll(/url\(#(?<id>[^)]+)\)/gu)) {
         const id = match.groups?.id ?? "";
         assert.ok(ids.has(id), id);
@@ -45,7 +46,7 @@ describe("the cheese svg", () => {
     }
   });
 
-  test("has no missing numbers and stays ASCII for btoa", () => {
+  it("has no missing numbers and stays ASCII for btoa", () => {
     for (const svg of documents) {
       assert.doesNotMatch(svg, /NaN|undefined|Infinity/u);
       assert.doesNotMatch(svg, /[^ -~]/u);

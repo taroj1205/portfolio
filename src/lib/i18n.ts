@@ -22,12 +22,16 @@ export const getTranslator =
     if (locale === "en") {
       return english;
     }
+
     let message: string | Messages = ja;
+
     for (const part of key.split(".")) {
       if (typeof message === "string" || !Object.hasOwn(message, part)) {
         return english;
       }
+
       message = message[part];
     }
+
     return typeof message === "string" ? message : english;
   };

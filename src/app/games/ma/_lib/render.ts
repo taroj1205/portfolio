@@ -11,8 +11,10 @@ const SPRITE = 48;
 
 const seeded = (seed: number) => {
   let state = seed % 2_147_483_647 || 1;
+
   return () => {
     state = (state * 16_807) % 2_147_483_647;
+
     return state / 2_147_483_647;
   };
 };
@@ -21,12 +23,14 @@ const makeCanvas = (width: number, height = width) => {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(width));
   canvas.height = Math.max(1, Math.round(height));
+
   return canvas;
 };
 
 const paintFlake = (core: string, rim: string) => {
   const canvas = makeCanvas(SPRITE);
   const ctx = canvas.getContext("2d");
+
   if (ctx) {
     const glow = ctx.createRadialGradient(
       SPRITE / 2,
@@ -36,12 +40,14 @@ const paintFlake = (core: string, rim: string) => {
       SPRITE / 2,
       SPRITE / 2
     );
+
     glow.addColorStop(0, core);
     glow.addColorStop(0.35, rim);
     glow.addColorStop(1, "rgb(255 255 255 / 0)");
     ctx.fillStyle = glow;
     ctx.fillRect(0, 0, SPRITE, SPRITE);
   }
+
   return canvas;
 };
 
@@ -56,16 +62,21 @@ const ridge = (
     freq: (i + 1) * (1.2 + roll() * 1.4),
     phase: roll() * Math.PI * 2,
   }));
+
   const points: [number, number][] = [];
+
   for (let x = 0; x <= width + 8; x += 8) {
     const u = x / width;
     let y = base;
+
     for (const wave of waves) {
       y -=
         wave.amp * (0.5 + 0.5 * Math.sin(u * wave.freq * Math.PI + wave.phase));
     }
+
     points.push([x, y]);
   }
+
   return points;
 };
 
@@ -76,15 +87,18 @@ const trace = (
 ) => {
   ctx.beginPath();
   ctx.moveTo(0, bottom);
+
   for (const [x, y] of points) {
     ctx.lineTo(x, y);
   }
+
   ctx.lineTo(points.at(-1)?.[0] ?? 0, bottom);
   ctx.closePath();
 };
 
 const moonOf = (width: number, height: number) => {
   const wide = width > height;
+
   return {
     r: Math.max(
       26,
@@ -98,9 +112,11 @@ const moonOf = (width: number, height: number) => {
 const paintScene = (width: number, height: number, dpr: number) => {
   const canvas = makeCanvas(width * dpr, height * dpr);
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
     return canvas;
   }
+
   ctx.scale(dpr, dpr);
   const roll = seeded(1205);
   const sky = ctx.createLinearGradient(0, 0, 0, height);
@@ -120,9 +136,11 @@ const paintScene = (width: number, height: number, dpr: number) => {
     ctx.arc(x, y, 0.4 + roll() * 0.8, 0, Math.PI * 2);
     ctx.fill();
   }
+
   ctx.globalAlpha = 1;
 
   const moon = moonOf(width, height);
+
   const halo = ctx.createRadialGradient(
     moon.x,
     moon.y,
@@ -131,11 +149,13 @@ const paintScene = (width: number, height: number, dpr: number) => {
     moon.y,
     moon.r * 7
   );
+
   halo.addColorStop(0, "rgb(214 224 255 / 0.32)");
   halo.addColorStop(0.25, "rgb(160 178 240 / 0.12)");
   halo.addColorStop(1, "rgb(120 140 220 / 0)");
   ctx.fillStyle = halo;
   ctx.fillRect(0, 0, width, height);
+
   const disc = ctx.createRadialGradient(
     moon.x - moon.r * 0.3,
     moon.y - moon.r * 0.35,
@@ -144,6 +164,7 @@ const paintScene = (width: number, height: number, dpr: number) => {
     moon.y,
     moon.r
   );
+
   disc.addColorStop(0, "#fffdf4");
   disc.addColorStop(0.7, "#f1efe2");
   disc.addColorStop(1, "#d9d9d2");
@@ -159,6 +180,7 @@ const paintScene = (width: number, height: number, dpr: number) => {
   ctx.beginPath();
   ctx.arc(moon.x, moon.y, moon.r, 0, Math.PI * 2);
   ctx.clip();
+
   for (let i = 0; i < 9; i += 1) {
     const angle = roll() * Math.PI * 2;
     const reach = roll() ** 0.7 * moon.r * 0.72;
@@ -179,6 +201,7 @@ const paintScene = (width: number, height: number, dpr: number) => {
     ctx.fill();
     ctx.restore();
   }
+
   ctx.restore();
 
   const far = ridge(roll, width, height * 0.8, height * 0.12);
@@ -212,6 +235,7 @@ const paintScene = (width: number, height: number, dpr: number) => {
     height * 0.92,
     Math.max(width, height) * 0.45
   );
+
   sheen.addColorStop(0, "rgb(200 214 255 / 0.16)");
   sheen.addColorStop(1, "rgb(200 214 255 / 0)");
   ctx.fillStyle = sheen;
@@ -225,10 +249,12 @@ const paintScene = (width: number, height: number, dpr: number) => {
     height * 0.45,
     Math.hypot(width, height) * 0.62
   );
+
   edge.addColorStop(0, "rgb(2 3 10 / 0)");
   edge.addColorStop(1, "rgb(2 3 10 / 0.55)");
   ctx.fillStyle = edge;
   ctx.fillRect(0, 0, width, height);
+
   return canvas;
 };
 
@@ -237,9 +263,11 @@ const ease = (from: number, to: number, rate: number, dt: number) =>
 
 export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const context = canvas.getContext("2d");
+
   if (!context) {
     throw new Error("Canvas 2D is not available");
   }
+
   const ctx = context;
   const roll = Math.random;
   const white = paintFlake("rgb(255 255 255 / 1)", "rgb(230 238 255 / 0.55)");
@@ -267,6 +295,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     flake.phase = roll() * Math.PI * 2;
     flake.sway = 0.4 + roll() * 1.3;
     flake.glint = roll() * Math.PI * 2;
+
     return flake;
   };
 
@@ -274,6 +303,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
     const nextWidth = canvas.clientWidth;
     const nextHeight = canvas.clientHeight;
+
     if (
       nextWidth === 0 ||
       nextHeight === 0 ||
@@ -281,15 +311,18 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ) {
       return;
     }
+
     width = nextWidth;
     height = nextHeight;
     dpr = nextDpr;
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
     scene = paintScene(width, height, dpr);
+
     const count = Math.round(
       Math.max(70, Math.min(260, (width * height) / 4200))
     );
+
     flakes = Array.from({ length: count }, () =>
       spawn({ glint: 0, phase: 0, sway: 0, x: 0, y: 0, z: 0 }, true)
     );
@@ -298,17 +331,20 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
 
   const blow = (dt: number) => {
     clock += dt;
+
     if (clock > nextGust) {
       gust = (roll() * 2 - 1) * (0.2 + roll() * 0.8);
       gustRate = 0.2 + roll() * 0.9;
       nextGust = clock + 1.2 + roll() * 5.5;
     }
+
     wind = ease(wind, gust, gustRate, dt);
   };
 
   const fall = (dt: number) => {
     const step = dt * pace;
     const lift = height / 800;
+
     for (const flake of flakes) {
       const depth = 0.25 + flake.z;
       flake.y += (16 + flake.z * 52) * lift * step;
@@ -316,6 +352,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         (wind * 46 * depth +
           Math.sin(clock * flake.sway + flake.phase) * (5 + flake.z * 12)) *
         step;
+
       if (flake.y > height + 14) {
         spawn(flake, false);
       } else if (flake.x < -50) {
@@ -331,8 +368,10 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.globalAlpha = 1;
     ctx.drawImage(scene, 0, 0);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     if (gilt > 0.01) {
       const moon = moonOf(width, height);
+
       const flare = ctx.createRadialGradient(
         moon.x,
         moon.y,
@@ -341,15 +380,19 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         moon.y,
         moon.r * 9
       );
+
       flare.addColorStop(0, `rgb(255 226 160 / ${0.42 * gilt})`);
       flare.addColorStop(1, "rgb(255 210 122 / 0)");
       ctx.fillStyle = flare;
       ctx.fillRect(0, 0, width, height);
     }
+
     for (const flake of flakes) {
       const size = 1.2 + flake.z * flake.z * 7;
+
       const shine =
         gilt > 0.01 ? 1 + gilt * 0.6 * Math.sin(clock * 5 + flake.glint) : 1;
+
       ctx.globalAlpha = Math.min(1, (0.28 + flake.z * 0.62) * shine);
       ctx.drawImage(
         gilt > 0.5 ? gold : white,
@@ -359,20 +402,25 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         size * 2
       );
     }
+
     ctx.globalAlpha = 1;
   };
 
   return {
     draw: (dt: number) => {
       fit();
+
       if (calm) {
         gilt = giltTo;
+
         if (dirty) {
           dirty = false;
           paint();
         }
+
         return;
       }
+
       blow(dt);
       pace = ease(pace, paceTo, paceTo === 0 ? 7 : 1.4, dt);
       gilt = ease(gilt, giltTo, giltTo > gilt ? 3 : 1.2, dt);

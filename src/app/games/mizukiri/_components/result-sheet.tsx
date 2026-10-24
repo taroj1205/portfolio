@@ -319,6 +319,7 @@ const PART_NAMES = new Map(parts.map(({ part, name }) => [part, name]));
 const RingTip = ({ onOff }: { onOff: () => void }) => {
   const { ringTip } = useCopy().result;
   const [off, setOff] = useState(false);
+
   return (
     <div {...stylex.props(styles.unlocks)}>
       <span {...stylex.props(styles.levelLabel)}>{ringTip.label}</span>
@@ -369,6 +370,7 @@ export const ResultSheet = ({
   const left = save.mode === "journey" ? pointsLeft(save) : 0;
   const climbed = gain?.climbed ?? 0;
   const unlocked = gain?.unlocked ?? [];
+
   return (
     <section aria-live="polite" {...stylex.props(glass.surface, styles.sheet)}>
       <div {...stylex.props(styles.badges)}>
@@ -408,6 +410,7 @@ export const ResultSheet = ({
           </span>
           {unlocked.map(({ part, option }) => {
             const worn = save.look[part] === option.id;
+
             return (
               <button
                 aria-pressed={worn}

@@ -70,12 +70,15 @@ const clamp = (value: number, min: number, max: number) =>
 const callOf = (rolls: number[], pins: number, gutter: boolean): Call => {
   const id = rolls.length;
   const last = lastCall(rolls);
+
   if (last === null) {
     return { id, kind: "count", pins, run: 0 };
   }
+
   if (last.kind === "miss" && gutter) {
     return { id, kind: "gutter", pins, run: 0 };
   }
+
   return { id, kind: last.kind, pins, run: last.run };
 };
 
@@ -84,6 +87,7 @@ const pullOf = (client: Point, origin: Point) => {
   const dy = client.y - origin.y;
   const reach = Math.max(120, Math.min(innerWidth, innerHeight) * 0.34);
   const length = Math.hypot(dx, dy);
+
   return {
     angle: dy <= 0 ? 0 : clamp(Math.atan2(-dx, dy), -MAX_ANGLE, MAX_ANGLE),
     power: dy <= 0 ? 0 : clamp((length - DEAD) / reach, 0, 1),
@@ -93,27 +97,36 @@ const pullOf = (client: Point, origin: Point) => {
 export const bendOf = (path: readonly Point[]) => {
   const first = path.at(0);
   const last = path.at(-1);
+
   if (first === undefined || last === undefined) {
     return 0;
   }
+
   const chordX = last.x - first.x;
   const chordY = last.y - first.y;
   const length = Math.hypot(chordX, chordY);
+
   if (length < BEND.shortest) {
     return 0;
   }
+
   let deepest = 0;
+
   for (const point of path) {
     const side =
       (chordY * (point.x - first.x) - chordX * (point.y - first.y)) / length;
+
     if (Math.abs(side) > Math.abs(deepest)) {
       deepest = side;
     }
   }
+
   const bulge = deepest / length;
+
   if (Math.abs(bulge) <= BEND.dead) {
     return 0;
   }
+
   return clamp(
     (bulge - Math.sign(bulge) * BEND.dead) / (BEND.full - BEND.dead),
     -1,
@@ -135,12 +148,14 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   let stageAt = performance.now();
   let lastX = 0;
   let aim: Aim | null = null;
+
   let pointer: {
     id: number;
     origin: Point;
     x: number;
     path: Point[];
   } | null = null;
+
   let touched = false;
   let hit = false;
   let slowUntil = 0;
@@ -156,6 +171,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const enter = (next: Stage, now: number) => {
     stage = next;
     stageAt = now;
+
     if (
       next === "ready" ||
       next === "aiming" ||
@@ -185,6 +201,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const localOf = (event: PointerEvent): Point => {
     const rect = canvas.getBoundingClientRect();
+
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   };
 
@@ -196,6 +213,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     ) {
       return;
     }
+
     event.preventDefault();
     sound.unlock();
     canvas.setPointerCapture(event.pointerId);
@@ -219,6 +237,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (stage !== "aiming" || pointer?.id !== event.pointerId || aim === null) {
       return;
     }
+
     const at = { x: event.clientX, y: event.clientY };
     pointer.path = [
       ...pointer.path.slice(0, 1),
@@ -246,11 +265,15 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (pointer?.id !== event.pointerId) {
       return;
     }
+
     const thrown = aim;
+
     if (stage !== "aiming" || thrown === null || thrown.power < 0.06) {
       letGo(performance.now());
+
       return;
     }
+
     pointer = null;
     aim = null;
     hit = false;
@@ -277,6 +300,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         if (!hit) {
           slowUntil = performance.now() + IMPACT.span;
         }
+
         hit = true;
         sound.clack(contact.strength, 0.2);
         render.crumbs(contact.at, contact.strength);
@@ -295,6 +319,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         sound.floor();
       }
     }
+
     world.contacts.length = 0;
   };
 
@@ -304,6 +329,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     on.rolls(rolls);
     const call = callOf(rolls, pins, world.ball.dropped && !hit);
     on.call(call);
+
     if (call.kind === "strike") {
       sound.strike(call.run);
       navigator.vibrate?.([20, 40, 20, 40, 60]);
@@ -313,6 +339,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     } else if (call.kind === "gutter") {
       sound.gutter();
     }
+
     sound.slide(0);
     enter("hold", now);
   };
@@ -326,16 +353,20 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const step = (now: number, dt: number) => {
     const since = now - stageAt;
+
     if (stage === "rolling") {
       playing += dt;
+
       const done = advance(
         world,
         dt * (now < slowUntil && !calm ? IMPACT.pace : PACE)
       );
+
       contacts();
       sound.slide(
         world.ball.dropped ? 0 : Math.hypot(world.ball.vx, world.ball.vy)
       );
+
       if (done) {
         settleRoll(now);
       }
@@ -356,14 +387,18 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (touched || stage !== "ready" || calm) {
       return null;
     }
+
     const t = (now % GHOST) / GHOST;
     const pull = clamp((t - 0.18) / 0.5, 0, 1);
     const ease = 1 - (1 - pull) ** 3;
+
     if (t > 0.82) {
       return null;
     }
+
     const at = render.screenOf(world.ball);
     const arc = Math.floor(now / GHOST) % 2 === 1;
+
     return {
       angle: arc ? 0 : -0.06 * ease,
       curl: arc ? 0.7 * ease : 0,
@@ -380,6 +415,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (stage === "rolling") {
       return "follow";
     }
+
     return stage === "hold" ? "pins" : "aim";
   };
 
@@ -398,15 +434,18 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   document.addEventListener("visibilitychange", hide);
 
   let frame = 0;
+
   const tick = (now: number) => {
     const dt = Math.min(0.05, Math.max(0, now - previous) / 1000);
     previous = now;
     step(now, dt);
     const since = now - stageAt;
     const ghostAim = ghost(now);
+
     if (ghostAim !== null) {
       place(world, lastX, ghostAim.angle);
     }
+
     render.draw(now, {
       aim: aim ?? ghostAim,
       ballIn:
@@ -424,6 +463,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     });
     frame = requestAnimationFrame(tick);
   };
+
   frame = requestAnimationFrame(tick);
 
   const newGame = () => {
@@ -446,6 +486,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       if (rolls.length > 0 && stage !== "done") {
         return;
       }
+
       design = next;
       look = lookOf(design);
       keep({ ...save, design });

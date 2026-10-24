@@ -47,6 +47,7 @@ export const lookOf = (
   design: Pick<Design, "pattern" | "rubber" | "sleeve">
 ): Look => {
   const sleeve = hex(sleeves[design.sleeve].color);
+
   return {
     pattern: design.pattern,
     rubber: hex(rubbers[design.rubber].color),
@@ -91,6 +92,7 @@ const cross = (a: Vec, b: Vec): Vec => ({
 const rotate = (v: Vec, axis: Vec, angle: number): Vec => {
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
+
   return add(
     add(scale(v, cos), scale(cross(axis, v), sin)),
     scale(axis, dot(axis, v) * (1 - cos))
@@ -103,6 +105,7 @@ export const project = (view: View, p: Vec) => {
   const dz = p.z - view.eye.z;
   const depth = dy * view.cos - dz * view.sin;
   const up = dy * view.sin + dz * view.cos;
+
   return {
     depth,
     x: view.cx + (view.focal * dx) / depth,
@@ -122,15 +125,19 @@ const STANDING: Axes = [
 export const pinBox = (pin: Pin, lift: number, alpha: number): Box => {
   const toward = { x: Math.sin(pin.toward), y: Math.cos(pin.toward), z: 0 };
   const hinge = { x: -Math.cos(pin.toward), y: Math.sin(pin.toward), z: 0 };
+
   const reach =
     (Math.abs(toward.x) * PIN.w) / 2 + (Math.abs(toward.y) * PIN.d) / 2;
+
   const pivot = {
     x: pin.x + toward.x * reach,
     y: pin.y + toward.y * reach,
     z: 0,
   };
+
   const middle = { x: pin.x - pivot.x, y: pin.y - pivot.y, z: PIN.h / 2 };
   const center = add(pivot, rotate(middle, hinge, pin.tilt));
+
   return {
     alpha,
     axes: [
@@ -156,6 +163,7 @@ export const ballBox = (
   const up = Math.cos(ball.pitch);
   const tip = -Math.sin(ball.pitch);
   const reach = (Math.abs(up) * ball.h + Math.abs(tip) * ball.d) / 2;
+
   return {
     alpha,
     axes: [
@@ -192,6 +200,7 @@ const quad = (
   v: Vec
 ) => {
   ctx.beginPath();
+
   for (const [i, [a, b]] of [
     [-1, -1],
     [1, -1],
@@ -199,12 +208,14 @@ const quad = (
     [-1, 1],
   ].entries()) {
     const point = project(view, add(center, add(scale(u, a), scale(v, b))));
+
     if (i === 0) {
       ctx.moveTo(point.x, point.y);
     } else {
       ctx.lineTo(point.x, point.y);
     }
   }
+
   ctx.closePath();
 };
 
@@ -229,8 +240,10 @@ const paintSleeve = (
   ctx.fillStyle = shade(look.sleeve);
   quad(ctx, view, face.center, along, across);
   ctx.fill();
+
   if (look.pattern === "bands") {
     const third = scale(face.across, face.acrossHalf / 3);
+
     for (const [k, color] of [
       [0, WHITE],
       [2 / 3, look.stripe],
@@ -245,10 +258,13 @@ const paintSleeve = (
       );
       ctx.fill();
     }
+
     return;
   }
+
   if (look.pattern === "plain") {
     ctx.fillStyle = shade(WHITE);
+
     for (const k of [-1, 1]) {
       quad(
         ctx,
@@ -259,10 +275,13 @@ const paintSleeve = (
       );
       ctx.fill();
     }
+
     return;
   }
+
   if (look.pattern === "check") {
     ctx.fillStyle = css(WHITE, 0.32);
+
     for (const k of [-0.6, 0, 0.6]) {
       quad(
         ctx,
@@ -273,6 +292,7 @@ const paintSleeve = (
       );
       ctx.fill();
     }
+
     quad(
       ctx,
       view,
@@ -281,10 +301,13 @@ const paintSleeve = (
       scale(face.across, face.acrossHalf * 0.18)
     );
     ctx.fill();
+
     return;
   }
+
   ctx.fillStyle = shade(WHITE);
   const radius = Math.min(face.acrossHalf, length) * 0.2;
+
   for (const i of [-0.72, -0.24, 0.24, 0.72]) {
     for (const j of [-0.5, 0.5]) {
       const point = project(
@@ -297,6 +320,7 @@ const paintSleeve = (
           )
         )
       );
+
       ctx.beginPath();
       ctx.arc(
         point.x,
@@ -319,21 +343,27 @@ export const paintBox = (
   const sunshine = sunlit
     ? sunOn(box.center.x, box.center.y, box.center.z) * 0.8 + 0.2
     : 0.6;
+
   ctx.save();
   ctx.globalAlpha = box.alpha;
   ctx.lineJoin = "round";
+
   for (let i = 0; i < 3; i += 1) {
     for (const sign of [-1, 1]) {
       const normal = scale(box.axes[i], sign);
       const center = add(box.center, scale(normal, box.half[i]));
       const toEye = add(view.eye, scale(center, -1));
+
       if (dot(normal, toEye) <= 0) {
         continue;
       }
+
       const [j, k] = [0, 1, 2].filter((axis) => axis !== i);
       const light = Math.max(0, dot(normal, LIGHT)) * sunshine;
+
       const shade = (color: Rgb) =>
         css(lit(color, 0.7 + normal.z * 0.12, light * 0.62 + 0.03));
+
       ctx.fillStyle = shade(box.look.rubber);
       quad(
         ctx,
@@ -346,6 +376,7 @@ export const paintBox = (
       ctx.strokeStyle = EDGE;
       ctx.lineWidth = 1;
       ctx.stroke();
+
       if (i !== box.long) {
         const across = j === box.long ? k : j;
         paintSleeve(
@@ -362,6 +393,7 @@ export const paintBox = (
           shade
         );
       }
+
       if (normal.z > 0.7) {
         ctx.strokeStyle = "rgb(255 250 240 / 0.35)";
         quad(
@@ -375,5 +407,6 @@ export const paintBox = (
       }
     }
   }
+
   ctx.restore();
 };

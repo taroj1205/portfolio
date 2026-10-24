@@ -50,6 +50,7 @@ const momentOf = (result: Result | null): Moment => {
       slash: null,
     };
   }
+
   if (result.end === "clear") {
     return {
       fake: null,
@@ -60,6 +61,7 @@ const momentOf = (result: Result | null): Moment => {
       slash: "left",
     };
   }
+
   if (result.end === "slow") {
     return {
       fake: null,
@@ -70,6 +72,7 @@ const momentOf = (result: Result | null): Moment => {
       slash: "right",
     };
   }
+
   return {
     fake: result.end === "early" ? null : result.end,
     left: "strike",
@@ -109,6 +112,7 @@ const sizes: Record<
 
 const textOf = (result: Result | null, lang: Lang) => {
   const words = copy[lang];
+
   if (result === null) {
     return {
       caption: words.rule.lead,
@@ -118,9 +122,11 @@ const textOf = (result: Result | null, lang: Lang) => {
       rank: null,
     };
   }
+
   const rank = rankOf(result.reach);
   const fooled = isEarly(result.end);
   const reach = reachText(result.reach, lang);
+
   return {
     caption: fooled ? lineOf(result, lang) : rank.name[lang],
     dare: result.best === null ? words.challenge.still : words.challenge.dare,
@@ -132,6 +138,7 @@ const textOf = (result: Result | null, lang: Lang) => {
 
 const Caption = ({ text, size }: { text: string; size: number }) => {
   const [before, after] = text.split(MARK);
+
   return after === undefined ? (
     <span>{text}</span>
   ) : (
@@ -152,11 +159,14 @@ export const GET = async (request: NextRequest) => {
   const words = copy[lang];
   const { caption, dare, detail, headline, rank } = textOf(result, lang);
   const seal = rank?.seal ?? ["居", "合"];
+
   const font = await loadMincho(
     `${headline}${caption}${detail}${dare}${seal.join("")}${words.result.fastest}${words.result.average}0123456789ms${copy.ja.name}さやばしり${copy.en.name}`
   );
+
   const size = sizes[lang];
   const big = result === null ? pitchSize[lang] : size.headline;
+
   const stats =
     result === null || result.best === null || result.average === null
       ? []

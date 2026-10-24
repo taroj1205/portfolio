@@ -79,6 +79,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const finish = (now: number) => {
     active = null;
     const result = resultOf(tank.caught);
+
     const settled = settle(save, {
       at: Date.now(),
       biggest: tank.biggest,
@@ -86,6 +87,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       scoops: tank.scoops,
       seconds: Math.max(0, now - start) / 1000,
     });
+
     keep(settled.save);
     enter("done");
     ending = {
@@ -104,9 +106,11 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       if (event.type === "scoop") {
         render.scoop(event.fish, event.at, now);
         sound.scoop(event.fish.length);
+
         if (event.fish.some((fish) => kinds[fish.kind].tier !== "common")) {
           sound.rare();
         }
+
         navigator.vibrate?.([14, 40, 14]);
       } else if (event.type === "under") {
         render.under(event.at, now);
@@ -116,7 +120,9 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         navigator.vibrate?.([40, 30, 90]);
       }
     }
+
     meter();
+
     if (events.some((event) => event.type === "tear")) {
       finish(now);
     }
@@ -124,6 +130,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const quiet = () => {
     demo = createDemo();
+
     if (showing) {
       showing = false;
       freshen(tank);
@@ -133,14 +140,18 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const show = (move: Move, now: number) => {
     showing = true;
+
     if (move.type === "dip") {
       render.dip(move.at, now);
       render.guide(
         coarse ? { x: move.at.x + GRIP.x, y: move.at.y + GRIP.y } : move.at
       );
+
       return;
     }
+
     render.guide(null);
+
     for (const outcome of move.outcomes) {
       if (outcome.type === "scoop") {
         render.scoop(outcome.fish, outcome.at, now);
@@ -153,6 +164,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const pointOf = (event: PointerEvent): Point => {
     const rect = canvas.getBoundingClientRect();
     const side = Math.min(rect.width, rect.height) || 1;
+
     return {
       x:
         ((event.clientX - rect.left - (rect.width - side) / 2) / side) * SCENE -
@@ -171,16 +183,19 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     ) {
       return;
     }
+
     event.preventDefault();
     sound.unlock();
     canvas.setPointerCapture(event.pointerId);
     active = event.pointerId;
     grip = event.pointerType === "touch" ? GRIP : BARE;
+
     if (phase === "ready") {
       quiet();
       start = event.timeStamp;
       enter("scooping");
     }
+
     const events = dip(tank, pointOf(event));
     last = event.timeStamp;
     render.dip(tank.poi, event.timeStamp);
@@ -199,21 +214,27 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         if (phase === "ready") {
           quiet();
         }
+
         grip = BARE;
         hover(tank, pointOf(event));
       }
+
       return;
     }
+
     const coalesced = event.getCoalescedEvents?.() ?? [];
+
     for (const each of coalesced.length > 0 ? coalesced : [event]) {
       if (phase !== "scooping") {
         return;
       }
+
       const events = drag(
         tank,
         pointOf(each),
         Math.max(0, each.timeStamp - last) / 1000
       );
+
       last = each.timeStamp;
       react(events, each.timeStamp);
     }
@@ -221,6 +242,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const release = (now: number) => {
     active = null;
+
     if (phase === "scooping") {
       react(lift(tank), now);
     }
@@ -228,6 +250,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const up = (event: PointerEvent) => {
     sound.unlock();
+
     if (event.pointerId === active) {
       release(event.timeStamp);
     }
@@ -248,26 +271,33 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   document.addEventListener("visibilitychange", hide);
 
   let frame = 0;
+
   const tick = (now: number) => {
     const dt = Math.min(0.05, Math.max(0, now - previous) / 1000);
     previous = now;
     const events = step(tank, dt);
+
     if (phase === "scooping") {
       react(events, now);
     }
+
     if (phase === "ready" && active === null) {
       const shown = demo.next(tank, dt);
+
       if (shown !== null) {
         show(shown, now);
       }
     }
+
     if (ending !== null && now >= ending.at) {
       on.over(ending.value);
       ending = null;
     }
+
     render.draw(tank, now);
     frame = requestAnimationFrame(tick);
   };
+
   frame = requestAnimationFrame(tick);
 
   return {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { afterEach, describe, test, vi } from "vite-plus/test";
+import { afterEach, describe, it, vi } from "vite-plus/test";
 
 import { fresh, loadSave, settleCut, settleMiss } from "./save";
 
@@ -9,7 +9,7 @@ describe("itto save", () => {
     vi.unstubAllGlobals();
   });
 
-  test("an older or partial save keeps its fields and fills in the rest", () => {
+  it("an older or partial save keeps its fields and fills in the rest", () => {
     vi.stubGlobal("localStorage", {
       getItem: () =>
         JSON.stringify({ bestCut: 4, cuts: 12, kinds: { tofu: 3 }, runs: 2 }),
@@ -22,12 +22,12 @@ describe("itto save", () => {
     });
   });
 
-  test("a broken save falls back to a fresh one", () => {
+  it("a broken save falls back to a fresh one", () => {
     vi.stubGlobal("localStorage", { getItem: () => "{not json" });
     assert.deepEqual(loadSave(), fresh);
   });
 
-  test("cuts and misses add up the totals a profile would need", () => {
+  it("cuts and misses add up the totals a profile would need", () => {
     const first = settleCut(fresh, {
       at: 5000,
       challenged: false,
@@ -35,7 +35,9 @@ describe("itto save", () => {
       seconds: 2.34,
       small: 480,
     });
+
     assert.equal(first.record, false, "the first cut is never a new best");
+
     const second = settleCut(first.save, {
       at: 9000,
       challenged: true,
@@ -43,6 +45,7 @@ describe("itto save", () => {
       seconds: 1.2,
       small: 500,
     });
+
     assert.equal(second.record, true);
     const save = settleMiss(second.save);
     assert.deepEqual(save, {
@@ -60,6 +63,7 @@ describe("itto save", () => {
       rares: 1,
       seconds: 3.5,
     });
+
     const worse = settleCut(save, {
       at: 9500,
       challenged: false,
@@ -67,6 +71,7 @@ describe("itto save", () => {
       seconds: 1,
       small: 300,
     });
+
     assert.equal(worse.record, false);
     assert.equal(worse.save.bestCut, 0);
     assert.equal(worse.save.close, 1);

@@ -43,9 +43,11 @@ const tenth = (value: number) => Math.round(value * 10) / 10;
 
 const bestOf = (save: Save, { mould, time }: Result) => {
   const previous = save.best[mould] ?? null;
+
   if (time === null) {
     return { best: save.best, record: false };
   }
+
   return {
     best: { ...save.best, [mould]: Math.min(previous ?? time, time) },
     record: previous !== null && time < previous,
@@ -58,6 +60,7 @@ export const settle = (
 ) => {
   const cleared = result.time !== null;
   const { best, record } = bestOf(save, result);
+
   return {
     record,
     save: {

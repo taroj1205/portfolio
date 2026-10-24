@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, it } from "vite-plus/test";
 
 import { postUrl } from "../../_lib/share";
 import { dailyTarget } from "./daily";
@@ -19,7 +19,7 @@ const roundTrip = (result: Result) =>
   readResult(Object.fromEntries(new URLSearchParams(queryOf(result))));
 
 describe("share links", () => {
-  test("round-trip the time and which target it was", () => {
+  it("round-trip the time and which target it was", () => {
     const standard = { day: null, time: 998 };
     const daily = { day: 12, time: 742 };
     assert.deepEqual(roundTrip(standard), standard);
@@ -28,7 +28,7 @@ describe("share links", () => {
     assert.equal(queryOf(daily), "t=742&n=12");
   });
 
-  test("carry only the time and the day, so the target can't be faked", () => {
+  it("carry only the time and the day, so the target can't be faked", () => {
     assert.equal(targetOf(null), STANDARD);
     assert.equal(targetOf(12), dailyTarget(12));
     assert.deepEqual(readResult({ g: "742", t: "742" }), {
@@ -38,7 +38,7 @@ describe("share links", () => {
     assert.equal(gapOf({ day: 3, time: dailyTarget(3) }), 0);
   });
 
-  test("reject broken, oversized and tampered links", () => {
+  it("reject broken, oversized and tampered links", () => {
     const bad = [
       {},
       { n: "3" },
@@ -61,9 +61,11 @@ describe("share links", () => {
       { n: "100000", t: "998" },
       { n: "", t: "998" },
     ];
+
     for (const params of bad) {
       assert.equal(readResult(params), null, JSON.stringify(params));
     }
+
     assert.deepEqual(readResult({ t: "300" }), { day: null, time: 300 });
     assert.deepEqual(readResult({ n: "99999", t: "6000" }), {
       day: 99_999,
@@ -73,7 +75,7 @@ describe("share links", () => {
 });
 
 describe("plans", () => {
-  test("the standard target is always 10.00", () => {
+  it("the standard target is always 10.00", () => {
     assert.deepEqual(planOf("standard", null, 5), {
       day: null,
       target: STANDARD,
@@ -81,7 +83,7 @@ describe("plans", () => {
     });
   });
 
-  test("the daily follows the day the run starts", () => {
+  it("the daily follows the day the run starts", () => {
     assert.deepEqual(planOf("daily", null, 5), {
       day: 5,
       target: dailyTarget(5),
@@ -89,7 +91,7 @@ describe("plans", () => {
     });
   });
 
-  test("a challenge sets the target, and only today's daily counts as the daily", () => {
+  it("a challenge sets the target, and only today's daily counts as the daily", () => {
     assert.deepEqual(planOf("daily", { day: null, time: 990 }, 5), {
       day: null,
       target: STANDARD,
@@ -105,7 +107,7 @@ describe("plans", () => {
 });
 
 describe("share text", () => {
-  test("a 10.00 run names the time, the gap and the rank", () => {
+  it("a 10.00 run names the time, the gap and the rank", () => {
     const share = shareOf({ day: null, time: 998 }, "https://x.y", "ja");
     assert.equal(
       share.text,
@@ -116,9 +118,10 @@ describe("share text", () => {
     assert.equal(new URL(postUrl(share)).hostname, "x.com");
   });
 
-  test("the daily shows how close it was but never the target or the time", () => {
+  it("the daily shows how close it was but never the target or the time", () => {
     const day = 12;
     const time = dailyTarget(day) + 9;
+
     for (const lang of ["ja", "en"] as const) {
       const { text } = shareOf({ day, time }, "https://x.y", lang);
       assert.ok(text.includes("#12"));
@@ -126,6 +129,7 @@ describe("share text", () => {
       assert.ok(!text.includes((time / 100).toFixed(2)));
       assert.ok(!text.includes((dailyTarget(day) / 100).toFixed(2)));
     }
+
     assert.equal(
       shareOf({ day, time }, "https://x.y", "en").text,
       "Ten Silent Seconds daily #12\n+0.09s · Master\n🌕🌕🌕🌕🌑\n#無音の十秒 #TenSilentSeconds"

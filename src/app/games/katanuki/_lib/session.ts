@@ -83,6 +83,7 @@ export const startSession = (
     const a = outline[i % NOTCHES];
     const b = outline[(i + 1) % NOTCHES];
     const u = along - i;
+
     return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };
   };
 
@@ -90,10 +91,12 @@ export const startSession = (
     const spacing = carving.mould.length / NOTCHES;
     const travel = ((DEMO.share * carving.mould.length) / DEMO.speed) * 1000;
     const elapsed = calm ? travel : now - demoAt;
+
     const target = Math.min(
       NOTCHES * DEMO.share,
       (elapsed / 1000) * (DEMO.speed / spacing)
     );
+
     while (demoAlong < target) {
       const next = Math.min(target, demoAlong + 1);
       const from = pointAt(demoAlong);
@@ -106,7 +109,9 @@ export const startSession = (
       );
       demoAlong = next;
     }
+
     render.needle(pointAt(demoAlong), true, 0);
+
     if (!calm && elapsed > travel + DEMO.hold) {
       fresh();
       demoAt = now;
@@ -117,6 +122,7 @@ export const startSession = (
   const pointOf = (event: PointerEvent): Point => {
     const rect = canvas.getBoundingClientRect();
     const side = Math.min(rect.width, rect.height) || 1;
+
     return {
       x: (event.clientX - rect.left - (rect.width - side) / 2) / side,
       y: (event.clientY - rect.top - (rect.height - side) / 2 - offset) / side,
@@ -128,6 +134,7 @@ export const startSession = (
     last = null;
     sound.scrape(0);
     render.needle(null, false, 0);
+
     const settled = settle(save, {
       at: Date.now(),
       cracks,
@@ -135,6 +142,7 @@ export const startSession = (
       result,
       seconds: (now - start) / 1000,
     });
+
     keep(settled.save);
     enter("done");
     on.over({ record: settled.record, result });
@@ -156,10 +164,12 @@ export const startSession = (
         render.pop(now);
         sound.clear();
         navigator.vibrate?.([20, 50, 20, 50, 60]);
+
         const time = Math.min(
           LONGEST,
           Math.max(1, Math.floor((now - start) / 100))
         );
+
         finish({ carved: 100, mould, time }, now);
       }
     }
@@ -171,12 +181,15 @@ export const startSession = (
     const before = carving.count;
     const { touching } = carving;
     const snaps = scratch(carving, from, at, seconds);
+
     if (!touching && carving.touching) {
       navigator.vibrate?.(8);
     }
+
     if (carving.count > before) {
       render.dust(at, t);
     }
+
     sound.scrape(
       seconds > 0 && carving.count > before
         ? Math.hypot(at.x - from.x, at.y - from.y) / seconds
@@ -194,19 +207,23 @@ export const startSession = (
     ) {
       return;
     }
+
     event.preventDefault();
     sound.unlock();
     canvas.setPointerCapture(event.pointerId);
     active = event.pointerId;
     offset = event.pointerType === "touch" ? LIFT : 0;
+
     if (phase !== "carving") {
       fresh();
       start = event.timeStamp;
       enter("carving");
     }
+
     last = null;
     const at = pointOf(event);
     carve(at, event.timeStamp);
+
     if (phase === "carving") {
       render.needle(at, carving.touching, carving.tension);
     }
@@ -216,20 +233,26 @@ export const startSession = (
     if (phase !== "carving") {
       return;
     }
+
     if (event.pointerId !== active) {
       if (event.pointerType === "mouse") {
         offset = 0;
         render.needle(pointOf(event), false, 0);
       }
+
       return;
     }
+
     const coalesced = event.getCoalescedEvents?.() ?? [];
+
     for (const each of coalesced.length > 0 ? coalesced : [event]) {
       if (phase !== "carving") {
         return;
       }
+
       carve(pointOf(each), each.timeStamp);
     }
+
     if (phase === "carving") {
       render.needle(
         last?.at ?? pointOf(event),
@@ -243,10 +266,12 @@ export const startSession = (
     if (event.pointerId !== active) {
       return;
     }
+
     active = null;
     last = null;
     lift(carving);
     sound.scrape(0);
+
     if (phase === "carving") {
       render.needle(
         event.pointerType === "mouse" ? pointOf(event) : null,
@@ -276,18 +301,22 @@ export const startSession = (
   render.reset(carving);
 
   let frame = 0;
+
   const tick = (now: number) => {
     const dt = Math.min(0.05, Math.max(0, now - previous) / 1000);
     previous = now;
+
     if (phase === "demo") {
       playDemo(now);
     } else if (phase === "carving") {
       rest(carving, dt);
       on.meter(percentOf(carving), carving.tension);
     }
+
     render.draw(now);
     frame = requestAnimationFrame(tick);
   };
+
   frame = requestAnimationFrame(tick);
 
   return {
@@ -300,6 +329,7 @@ export const startSession = (
     },
     choose: (next: MouldId) => {
       mould = next;
+
       if (phase === "demo" || phase === "ready") {
         fresh();
         demoAt = performance.now();

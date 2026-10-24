@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, it } from "vite-plus/test";
 
 import { postUrl } from "../../_lib/share";
 import { TOP, kindOf } from "./bodies";
@@ -38,16 +38,20 @@ const place = (world: World, tier: number, x: number, y = 0): Orb => {
     x,
     y,
   };
+
   world.nextId += 1;
   world.orbs.push(orb);
+
   return orb;
 };
 
 const run = (world: World, seconds: number) => {
   const merges = [];
+
   for (let t = 0; t < seconds; t += TICK) {
     merges.push(...step(world).merges);
   }
+
   return merges;
 };
 
@@ -61,7 +65,7 @@ const fresh: Save = {
 };
 
 describe("merging", () => {
-  test("two touching bodies of the same kind become the next one up", () => {
+  it("two touching bodies of the same kind become the next one up", () => {
     const world = createWorld(1);
     const r = kindOf(3).radius;
     place(world, 3, -r);
@@ -74,21 +78,23 @@ describe("merging", () => {
     assert.equal(world.top, 4);
   });
 
-  test("different kinds push apart instead of merging", () => {
+  it("different kinds push apart instead of merging", () => {
     const world = createWorld(1);
     place(world, 2, -0.05);
     place(world, 3, 0.05);
     run(world, 0.5);
     assert.equal(world.orbs.length, 2);
     const [a, b] = world.orbs;
+
     const gap = Math.hypot(
       (b?.x ?? 0) - (a?.x ?? 0),
       (b?.y ?? 0) - (a?.y ?? 0)
     );
+
     assert.ok(gap >= kindOf(2).radius + kindOf(3).radius - 1e-3);
   });
 
-  test("a body made by a merge that merges again right away counts as a chain", () => {
+  it("a body made by a merge that merges again right away counts as a chain", () => {
     const world = createWorld(1);
     const small = kindOf(1).radius;
     const big = kindOf(2).radius;
@@ -107,7 +113,7 @@ describe("merging", () => {
     assert.equal(world.score, pointsFor(1) + pointsFor(2) * 2);
   });
 
-  test("two black holes leave nothing behind and make the Milky Way", () => {
+  it("two black holes leave nothing behind and make the Milky Way", () => {
     const world = createWorld(1);
     const r = kindOf(TOP).radius;
     place(world, TOP, -r);
@@ -121,7 +127,7 @@ describe("merging", () => {
 });
 
 describe("dropping", () => {
-  test("drops from the launch ring toward the core and waits for the cooldown", () => {
+  it("drops from the launch ring toward the core and waits for the cooldown", () => {
     const world = createWorld(7);
     const [first, second] = world.queue;
     const orb = drop(world, 0);
@@ -135,8 +141,9 @@ describe("dropping", () => {
     assert.ok(drop(world, Math.PI));
   });
 
-  test("only small bodies come up in the queue", () => {
+  it("only small bodies come up in the queue", () => {
     const world = createWorld(3);
+
     for (let i = 0; i < 200; i += 1) {
       world.ready = 0;
       const orb = drop(world, i);
@@ -147,10 +154,11 @@ describe("dropping", () => {
 });
 
 describe("overflow", () => {
-  test("ends the run once a settled body stays past the ring for the grace time", () => {
+  it("ends the run once a settled body stays past the ring for the grace time", () => {
     const world = createWorld(1);
     const orb = place(world, 0, LIMIT);
     let over = false;
+
     for (let t = 0; t < GRACE + 0.5 && !over; t += TICK) {
       orb.x = LIMIT;
       orb.y = 0;
@@ -159,12 +167,13 @@ describe("overflow", () => {
       step(world);
       ({ over } = world);
     }
+
     assert.ok(over);
     assert.ok(world.time >= GRACE - TICK);
     assert.equal(drop(world, 0), null);
   });
 
-  test("a body still falling in from the launch ring does not count", () => {
+  it("a body still falling in from the launch ring does not count", () => {
     const world = createWorld(1);
     drop(world, 0);
     run(world, 0.3);
@@ -172,7 +181,7 @@ describe("overflow", () => {
     assert.equal(world.danger, 0);
   });
 
-  test("a lone body settles at the core", () => {
+  it("a lone body settles at the core", () => {
     const world = createWorld(1);
     drop(world, 1);
     run(world, 6);
@@ -183,26 +192,28 @@ describe("overflow", () => {
 });
 
 describe("results", () => {
-  test("round-trip through the share link", () => {
+  it("round-trip through the share link", () => {
     const world = createWorld(1);
     world.score = 3210;
     world.top = 7;
     world.chain = 3;
     world.merges = 42;
     const result = resultOf(world);
+
     const parsed = readResult(
       Object.fromEntries(new URLSearchParams(queryOf(result)))
     );
+
     assert.deepEqual(parsed, result);
   });
 
-  test("rejects links that don't describe a run", () => {
+  it("rejects links that don't describe a run", () => {
     assert.equal(readResult({}), null);
     assert.equal(readResult({ p: "10", t: String(TOP + 1) }), null);
     assert.equal(readResult({ p: "-1", t: "3" }), null);
   });
 
-  test("the share text names how far you got and shows the trail", () => {
+  it("the share text names how far you got and shows the trail", () => {
     const result = { chain: 3, galaxies: 0, merges: 42, score: 3210, top: 7 };
     const share = shareOf(result, "https://x.y", "ja");
     assert.equal(
@@ -212,11 +223,13 @@ describe("results", () => {
     assert.equal(trailOf(result), "✨🪨☄️🌙🔴🌍🔵🪐▫️▫️▫️");
     assert.ok(share.url.startsWith("https://x.y/games/hoshiai?"));
     assert.ok(share.image.startsWith("https://x.y/games/hoshiai/og?"));
+
     const english = shareOf(
       { ...result, galaxies: 1, top: TOP },
       "https://x.y",
       "en"
     );
+
     assert.ok(
       english.text.startsWith("I made the Milky Way in Hoshiai: 3,210 pts")
     );
@@ -235,7 +248,7 @@ describe("career", () => {
     top: 7,
   };
 
-  test("round-trips through the share link", () => {
+  it("round-trips through the share link", () => {
     const share = careerShare(career, "https://x.y", "en");
     const url = new URL(share.url);
     assert.deepEqual(readCareer(Object.fromEntries(url.searchParams)), career);
@@ -243,18 +256,19 @@ describe("career", () => {
     assert.ok(share.image.startsWith("https://x.y/games/hoshiai/og?"));
   });
 
-  test("is not mistaken for a shared result", () => {
+  it("is not mistaken for a shared result", () => {
     const params = Object.fromEntries(
       new URLSearchParams(
         queryOf({ chain: 3, galaxies: 0, merges: 42, score: 3210, top: 7 })
       )
     );
+
     assert.equal(readCareer(params), null);
     assert.equal(readCareer({}), null);
     assert.equal(readCareer({ ...params, b: "1", r: "0" }), null);
   });
 
-  test("the share text shows the totals and the trail", () => {
+  it("the share text shows the totals and the trail", () => {
     assert.equal(
       careerShare(career, "https://x.y", "en").text,
       `My Hoshiai stats: best 12,340 pts\n25 runs · 1,203 merges · best chain 8\n${trailOf(career)}\n#星合ゲーム #HoshiaiGame`
@@ -268,7 +282,7 @@ describe("career", () => {
 });
 
 describe("save", () => {
-  test("the first run never counts as a new best", () => {
+  it("the first run never counts as a new best", () => {
     const result = { chain: 1, galaxies: 0, merges: 5, score: 40, top: 3 };
     const first = settle(fresh, result);
     assert.equal(first.record, false);
@@ -279,7 +293,7 @@ describe("save", () => {
     assert.equal(settle(second.save, result).record, false);
   });
 
-  test("only records a body the first time it is found", () => {
+  it("only records a body the first time it is found", () => {
     const found = discover(fresh, 4);
     assert.equal(found?.top, 4);
     assert.ok(found !== null);

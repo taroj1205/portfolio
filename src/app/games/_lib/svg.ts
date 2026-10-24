@@ -27,8 +27,10 @@ export const n = (value: number) => Number(value.toFixed(2));
 
 export const seeded = (seed: number) => {
   let state = seed;
+
   return () => {
     state = (state * 16_807) % 2_147_483_647;
+
     return state / 2_147_483_647;
   };
 };
@@ -65,12 +67,14 @@ export const blur = (id: string, deviation: number) =>
 export const curve = (points: readonly Point[]) => {
   const at = (i: number) => points[Math.max(0, Math.min(points.length - 1, i))];
   const parts = [`M${n(points[0].x)} ${n(points[0].y)}`];
+
   for (let i = 0; i < points.length - 1; i += 1) {
     const [a, b, c, d] = [at(i - 1), at(i), at(i + 1), at(i + 2)];
     parts.push(
       `C${n(b.x + (c.x - a.x) / 6)} ${n(b.y + (c.y - a.y) / 6)} ${n(c.x - (d.x - b.x) / 6)} ${n(c.y - (d.y - b.y) / 6)} ${n(c.x)} ${n(c.y)}`
     );
   }
+
   return parts.join("");
 };
 

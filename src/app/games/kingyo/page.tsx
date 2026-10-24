@@ -33,12 +33,15 @@ const langOf = async (param: string | string[] | undefined) => {
   if (param !== undefined) {
     return langFrom(param);
   }
+
   const incoming = await headers();
+
   return langFromHeader(incoming.get("accept-language"));
 };
 
 const titleOf = (result: Result, lang: Lang) => {
   const count = countOf(result);
+
   return `${countText(count, lang)} · ${rankOf(count).name[lang]}`;
 };
 
@@ -50,15 +53,18 @@ export const generateMetadata = async ({
   const shared = readResult(params);
   const query = new URLSearchParams(shared ? queryOf(shared) : "");
   query.set("l", lang);
+
   const title = shared
     ? `${titleOf(shared, lang)} | ${copy[lang].name}`
     : copy[lang].name;
+
   const image = {
     alt: title,
     height: 630,
     url: `/games/kingyo/og?${query.toString()}`,
     width: 1200,
   };
+
   return {
     description: DESCRIPTION[lang],
     openGraph: {
@@ -79,6 +85,7 @@ export const generateMetadata = async ({
 
 const Page = async ({ searchParams }: PageProps<"/games/kingyo">) => {
   const params = await searchParams;
+
   return (
     <div {...stylex.props(styles.page)}>
       <Game challenge={readResult(params)} hint={await langOf(params.l)} />

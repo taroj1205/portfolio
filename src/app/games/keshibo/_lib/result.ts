@@ -88,6 +88,7 @@ export const rankOf = (score: number): Rank =>
 
 export const nextRankOf = (score: number) => {
   const next = ranks.findLast((rank) => rank.from > score);
+
   return next === undefined ? null : { gap: next.from - score, rank: next };
 };
 
@@ -106,11 +107,14 @@ export const readResult = (
   params: Record<string, string | string[] | undefined>
 ): Result | null => {
   const parsed = shared.safeParse(params);
+
   if (!parsed.success) {
     return null;
   }
+
   const rolls = decodeRolls(parsed.data.r);
   const design = designFrom(parsed.data.e);
+
   return design !== null && isValidGame(rolls) ? { design, rolls } : null;
 };
 
@@ -132,15 +136,18 @@ const lineOf = (result: Result, lang: Lang) => {
   const score = scoreOf(result.rolls);
   const rank = rankOf(score).name[lang];
   const sheet = sheetLine(result.rolls);
+
   if (lang === "en") {
     return `${copy.en.name}\n${score} · ${rank}\n${sheet}\n${copy.en.challenge.dare(score)}`;
   }
+
   return `${copy.ja.name}\n${score}点 · ${rank}\n${sheet}\n${copy.ja.challenge.dare(score)}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
+
   return {
     image: `${origin}/games/keshibo/og?${query.toString()}`,
     text: [

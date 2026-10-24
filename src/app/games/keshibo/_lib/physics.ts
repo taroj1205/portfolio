@@ -88,6 +88,7 @@ export interface World {
 const spots: Point[] = Array.from({ length: PINS }, (_, i) => {
   const row = Math.floor((Math.sqrt(8 * i + 1) - 1) / 2);
   const first = (row * (row + 1)) / 2;
+
   return {
     x: (i - first - row / 2) * SPACING,
     y: LANE.head + row * SPACING * (Math.sqrt(3) / 2),
@@ -184,9 +185,11 @@ const offDesk = ({ x, y }: Point) =>
 
 const slow = (body: { vx: number; vy: number }, decel: number, dt: number) => {
   const speed = Math.hypot(body.vx, body.vy);
+
   if (speed === 0) {
     return;
   }
+
   const next = Math.max(0, speed - decel * dt);
   body.vx *= next / speed;
   body.vy *= next / speed;
@@ -205,11 +208,14 @@ const nudge = (pin: Pin, along: Point, impulse: number, height = 1) => {
   if (pin.tilt >= DOWN - 0.05 || pin.dropped) {
     return;
   }
+
   if (pin.tilt < 0.08) {
     pin.toward = Math.atan2(along.x, along.y);
   }
+
   const facing =
     Math.sin(pin.toward) * along.x + Math.cos(pin.toward) * along.y;
+
   pin.sway += (impulse / PIN.mass) * TIP * height * Math.max(0.2, facing);
 };
 
@@ -217,10 +223,12 @@ const ballHits = (world: World) => {
   const { ball } = world;
   const cos = Math.cos(ball.angle);
   const sin = Math.sin(ball.angle);
+
   for (const pin of world.pins) {
     if (pin.dropped) {
       continue;
     }
+
     const foot = footOf(pin);
     const dx = foot.x - ball.x;
     const dy = foot.y - ball.y;
@@ -231,9 +239,11 @@ const ballHits = (world: World) => {
     let nx = lx - cx;
     let ny = ly - cy;
     let gap = Math.hypot(nx, ny);
+
     if (gap >= foot.radius) {
       continue;
     }
+
     if (gap < 1e-6) {
       const across = ball.w / 2 - Math.abs(lx);
       const along = ball.d / 2 - Math.abs(ly);
@@ -244,16 +254,19 @@ const ballHits = (world: World) => {
       nx /= gap;
       ny /= gap;
     }
+
     const away = Math.hypot(dx, dy) || 1;
     const bentX = nx * cos + ny * sin + (ROUND * dx) / away;
     const bentY = -nx * sin + ny * cos + (ROUND * dy) / away;
     const bent = Math.hypot(bentX, bentY) || 1;
     const wx = bentX / bent;
     const wy = bentY / bent;
+
     const contact = {
       x: ball.x + cx * cos + cy * sin,
       y: ball.y - cx * sin + cy * cos,
     };
+
     const rx = contact.x - ball.x;
     const ry = contact.y - ball.y;
     const pointX = ball.vx + ball.spin * ry;
@@ -265,13 +278,17 @@ const ballHits = (world: World) => {
     pin.y += wy * depth * share;
     ball.x -= wx * depth * (1 - share);
     ball.y -= wy * depth * (1 - share);
+
     if (closing >= 0) {
       continue;
     }
+
     const lever = ry * wx - rx * wy;
+
     const impulse =
       (-(1 + ball.bounce) * closing) /
       (1 / ball.mass + 1 / PIN.mass + lever ** 2 / ball.inertia);
+
     ball.vx -= (impulse * wx) / ball.mass;
     ball.vy -= (impulse * wy) / ball.mass;
     ball.spin -= (impulse * lever) / ball.inertia;
@@ -289,25 +306,32 @@ const ballHits = (world: World) => {
 
 const pinHits = (world: World) => {
   const { pins } = world;
+
   for (let i = 0; i < pins.length; i += 1) {
     const a = pins[i];
+
     if (a.dropped) {
       continue;
     }
+
     for (let j = i + 1; j < pins.length; j += 1) {
       const b = pins[j];
+
       if (b.dropped) {
         continue;
       }
+
       const fa = footOf(a);
       const fb = footOf(b);
       const dx = fb.x - fa.x;
       const dy = fb.y - fa.y;
       const gap = Math.hypot(dx, dy);
       const reach = fa.radius + fb.radius;
+
       if (gap >= reach || gap < 1e-6) {
         continue;
       }
+
       const nx = dx / gap;
       const ny = dy / gap;
       const depth = (reach - gap) / 2;
@@ -316,9 +340,11 @@ const pinHits = (world: World) => {
       b.x += nx * depth;
       b.y += ny * depth;
       const closing = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+
       if (closing >= 0) {
         continue;
       }
+
       const impulse = (-(1 + PIN_BOUNCE) * closing * PIN.mass) / 2;
       a.vx -= (impulse * nx) / PIN.mass;
       a.vy -= (impulse * ny) / PIN.mass;
@@ -340,11 +366,14 @@ const topples = (world: World) => {
     if (pin.dropped || pin.tilt <= BALANCE || pin.tilt >= DOWN) {
       continue;
     }
+
     const lean = PIN.d / 2 + PIN.h * Math.sin(pin.tilt);
+
     const head = {
       x: pin.x + Math.sin(pin.toward) * lean,
       y: pin.y + Math.cos(pin.toward) * lean,
     };
+
     for (const other of world.pins) {
       if (
         other === pin ||
@@ -355,11 +384,14 @@ const topples = (world: World) => {
       ) {
         continue;
       }
+
       pin.knocked.add(other.id);
       const along = { x: Math.sin(pin.toward), y: Math.cos(pin.toward) };
+
       if (other.tilt < 0.08) {
         other.toward = pin.toward;
       }
+
       other.sway += Math.max(0, pin.sway) * 0.75 + 2;
       other.vx += along.x * 18;
       other.vy += along.y * 18;
@@ -376,10 +408,12 @@ const sway = (world: World, pin: Pin, dt: number) => {
   if (pin.tilt === 0 && pin.sway === 0) {
     return;
   }
+
   const before = pin.tilt;
   pin.sway += SWAY * Math.sin(pin.tilt - BALANCE) * dt;
   pin.sway *= 1 - 1.2 * dt;
   pin.tilt += pin.sway * dt;
+
   if (pin.tilt >= DOWN) {
     pin.tilt = DOWN;
     pin.sway = Math.abs(pin.sway) < 3 ? 0 : -pin.sway * 0.15;
@@ -387,6 +421,7 @@ const sway = (world: World, pin: Pin, dt: number) => {
     pin.tilt = 0;
     pin.sway = Math.abs(pin.sway) < 0.8 ? 0 : -pin.sway * 0.25;
   }
+
   if (before <= BALANCE && pin.tilt > BALANCE) {
     world.contacts.push({ at: pin, pin: pin.id, type: "topple" });
   }
@@ -395,6 +430,7 @@ const sway = (world: World, pin: Pin, dt: number) => {
 const fall = (body: { z: number; vz: number }, dt: number) => {
   body.vz -= G * dt;
   body.z = Math.max(FLOOR, body.z + body.vz * dt);
+
   if (body.z === FLOOR) {
     body.vz = 0;
   }
@@ -418,13 +454,17 @@ const land = (world: World) => {
 
 const tumble = (ball: Ball, grounded: boolean, dt: number) => {
   ball.pitch += ball.pitchRate * dt;
+
   if (!grounded) {
     return;
   }
+
   ball.pitchRate = Math.max(0, ball.pitchRate - TUMBLE.drag * dt);
+
   if (ball.pitchRate > TUMBLE.flop) {
     return;
   }
+
   ball.pitchRate = 0;
   const flat = Math.round(ball.pitch / Math.PI) * Math.PI;
   const gap = flat - ball.pitch;
@@ -436,9 +476,11 @@ const tumble = (ball: Ball, grounded: boolean, dt: number) => {
 
 const hook = (ball: Ball, dt: number) => {
   const speed = Math.hypot(ball.vx, ball.vy);
+
   if (ball.curl === 0 || speed < 1) {
     return;
   }
+
   const push =
     CURL.force *
     ball.curl *
@@ -446,6 +488,7 @@ const hook = (ball: Ball, dt: number) => {
     speed *
     Math.min(1, speed / CURL.fade) *
     dt;
+
   const ux = ball.vx / speed;
   const uy = ball.vy / speed;
   ball.vx += uy * push;
@@ -455,12 +498,16 @@ const hook = (ball: Ball, dt: number) => {
 
 const moveBall = (world: World, dt: number) => {
   const { ball } = world;
+
   if (ball.dropped) {
     fall(ball, dt);
     ball.pitch += ball.pitchRate * dt;
+
     return;
   }
+
   const grounded = ball.z <= 0 && ball.vz <= 0;
+
   if (grounded) {
     slow(ball, ball.grip * G * (ball.pitchRate > 0 ? 1.8 : 1), dt);
     const spinDrag = (ball.grip * G * 4) / (ball.w + ball.d);
@@ -470,10 +517,12 @@ const moveBall = (world: World, dt: number) => {
   } else {
     ball.vz -= G * dt;
     ball.z += ball.vz * dt;
+
     if (ball.z <= 0) {
       land(world);
     }
   }
+
   tumble(ball, grounded, dt);
 };
 
@@ -483,6 +532,7 @@ const tick = (world: World, dt: number) => {
   ball.x += ball.vx * dt;
   ball.y += ball.vy * dt;
   ball.angle += ball.spin * dt;
+
   if (!ball.dropped && offDesk(ball)) {
     ball.dropped = true;
     world.contacts.push({
@@ -491,6 +541,7 @@ const tick = (world: World, dt: number) => {
       type: "drop",
     });
   }
+
   for (const pin of world.pins) {
     if (pin.dropped) {
       fall(pin, dt);
@@ -498,8 +549,10 @@ const tick = (world: World, dt: number) => {
       slow(pin, (pin.tilt > BALANCE ? LYING_GRIP : PIN_GRIP) * G, dt);
       sway(world, pin, dt);
     }
+
     pin.x += pin.vx * dt;
     pin.y += pin.vy * dt;
+
     if (!pin.dropped && offDesk(footOf(pin))) {
       pin.dropped = true;
       world.contacts.push({
@@ -509,15 +562,18 @@ const tick = (world: World, dt: number) => {
       });
     }
   }
+
   if (!ball.dropped) {
     ballHits(world);
   }
+
   pinHits(world);
   topples(world);
 };
 
 const still = (world: World) => {
   const { ball } = world;
+
   const ballStill = ball.dropped
     ? ball.z === FLOOR
     : Math.hypot(ball.vx, ball.vy) < REST &&
@@ -526,6 +582,7 @@ const still = (world: World) => {
       ball.vz === 0 &&
       ball.pitchRate === 0 &&
       ball.pitch === Math.round(ball.pitch / Math.PI) * Math.PI;
+
   return (
     ballStill &&
     world.pins.every((pin) =>
@@ -542,15 +599,19 @@ export const advance = (world: World, seconds: number) => {
   if (!world.rolling) {
     return false;
   }
+
   world.carry += seconds;
+
   while (world.carry >= STEP && world.rolling) {
     world.carry -= STEP;
     world.time += STEP;
     tick(world, STEP);
+
     if (still(world) || world.time > LONGEST) {
       world.rolling = false;
     }
   }
+
   return !world.rolling;
 };
 
@@ -565,8 +626,10 @@ export const standingOf = (world: World): Spot[] =>
 export const simulate = (body: Body, launchWith: Launch, pins = rack()) => {
   const world = createWorld(body, pins);
   launch(world, launchWith);
+
   while (!advance(world, 0.25)) {
     world.contacts.length = 0;
   }
+
   return world;
 };

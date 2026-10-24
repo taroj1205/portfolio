@@ -168,9 +168,11 @@ const Versus = ({
 }) => {
   const words = copy[lang].result;
   const gap = formatTime(Math.abs(result.time - challenge.time));
+
   if (result.time === challenge.time) {
     return <span {...stylex.props(styles.won)}>{words.tied}</span>;
   }
+
   return result.time > challenge.time ? (
     <span {...stylex.props(styles.won)}>{words.won(gap)}</span>
   ) : (
@@ -196,6 +198,7 @@ export const ResultSheet = ({
   const done = finished(result);
   const reached = reachedOf(result);
   const left = createStick(result.seed).length - result.time;
+
   const art = sparklerParts({
     id: "senko-result",
     phase: reached,
@@ -204,10 +207,12 @@ export const ResultSheet = ({
     x: 50,
     y: 64,
   });
+
   const again = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     again.current?.focus({ preventScroll: true });
   }, []);
+
   return (
     <section
       aria-labelledby="senko-result"

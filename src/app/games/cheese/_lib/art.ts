@@ -140,6 +140,7 @@ const WEDGE = [62, 118] as const;
 
 const onPie = (degrees: number, k = 1): Point => {
   const a = (degrees * Math.PI) / 180;
+
   return {
     x: PIE.cx + PIE.rx * k * Math.cos(a),
     y: PIE.cy + PIE.ry * k * Math.sin(a),
@@ -160,6 +161,7 @@ const face = (a: Point, b: Point, top: number, bottom: number, fill: string) =>
 const rim = (from: number, to: number) => {
   const a = onPie(from);
   const b = onPie(to);
+
   return path(
     `M${n(a.x)} ${n(a.y)}A${PIE.rx} ${PIE.ry} 0 0 1 ${n(b.x)} ${n(b.y)}L${n(b.x)} ${n(b.y + PIE.side)}A${PIE.rx} ${PIE.ry} 0 0 0 ${n(a.x)} ${n(a.y + PIE.side)}Z`,
     `fill="url(#pz-rim)"`
@@ -174,12 +176,15 @@ const pizzaBase = (): Sprite => {
   const inner1 = onPie(w1, 0.955);
   const inner2 = onPie(w2, 0.955);
   const char = seeded(41);
+
   const spots = Array.from({ length: 16 }, () => {
     const angle = 140 + char() * 260;
     const at = onPie(angle, 0.2 + char() * 0.68);
     const r = 18 + char() * 34;
+
     return ellipse(at.x, at.y, r, r * 0.38, `fill="url(#pz-char)"`);
   }).join("");
+
   const toppings: readonly [number, number, number][] = [
     [0.55, 200, 46],
     [0.62, 252, 44],
@@ -190,6 +195,7 @@ const pizzaBase = (): Sprite => {
     [0.78, 22, 40],
     [0.3, 330, 38],
   ];
+
   const drips = [0.28, 0.55, 0.8]
     .flatMap((t) => [
       {
@@ -203,12 +209,14 @@ const pizzaBase = (): Sprite => {
     ])
     .map((at, i) => {
       const long = 14 + (i % 3) * 7;
+
       return path(
         `M${n(at.x - 16)} ${n(at.y - 2)}Q${n(at.x - 10)} ${n(at.y + long)} ${n(at.x)} ${n(at.y + long + 6)}Q${n(at.x + 10)} ${n(at.y + long)} ${n(at.x + 16)} ${n(at.y - 2)}Z`,
         `fill="url(#pz-melt)"`
       );
     })
     .join("");
+
   return {
     body: [
       "<defs>",
@@ -301,6 +309,7 @@ const pizzaBase = (): Sprite => {
       spots,
       ...toppings.map(([k, angle, r]) => {
         const at = onPie(angle, k);
+
         return pepperoni("pz", at.x, at.y, r, 0.4);
       }),
       basil("pz", onPie(215, 0.75).x, onPie(215, 0.75).y, 48, -20),
@@ -326,6 +335,7 @@ const pizzaSlice = (): Sprite => {
   const left = { x: -195, y: -430 };
   const right = { x: 195, y: -430 };
   const tip = { x: 0, y: -14 };
+
   return {
     body: [
       "<defs>",
@@ -394,9 +404,11 @@ const dogBody = "M-105 -10L-105 -440A105 105 0 0 1 105 -440L105 -10Z";
 
 const zigzag = (offset: number) => {
   const list: Point[] = [];
+
   for (let i = 0; i <= 10; i += 1) {
     list.push({ x: (i + offset) % 2 === 0 ? -92 : 92, y: -500 + i * 46 });
   }
+
   return points(list);
 };
 
@@ -407,8 +419,10 @@ const crumbs = (
   colours: readonly string[]
 ) => {
   const roll = seeded(seed);
+
   return Array.from({ length: count }, (_, i) => {
     const r = 2.5 + roll() * 5;
+
     return ellipse(
       area.x + roll() * area.w,
       area.y + roll() * area.h,
@@ -535,6 +549,7 @@ const corndogBase = (): Sprite => ({
     Array.from({ length: 30 }, (_, i) => {
       const row = Math.floor(i / 6);
       const col = i % 6;
+
       return (row + col) % 2 === 0
         ? path(
             `M${-128 + col * 43} ${80 + row * 44}l43 0l0 44l-43 0Z`,
@@ -561,6 +576,7 @@ const potBody = "M-330 10C-330 170 -240 252 0 252C240 252 330 170 330 10Z";
 
 const fondueBase = (): Sprite => {
   const bubbles = seeded(23);
+
   return {
     body: [
       "<defs>",
@@ -639,6 +655,7 @@ const fondueBase = (): Sprite => {
         const a = bubbles() * Math.PI * 2;
         const k = Math.sqrt(bubbles()) * 0.85;
         const r = 7 + bubbles() * 14;
+
         return ellipse(
           Math.cos(a) * 290 * k,
           14 + Math.sin(a) * 60 * k,
@@ -754,12 +771,14 @@ export const plates: Record<DishId, Plate> = {
 
 const moonBody = (id: string, cheese: boolean) => {
   const roll = seeded(cheese ? 77 : 31);
+
   const holes = Array.from({ length: cheese ? 9 : 11 }, () => {
     const a = roll() * Math.PI * 2;
     const k = Math.sqrt(roll()) * 0.78;
     const r = 7 + roll() * (cheese ? 16 : 13);
     const x = Math.cos(a) * 100 * k;
     const y = Math.sin(a) * 100 * k;
+
     return cheese
       ? ellipse(x, y, r, r, `fill="#c98a1e" fill-opacity="0.75"`) +
           ellipse(
@@ -778,7 +797,9 @@ const moonBody = (id: string, cheese: boolean) => {
             `fill="#fffbef" fill-opacity="0.25"`
           );
   }).join("");
+
   const colours = cheese ? paint.cheese : paint.moon;
+
   return [
     "<defs>",
     radialBox(
@@ -921,6 +942,7 @@ const hex = (colour: string) =>
 export const mix = (a: string, b: string, t: number) => {
   const from = hex(a);
   const to = hex(b);
+
   return `#${from
     .map((value, i) =>
       Math.round(value + ((to[i] ?? value) - value) * t)
@@ -934,8 +956,10 @@ export const lookAt = (altitude: number): Look => {
   for (let i = 1; i < looks.length; i += 1) {
     const a = looks[i - 1];
     const b = looks[i];
+
     if (a !== undefined && b !== undefined && altitude <= b.at) {
       const t = Math.max(0, Math.min(1, (altitude - a.at) / (b.at - a.at)));
+
       return {
         skyLow: mix(a.skyLow, b.skyLow, t),
         skyTop: mix(a.skyTop, b.skyTop, t),
@@ -943,6 +967,7 @@ export const lookAt = (altitude: number): Look => {
       };
     }
   }
+
   return { skyLow: "#05060f", skyTop: "#020208", stars: 1 };
 };
 
@@ -981,6 +1006,7 @@ export const threadOf = (
   const plate = plates[dish];
   const k = size / UNIT;
   const height = Math.max(1, base.y - top);
+
   return {
     bend:
       Math.sin(clock * 1.6 + twist.phase) *
@@ -1007,9 +1033,11 @@ interface Web {
 
 export const websOf = (threads: readonly Thread[]) => {
   const webs: Web[] = [];
+
   for (let i = 0; i < threads.length - 1; i += 1) {
     const a = threads[i];
     const b = threads[i + 1];
+
     if (a !== undefined && b !== undefined) {
       for (const [end, reach] of [
         [0, 0.09],
@@ -1030,14 +1058,17 @@ export const websOf = (threads: readonly Thread[]) => {
       }
     }
   }
+
   return webs;
 };
 
 const strandsBody = (pull: Pull, id: string) => {
   const twists = twistsOf(dishes[pull.dish].strands);
+
   const threads = twists.map((twist, i) =>
     threadOf(pull, twist, sideOf(i, twists.length), still)
   );
+
   return [
     "<defs>",
     linearBox(
@@ -1093,11 +1124,13 @@ export const pullDoc = (
   scenery = ""
 ) => {
   const plate = plates[pull.dish];
+
   const parts: Record<Layer, string> = {
     back: `${scenery}${place(plate.base, pull.base, pull.size)}`,
     cheese: strandsBody(pull, `st-${pull.dish}`),
     held: place(plate.held, { x: pull.base.x, y: pull.top }, pull.size),
   };
+
   return docOf(
     { h: height, w: width, x: 0, y: 0 },
     width,
@@ -1114,6 +1147,7 @@ export const landmarkBody = (
   opacity = 1
 ) => {
   const mark = landmarks[key];
+
   return `<defs>${linearBox(`${id}-mark`, [0, 1, 0, 0], mark.fill)}</defs><g transform="translate(${n(at.x)} ${n(at.y)}) scale(${n(height / mark.size)})" opacity="${n(opacity)}">${path(mark.d, `fill="url(#${id}-mark)"`)}</g>`;
 };
 

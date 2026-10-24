@@ -91,10 +91,13 @@ export const isEarly = (end: End) => foolOf(end) !== null;
 
 export const lineOf = (result: Result, lang: Lang) => {
   const fool = foolOf(result.end);
+
   if (fool === null) {
     return rankOf(result.reach).line[lang];
   }
+
   const phrase = fool[lang];
+
   return lang === "en"
     ? `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}.`
     : `${phrase}。`;
@@ -106,6 +109,7 @@ export const reachText = (reach: number, lang: Lang) => {
   if (lang === "ja") {
     return reach === ladder.length ? "五人抜き" : `${reach}人抜き`;
   }
+
   return reach === ladder.length ? "All five" : `${reach} of ${ladder.length}`;
 };
 
@@ -146,6 +150,7 @@ const shared = z
   .refine(({ a, b }) => a === undefined || b === undefined || a >= b)
   .refine(({ r, b }) => {
     const beaten = ladder[r - 1];
+
     return beaten === undefined || (b !== undefined && b < slowestOf(beaten));
   });
 
@@ -153,10 +158,13 @@ export const readResult = (
   params: Record<string, string | string[] | undefined>
 ): Result | null => {
   const parsed = shared.safeParse(params);
+
   if (!parsed.success) {
     return null;
   }
+
   const { a, b, e, r } = parsed.data;
+
   return { average: a ?? null, best: b ?? null, end: e, reach: r };
 };
 
@@ -172,10 +180,12 @@ export const queryOf = (result: Result) => {
     e: result.end,
     r: String(result.reach),
   });
+
   if (result.best !== null && result.average !== null) {
     query.set("b", String(result.best));
     query.set("a", String(result.average));
   }
+
   return query.toString();
 };
 
@@ -183,8 +193,10 @@ const timesOf = (result: Result, lang: Lang) => {
   if (result.best === null || result.average === null) {
     return "";
   }
+
   const best = formatMs(result.best);
   const average = formatMs(result.average);
+
   return lang === "en"
     ? ` Fastest ${best}, average ${average}.`
     : `最速${best}、平均${average}。`;
@@ -192,16 +204,20 @@ const timesOf = (result: Result, lang: Lang) => {
 
 const howEn = (result: Result) => {
   const rank = rankOf(result.reach).name.en;
+
   const beat =
     result.reach === ladder.length
       ? "beat all five"
       : `beat ${result.reach} of ${ladder.length}`;
+
   const fool = foolOf(result.end)?.en;
+
   if (fool === undefined) {
     return result.reach === 0
       ? `${rank}, cut down by the first opponent.`
       : `${rank}, ${beat}.`;
   }
+
   return result.reach === 0 ? `${fool}.` : `${beat}, then ${fool}.`;
 };
 
@@ -209,29 +225,36 @@ const howJa = (result: Result) => {
   const rank = rankOf(result.reach).name.ja;
   const reach = reachText(result.reach, "ja");
   const fool = foolOf(result.end)?.ja;
+
   if (fool === undefined) {
     return result.reach === 0
       ? `ひとり目に斬られた（${rank}）。`
       : `${reach}（${rank}）。`;
   }
+
   return result.reach === 0 ? `、${fool}。` : `${reach}、そして${fool}。`;
 };
 
 const shareLine = (result: Result, lang: Lang) => {
   const times = timesOf(result, lang);
+
   if (lang === "en") {
     const dare =
       times === "" ? "Could you keep still?" : "Can you draw faster?";
+
     return `Sayabashiri, the quick-draw duel: ${howEn(result)}${times}\n${dare}`;
   }
+
   const dare =
     times === "" ? "あなたは、動かずにいられる？" : "この速さ、斬れる？";
+
   return `鞘走りで${howJa(result)}${times}\n${dare}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
+
   return {
     image: `${origin}/games/iai/og?${query.toString()}`,
     text: [

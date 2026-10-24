@@ -7,6 +7,7 @@ export const appIcon = async (px: number) => {
   const photo = await readFile(
     path.join(process.cwd(), "src/assets/profile.jpg")
   );
+
   return new ImageResponse(
     <div
       style={{

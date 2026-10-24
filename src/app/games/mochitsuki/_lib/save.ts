@@ -48,6 +48,7 @@ export const settle = (
   { result, greats, longest, seconds, at }: Run
 ) => {
   const { level } = rankOf(result.pounds);
+
   return {
     record: save.runs > 0 && result.pounds > save.best,
     save: {

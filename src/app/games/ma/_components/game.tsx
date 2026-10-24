@@ -77,6 +77,7 @@ const paint = (
   if (clock) {
     clock.textContent = formatTime(time);
   }
+
   if (face) {
     face.style.opacity = opacity.toFixed(3);
     face.style.filter =
@@ -92,12 +93,14 @@ const revealOf = (
   if (ending !== null) {
     return { demo: false, target: ending.target, time: ending.result.time };
   }
+
   return demo ? { demo: true, target, time: target - DEMO_MISS } : null;
 };
 
 const dailyOf = (save: Save | null, today: number | null) => {
   const official =
     save === null || today === null ? null : officialOf(save, today);
+
   return save === null || official === null
     ? null
     : { gap: gapOf(official), streak: streakOn(save, official.day) };
@@ -155,6 +158,7 @@ export const Game = ({
             over: setEnding,
             phase: (next) => {
               setPhase(next);
+
               if (next === "shown") {
                 setEarly(0);
                 setNotice(null);
@@ -172,6 +176,7 @@ export const Game = ({
               });
             },
           });
+
     return () => {
       session.current?.stop();
       session.current = null;

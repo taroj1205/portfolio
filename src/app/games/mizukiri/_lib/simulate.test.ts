@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { describe, test, vi } from "vite-plus/test";
+import { describe, it, vi } from "vite-plus/test";
 
 import { postUrl } from "../../_lib/share";
 import { careerOf, careerShare, describeCareer, readCareer } from "./career";
@@ -76,14 +76,17 @@ import {
 import type { Axis, Tuning } from "./tuning";
 
 const riverStone = { color: "river", form: "oval" };
+
 const fast = journeyTraits(
   { focus: 0, impact: 0, lift: 6, power: 40, stone: 10 },
   riverStone
 );
+
 const bouncy = journeyTraits(
   { focus: 3, impact: 3, lift: 8, power: 6, stone: 4 },
   riverStone
 );
+
 const flat = { aim: 0, speed: 14, tilt: 20 };
 const full = { aim: 0, speed: 16, tilt: 20 };
 
@@ -97,12 +100,14 @@ const play = (flight: Flight, lead: number | null, throws = 400) => {
   ) {
     land(flight, lead === null ? null : contact - lead);
   }
+
   return flight;
 };
 
 const steadyHands = (seed: number, spread: number, throws: number) => {
   const flight = launch(createRiver(seed), full);
   const random = randomFrom(seed);
+
   for (
     let contact = nextContact(flight), n = 0;
     contact !== null && n < throws;
@@ -113,8 +118,10 @@ const steadyHands = (seed: number, spread: number, throws: number) => {
       spread *
         Math.sqrt(-2 * Math.log(1 - random())) *
         Math.cos(2 * Math.PI * random());
+
     land(flight, lead > 0 ? contact - lead : null);
   }
+
   return flight;
 };
 
@@ -128,6 +135,7 @@ const streakAfter = (lead: number | null) => {
   flight.streak = 10;
   land(flight, lead === null ? null : contact - lead);
   assert.equal(flight.pending, null);
+
   return flight.streak;
 };
 
@@ -138,6 +146,7 @@ const paceAfter = (streak: number) => {
   flight.streak = streak;
   land(flight, contact - 0.01);
   const hop = flight.hops.at(-1);
+
   return Math.hypot(hop?.velocity.x ?? 0, hop?.velocity.z ?? 0);
 };
 
@@ -150,14 +159,18 @@ const totalOf = (values: number[]) =>
 const strike = (seed: number, lead: number | null) => {
   const flight = launch(createRiver(seed), flat);
   const contact = nextContact(flight);
+
   if (flight.pending === null || contact === null) {
     return null;
   }
+
   land(flight, lead === null ? null : contact - lead);
+
   const speed = Math.hypot(
     flight.hops[1]?.velocity.x ?? 0,
     flight.hops[1]?.velocity.z ?? 0
   );
+
   return { grade: flight.splashes.at(-1)?.grade, speed };
 };
 
@@ -168,17 +181,21 @@ const perfectAt = (focus: number) =>
 const distanceWith = (speed: number, keep: number) => {
   const traits = traitsOf({ ...flatTuning, keep, speed });
   let total = 0;
+
   for (let seed = 1; seed <= 20; seed += 1) {
     total += play(launch(createRiver(seed), flat, traits), null).distance;
   }
+
   return total;
 };
 
 const averageDistance = (entry: Tuning, jitter: number) => {
   const traits = traitsOf(entry);
   let total = 0;
+
   for (let seed = 1; seed <= 8; seed += 1) {
     const flight = launch(createRiver(seed), flat, traits);
+
     for (
       let contact = nextContact(flight), n = 1;
       contact !== null && n <= 250;
@@ -187,21 +204,25 @@ const averageDistance = (entry: Tuning, jitter: number) => {
       const wobble = jitter * Math.sin(seed * 12.9898 + n * 78.233);
       land(flight, contact - (0.03 + wobble));
     }
+
     total += farthest(flight);
   }
+
   return total / 8;
 };
 
 const repeat = (entry: Tuning, key: Axis, by: 1 | -1, times: number) => {
   let next: Tuning | null = entry;
+
   for (let i = 0; i < times && next !== null; i += 1) {
     next = tune(next, key, by);
   }
+
   return next;
 };
 
 describe("flight", () => {
-  test("the same river, throw and taps always play out the same way", () => {
+  it("the same river, throw and taps always play out the same way", () => {
     const river = createRiver(7);
     assert.deepEqual(
       play(launch(river, flat), 0.03),
@@ -209,7 +230,7 @@ describe("flight", () => {
     );
   });
 
-  test("tapping right before each touch goes much farther than not tapping", () => {
+  it("tapping right before each touch goes much farther than not tapping", () => {
     const river = createRiver(11);
     const idle = play(launch(river, flat), null);
     const timed = play(launch(river, flat), 0.03);
@@ -217,7 +238,7 @@ describe("flight", () => {
     assert.ok(timed.bestCombo > 5);
   });
 
-  test("tapping too early counts as early and breaks the combo", () => {
+  it("tapping too early counts as early and breaks the combo", () => {
     const flight = launch(createRiver(3), flat);
     const contact = nextContact(flight);
     assert.ok(contact !== null);
@@ -226,12 +247,14 @@ describe("flight", () => {
     assert.equal(flight.combo, 0);
   });
 
-  test("missing a bounce keeps the combo while a good tap still adds to it", () => {
+  it("missing a bounce keeps the combo while a good tap still adds to it", () => {
     let checked = 0;
+
     for (let seed = 1; seed <= 60; seed += 1) {
       for (const lead of [null, 0.5, 0.01]) {
         const flight = launch(createRiver(seed), flat);
         const contact = nextContact(flight);
+
         if (flight.pending !== null && contact !== null) {
           flight.combo = 4;
           land(flight, lead === null ? null : contact - lead);
@@ -242,10 +265,11 @@ describe("flight", () => {
         }
       }
     }
+
     assert.ok(checked > 0);
   });
 
-  test("a tap just after a touch is late for it, not early for the next", () => {
+  it("a tap just after a touch is late for it, not early for the next", () => {
     const flight = launch(createRiver(3), flat);
     const landedAt = nextContact(flight);
     assert.ok(landedAt !== null);
@@ -258,20 +282,24 @@ describe("flight", () => {
     assert.equal(isLate(flight, landedAt, next - 0.01), false);
   });
 
-  test("every focus step widens the tap window", () => {
+  it("every focus step widens the tap window", () => {
     assert.ok(perfectAt(0) >= 0.09);
+
     for (let focus = -LIMIT + 1; focus <= LIMIT; focus += 1) {
       assert.ok(perfectAt(focus) > perfectAt(focus - 1));
     }
   });
 
-  test("a tap before a duck or rock is graded like a touch, and bends the bounce", () => {
+  it("a tap before a duck or rock is graded like a touch, and bends the bounce", () => {
     let struck = 0;
+
     for (let seed = 1; seed <= 200; seed += 1) {
       const perfect = strike(seed, 0.01);
+
       if (perfect === null) {
         continue;
       }
+
       struck += 1;
       const early = strike(seed, 0.5);
       const idle = strike(seed, null);
@@ -280,15 +308,18 @@ describe("flight", () => {
       assert.equal(idle?.grade, "miss");
       assert.ok(perfect.speed > (early?.speed ?? Number.POSITIVE_INFINITY));
     }
+
     assert.ok(struck > 0);
   });
 
-  test("a well-timed run keeps getting faster and hopping higher with no ceiling", () => {
+  it("a well-timed run keeps getting faster and hopping higher with no ceiling", () => {
     let pastOldCap = false;
     let highest = 0;
     let longest = 0;
+
     for (let seed = 1; seed <= 30; seed += 1) {
       const flight = play(launch(createRiver(seed), flat), 0.03);
+
       for (const hop of flight.hops) {
         const speed = Math.hypot(hop.velocity.x, hop.velocity.z);
         pastOldCap ||= speed > flight.top * 1.6;
@@ -296,62 +327,76 @@ describe("flight", () => {
         longest = Math.max(longest, hop.end - hop.start);
       }
     }
+
     assert.ok(pastOldCap);
     assert.ok(highest > 15);
     assert.ok(longest > 1.5);
   });
 
-  test("a skim on the water stays low at any speed", () => {
+  it("a skim on the water stays low at any speed", () => {
     let checked = 0;
+
     for (let seed = 1; seed <= 30; seed += 1) {
       const flight = play(launch(createRiver(seed), flat, fast), 0.03);
+
       for (const splash of flight.splashes) {
         const hop = flight.hops.find((h) => h.start === splash.time);
+
         if (splash.grade !== null && splash.event === null && hop) {
           assert.ok(hop.velocity.y <= 4.5 * 1.11);
           checked += 1;
         }
       }
     }
+
     assert.ok(checked > 100);
   });
 
-  test("hitting something kicks the stone up harder the faster it was going", () => {
+  it("hitting something kicks the stone up harder the faster it was going", () => {
     let kicked = 0;
+
     for (let seed = 1; seed <= 60; seed += 1) {
       const flight = play(launch(createRiver(seed), flat, fast), 0.03);
+
       for (const bump of flight.bumps) {
         const before = flight.hops.find((h) => h.end === bump.time);
         const after = flight.hops.find((h) => h.start === bump.time);
+
         if (!isBounce(bump.kind) || !before || !after) {
           continue;
         }
+
         const speed = Math.hypot(before.velocity.x, before.velocity.z);
         assert.ok(
           after.velocity.y >=
             2.5 * Math.max(1, Math.sqrt(speed / flight.top)) - 1e-9
         );
+
         if (speed > 1.5 * flight.top) {
           kicked += 1;
         }
       }
     }
+
     assert.ok(kicked > 0);
   });
 
-  test("bounces and perfect taps cannot run the speed past twice the top surge", () => {
+  it("bounces and perfect taps cannot run the speed past twice the top surge", () => {
     let fastest = 0;
+
     for (let seed = 1; seed <= 12; seed += 1) {
       const flight = play(launch(createRiver(seed), flat, bouncy), 0.03, 80);
+
       for (const hop of flight.hops) {
         fastest = Math.max(fastest, Math.hypot(hop.velocity.x, hop.velocity.z));
       }
     }
+
     assert.ok(fastest > 1000);
     assert.ok(fastest < (surges.at(-1)?.ceiling ?? 0) * 2);
   });
 
-  test("a bounce does not count as a skip", () => {
+  it("a bounce does not count as a skip", () => {
     for (let seed = 1; seed <= 60; seed += 1) {
       const flight = play(launch(createRiver(seed), flat), 0.03);
       const bounces = flight.bumps.filter((bump) => isBounce(bump.kind)).length;
@@ -362,7 +407,7 @@ describe("flight", () => {
     }
   });
 
-  test("a steep throw sinks sooner than a flat one", () => {
+  it("a steep throw sinks sooner than a flat one", () => {
     const river = createRiver(5);
     assert.ok(
       play(launch(river, flat), null).skips >
@@ -370,39 +415,48 @@ describe("flight", () => {
     );
   });
 
-  test("a limp throw sinks without skipping", () => {
+  it("a limp throw sinks without skipping", () => {
     const flight = play(launch(createRiver(3), { ...flat, speed: 2 }), null);
     assert.equal(flight.ending, "plop");
     assert.equal(flight.skips, 0);
   });
 
-  test("ducks and rocks launch the stone instead of stopping it", () => {
+  it("ducks and rocks launch the stone instead of stopping it", () => {
     let bumped = 0;
+
     for (let seed = 1; seed <= 60; seed += 1) {
       const flight = play(launch(createRiver(seed), flat), 0.03);
+
       for (const bump of flight.bumps) {
         if (bump.kind === "duck" || bump.kind === "rock") {
           bumped += 1;
+
           const after = flight.hops.find(
             (hop) => hop.start === bump.time && hop.end > hop.start
           );
+
           assert.ok(after);
           assert.ok(after.velocity.y > 3);
         }
       }
+
       assert.ok(flight.ending === "sink" || flight.ending === "leaf");
     }
+
     assert.ok(bumped > 0);
   });
 
-  test("dragonflies push the stone faster in mid-air without touching the water", () => {
+  it("dragonflies push the stone faster in mid-air without touching the water", () => {
     let caught = 0;
+
     for (let seed = 1; seed <= 120; seed += 1) {
       const flight = play(launch(createRiver(seed), flat), 0.03);
+
       for (const bump of flight.bumps) {
         if (bump.kind !== "dragonfly" || bump.prop === null) {
           continue;
         }
+
         caught += 1;
         assert.ok(bump.at.y > 0);
         assert.ok(Math.abs(bump.at.y - bump.prop.y) < 0.3);
@@ -410,39 +464,47 @@ describe("flight", () => {
         const after = flight.hops.find((hop) => hop.start === bump.time);
         assert.ok(before && after);
         const speedBefore = Math.hypot(before.velocity.x, before.velocity.z);
+
         if (speedBefore < flight.top) {
           assert.ok(
             Math.hypot(after.velocity.x, after.velocity.z) > speedBefore
           );
         }
+
         const splash = flight.splashes.find(
           (s) => s.event === "dragonfly" && s.time === bump.time
         );
+
         assert.equal(splash?.y, bump.prop.y);
         assert.notEqual(splash?.grade ?? null, null);
       }
     }
+
     assert.ok(caught > 0);
   });
 
-  test("dragonflies fly low and high, and bouncy stones often catch high ones", () => {
+  it("dragonflies fly low and high, and bouncy stones often catch high ones", () => {
     const heights = propsIn(createRiver(4), 0, 3000)
       .filter((prop) => prop.kind === "dragonfly")
       .map((prop) => prop.y);
+
     assert.ok(heights.some((y) => y < 0.5));
     assert.ok(heights.some((y) => y >= 0.7));
     let caught = 0;
+
     for (let seed = 1; seed <= 300; seed += 1) {
       const flight = play(launch(createRiver(seed), flat, bouncy), 0.03, 40);
       caught += flight.bumps.filter(
         (bump) => bump.kind === "dragonfly" && (bump.prop?.y ?? 0) >= 0.7
       ).length;
     }
+
     assert.ok(caught >= 40);
   });
 
-  test("a throw aimed at the bank bounces off it and stays in the river", () => {
+  it("a throw aimed at the bank bounces off it and stays in the river", () => {
     const river = createRiver(19);
+
     const flight = play(
       launch(
         river,
@@ -457,21 +519,25 @@ describe("flight", () => {
       0.03,
       60
     );
+
     assert.ok(flight.bumps.some((bump) => bump.kind === "wall"));
+
     for (const hop of flight.hops) {
       for (let k = 0; k < 10; k += 1) {
         const at = stoneAt(
           flight,
           hop.start + ((hop.end - hop.start) * k) / 10
         );
+
         assert.ok(at);
         assert.ok(Math.abs(at.x) <= shoreAt(river, at.z));
       }
     }
   });
 
-  test("the stone touches the water at every skip and never jumps", () => {
+  it("the stone touches the water at every skip and never jumps", () => {
     const flight = play(launch(createRiver(13), flat), 0.03);
+
     for (const splash of flight.splashes.filter(
       (s) => s.grade !== null && !isBounce(s.event)
     )) {
@@ -482,35 +548,37 @@ describe("flight", () => {
     }
   });
 
-  test("a faster, grittier tuning goes farther than a slower, looser one", () => {
+  it("a faster, grittier tuning goes farther than a slower, looser one", () => {
     assert.ok(distanceWith(LIMIT, LIMIT) > distanceWith(0, 0));
     assert.ok(distanceWith(0, 0) > distanceWith(-LIMIT, -LIMIT));
   });
 
-  test("the river keeps generating things to hit far downstream", () => {
+  it("the river keeps generating things to hit far downstream", () => {
     const river = createRiver(21);
     assert.ok(propsIn(river, 50_000, 50_300).length > 0);
     assert.deepEqual(propsIn(river, 900, 960), propsIn(river, 900, 960));
   });
 
-  test("the tap window stops narrowing so a long run stays playable", () => {
+  it("the tap window stops narrowing so a long run stays playable", () => {
     const flight = steadyHands(5, 0.005, 150);
     assert.ok(flight.skips > 60);
     assert.ok(Math.abs(windowFor(flight).perfect - 0.09 / 3.6) < 1e-9);
     assert.ok(Math.abs(windowFor(flight).good - 0.22 / 3.6) < 1e-9);
   });
 
-  test("a perfect tap adds to the streak, a good one halves it and anything else ends it", () => {
+  it("a perfect tap adds to the streak, a good one halves it and anything else ends it", () => {
     assert.equal(streakAfter(0.01), 11);
     assert.equal(streakAfter(0.15), 5);
     assert.equal(streakAfter(0.5), 0);
     assert.equal(streakAfter(null), 0);
   });
 
-  test("missing a duck or rock keeps the streak", () => {
+  it("missing a duck or rock keeps the streak", () => {
     let checked = 0;
+
     for (let seed = 1; seed <= 60; seed += 1) {
       const flight = launch(createRiver(seed), full);
+
       if (flight.pending !== null) {
         flight.streak = 7;
         land(flight, null);
@@ -518,17 +586,18 @@ describe("flight", () => {
         checked += 1;
       }
     }
+
     assert.ok(checked > 0);
   });
 
-  test("a streak makes each perfect tap speed the stone up more", () => {
+  it("a streak makes each perfect tap speed the stone up more", () => {
     assert.ok(surgeTier(4) === 0 && surgeTier(5) === 1);
     assert.ok(paceAfter(4) > paceAfter(0) * 1.04);
     assert.ok(paceAfter(11) > paceAfter(4) * 1.03);
     assert.ok(paceAfter(23) > paceAfter(11) * 1.03);
   });
 
-  test("steadier hands go farther, and only the steadiest reach the Milky Way", () => {
+  it("steadier hands go farther, and only the steadiest reach the Milky Way", () => {
     const milky = zones.find((zone) => zone.coast === "stars")?.from ?? 0;
     const steady = reachOf(0.005);
     const middling = reachOf(0.012);
@@ -541,7 +610,7 @@ describe("flight", () => {
 });
 
 describe("throw quality", () => {
-  test("a flat full-power throw is a 神投げ and flies far", () => {
+  it("a flat full-power throw is a 神投げ and flies far", () => {
     const river = createRiver(23);
     const divine = launch(river, { aim: 0, speed: 16, tilt: 20 });
     const sloppy = launch(river, { aim: 0, speed: 16, tilt: 26 });
@@ -550,7 +619,7 @@ describe("throw quality", () => {
     assert.ok(play(divine, null).distance > play(sloppy, null).distance * 3);
   });
 
-  test("quality rises smoothly toward the sweet spot", () => {
+  it("quality rises smoothly toward the sweet spot", () => {
     assert.ok(
       qualityAt(20) > qualityAt(22) &&
         qualityAt(22) > qualityAt(25) &&
@@ -560,13 +629,13 @@ describe("throw quality", () => {
 });
 
 describe("areas", () => {
-  test("open water areas widen the river and banks return between them", () => {
+  it("open water areas widen the river and banks return between them", () => {
     const river = createRiver(4);
     assert.equal(shoreAt(river, zones[areaOf("cloud")]?.from ?? 0), 40);
     assert.equal(shoreAt(river, zones[areaOf("snow")]?.from ?? 0), river.shore);
   });
 
-  test("the camera stays on the stone however far it is to the side", () => {
+  it("the camera stays on the stone however far it is to the side", () => {
     const flight = launch(createRiver(1), full);
     flight.bumps = [];
     flight.hops = [
@@ -580,8 +649,9 @@ describe("areas", () => {
     assert.ok(Math.abs(cameraFor(flight, 5, 0).x - 30) < 1e-9);
   });
 
-  test("the timing ring holds still on screen while a fast stone falls into it", () => {
+  it("the timing ring holds still on screen while a fast stone falls into it", () => {
     const flight = launch(createRiver(1), full, fast);
+
     for (
       let contact = nextContact(flight), n = 0;
       contact !== null && n < 3000 && speedAt(flight, contact) < 3000;
@@ -589,6 +659,7 @@ describe("areas", () => {
     ) {
       land(flight, contact - 0.01);
     }
+
     const contact = nextContact(flight);
     assert.ok(contact !== null);
     const landing = contact - 1e-4;
@@ -596,6 +667,7 @@ describe("areas", () => {
     let rig = cameraFor(flight, time, time);
     const start = rig;
     const first = cameraAt(flight, rig, time, landing, time);
+
     for (; time < contact - 0.05;) {
       time += 1 / 60;
       rig = follow(rig, cameraFor(flight, time, time), 1 / 60);
@@ -604,12 +676,14 @@ describe("areas", () => {
       assert.ok(Math.abs(now.y - first.y) < 1e-6);
       assert.ok(Math.abs(now.pitch - first.pitch) < 1e-6);
     }
+
     assert.ok(start.y - first.y > 1);
   });
 
-  test("out on open water the stone runs straight instead of hitting an unseen wall", () => {
+  it("out on open water the stone runs straight instead of hitting an unseen wall", () => {
     const river = createRiver(1);
     const flight = launch(river, { ...full, aim: 0.03 }, fast);
+
     for (
       let contact = nextContact(flight), n = 0;
       contact !== null &&
@@ -619,6 +693,7 @@ describe("areas", () => {
     ) {
       land(flight, contact - 0.01);
     }
+
     const sea = zones[areaOf("sea")]?.from ?? 0;
     const offshore = flight.splashes.filter((splash) => splash.z >= sea);
     assert.ok(offshore.length > 10);
@@ -626,7 +701,7 @@ describe("areas", () => {
     assert.ok(offshore.every((splash) => Math.abs(splash.x) < river.shore));
   });
 
-  test("a hop leaving the river for the sea does not hit the river's wall out at sea", () => {
+  it("a hop leaving the river for the sea does not hit the river's wall out at sea", () => {
     const river = createRiver(1);
     const sea = zones[areaOf("sea")]?.from ?? 0;
     const flight = launch(river, full, fast);
@@ -650,12 +725,12 @@ describe("areas", () => {
 });
 
 describe("tuning", () => {
-  test("a flat tuning is the plain stone", () => {
+  it("a flat tuning is the plain stone", () => {
     assert.deepEqual(traitsOf(flatTuning), plain);
     assert.equal(pointsLeft(flatTuning), 0);
   });
 
-  test("lowering one stat frees a point for another, within the limits", () => {
+  it("lowering one stat frees a point for another, within the limits", () => {
     assert.equal(tune(flatTuning, "speed", 1), null);
     const lowered = tune(flatTuning, "focus", -1);
     assert.ok(lowered);
@@ -672,8 +747,9 @@ describe("tuning", () => {
     assert.equal(repeat(spare, "speed", 1, LIMIT + 1), null);
   });
 
-  test("raising a stat helps, and lowering it hurts, on every axis", () => {
+  it("raising a stat helps, and lowering it hurts, on every axis", () => {
     const base = traitsOf(flatTuning);
+
     for (const { key } of axes) {
       assert.ok(
         traitsOf({ ...flatTuning, [key]: 1 })[key] > base[key],
@@ -686,15 +762,17 @@ describe("tuning", () => {
     }
   });
 
-  test("no tuning wins for every player and the plain stone is never more than two areas behind", () => {
+  it("no tuning wins for every player and the plain stone is never more than two areas behind", () => {
     const steps = [-LIMIT, -1, 0, 1, LIMIT];
     const pool: Tuning[] = [];
+
     for (const speed of steps) {
       for (const keep of steps) {
         for (const lift of steps) {
           for (const focus of steps) {
             for (const impact of steps) {
               const entry = { focus, impact, keep, lift, speed };
+
               if (pointsLeft(entry) === 0) {
                 pool.push(entry);
               }
@@ -703,26 +781,31 @@ describe("tuning", () => {
         }
       }
     }
+
     const bestFor = (jitter: number) => {
       const base = averageDistance(flatTuning, jitter);
       let best = flatTuning;
       let top = base;
+
       for (const entry of pool) {
         const reached = averageDistance(entry, jitter);
+
         if (reached > top) {
           best = entry;
           top = reached;
         }
       }
+
       return { best, gain: zoneIndex(top) - zoneIndex(base) };
     };
+
     const steady = bestFor(0);
     const loose = bestFor(0.15);
     assert.ok(steady.gain <= 2 && loose.gain <= 2);
     assert.notEqual(tuningCode(steady.best), tuningCode(loose.best));
   }, 120_000);
 
-  test("a tuning keeps its words and survives the link round trip", () => {
+  it("a tuning keeps its words and survives the link round trip", () => {
     const entry = { ...flatTuning, focus: -2, speed: 3, keep: -1 };
     assert.equal(tuningCode(entry), "3.-1.0.-2.0");
     assert.deepEqual(tuningFrom("3.-1.0.-2.0"), entry);
@@ -746,6 +829,7 @@ const withStorage = <T>(items: Record<string, string>, run: () => T): T => {
   vi.stubGlobal("localStorage", {
     getItem: (key: string) => items[key] ?? null,
   });
+
   try {
     return run();
   } finally {
@@ -804,37 +888,42 @@ const load = (tuning: Tuning) =>
   );
 
 describe("journey", () => {
-  test("a fresh stone with no points is the plain stone", () => {
+  it("a fresh stone with no points is the plain stone", () => {
     assert.deepEqual(journeyTraits(noGear, riverStone), plain);
   });
 
-  test("training lift and impact raises those stats", () => {
+  it("training lift and impact raises those stats", () => {
     const base = statsOf(journeyTraits(noGear, riverStone));
+
     const trained = statsOf(
       journeyTraits({ ...noGear, impact: 6, lift: 6 }, riverStone)
     );
+
     assert.ok(trained.lift > base.lift && trained.impact > base.impact);
     assert.equal(trained.speed, base.speed);
   });
 
-  test("every extra point keeps raising the stats instead of topping out", () => {
+  it("every extra point keeps raising the stats instead of topping out", () => {
     for (const key of ["focus", "impact", "keep", "lift", "speed"] as const) {
       assert.ok(statsAt(100)[key] > statsAt(50)[key], key);
       assert.ok(statsAt(400)[key] > statsAt(200)[key], key);
     }
+
     assert.ok(statsAt(40).speed > 1);
   });
 
-  test("every focus point and focus perk widens the tap window", () => {
+  it("every focus point and focus perk widens the tap window", () => {
     assert.ok(trainedPerfectAt(1) >= trainedPerfectAt(0) * 1.1);
     assert.ok(trainedPerfectAt(0) >= 0.09);
+
     for (let points = 1; points <= 10; points += 1) {
       assert.ok(trainedPerfectAt(points) > trainedPerfectAt(points - 1));
     }
+
     assert.ok(trainedPerfectAt(0, 1.09) >= trainedPerfectAt(0) * 1.09);
   });
 
-  test("upgrades make the same throw go farther", () => {
+  it("upgrades make the same throw go farther", () => {
     const river = createRiver(17);
     const strong = { focus: 5, impact: 5, lift: 5, power: 5, stone: 5 };
     assert.ok(
@@ -843,7 +932,7 @@ describe("journey", () => {
     );
   });
 
-  test("each form trades strengths in its stats", () => {
+  it("each form trades strengths in its stats", () => {
     const oval = statsFor("river", "oval");
     const flatForm = statsFor("river", "flat");
     const heart = statsFor("river", "heart");
@@ -851,17 +940,19 @@ describe("journey", () => {
     assert.ok(heart.impact > oval.impact && heart.speed < oval.speed);
   });
 
-  test("a flat stone keeps going longer without taps than a round one", () => {
+  it("a flat stone keeps going longer without taps than a round one", () => {
     const river = createRiver(29);
+
     const skipsOf = (form: string) =>
       play(
         launch(river, flat, journeyTraits(noGear, { color: "river", form })),
         null
       ).skips;
+
     assert.ok(skipsOf("flat") > skipsOf("round"));
   });
 
-  test("a matching pair makes each point in its stat count for more", () => {
+  it("a matching pair makes each point in its stat count for more", () => {
     assert.equal(comboOf({ color: "slate", form: "flat" })?.name.ja, "碁石");
     assert.ok(
       keepGain({ color: "slate", form: "flat" }) > keepGain(riverStone)
@@ -876,7 +967,7 @@ describe("journey", () => {
     );
   });
 
-  test("perk notes read in both languages", () => {
+  it("perk notes read in both languages", () => {
     assert.equal(perksNote({ keep: 2, lift: -1 }, "ja"), "粘り↑↑ 跳ね↓");
     assert.equal(perksNote({ keep: 2, lift: -1 }, "en"), "Grit↑↑ Bounce↓");
     assert.equal(perksNote({}, "ja"), "クセなし");
@@ -887,7 +978,7 @@ describe("journey", () => {
     });
   });
 
-  test("skill points come from levels and can be moved freely", () => {
+  it("skill points come from levels and can be moved freely", () => {
     assert.equal(spend(journey, "power", 1), null);
     const climbed = { ...journey, xp: 10_000 };
     const points = progressOf(climbed.xp).level;
@@ -900,7 +991,7 @@ describe("journey", () => {
     assert.equal(spend(climbed, "power", -1), null);
   });
 
-  test("a run earns experience", () => {
+  it("a run earns experience", () => {
     const flight = play(launch(createRiver(9), flat), 0.03);
     const settled = settle(journey, flight);
     const earned = earn(journey, settled.save, flight);
@@ -909,7 +1000,7 @@ describe("journey", () => {
     assert.equal(earned.save.best, flight.distance);
   });
 
-  test("a combo is found once both of its parts are unlocked", () => {
+  it("a combo is found once both of its parts are unlocked", () => {
     const maxed = { ...journey, best: 1e6, combo: 99, divine: true, xp: 1e9 };
     assert.deepEqual(
       foundOf(maxed).map(({ id }) => id),
@@ -919,7 +1010,7 @@ describe("journey", () => {
     assert.ok(!foundOf(journey).some(({ id }) => id === "go"));
   });
 
-  test("a found combo is worn in one step, and a locked one is not", () => {
+  it("a found combo is worn in one step, and a locked one is not", () => {
     const maxed = { ...journey, best: 1e6, combo: 99, divine: true, xp: 1e9 };
     const worn = wearCombo(maxed, "go");
     assert.equal(worn?.look.color, "slate");
@@ -929,17 +1020,18 @@ describe("journey", () => {
     assert.equal(wearCombo(journey, "go"), null);
   });
 
-  test("a look can only be worn once it is unlocked", () => {
+  it("a look can only be worn once it is unlocked", () => {
     assert.equal(wear(journey, "color", "gold"), null);
     const divine = { ...journey, divine: true };
     assert.equal(wear(divine, "color", "gold")?.look.color, "gold");
   });
 
-  test("finishing a 神投げ unlocks the gold stone", () => {
+  it("finishing a 神投げ unlocks the gold stone", () => {
     const flight = play(
       launch(createRiver(23), { aim: 0, speed: 16, tilt: 20 }),
       null
     );
+
     const earned = earn(journey, settle(journey, flight).save, flight);
     assert.ok(
       earned.unlocked.some(
@@ -951,7 +1043,7 @@ describe("journey", () => {
     assert.equal(seen({ ...earned.save, unseen: [] }), null);
   });
 
-  test("a trail unlocks even when a color shares its id", () => {
+  it("a trail unlocks even when a color shares its id", () => {
     const flight = play(launch(createRiver(23), flat), null);
     const before = { ...journey, divine: true };
     const settled = settle(before, { ...flight, bestCombo: 15 });
@@ -962,14 +1054,16 @@ describe("journey", () => {
 });
 
 describe("results", () => {
-  test("a posted run carries its stone and tuning into the shared link", () => {
+  it("a posted run carries its stone and tuning into the shared link", () => {
     const flight = play(launch(createRiver(5), flat), null);
     const entry = { ...flatTuning, focus: -2, speed: 2 };
+
     const result = resultOf(flight, {
       ...duel,
       look: { ...duel.look, color: "jade", form: "bean" },
       tuning: entry,
     });
+
     const posted = new URL(postUrl(shareOf(result, "https://x.y", "ja")));
     assert.match(posted.searchParams.get("text") ?? "", /勾玉/u);
     assert.match(posted.searchParams.get("text") ?? "", /#天の川水切り/u);
@@ -1001,7 +1095,7 @@ describe("results", () => {
     assert.equal(readResult({ ...older, t: "9.9.9.9.9" })?.tuning, null);
   });
 
-  test("a journey run is shared as one, with its level, and is not a challenge", () => {
+  it("a journey run is shared as one, with its level, and is not a challenge", () => {
     const flight = play(launch(createRiver(5), flat), null);
     const climbed = { ...journey, xp: 9000 };
     const result = resultOf(flight, climbed);
@@ -1035,7 +1129,7 @@ describe("results", () => {
     assert.doesNotMatch(duelText.searchParams.get("text") ?? "", /Journey/u);
   });
 
-  test("a single skip reads as once in the sink and leaf lines", () => {
+  it("a single skip reads as once in the sink and leaf lines", () => {
     const base = {
       distance: 12,
       highlight: null,
@@ -1048,6 +1142,7 @@ describe("results", () => {
       times: 0,
       tuning: null,
     } as const;
+
     assert.match(
       storyOf({ ...base, ending: "sink" }, "en").line,
       /Skipped a stone once/u
@@ -1062,7 +1157,7 @@ describe("results", () => {
     );
   });
 
-  test("a shared stone survives the link round trip", () => {
+  it("a shared stone survives the link round trip", () => {
     assert.deepEqual(stoneFrom("jade.bean"), { color: "jade", form: "bean" });
     assert.equal(stoneFrom("jade.nope"), null);
     assert.equal(stoneFrom("nope"), null);
@@ -1070,7 +1165,7 @@ describe("results", () => {
 });
 
 describe("save", () => {
-  test("a run records the best distance", () => {
+  it("a run records the best distance", () => {
     const flight = play(launch(createRiver(9), flat), 0.03);
     const settled = settle(duel, flight);
     assert.equal(settled.record, true);
@@ -1079,16 +1174,18 @@ describe("save", () => {
     assert.equal(settle(settled.save, flight).record, false);
   });
 
-  test("the top speed of a throw is its fastest hop", () => {
+  it("the top speed of a throw is its fastest hop", () => {
     const flight = play(launch(createRiver(9), flat), 0.03);
+
     const fastest = Math.max(
       ...flight.hops.map((hop) => Math.hypot(hop.velocity.x, hop.velocity.z))
     );
+
     assert.equal(topSpeed(flight), fastest);
     assert.ok(topSpeed(flight) >= speedAt(flight, 0));
   });
 
-  test("every finished throw adds to the lifetime tally", () => {
+  it("every finished throw adds to the lifetime tally", () => {
     const flight = play(launch(createRiver(9), flat), 0.03);
     const { tally } = settle(settle(duel, flight).save, flight).save;
     const graded = flight.splashes.filter(({ grade }) => grade !== null);
@@ -1108,14 +1205,14 @@ describe("save", () => {
     );
   });
 
-  test("a fresh player starts in a duel with nothing earned", () => {
+  it("a fresh player starts in a duel with nothing earned", () => {
     assert.equal(fresh.mode, "duel");
     assert.deepEqual(fresh.duel.tuning, flatTuning);
     assert.equal(fresh.journey.xp, 0);
     assert.equal(viewOf(fresh).mode, "duel");
   });
 
-  test("each mode keeps its own record and look", () => {
+  it("each mode keeps its own record and look", () => {
     const flight = play(launch(createRiver(9), flat), 0.03);
     const run = settle(duel, flight).save;
     const played = withView(fresh, run);
@@ -1132,7 +1229,7 @@ describe("save", () => {
     assert.equal(viewOf(kept).runs, 1);
   });
 
-  test("a player from before the modes carries their progress into the journey", () => {
+  it("a player from before the modes carries their progress into the journey", () => {
     const before = JSON.stringify({
       best: 42.5,
       combo: 7,
@@ -1143,6 +1240,7 @@ describe("save", () => {
       unseen: ["color:gold"],
       xp: 5000,
     });
+
     const loaded = withStorage({ "mizukiri.v3": before }, loadProfiles);
     assert.equal(loaded.mode, "journey");
     assert.equal(loaded.journey.best, 42.5);
@@ -1167,7 +1265,7 @@ describe("save", () => {
     assert.equal(viewOf(loaded).mode, "journey");
   });
 
-  test("an old save without gear points or a tally still carries over", () => {
+  it("an old save without gear points or a tally still carries over", () => {
     const sparse = JSON.stringify({
       best: 10,
       combo: 0,
@@ -1177,13 +1275,14 @@ describe("save", () => {
       runs: 1,
       xp: 3,
     });
+
     const loaded = withStorage({ "mizukiri.v3": sparse }, loadProfiles);
     assert.equal(loaded.journey.runs, 1);
     assert.equal(loaded.journey.gear.impact, 0);
     assert.equal(loaded.journey.tally.distance, 10);
   });
 
-  test("a new save wins over the old one", () => {
+  it("a new save wins over the old one", () => {
     const loaded = withStorage(
       {
         "mizukiri.v3": JSON.stringify({
@@ -1199,12 +1298,13 @@ describe("save", () => {
       },
       loadProfiles
     );
+
     assert.equal(loaded.mode, "duel");
     assert.equal(loaded.journey.xp, 0);
     assert.equal(loaded.journey.runs, 0);
   });
 
-  test("a broken save falls back to a fresh one", () => {
+  it("a broken save falls back to a fresh one", () => {
     assert.deepEqual(withStorage({ "mizukiri.v4": "{" }, loadProfiles), fresh);
     assert.deepEqual(
       withStorage({ "mizukiri.v4": "null" }, loadProfiles),
@@ -1212,7 +1312,7 @@ describe("save", () => {
     );
   });
 
-  test("a tuning is kept, and one over its budget falls back to flat", () => {
+  it("a tuning is kept, and one over its budget falls back to flat", () => {
     const entry = { ...flatTuning, focus: -3, lift: 2, speed: 1 };
     assert.deepEqual(load(entry).duel.tuning, entry);
     const over = load({ ...flatTuning, speed: 3 });
@@ -1224,14 +1324,14 @@ describe("save", () => {
     );
   });
 
-  test("every look can be worn in a duel, and only one that changes", () => {
+  it("every look can be worn in a duel, and only one that changes", () => {
     assert.equal(wear(duel, "color", "gold")?.look.color, "gold");
     assert.equal(wear(duel, "trail", "comet")?.look.trail, "comet");
     assert.equal(wear(duel, "color", "river"), null);
     assert.equal(wear(duel, "color", "nope"), null);
   });
 
-  test("a shared record survives the link round trip", () => {
+  it("a shared record survives the link round trip", () => {
     const career = {
       ...careerOf({
         ...journey,
@@ -1245,6 +1345,7 @@ describe("save", () => {
       speed: 18.5,
       total: 56_789,
     };
+
     assert.equal(career.level, 9);
     const english = careerShare(career, "https://x.y", "en");
     assert.match(
@@ -1299,7 +1400,7 @@ describe("save", () => {
     assert.equal(readResult(Object.fromEntries(url.searchParams)), null);
   });
 
-  test("a duel record has no level", () => {
+  it("a duel record has no level", () => {
     const career = careerOf({ ...duel, best: 1234.5, combo: 7, runs: 42 });
     assert.equal(career.level, null);
     const english = careerShare(career, "https://x.y", "en");
@@ -1312,7 +1413,7 @@ describe("save", () => {
     );
   });
 
-  test("the ring tip comes once, to a player on the distant ring who reached its speed", () => {
+  it("the ring tip comes once, to a player on the distant ring who reached its speed", () => {
     const quick = RING_FOLLOW_SPEED + 1;
     assert.equal(ringTipDue(true, false, quick), true);
     assert.equal(ringTipDue(true, false, RING_FOLLOW_SPEED), false);
@@ -1320,7 +1421,7 @@ describe("save", () => {
     assert.equal(ringTipDue(false, false, quick), false);
   });
 
-  test("a perfect throw is remembered", () => {
+  it("a perfect throw is remembered", () => {
     const flight = launch(createRiver(23), { aim: 0, speed: 16, tilt: 20 });
     assert.equal(settle(duel, play(flight, null)).save.divine, true);
     assert.equal(

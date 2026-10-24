@@ -36,7 +36,9 @@ export const titleOf = (result: Reach, lang: Lang) => {
   if (result.galaxies > 0) {
     return lang === "en" ? "Made the Milky Way" : "天の川をつくった";
   }
+
   const { name } = kindOf(result.top);
+
   return lang === "en" ? `Up to ${name.en}` : `${name.ja}まで`;
 };
 
@@ -60,10 +62,13 @@ export const readResult = (
   params: Record<string, string | string[] | undefined>
 ): Result | null => {
   const parsed = shared.safeParse(params);
+
   if (!parsed.success) {
     return null;
   }
+
   const { c, g, m, p, t } = parsed.data;
+
   return { chain: c, galaxies: g, merges: m, score: p, top: t };
 };
 
@@ -78,23 +83,28 @@ export const queryOf = (result: Result) =>
 
 const lineOf = (result: Result, lang: Lang) => {
   const score = scoreText(result.score, lang);
+
   if (lang === "en") {
     const reached =
       result.galaxies > 0
         ? `made the ${GALAXY.en}`
         : `merged up to ${kindOf(result.top).name.en}`;
+
     return `I ${reached} in Hoshiai: ${score}`;
   }
+
   const reached =
     result.galaxies > 0
       ? `${GALAXY.ja}をつくった`
       : `${kindOf(result.top).name.ja}までつくった`;
+
   return `星合で${reached}！ ${score}`;
 };
 
 export const shareOf = (result: Result, origin: string, lang: Lang): Share => {
   const query = new URLSearchParams(queryOf(result));
   query.set("l", lang);
+
   return {
     image: `${origin}/games/hoshiai/og?${query.toString()}`,
     text: [lineOf(result, lang), trailOf(result), hashtags(lang)].join("\n"),

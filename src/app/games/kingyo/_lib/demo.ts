@@ -10,6 +10,7 @@ export type Move =
 
 const aheadOf = (tank: Tank): Point | null => {
   const centre = { x: 500, y: 500 };
+
   const ahead = tank.fish
     .filter((fish) => fish.fright === 0)
     .map((fish) => ({
@@ -29,6 +30,7 @@ const aheadOf = (tank: Tank): Point | null => {
         Math.hypot(a.fish.x - centre.x, a.fish.y - centre.y) -
         Math.hypot(b.fish.x - centre.x, b.fish.y - centre.y)
     );
+
   return ahead.length > 0 ? { x: ahead[0].x, y: ahead[0].y } : null;
 };
 
@@ -41,27 +43,36 @@ export const createDemo = () => {
     if (tank.poi.torn) {
       return null;
     }
+
     if (!tank.poi.down) {
       wait -= dt;
       const at = wait <= 0 ? aheadOf(tank) : null;
+
       if (at === null) {
         return null;
       }
+
       dip(tank, at);
       held = 0;
       seen = -1;
+
       return { at: { x: tank.poi.x, y: tank.poi.y }, type: "dip" };
     }
+
     held += dt;
+
     if (seen < 0 && catchable(tank).length > 0) {
       seen = held;
     }
+
     if ((seen >= 0 && held - seen >= PACE.settle) || held >= PACE.patience) {
       wait = PACE.rest;
       const outcomes = lift(tank);
       freshen(tank);
+
       return { outcomes, type: "lift" };
     }
+
     return null;
   };
 

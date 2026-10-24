@@ -4,6 +4,7 @@ const PENTATONIC = [0, 2, 4, 7, 9, 12, 14, 16];
 
 export const createSound = () => {
   let scrape: GainNode | null = null;
+
   const { close, mute, spray, tone, unlock } = createAudio(
     (audio, out, noise) => {
       const source = audio.createBufferSource();

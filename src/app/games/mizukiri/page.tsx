@@ -21,6 +21,7 @@ export const generateMetadata = async ({
   const career = shared === null ? readCareer(params) : null;
   let title = copy[lang].name;
   let query = new URLSearchParams();
+
   if (shared) {
     title = `${formatDistance(shared.distance)} · ${describe(shared, lang).title} | ${copy[lang].name}`;
     query = new URLSearchParams(queryOf(shared));
@@ -28,13 +29,16 @@ export const generateMetadata = async ({
     title = `${describeCareer(career, lang).title} · ${formatDistance(career.best)} | ${copy[lang].name}`;
     query = new URLSearchParams(careerQuery(career));
   }
+
   query.set("l", lang);
+
   const image = {
     alt: title,
     height: 630,
     url: `/games/mizukiri/og?${query.toString()}`,
     width: 1200,
   };
+
   return {
     description: DESCRIPTION[lang],
     openGraph: {
@@ -55,6 +59,7 @@ export const generateMetadata = async ({
 
 const Page = async ({ searchParams }: PageProps<"/games/mizukiri">) => {
   const params = await searchParams;
+
   return (
     <Game
       challenge={readResult(params)}
