@@ -196,8 +196,8 @@ export const Game = ({
         {ending === null ? (
           <div {...stylex.props(styles.dock)}>
             <div
-              aria-hidden={phase === "scooping"}
-              {...stylex.props(phase === "scooping" && styles.hidden)}
+              aria-hidden={phase !== "ready"}
+              {...stylex.props(phase !== "ready" && styles.hidden)}
             >
               <Prompt
                 best={save?.best ?? 0}
@@ -207,11 +207,11 @@ export const Game = ({
                 runs={save?.runs ?? 0}
               />
             </div>
-            {phase === "scooping" ? (
+            {phase === "ready" ? null : (
               <div {...stylex.props(styles.meter)}>
                 <Meter caught={caughtText} lang={lang} paper={paperBar} />
               </div>
-            ) : null}
+            )}
           </div>
         ) : null}
       </main>

@@ -31,6 +31,14 @@ interface Listeners {
 }
 
 const LIFT = 56;
+const AIM = { hold: 140, slop: 8 };
+const SETTLE = 800;
+
+interface Aim {
+  x: number;
+  y: number;
+  at: number;
+}
 
 const block = (event: Event) => {
   event.preventDefault();
@@ -45,6 +53,8 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   let phase: Phase = "ready";
   let tank: Tank = createTank(Math.random);
   let active: number | null = null;
+  let aim: Aim | null = null;
+  let ending: { at: number; value: Ending } | null = null;
   let offset = 0;
   let last = 0;
   let start = 0;
@@ -71,6 +81,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const finish = (now: number) => {
     active = null;
+    aim = null;
     const result = resultOf(tank.caught);
     const settled = settle(save, {
       at: Date.now(),
@@ -81,12 +92,15 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     });
     keep(settled.save);
     enter("done");
-    on.over({
-      biggest: tank.biggest,
-      firsts: settled.firsts,
-      record: settled.record,
-      result,
-    });
+    ending = {
+      at: now + SETTLE,
+      value: {
+        biggest: tank.biggest,
+        firsts: settled.firsts,
+        record: settled.record,
+        result,
+      },
+    };
   };
 
   const react = (events: readonly Outcome[], now: number) => {
@@ -98,6 +112,9 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
           sound.rare();
         }
         navigator.vibrate?.([14, 40, 14]);
+      } else if (event.type === "slip") {
+        render.slip(event.at, now);
+        sound.slip();
       } else {
         render.tear(event.at, now);
         sound.tear();
@@ -122,6 +139,20 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     };
   };
 
+  const plunge = (now: number) => {
+    aim = null;
+    if (phase === "ready") {
+      start = now;
+      enter("scooping");
+    }
+    const events = dip(tank, tank.poi);
+    last = now;
+    render.dip(tank.poi, now);
+    sound.dip();
+    navigator.vibrate?.(8);
+    react(events, now);
+  };
+
   const down = (event: PointerEvent) => {
     if (
       active !== null ||
@@ -135,16 +166,12 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     canvas.setPointerCapture(event.pointerId);
     active = event.pointerId;
     offset = event.pointerType === "touch" ? LIFT : 0;
-    if (phase === "ready") {
-      start = event.timeStamp;
-      enter("scooping");
+    hover(tank, pointOf(event));
+    if (event.pointerType === "touch") {
+      aim = { at: event.timeStamp, x: event.clientX, y: event.clientY };
+    } else {
+      plunge(event.timeStamp);
     }
-    const events = dip(tank, pointOf(event));
-    last = event.timeStamp;
-    render.dip(tank.poi, event.timeStamp);
-    sound.dip();
-    navigator.vibrate?.(8);
-    react(events, event.timeStamp);
   };
 
   const move = (event: PointerEvent) => {
@@ -152,6 +179,13 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       if (event.pointerType === "mouse" && phase !== "done") {
         offset = 0;
         hover(tank, pointOf(event));
+      }
+      return;
+    }
+    if (aim !== null) {
+      hover(tank, pointOf(event));
+      if (Math.hypot(event.clientX - aim.x, event.clientY - aim.y) > AIM.slop) {
+        aim = { at: event.timeStamp, x: event.clientX, y: event.clientY };
       }
       return;
     }
@@ -170,22 +204,25 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     }
   };
 
-  const up = (event: PointerEvent) => {
-    if (event.pointerId !== active) {
-      return;
-    }
+  const release = (now: number) => {
     active = null;
-    if (phase === "scooping") {
-      react(lift(tank), event.timeStamp);
+    if (aim !== null) {
+      aim = null;
+    } else if (phase === "scooping") {
+      react(lift(tank), now);
+    }
+  };
+
+  const up = (event: PointerEvent) => {
+    sound.unlock();
+    if (event.pointerId === active) {
+      release(event.timeStamp);
     }
   };
 
   const hide = () => {
     if (document.visibilityState === "hidden" && active !== null) {
-      active = null;
-      if (phase === "scooping") {
-        react(lift(tank), performance.now());
-      }
+      release(performance.now());
     }
   };
 
@@ -201,9 +238,16 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const tick = (now: number) => {
     const dt = Math.min(0.05, Math.max(0, now - previous) / 1000);
     previous = now;
+    if (aim !== null && now - aim.at >= AIM.hold) {
+      plunge(now);
+    }
     const events = step(tank, dt);
     if (phase === "scooping") {
       react(events, now);
+    }
+    if (ending !== null && now >= ending.at) {
+      on.over(ending.value);
+      ending = null;
     }
     render.draw(tank, now);
     frame = requestAnimationFrame(tick);

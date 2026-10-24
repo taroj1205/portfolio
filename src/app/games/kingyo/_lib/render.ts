@@ -62,6 +62,7 @@ const REVEAL = 600;
 const SHOWN = 8;
 
 const RIP: Text = { en: "Rip!", ja: "ビリッ" };
+const SLIP: Text = { en: "Slipped!", ja: "するっ" };
 
 const ink = {
   gold: ["#fff6d8", "#ffd27a", "#c9862c"],
@@ -499,6 +500,14 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
               ? `+${fish.length}`
               : `${kinds[rare.kind].name[lang]}${lang === "ja" ? "！" : "!"}`,
         },
+      ];
+    },
+    slip: (at: Point, now: number) => {
+      ripples.push({ born: now, size: POI.ring * 1.2, x: at.x, y: at.y });
+      burst(at, now, 6);
+      floaters = [
+        ...floaters.slice(-2),
+        { born: now, gold: false, text: SLIP[lang] },
       ];
     },
     tear: (at: Point, now: number) => {

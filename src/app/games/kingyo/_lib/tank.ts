@@ -20,6 +20,8 @@ const PAPER = {
   wearScale: 700,
 };
 
+const STEADY = 0.08;
+
 const SWIM = {
   cruise: 62,
   dash: 330,
@@ -47,6 +49,7 @@ interface Poi {
   down: boolean;
   paper: number;
   torn: boolean;
+  flow: Point;
 }
 
 export interface Tank {
@@ -58,9 +61,11 @@ export interface Tank {
   random: () => number;
 }
 
-export type Outcome =
-  | { type: "scoop"; fish: Fish[]; at: Point }
-  | { type: "tear"; fish: Fish[]; at: Point };
+export interface Outcome {
+  type: "scoop" | "slip" | "tear";
+  fish: Fish[];
+  at: Point;
+}
 
 const clamp = (value: number, low: number, high: number) =>
   Math.min(high, Math.max(low, value));
@@ -114,7 +119,14 @@ export const createTank = (random: () => number): Tank => {
     biggest: 0,
     caught: [],
     fish: [],
-    poi: { down: false, paper: 1, torn: false, x: 500, y: 640 },
+    poi: {
+      down: false,
+      flow: { x: 0, y: 0 },
+      paper: 1,
+      torn: false,
+      x: 500,
+      y: 640,
+    },
     random,
     scoops: 0,
   };
@@ -161,7 +173,7 @@ export const dip = (tank: Tank, at: Point): Outcome[] => {
   if (poi.down || poi.torn) {
     return [];
   }
-  Object.assign(poi, inWater(at), { down: true });
+  Object.assign(poi, inWater(at), { down: true, flow: { x: 0, y: 0 } });
   scare(tank, poi, SWIM.splash * 0.55);
   return wear(tank, PAPER.dip);
 };
@@ -173,12 +185,17 @@ export const drag = (tank: Tank, at: Point, seconds: number): Outcome[] => {
     return [];
   }
   const to = inWater(at);
-  const moved = distance(poi, to);
-  Object.assign(poi, to);
-  if (seconds <= 0 || moved === 0) {
+  if (seconds <= 0) {
+    Object.assign(poi, to);
     return [];
   }
-  const speed = moved / seconds;
+  const k = 1 - Math.exp(-seconds / STEADY);
+  poi.flow = {
+    x: poi.flow.x + ((to.x - poi.x) / seconds - poi.flow.x) * k,
+    y: poi.flow.y + ((to.y - poi.y) / seconds - poi.flow.y) * k,
+  };
+  Object.assign(poi, to);
+  const speed = Math.hypot(poi.flow.x, poi.flow.y);
   const spook = SWIM.spook * (1 - waryOf(tank) * 0.5);
   if (speed > spook) {
     scare(tank, poi, POI.ring + Math.min(160, speed * 0.25));
@@ -197,10 +214,20 @@ export const lift = (tank: Tank): Outcome[] => {
   if (!poi.down || poi.torn) {
     return [];
   }
-  const fish = inside(tank);
+  const over = inside(tank);
+  const fish = over.filter((each) => each.fright === 0);
   if (fish.length === 0) {
     poi.down = false;
-    return wear(tank, PAPER.empty);
+    if (over.length === 0) {
+      return wear(tank, PAPER.empty);
+    }
+    scare(tank, poi, POI.ring);
+    const slipped: Outcome = {
+      at: { x: poi.x, y: poi.y },
+      fish: over,
+      type: "slip",
+    };
+    return [slipped, ...wear(tank, PAPER.empty)];
   }
   const load = loadOf(fish);
   if (load > capacityOf(poi.paper)) {
