@@ -38,9 +38,7 @@ const rise = stylex.keyframes({
 const styles = stylex.create({
   sheet: {
     alignSelf: { default: "stretch", "@media (min-width: 900px)": "center" },
-    animationDelay: "700ms",
     animationDuration: "650ms",
-    animationFillMode: "backwards",
     animationName: { default: rise, [media.reduce]: "none" },
     animationTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
     borderRadius: 26,
@@ -264,22 +262,20 @@ export const ResultSheet = ({
       }}
       {...stylex.props(glass.surface, styles.sheet)}
     >
+      {record || firsts.length > 0 ? (
+        <div {...stylex.props(styles.badges)}>
+          {record ? (
+            <span {...stylex.props(styles.badge)}>{words.result.record}</span>
+          ) : null}
+          {firsts.map((id) => (
+            <span key={id} {...stylex.props(styles.badge)}>
+              {words.result.first(kinds[id].name[lang])}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <div {...stylex.props(styles.head)}>
         <div {...stylex.props(styles.titles)}>
-          {record || firsts.length > 0 ? (
-            <div {...stylex.props(styles.badges)}>
-              {record ? (
-                <span {...stylex.props(styles.badge)}>
-                  {words.result.record}
-                </span>
-              ) : null}
-              {firsts.map((id) => (
-                <span key={id} {...stylex.props(styles.badge)}>
-                  {words.result.first(kinds[id].name[lang])}
-                </span>
-              ))}
-            </div>
-          ) : null}
           <h2 id="kingyo-result" {...stylex.props(styles.rank)}>
             {rank.name[lang]}
           </h2>

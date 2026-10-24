@@ -52,6 +52,10 @@ export const createSound = () => {
         });
       }
     },
+    slip: () => {
+      spray(1400, 0.2, 0.12);
+      tone(520, { bend: 0.45, length: 0.2, peak: 0.08 });
+    },
     tear: () => {
       for (let i = 0; i < 4; i += 1) {
         spray(3200 + i * 600, 0.4, 0.05 + i * 0.03);
