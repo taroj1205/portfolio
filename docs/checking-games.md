@@ -1,6 +1,6 @@
 # Checking games
 
-- `bun run spell` checks with `en-GB`, so code and copy use British spellings (`colour`, `vigour`). Add a new game's romanised name to `words` in `cspell.json`.
+- `bun run spell` checks with `en-GB`, so code and copy use British spellings (`colour`, `vigour`). Add a new game's romanised name to `words` in `cspell.json`. CI runs a different cspell (`cspell-action`) that flags words `bun run spell` accepts, such as the possessive of `worktree`; write such phrases without the possessive.
 - To check a timed game to the hundredth, send touches over CDP with `Input.dispatchTouchEvent` and a `timestamp` in epoch seconds. The page's `event.timeStamp` follows it, so a stop at exactly 10.00s after the start can be replayed instead of hoped for.
 - Run the tests with `bunx vp test run src/app/games`. There is no `test` script, and `bun test` uses its own runner, so every `vi.*` call fails there.
 - To rewrite Japanese text across files with `perl -i -pe`, pass `-Mutf8 -CSD`. Without `-Mutf8` a Japanese pattern silently matches nothing.
