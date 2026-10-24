@@ -2,6 +2,8 @@ import { loadSettings, storeSettings } from "../../_lib/settings";
 import type { Settings } from "../../_lib/settings";
 import type { Point } from "../../_lib/svg";
 import { SCENE } from "./art";
+import { createDemo } from "./demo";
+import type { Move } from "./demo";
 import { kinds } from "./fish";
 import type { KindId } from "./fish";
 import { createRenderer } from "./render";
@@ -10,7 +12,7 @@ import type { Result } from "./result";
 import { loadSave, settle, storeSave } from "./save";
 import type { Save } from "./save";
 import { createSound } from "./sound";
-import { createTank, dip, drag, hover, lift, step } from "./tank";
+import { createTank, dip, drag, freshen, hover, lift, step } from "./tank";
 import type { Outcome, Tank } from "./tank";
 
 export type Phase = "ready" | "scooping" | "done";
@@ -46,6 +48,8 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   let tank: Tank = createTank(Math.random);
   let active: number | null = null;
   let ending: { at: number; value: Ending } | null = null;
+  let demo = createDemo();
+  let showing = false;
   let last = 0;
   let start = 0;
   let previous = performance.now();
@@ -101,6 +105,8 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
           sound.rare();
         }
         navigator.vibrate?.([14, 40, 14]);
+      } else if (event.type === "under") {
+        render.under(event.at, now);
       } else {
         render.tear(event.at, now);
         sound.tear();
@@ -110,6 +116,32 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     meter();
     if (events.some((event) => event.type === "tear")) {
       finish(now);
+    }
+  };
+
+  const quiet = () => {
+    demo = createDemo();
+    if (showing) {
+      showing = false;
+      freshen(tank);
+      render.reset();
+    }
+  };
+
+  const show = (move: Move, now: number) => {
+    showing = true;
+    if (move.type === "dip") {
+      render.dip(move.at, now);
+      render.guide(move.at);
+      return;
+    }
+    render.guide(null);
+    for (const outcome of move.outcomes) {
+      if (outcome.type === "scoop") {
+        render.scoop(outcome.fish, outcome.at, now);
+      } else if (outcome.type === "under") {
+        render.under(outcome.at, now);
+      }
     }
   };
 
@@ -135,6 +167,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     canvas.setPointerCapture(event.pointerId);
     active = event.pointerId;
     if (phase === "ready") {
+      quiet();
       start = event.timeStamp;
       enter("scooping");
     }
@@ -153,6 +186,9 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         event.pointerType === "mouse" &&
         phase !== "done"
       ) {
+        if (phase === "ready") {
+          quiet();
+        }
         hover(tank, pointOf(event));
       }
       return;
@@ -208,6 +244,12 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (phase === "scooping") {
       react(events, now);
     }
+    if (phase === "ready" && active === null) {
+      const shown = demo.next(tank, dt);
+      if (shown !== null) {
+        show(shown, now);
+      }
+    }
     if (ending !== null && now >= ending.at) {
       on.over(ending.value);
       ending = null;
@@ -221,6 +263,8 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     again: () => {
       if (phase === "done") {
         tank = createTank(Math.random);
+        demo = createDemo();
+        showing = false;
         render.reset();
         meter();
         enter("ready");

@@ -47,7 +47,7 @@ export const copy: Record<Lang, Copy> = {
       received: "Challenge",
     },
     fallback:
-      "A goldfish scooping game from a summer festival stall. Press to dip a paper scoop into the tank right where you touch, and let go to lift it, so a quick tap on a goldfish scoops it. Any goldfish over the paper comes up with it and goes into your bowl. The paper weakens with every dip, the longer it stays wet, the faster it moves through the water, and the heavier the catch, and when it tears the game is over. See how many you can scoop with one paper, and look out for rare black moors, golden goldfish and the old boss of the tank.",
+      "A goldfish scooping game from a summer festival stall. Press to dip a paper scoop into the tank right where you touch, and let go to lift it. A goldfish that swims onto the paper glows and comes up with it into your bowl, but dip right on top of one and it ends up under the paper. The paper weakens the longer it stays wet, the faster it moves through the water, and the heavier the catch, and when it tears the game is over. See how many you can scoop with one paper, and look out for rare black moors, golden goldfish and the old boss of the tank.",
     found: (found, total) => `${found} of ${total} kinds found`,
     meter: { caught: "Caught", paper: "Paper" },
     mute: "Mute sound",
@@ -76,9 +76,9 @@ export const copy: Record<Lang, Copy> = {
       won: "You beat the challenge",
     },
     rule: {
-      body: "Press to dip, let go to scoop whatever is on the paper. Every dip, heavy fish and fast moves wear it.",
+      body: "Dip just ahead of a goldfish and wait. When it swims onto the paper and glows, let go. Dip on top of one and it ends up under the paper.",
       lead: "Dip gently, lift gently",
-      start: "Tap a goldfish to scoop it",
+      start: "Dip just ahead of a goldfish",
     },
   },
   ja: {
@@ -90,7 +90,7 @@ export const copy: Record<Lang, Copy> = {
       received: "挑戦状",
     },
     fallback:
-      "夏祭りの屋台の、金魚すくいのゲーム。触れたところにポイが入り、離すとすくい上げるので、金魚をタップすればすくえる。ポイの上にいた金魚が、お椀に入る。入れるたび、水に浸けているほど、速く動かすほど、重い金魚をすくうほど紙は弱くなり、破れたらおしまい。ポイ一枚で何匹すくえるか。黒出目金や黄金の金魚、水槽の主にも出会えるかもしれない。",
+      "夏祭りの屋台の、金魚すくいのゲーム。触れたところにポイが入り、離すとすくい上げる。紙の上に泳いできた金魚は光って、一緒にお椀に入るが、真上から入れると金魚は紙の下になる。水に浸けているほど、速く動かすほど、重い金魚をすくうほど紙は弱くなり、破れたらおしまい。ポイ一枚で何匹すくえるか。黒出目金や黄金の金魚、水槽の主にも出会えるかもしれない。",
     found: (found, total) => `図鑑 ${found}/${total}`,
     meter: { caught: "すくった", paper: "ポイ" },
     mute: "音を消す",
@@ -119,9 +119,9 @@ export const copy: Record<Lang, Copy> = {
       won: "挑戦状に勝った",
     },
     rule: {
-      body: "押すとポイが入り、離すと紙の上の金魚をすくう。入れるたび、重い金魚、速い動きで紙が弱る。",
+      body: "金魚の進む先にポイを入れて待つ。紙に乗って光ったら離す。真上から入れると、金魚は紙の下。",
       lead: "そっと入れて、そっとすくう",
-      start: "金魚をタップしてすくう",
+      start: "金魚の進む先にポイを入れる",
     },
   },
 };
