@@ -46,10 +46,9 @@ const styles = stylex.create({
     gap: "0.55rem",
     minWidth: 0,
     padding: {
-      default: "1.1rem 1rem",
-      [media.narrow]: "0.95rem 0.75rem 0.9rem",
+      default: "0.9rem 1rem 1.1rem",
+      [media.narrow]: "0.7rem 0.75rem 0.9rem",
     },
-    position: "relative",
   },
   card: {
     backdropFilter: "blur(14px)",
@@ -97,33 +96,6 @@ const styles = stylex.create({
     paddingBlock: { default: "0.28rem", [media.narrow]: "0.22rem" },
     paddingInline: { default: "0.75rem", [media.narrow]: "0.6rem" },
     position: "absolute",
-  },
-  play: {
-    alignItems: "center",
-    backgroundImage: `linear-gradient(180deg, #fff1b8, ${GOLD} 50%, #d9962a)`,
-    borderRadius: 999,
-    boxShadow:
-      "0 8px 22px rgb(255 190 80 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.6)",
-    color: "#1c1406",
-    display: "flex",
-    fontSize: { default: "1.1rem", [media.narrow]: "0.95rem" },
-    fontWeight: 700,
-    height: { default: "2.25rem", [media.narrow]: "1.9rem" },
-    insetBlockStart: { default: "-1.125rem", [media.narrow]: "-0.95rem" },
-    insetInlineEnd: { default: "1rem", [media.narrow]: "0.75rem" },
-    justifyContent: "center",
-    position: "absolute",
-    transform: {
-      default: null,
-      [stylex.when.ancestor(":hover")]: {
-        default: null,
-        [media.hover]: "translateX(3px) scale(1.08)",
-      },
-    },
-    transitionDuration: "500ms",
-    transitionProperty: "transform",
-    transitionTimingFunction: "cubic-bezier(0.34, 1.3, 0.64, 1)",
-    width: { default: "2.25rem", [media.narrow]: "1.9rem" },
   },
   scrim: {
     backgroundImage:
@@ -194,9 +166,6 @@ export const GameCard = ({
       <span {...stylex.props(glass.surface, styles.mode)}>{mode[lang]}</span>
     </div>
     <div {...stylex.props(styles.body)}>
-      <span aria-hidden="true" {...stylex.props(styles.play)}>
-        →
-      </span>
       <h2 {...stylex.props(styles.title)}>{title[lang]}</h2>
       <p {...stylex.props(styles.blurb)}>{blurb[lang]}</p>
       <ul {...stylex.props(styles.tags)}>
