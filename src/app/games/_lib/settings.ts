@@ -7,13 +7,14 @@ const KEY = "games.settings.v1";
 const LEGACY_KEYS = ["mizukiri.v3", "hoshiai.v1"];
 
 const schema = z.object({
+  distantRing: z.boolean().default(false),
   lang: z.enum(langs).nullable().default(null),
   muted: z.boolean(),
 });
 
 export type Settings = z.infer<typeof schema>;
 
-const fresh: Settings = { lang: null, muted: false };
+const fresh: Settings = { distantRing: false, lang: null, muted: false };
 
 const legacy = z.object({ settings: schema });
 

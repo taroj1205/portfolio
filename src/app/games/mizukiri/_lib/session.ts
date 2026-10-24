@@ -310,6 +310,7 @@ export const startSession = (
       time,
       look: save.look,
       surface: copy[settings.lang ?? guessLang()].surface,
+      distantRing: settings.distantRing,
     });
     frame = requestAnimationFrame(tick);
   };

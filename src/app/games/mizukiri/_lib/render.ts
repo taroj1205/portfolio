@@ -136,6 +136,7 @@ export interface Frame {
   tilt: number | null;
   look: Look;
   surface: string;
+  distantRing: boolean;
 }
 
 interface Camera {
@@ -2000,7 +2001,8 @@ const paintApproach = (
   view: View,
   flight: Flight,
   time: number,
-  clock: number
+  clock: number,
+  distant: boolean
 ) => {
   const contact = nextContact(flight);
   if (contact === null) {
@@ -2013,7 +2015,7 @@ const paintApproach = (
   const landing = contact - 1e-4;
   const at = stoneAt(flight, landing);
   const sight =
-    speedAt(flight, time) > RING_FOLLOW_SPEED
+    !distant && speedAt(flight, time) > RING_FOLLOW_SPEED
       ? viewOf(
           cameraAt(flight, view.camera, time, landing, clock),
           view.w,
@@ -2238,7 +2240,7 @@ const paintScene = (
   }
   if (shot) {
     paintSplashes(ctx, view, shot, palette, time, rings);
-    paintApproach(ctx, view, shot, time, frame.clock);
+    paintApproach(ctx, view, shot, time, frame.clock, frame.distantRing);
   }
   const flownOf = (prop: Prop) => {
     const hit =

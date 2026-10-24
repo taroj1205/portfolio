@@ -86,6 +86,7 @@ export interface Copy {
     raise: (name: string) => string;
     respec: string;
     mute: { label: string; note: string };
+    ring: { label: string; note: string };
     language: string;
     howto: string;
     steps: string[];
@@ -166,6 +167,10 @@ export const copy: Record<Lang, Copy> = {
       language: "Language",
       lower: (name) => `Lower ${name}`,
       mute: { label: "Mute", note: "Sound effects and river" },
+      ring: {
+        label: "Distant ring",
+        note: "At high speed, show the timing ring small, far ahead where the stone lands. Off shows it right under the stone",
+      },
       mode: {
         duel: {
           name: "Duel",
@@ -280,6 +285,10 @@ export const copy: Record<Lang, Copy> = {
       language: "言語",
       lower: (name) => `${name}を1下げる`,
       mute: { label: "音を消す", note: "効果音と川の音" },
+      ring: {
+        label: "輪を奥に出す",
+        note: "速いとき、輪を石の真下ではなく、着水する奥の位置に小さく出す",
+      },
       mode: {
         duel: {
           name: "対決",

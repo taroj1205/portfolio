@@ -18,9 +18,13 @@ describe("shared game settings", () => {
     vi.unstubAllGlobals();
   });
 
-  test("a new visitor starts with no language chosen and sound on", () => {
+  test("a new visitor starts with no language chosen, sound on and the ring under the stone", () => {
     stubStorage({});
-    assert.deepEqual(loadSettings(), { lang: null, muted: false });
+    assert.deepEqual(loadSettings(), {
+      distantRing: false,
+      lang: null,
+      muted: false,
+    });
   });
 
   test("settings kept inside an older game save carry over once", () => {
@@ -30,9 +34,21 @@ describe("shared game settings", () => {
         settings: { lang: "en", muted: true },
       }),
     });
-    assert.deepEqual(loadSettings(), { lang: "en", muted: true });
+    const carried = { distantRing: false, lang: "en", muted: true };
+    assert.deepEqual(loadSettings(), carried);
     data.set("mizukiri.v3", JSON.stringify({ runs: 5 }));
-    assert.deepEqual(loadSettings(), { lang: "en", muted: true });
+    assert.deepEqual(loadSettings(), carried);
+  });
+
+  test("settings saved before the ring option keep their language and sound", () => {
+    stubStorage({
+      "games.settings.v1": JSON.stringify({ lang: "ja", muted: true }),
+    });
+    assert.deepEqual(loadSettings(), {
+      distantRing: false,
+      lang: "ja",
+      muted: true,
+    });
   });
 
   test("every game reads what another game stored", () => {
@@ -41,7 +57,11 @@ describe("shared game settings", () => {
         settings: { lang: "ja", muted: false },
       }),
     });
-    storeSettings({ lang: "en", muted: true });
-    assert.deepEqual(loadSettings(), { lang: "en", muted: true });
+    storeSettings({ distantRing: true, lang: "en", muted: true });
+    assert.deepEqual(loadSettings(), {
+      distantRing: true,
+      lang: "en",
+      muted: true,
+    });
   });
 });
