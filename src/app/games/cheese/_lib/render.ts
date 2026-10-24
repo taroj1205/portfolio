@@ -52,6 +52,7 @@ interface Bit {
 const MOON_RADIUS = 173_700_000;
 const DESK = 75;
 const TAU = Math.PI * 2;
+const HUD = 175;
 
 const ink = {
   danger: "rgba(255,52,36,0.9)",
@@ -69,7 +70,10 @@ const ink = {
 
 export const frameOf = (width: number, height: number) => ({
   base: Math.min(width, height * 0.62),
-  max: Math.max(height * 0.42, Math.min(height * 0.54, height * 0.8 - 205)),
+  max: Math.max(
+    height * 0.42,
+    Math.min(height * 0.54, height * 0.8 - HUD - 30)
+  ),
   oy: height * 0.8,
   rest: height * 0.27,
   stroke: height * 0.3,
@@ -372,7 +376,8 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   ) => {
     const frame = frameOf(width, height);
     const floor = frame.base * (0.44 - 0.24 * smooth(altitude, 6, 10.3));
-    const room = ((oy - lift - height * 0.12) * UNIT) / plate.crown;
+    const room =
+      ((oy - lift - Math.max(height * 0.12, HUD)) * UNIT) / plate.crown;
     const target = Math.max(
       frame.base * 0.18,
       Math.min(frame.base * 1.12, room, Math.max(floor, scale * run.dish.width))
