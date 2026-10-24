@@ -1178,9 +1178,10 @@ const curtainOf = (at: Stage) => {
 const groundOf = (at: Stage) => {
   const horizon = at.y(575);
   const vanishing = { x: at.x(500), y: at.y(380) };
-  const rows = [600, 640, 700, 790, 920, 1100, 1350]
-    .map((v) => at.y(v))
-    .filter((y) => y < at.height);
+  const rows = [600, 640, 700, 790, 920, 1100, 1350].flatMap((v) => {
+    const y = at.y(v);
+    return y < at.height ? [y] : [];
+  });
   const columns = Array.from({ length: 23 }, (_, i) => at.x(-1600 + i * 190));
   const reach = (at.height - vanishing.y) / (horizon - vanishing.y);
   const joints = [

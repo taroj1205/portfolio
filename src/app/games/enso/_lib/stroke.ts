@@ -191,20 +191,25 @@ export const inkPaths = (trace: readonly Trace[], frame: Frame) => {
     return travelled;
   });
   const thick = pad * 2 * scale;
-  const streaks = LANES.map((lane, k) => {
+  const streaks = LANES.flatMap((lane, k) => {
     const from = 0.4 + (1 - Math.abs(lane)) * 0.32;
     const points = offset(lane).filter(
       (_, i) => (reach[i] ?? 0) >= travelled * from
     );
+    if (points.length < 2) {
+      return [];
+    }
     const turn = (k * 3) % DASHES.length;
     const dash = [...DASHES.slice(turn), ...DASHES.slice(0, turn)];
-    return {
-      d: points.length > 1 ? `M${points.join("L")}` : "",
-      dash: dash.map((length) => num(length * scale)).join(" "),
-      lane,
-      opacity: 0.55 + ((k * 3) % 4) * 0.1,
-      width: num(Math.max(0.5, (thick / 26) * (0.7 + ((k * 5) % 3) * 0.3))),
-    };
-  }).filter((streak) => streak.d !== "");
+    return [
+      {
+        d: `M${points.join("L")}`,
+        dash: dash.map((length) => num(length * scale)).join(" "),
+        lane,
+        opacity: 0.55 + ((k * 3) % 4) * 0.1,
+        width: num(Math.max(0.5, (thick / 26) * (0.7 + ((k * 5) % 3) * 0.3))),
+      },
+    ];
+  });
   return { body, spine: `M${offset(0).join("L")}`, streaks };
 };
