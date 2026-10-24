@@ -21,7 +21,7 @@ import {
 } from "./art";
 import { kinds } from "./fish";
 import type { KindId } from "./fish";
-import { POI, WATER, catchable } from "./tank";
+import { POI, WATER } from "./tank";
 import type { Fish, Tank } from "./tank";
 
 interface Ripple {
@@ -67,11 +67,6 @@ const UNDER: Text = { en: "Under the paper!", ja: "紙の下！" };
 const ink = {
   gold: ["#fff6d8", "#ffd27a", "#c9862c"],
   finger: ["rgb(255 255 255 / 0.32)", "rgb(255 255 255 / 0.85)"],
-  halo: [
-    "rgb(255 226 140 / 0.85)",
-    "rgb(255 226 140 / 0.35)",
-    "rgb(255 226 140 / 0)",
-  ],
   night: "#0b0a1c",
   ripple: "#eaf8ff",
   stroke: "#071a24",
@@ -268,21 +263,6 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     );
   };
 
-  const halo = (fish: Fish) => {
-    const r = kinds[fish.kind].length * 0.7;
-    const glow = ctx.createRadialGradient(fish.x, fish.y, 0, fish.x, fish.y, r);
-    for (const [i, color] of ink.halo.entries()) {
-      glow.addColorStop(i / (ink.halo.length - 1), color);
-    }
-    ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.arc(fish.x, fish.y, r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-  };
-
   const fingertip = () => {
     if (finger === null) {
       return;
@@ -316,7 +296,9 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.translate(poi.x, poi.y);
     ctx.rotate(TILT);
     ctx.scale(scale, scale);
-    ctx.globalAlpha = (poi.down ? 0.5 : 0.72) + 0.28 * poi.paper;
+    ctx.globalAlpha = poi.down
+      ? 0.8 + 0.18 * poi.paper
+      : 0.72 + 0.28 * poi.paper;
     put(sheet);
     ctx.globalAlpha = 1;
     put(poiFrame);
@@ -497,13 +479,9 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         }
         poiAt(tank, 0);
       }
-      const glowing = tank.poi.down ? catchable(tank) : [];
       for (const fish of tank.fish) {
         if (sunk && fish.under) {
           continue;
-        }
-        if (glowing.includes(fish)) {
-          halo(fish);
         }
         swimmer(fish);
       }
