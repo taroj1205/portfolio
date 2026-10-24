@@ -1,7 +1,7 @@
 import { loadSettings, storeSettings } from "../../_lib/settings";
 import type { Settings } from "../../_lib/settings";
 import type { Point } from "../../_lib/svg";
-import { SCENE } from "./art";
+import { GRIP, SCENE } from "./art";
 import { createDemo } from "./demo";
 import type { Move } from "./demo";
 import { kinds } from "./fish";
@@ -33,6 +33,7 @@ interface Listeners {
 }
 
 const SETTLE = 800;
+const BARE: Point = { x: 0, y: 0 };
 
 const block = (event: Event) => {
   event.preventDefault();
@@ -40,6 +41,7 @@ const block = (event: Event) => {
 
 export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const coarse = matchMedia("(pointer: coarse)").matches;
   const render = createRenderer(canvas, calm);
   const sound = createSound();
   let save = loadSave();
@@ -50,6 +52,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   let ending: { at: number; value: Ending } | null = null;
   let demo = createDemo();
   let showing = false;
+  let grip = BARE;
   let last = 0;
   let start = 0;
   let previous = performance.now();
@@ -132,7 +135,9 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     showing = true;
     if (move.type === "dip") {
       render.dip(move.at, now);
-      render.guide(move.at);
+      render.guide(
+        coarse ? { x: move.at.x + GRIP.x, y: move.at.y + GRIP.y } : move.at
+      );
       return;
     }
     render.guide(null);
@@ -149,8 +154,12 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     const rect = canvas.getBoundingClientRect();
     const side = Math.min(rect.width, rect.height) || 1;
     return {
-      x: ((event.clientX - rect.left - (rect.width - side) / 2) / side) * SCENE,
-      y: ((event.clientY - rect.top - (rect.height - side) / 2) / side) * SCENE,
+      x:
+        ((event.clientX - rect.left - (rect.width - side) / 2) / side) * SCENE -
+        grip.x,
+      y:
+        ((event.clientY - rect.top - (rect.height - side) / 2) / side) * SCENE -
+        grip.y,
     };
   };
 
@@ -166,6 +175,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     sound.unlock();
     canvas.setPointerCapture(event.pointerId);
     active = event.pointerId;
+    grip = event.pointerType === "touch" ? GRIP : BARE;
     if (phase === "ready") {
       quiet();
       start = event.timeStamp;
@@ -189,6 +199,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         if (phase === "ready") {
           quiet();
         }
+        grip = BARE;
         hover(tank, pointOf(event));
       }
       return;
