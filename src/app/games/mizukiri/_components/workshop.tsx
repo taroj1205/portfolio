@@ -541,6 +541,39 @@ const SkillPanel = ({
   );
 };
 
+const SwitchRow = ({
+  checked,
+  label,
+  note,
+  onCheckedChange,
+}: {
+  checked: boolean;
+  label: string;
+  note: string;
+  onCheckedChange: (checked: boolean) => void;
+}) => (
+  <div {...stylex.props(styles.row)}>
+    <span>
+      <span {...stylex.props(styles.name)}>{label}</span>
+      <span {...stylex.props(styles.note)}>{note}</span>
+    </span>
+    <Switch.Root
+      aria-label={label}
+      checked={checked}
+      className={(state) =>
+        stylex.props(styles.switch, state.checked && styles.switchOn).className
+      }
+      onCheckedChange={onCheckedChange}
+    >
+      <Switch.Thumb
+        className={(state) =>
+          stylex.props(styles.thumb, state.checked && styles.thumbOn).className
+        }
+      />
+    </Switch.Root>
+  </div>
+);
+
 interface WorkshopProps {
   open: boolean;
   opener: RefObject<HTMLButtonElement | null>;
@@ -705,38 +738,22 @@ export const Workshop = ({
                       ))}
                     </ToggleGroup>
                   </div>
-                  <div {...stylex.props(styles.row)}>
-                    <span>
-                      <span {...stylex.props(styles.name)}>
-                        {copy.workshop.mute.label}
-                      </span>
-                      <span {...stylex.props(styles.note)}>
-                        {copy.workshop.mute.note}
-                      </span>
-                    </span>
-                    <Switch.Root
-                      aria-label={copy.workshop.mute.label}
-                      checked={settings.muted}
-                      className={(state) =>
-                        stylex.props(
-                          styles.switch,
-                          state.checked && styles.switchOn
-                        ).className
-                      }
-                      onCheckedChange={(checked) => {
-                        onSettings({ ...settings, muted: checked });
-                      }}
-                    >
-                      <Switch.Thumb
-                        className={(state) =>
-                          stylex.props(
-                            styles.thumb,
-                            state.checked && styles.thumbOn
-                          ).className
-                        }
-                      />
-                    </Switch.Root>
-                  </div>
+                  <SwitchRow
+                    checked={settings.muted}
+                    label={copy.workshop.mute.label}
+                    note={copy.workshop.mute.note}
+                    onCheckedChange={(muted) => {
+                      onSettings({ ...settings, muted });
+                    }}
+                  />
+                  <SwitchRow
+                    checked={settings.distantRing}
+                    label={copy.workshop.ring.label}
+                    note={copy.workshop.ring.note}
+                    onCheckedChange={(distantRing) => {
+                      onSettings({ ...settings, distantRing });
+                    }}
+                  />
                   <div {...stylex.props(styles.row)}>
                     <span {...stylex.props(styles.name)}>
                       {copy.workshop.language}
