@@ -32,20 +32,6 @@ import { copy as senko } from "./senko/_lib/copy";
 
 const GAMES: Game[] = [
   {
-    art: <CheeseArt />,
-    blurb: {
-      en: "Drag up to pull the cheese. Too fast and it snaps, too slow and it sets. The longer it gets, the further the camera pulls back, past Tokyo Tower and Mt Fuji and out towards the Moon.",
-      ja: "上になぞってチーズを引っぱる。速すぎるとちぎれて、遅すぎると固まる。のびるほどカメラが引いて、東京タワー、富士山、そして月へ。",
-    },
-    href: "/games/cheese",
-    tags: [
-      { en: "Drag up", ja: "上になぞる" },
-      { en: "Dish of the day", ja: "今日のお題" },
-      { en: "Challenge a friend", ja: "友だちに挑戦" },
-    ],
-    title: { en: cheese.en.name, ja: cheese.ja.name },
-  },
-  {
     art: <SkipArt />,
     blurb: {
       en: "Flick a stone across the river, then tap as it touches down to keep it skipping toward the Milky Way.",
@@ -198,6 +184,20 @@ const GAMES: Game[] = [
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
     title: { en: kingyo.en.name, ja: kingyo.ja.name },
+  },
+  {
+    art: <CheeseArt />,
+    blurb: {
+      en: "Drag up to pull the cheese. Too fast and it snaps, too slow and it sets. The longer it gets, the further the camera pulls back, past Tokyo Tower and Mt Fuji and out towards the Moon.",
+      ja: "上になぞってチーズを引っぱる。速すぎるとちぎれて、遅すぎると固まる。のびるほどカメラが引いて、東京タワー、富士山、そして月へ。",
+    },
+    href: "/games/cheese",
+    tags: [
+      { en: "Drag up", ja: "上になぞる" },
+      { en: "Dish of the day", ja: "今日のお題" },
+      { en: "Challenge a friend", ja: "友だちに挑戦" },
+    ],
+    title: { en: cheese.en.name, ja: cheese.ja.name },
   },
 ];
 
