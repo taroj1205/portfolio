@@ -42,7 +42,7 @@ const APART = 1.6;
 
 const at = (value: number) => ((value + SPAN / 2) / SPAN) * BOARD + INSET;
 
-const Label = ({
+const Tag = ({
   side,
   small,
 }: {
@@ -70,10 +70,10 @@ const Label = ({
   );
 };
 
-const Labels = ({ split }: { split: Split }) => (
+const Tags = ({ split }: { split: Split }) => (
   <>
     {split.sides.map((side, index) => (
-      <Label
+      <Tag
         key={index === 0 ? "plus" : "minus"}
         side={side}
         small={split.small}
@@ -159,7 +159,7 @@ export const GET = async (request: NextRequest) => {
       >
         {cutSvg("og", hero.food, hero.split, APART)}
       </svg>
-      {hero.split === null ? null : <Labels split={hero.split} />}
+      {hero.split === null ? null : <Tags split={hero.split} />}
       {piece === null ? null : (
         <div
           style={{

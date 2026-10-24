@@ -22,6 +22,7 @@ const display = Bricolage_Grotesque({
 });
 const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 
+const currentYear = () => new Date().getFullYear();
 export const generateStaticParams = () => [{ lang: "en" }, { lang: "ja" }];
 
 export const generateMetadata = async ({
@@ -94,7 +95,7 @@ const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
         <Pointer />
         <Scroll />
         <footer {...stylex.props(shared.wrap, styles.footer)}>
-          <p>© {new Date().getFullYear()} Shintaro Jokagi</p>
+          <p>© {currentYear()} Shintaro Jokagi</p>
         </footer>
         <Analytics />
       </body>
