@@ -3,18 +3,17 @@ import { kinds, pickKind } from "./fish";
 import type { KindId } from "./fish";
 
 export const WATER = { bottom: 936, left: 64, right: 936, top: 64 } as const;
-export const POI = { reach: 70, ring: 92, r: 80 } as const;
+export const POI = { reach: 80, ring: 92, r: 80 } as const;
 export const STOCK = 13;
 export const MOST = 999;
 
 const PAPER = {
   capacity: 4,
-  dip: 0.008,
+  dip: 0.06,
   empty: 0.006,
   grace: 0.6,
   lift: 0.014,
   load: 0.024,
-  snap: 0.12,
   soak: 0.01,
   wear: 2.4,
   wearFrom: 70,
@@ -63,7 +62,7 @@ export interface Tank {
 }
 
 export interface Outcome {
-  type: "scoop" | "slip" | "tear";
+  type: "scoop" | "tear";
   fish: Fish[];
   at: Point;
 }
@@ -135,10 +134,10 @@ export const createTank = (random: () => number): Tank => {
   return tank;
 };
 
-const scare = (tank: Tank, at: Point, radius: number) => {
+const scare = (tank: Tank, at: Point, radius: number, spare = 0) => {
   for (const fish of tank.fish) {
     const gap = distance(fish, at);
-    if (gap < radius) {
+    if (gap >= spare && gap < radius) {
       fish.heading =
         Math.atan2(fish.y - at.y, fish.x - at.x) + (tank.random() - 0.5) * 0.8;
       fish.fright = SWIM.fright * (1 - gap / radius / 2);
@@ -175,7 +174,7 @@ export const dip = (tank: Tank, at: Point): Outcome[] => {
     return [];
   }
   Object.assign(poi, inWater(at), { down: true, flow: { x: 0, y: 0 } });
-  scare(tank, poi, SWIM.splash * 0.55);
+  scare(tank, poi, SWIM.splash * 0.8, POI.reach);
   return wear(tank, PAPER.dip);
 };
 
@@ -215,20 +214,10 @@ export const lift = (tank: Tank): Outcome[] => {
   if (!poi.down || poi.torn) {
     return [];
   }
-  const over = inside(tank);
-  const fish = over.filter((each) => each.fright === 0);
+  const fish = inside(tank);
   if (fish.length === 0) {
     poi.down = false;
-    if (over.length === 0) {
-      return wear(tank, PAPER.empty);
-    }
-    scare(tank, poi, POI.ring);
-    const slipped: Outcome = {
-      at: { x: poi.x, y: poi.y },
-      fish: over,
-      type: "slip",
-    };
-    return [slipped, ...wear(tank, PAPER.empty)];
+    return wear(tank, PAPER.empty);
   }
   const load = loadOf(fish);
   if (load > capacityOf(poi.paper)) {
@@ -248,16 +237,6 @@ export const lift = (tank: Tank): Outcome[] => {
     type: "scoop",
   };
   return [scooped, ...wear(tank, PAPER.lift + load * PAPER.load)];
-};
-
-export const snap = (tank: Tank, at: Point): Outcome[] => {
-  const { poi } = tank;
-  if (poi.down || poi.torn) {
-    return [];
-  }
-  Object.assign(poi, inWater(at), { down: true, flow: { x: 0, y: 0 } });
-  const torn = wear(tank, PAPER.snap);
-  return torn.length > 0 ? torn : lift(tank);
 };
 
 const steerOf = (tank: Tank, fish: Fish, wary: number) => {

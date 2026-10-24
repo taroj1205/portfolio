@@ -408,9 +408,6 @@ export const shadow: Sprite = {
 };
 
 const HANDLE = 180;
-const HOLD = POI.ring + HANDLE * 0.45;
-
-export const GRIP = { x: -Math.sin(TILT) * HOLD, y: Math.cos(TILT) * HOLD };
 
 export const poiFrame: Sprite = {
   body: [

@@ -62,10 +62,14 @@ const REVEAL = 600;
 const SHOWN = 8;
 
 const RIP: Text = { en: "Rip!", ja: "ビリッ" };
-const SLIP: Text = { en: "Slipped!", ja: "するっ" };
 
 const ink = {
   gold: ["#fff6d8", "#ffd27a", "#c9862c"],
+  halo: [
+    "rgb(255 226 140 / 0.85)",
+    "rgb(255 226 140 / 0.35)",
+    "rgb(255 226 140 / 0)",
+  ],
   night: "#0b0a1c",
   ripple: "#eaf8ff",
   stroke: "#071a24",
@@ -259,6 +263,21 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       Math.min(1, fish.age / 0.8),
       true
     );
+  };
+
+  const halo = (fish: Fish) => {
+    const r = kinds[fish.kind].length * 0.7;
+    const glow = ctx.createRadialGradient(fish.x, fish.y, 0, fish.x, fish.y, r);
+    for (const [i, color] of ink.halo.entries()) {
+      glow.addColorStop(i / (ink.halo.length - 1), color);
+    }
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(fish.x, fish.y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   };
 
   const poiAt = (tank: Tank, lifted: number) => {
@@ -455,6 +474,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         poiAt(tank, 0);
       }
       for (const fish of tank.fish) {
+        if (
+          tank.poi.down &&
+          Math.hypot(fish.x - tank.poi.x, fish.y - tank.poi.y) < POI.reach
+        ) {
+          halo(fish);
+        }
         swimmer(fish);
       }
       bowlSwim(now);
@@ -500,14 +525,6 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
               ? `+${fish.length}`
               : `${kinds[rare.kind].name[lang]}${lang === "ja" ? "！" : "!"}`,
         },
-      ];
-    },
-    slip: (at: Point, now: number) => {
-      ripples.push({ born: now, size: POI.ring * 1.2, x: at.x, y: at.y });
-      burst(at, now, 6);
-      floaters = [
-        ...floaters.slice(-2),
-        { born: now, gold: false, text: SLIP[lang] },
       ];
     },
     tear: (at: Point, now: number) => {

@@ -1,7 +1,7 @@
 import { loadSettings, storeSettings } from "../../_lib/settings";
 import type { Settings } from "../../_lib/settings";
 import type { Point } from "../../_lib/svg";
-import { GRIP, SCENE } from "./art";
+import { SCENE } from "./art";
 import { kinds } from "./fish";
 import type { KindId } from "./fish";
 import { createRenderer } from "./render";
@@ -10,7 +10,7 @@ import type { Result } from "./result";
 import { loadSave, settle, storeSave } from "./save";
 import type { Save } from "./save";
 import { createSound } from "./sound";
-import { createTank, dip, drag, hover, lift, snap, step } from "./tank";
+import { createTank, dip, drag, hover, lift, step } from "./tank";
 import type { Outcome, Tank } from "./tank";
 
 export type Phase = "ready" | "scooping" | "done";
@@ -30,16 +30,7 @@ interface Listeners {
   settings: (settings: Settings) => void;
 }
 
-const AIM = { hold: 180, slop: 8 };
-const BARE: Point = { x: 0, y: 0 };
 const SETTLE = 800;
-
-interface Aim {
-  x: number;
-  y: number;
-  at: number;
-  tap: Point;
-}
 
 const block = (event: Event) => {
   event.preventDefault();
@@ -54,9 +45,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   let phase: Phase = "ready";
   let tank: Tank = createTank(Math.random);
   let active: number | null = null;
-  let aim: Aim | null = null;
   let ending: { at: number; value: Ending } | null = null;
-  let grip = BARE;
   let last = 0;
   let start = 0;
   let previous = performance.now();
@@ -82,7 +71,6 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const finish = (now: number) => {
     active = null;
-    aim = null;
     const result = resultOf(tank.caught);
     const settled = settle(save, {
       at: Date.now(),
@@ -113,9 +101,6 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
           sound.rare();
         }
         navigator.vibrate?.([14, 40, 14]);
-      } else if (event.type === "slip") {
-        render.slip(event.at, now);
-        sound.slip();
       } else {
         render.tear(event.at, now);
         sound.tear();
@@ -128,43 +113,13 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     }
   };
 
-  const placeOf = (event: PointerEvent): Point => {
+  const pointOf = (event: PointerEvent): Point => {
     const rect = canvas.getBoundingClientRect();
     const side = Math.min(rect.width, rect.height) || 1;
     return {
       x: ((event.clientX - rect.left - (rect.width - side) / 2) / side) * SCENE,
       y: ((event.clientY - rect.top - (rect.height - side) / 2) / side) * SCENE,
     };
-  };
-
-  const pointOf = (event: PointerEvent): Point => {
-    const at = placeOf(event);
-    return { x: at.x - grip.x, y: at.y - grip.y };
-  };
-
-  const begin = (now: number) => {
-    aim = null;
-    if (phase === "ready") {
-      start = now;
-      enter("scooping");
-    }
-    sound.dip();
-    navigator.vibrate?.(8);
-  };
-
-  const plunge = (now: number) => {
-    begin(now);
-    const events = dip(tank, tank.poi);
-    last = now;
-    render.dip(tank.poi, now);
-    react(events, now);
-  };
-
-  const strike = (at: Point, now: number) => {
-    begin(now);
-    const events = snap(tank, at);
-    render.dip(tank.poi, now);
-    react(events, now);
   };
 
   const down = (event: PointerEvent) => {
@@ -179,14 +134,16 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     sound.unlock();
     canvas.setPointerCapture(event.pointerId);
     active = event.pointerId;
-    grip = event.pointerType === "touch" ? GRIP : BARE;
-    hover(tank, pointOf(event));
-    aim = {
-      at: event.timeStamp,
-      tap: placeOf(event),
-      x: event.clientX,
-      y: event.clientY,
-    };
+    if (phase === "ready") {
+      start = event.timeStamp;
+      enter("scooping");
+    }
+    const events = dip(tank, pointOf(event));
+    last = event.timeStamp;
+    render.dip(tank.poi, event.timeStamp);
+    sound.dip();
+    navigator.vibrate?.(8);
+    react(events, event.timeStamp);
   };
 
   const move = (event: PointerEvent) => {
@@ -196,18 +153,8 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         event.pointerType === "mouse" &&
         phase !== "done"
       ) {
-        grip = BARE;
         hover(tank, pointOf(event));
       }
-      return;
-    }
-    if (aim !== null) {
-      hover(tank, pointOf(event));
-      const tap = placeOf(event);
-      aim =
-        Math.hypot(event.clientX - aim.x, event.clientY - aim.y) > AIM.slop
-          ? { at: event.timeStamp, tap, x: event.clientX, y: event.clientY }
-          : { ...aim, tap };
       return;
     }
     const coalesced = event.getCoalescedEvents?.() ?? [];
@@ -225,15 +172,9 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     }
   };
 
-  const release = (now: number, scoop: boolean) => {
+  const release = (now: number) => {
     active = null;
-    if (aim !== null) {
-      const { tap } = aim;
-      aim = null;
-      if (scoop) {
-        strike(tap, now);
-      }
-    } else if (phase === "scooping") {
+    if (phase === "scooping") {
       react(lift(tank), now);
     }
   };
@@ -241,13 +182,13 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const up = (event: PointerEvent) => {
     sound.unlock();
     if (event.pointerId === active) {
-      release(event.timeStamp, event.type === "pointerup");
+      release(event.timeStamp);
     }
   };
 
   const hide = () => {
     if (document.visibilityState === "hidden" && active !== null) {
-      release(performance.now(), false);
+      release(performance.now());
     }
   };
 
@@ -263,9 +204,6 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const tick = (now: number) => {
     const dt = Math.min(0.05, Math.max(0, now - previous) / 1000);
     previous = now;
-    if (aim !== null && now - aim.at >= AIM.hold) {
-      plunge(now);
-    }
     const events = step(tank, dt);
     if (phase === "scooping") {
       react(events, now);
