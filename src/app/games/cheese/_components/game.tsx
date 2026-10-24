@@ -138,9 +138,9 @@ export const Game = ({
       canvas === null
         ? null
         : startSession(canvas, challenge, () => langRef.current, {
-            alive: (count) => {
+            alive: (count, total) => {
               setAlive(count);
-              setStrands((total) => Math.max(total, count));
+              setStrands(total);
             },
             beat: () => {
               tell(copy[langRef.current].record);
@@ -180,7 +180,6 @@ export const Game = ({
     setEnding(null);
     setShout(null);
     setNotice(null);
-    setStrands(0);
     session.current?.again();
   };
 

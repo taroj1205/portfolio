@@ -68,7 +68,7 @@ const ink = {
 
 export const frameOf = (width: number, height: number) => ({
   base: Math.min(width, height * 0.62),
-  max: Math.min(height * 0.54, height * 0.8 - 205),
+  max: Math.max(height * 0.42, Math.min(height * 0.54, height * 0.8 - 205)),
   oy: height * 0.8,
   rest: height * 0.27,
   stroke: height * 0.3,

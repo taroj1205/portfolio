@@ -38,7 +38,7 @@ interface Listeners {
   meter: (meter: Meter) => void;
   height: (index: number) => void;
   end: (end: End) => void;
-  alive: (count: number) => void;
+  alive: (count: number, total: number) => void;
   passed: () => void;
   beat: () => void;
   interrupted: () => void;
@@ -119,7 +119,7 @@ export const startSession = (
     passed = false;
     beaten = false;
     sound.unlock();
-    on.alive(alive);
+    on.alive(alive, run.strands.length);
     on.length(run.length);
     enter("pulling");
   };
@@ -311,7 +311,7 @@ export const startSession = (
       alive = left;
       sound.snap(left);
       navigator.vibrate?.([25, 30, 40]);
-      on.alive(left);
+      on.alive(left, current.strands.length);
     }
     if (challenge !== null && !passed && current.length * 10 > challenge.mm) {
       passed = true;
