@@ -28,6 +28,7 @@ import {
   land,
   launch,
   nextContact,
+  ringTipDue,
   speedAt,
   stoneAt,
   topSpeed,
@@ -61,6 +62,7 @@ export interface Landing {
   combo: number;
   topSpeed: number;
   gain: Gain | null;
+  ringTip: boolean;
 }
 
 export interface Release {
@@ -238,12 +240,20 @@ export const startSession = (
     } else {
       sound.reward();
     }
+    const top = topSpeed(done);
+    const ringTip = ringTipDue(settings.distantRing, settings.ringTipSeen, top);
+    if (ringTip) {
+      settings = { ...settings, ringTipSeen: true };
+      storeSettings(settings);
+      on.settings(settings);
+    }
     on.land({
       combo: done.bestCombo,
       gain,
       record: settled.record,
       result: resultOf(done, save),
-      topSpeed: topSpeed(done),
+      ringTip,
+      topSpeed: top,
     });
     enter("done");
   };

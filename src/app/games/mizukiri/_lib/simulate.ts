@@ -675,6 +675,14 @@ export const speedAt = (flight: Flight, time: number) => {
 export const topSpeed = (flight: Flight) =>
   Math.max(0, ...flight.hops.map(paceOf));
 
+export const RING_FOLLOW_SPEED = 60;
+
+export const ringTipDue = (
+  distantRing: boolean,
+  ringTipSeen: boolean,
+  top: number
+) => distantRing && !ringTipSeen && top > RING_FOLLOW_SPEED;
+
 export const stoneAt = (flight: Flight, time: number): Vec | null => {
   const hop = flight.hops.find((h) => time < h.end);
   if (hop !== undefined) {
