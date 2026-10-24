@@ -2,7 +2,7 @@ import type { Lang } from "../../_lib/i18n";
 import type { ShareLabels } from "../../_lib/share";
 import type { End } from "./stretch";
 
-export type Feel = "slack" | "sweet" | "tight";
+export type Feel = "loose" | "slack" | "sweet" | "tight";
 
 interface Copy {
   name: string;
@@ -51,6 +51,7 @@ export const copy: Record<Lang, Copy> = {
     fallback:
       "A cheese pulling game. Drag upwards anywhere on the screen to lift the food and stretch the cheese. Pull too fast and the strands snap one by one. Pull too slowly and the cheese cools and sets. Keep the pull in the golden zone, just under the limit, and the cheese stays warm for longer. The longer it gets, the further the camera pulls back, past Tokyo Tower and Mt Fuji and out into space. You can also hold Space or the up arrow.",
     feel: {
+      loose: "Grab it and keep pulling",
       slack: "Pull harder",
       sweet: "Golden",
       tight: "It's tearing!",
@@ -114,6 +115,7 @@ export const copy: Record<Lang, Copy> = {
     fallback:
       "チーズをのばすゲーム。画面のどこでも上になぞると、料理が持ち上がってチーズがのびる。速すぎると糸が一本ずつちぎれて、遅すぎるとチーズが冷めて固まる。限界の少し手前、金色に光る速さで引くと冷めにくい。のびるほどカメラが引いていって、東京タワー、富士山、宇宙の先まで行ける。スペースキーか上キーを押し続けても遊べる。",
     feel: {
+      loose: "つかみ直して、引いて",
       slack: "もっと引ける",
       sweet: "金色キープ",
       tight: "ちぎれる！",

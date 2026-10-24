@@ -28,6 +28,7 @@ export interface Meter {
   load: number;
   heat: number;
   strain: number;
+  loose: boolean;
 }
 
 interface Listeners {
@@ -47,6 +48,8 @@ interface Listeners {
 }
 
 const REVEAL: Record<End, number> = { moon: 3.4, set: 1.7, snapped: 1.5 };
+
+const LOOSE = 600;
 
 const newSeed = () => crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
 
@@ -85,6 +88,7 @@ export const startSession = (
   let run: Run | null = null;
   let holder: number | "key" | null = null;
   let lastY = 0;
+  let letGo = 0;
   let queued = 0;
   let pending = 0;
   let keyRate = 0;
@@ -172,8 +176,10 @@ export const startSession = (
   };
 
   const up = (event: PointerEvent) => {
+    sound.unlock();
     if (event.pointerId === holder) {
       holder = null;
+      letGo = performance.now();
     }
   };
 
@@ -191,6 +197,7 @@ export const startSession = (
   const keyUp = (event: KeyboardEvent) => {
     if (isPullKey(event) && holder === "key") {
       holder = null;
+      letGo = performance.now();
       keyRate = 0;
     }
   };
@@ -289,6 +296,7 @@ export const startSession = (
     on.meter({
       heat: current.heat,
       load: current.load,
+      loose: current.end === null && holder === null && now - letGo > LOOSE,
       strain: current.strain,
     });
     const height = reachedOf(current.length);

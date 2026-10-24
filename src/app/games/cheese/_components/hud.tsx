@@ -343,19 +343,13 @@ const styles = stylex.create({
     fontWeight: 700,
     margin: 0,
   },
-  gauge: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.4rem",
-    maxWidth: "21rem",
-    width: "100%",
-  },
   feel: {
     color: GOLD,
     fontFamily: font.mincho,
     fontSize: "1.1rem",
     fontWeight: 700,
     letterSpacing: "calc(0.1em * var(--track, 1))",
+    marginTop: "0.35rem",
     textShadow: shade.small,
     transitionDuration: "150ms",
     transitionProperty: "color",
@@ -367,7 +361,7 @@ const styles = stylex.create({
       "0 0 0 1px rgb(255 255 255 / 0.18), 0 4px 16px rgb(0 0 0 / 0.35)",
     height: 12,
     position: "relative",
-    width: "100%",
+    width: "min(15rem, 62vw)",
   },
   needle: {
     backgroundColor: "#fffaf3",
@@ -385,6 +379,8 @@ const styles = stylex.create({
     display: "flex",
     gap: "1rem",
     justifyContent: "space-between",
+    maxWidth: "21rem",
+    width: "100%",
   },
   stat: {
     alignItems: "center",
@@ -507,51 +503,36 @@ const Gauge = ({
   lang,
   alive,
   strands,
-  needle,
-  feel,
   heat,
 }: {
   lang: Lang;
   alive: number;
   strands: number;
-  needle: Slot;
-  feel: Slot;
   heat: Slot;
 }) => {
   const words = copy[lang];
   return (
-    <div {...stylex.props(styles.gauge)}>
-      <span ref={feel} {...stylex.props(styles.feel)}>
-        {words.feel.slack}
+    <div {...stylex.props(styles.stats)}>
+      <span {...stylex.props(styles.stat)}>
+        <span {...stylex.props(styles.label)}>{words.heat}</span>
+        <span {...stylex.props(styles.heatTrack)}>
+          <span ref={heat} {...stylex.props(styles.heatFill)} />
+        </span>
       </span>
-      <div aria-hidden="true" {...stylex.props(styles.track)}>
-        <span ref={needle} {...stylex.props(styles.needle)} />
-      </div>
-      <div {...stylex.props(styles.stats)}>
-        <span {...stylex.props(styles.stat)}>
-          <span {...stylex.props(styles.label)}>{words.heat}</span>
-          <span {...stylex.props(styles.heatTrack)}>
-            <span ref={heat} {...stylex.props(styles.heatFill)} />
-          </span>
+      <span {...stylex.props(styles.stat)}>
+        <span {...stylex.props(styles.label)}>{words.strands}</span>
+        <span aria-hidden="true" {...stylex.props(styles.strands)}>
+          {Array.from({ length: strands }, (_, i) => (
+            <span
+              key={i}
+              {...stylex.props(styles.strand, i >= alive && styles.strandGone)}
+            />
+          ))}
         </span>
-        <span {...stylex.props(styles.stat)}>
-          <span {...stylex.props(styles.label)}>{words.strands}</span>
-          <span aria-hidden="true" {...stylex.props(styles.strands)}>
-            {Array.from({ length: strands }, (_, i) => (
-              <span
-                key={i}
-                {...stylex.props(
-                  styles.strand,
-                  i >= alive && styles.strandGone
-                )}
-              />
-            ))}
-          </span>
-          <span {...stylex.props(styles.label)}>
-            {alive}/{strands}
-          </span>
+        <span {...stylex.props(styles.label)}>
+          {alive}/{strands}
         </span>
-      </div>
+      </span>
     </div>
   );
 };
@@ -617,6 +598,12 @@ export const Hud = ({
             <p {...stylex.props(styles.next)}>
               <span ref={next} />
             </p>
+            <span ref={feel} {...stylex.props(styles.feel)}>
+              {words.feel.slack}
+            </span>
+            <div aria-hidden="true" {...stylex.props(styles.track)}>
+              <span ref={needle} {...stylex.props(styles.needle)} />
+            </div>
           </div>
         ) : (
           <div {...stylex.props(styles.brand)}>
@@ -670,14 +657,7 @@ export const Hud = ({
           <Idle best={best} challenge={challenge} lang={lang} />
         ) : null}
         {playing ? (
-          <Gauge
-            alive={alive}
-            lang={lang}
-            feel={feel}
-            heat={heat}
-            needle={needle}
-            strands={strands}
-          />
+          <Gauge alive={alive} heat={heat} lang={lang} strands={strands} />
         ) : null}
       </div>
     </div>

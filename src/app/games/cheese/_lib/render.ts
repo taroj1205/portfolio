@@ -53,9 +53,13 @@ const DESK = 75;
 const TAU = Math.PI * 2;
 
 const ink = {
+  danger: "rgba(255,52,36,0.9)",
+  dangerClear: "rgba(255,52,36,0)",
   edge: "rgba(90,38,4,0.32)",
   flash: "#fff6d8",
   gold: "#ffd27a",
+  golden: "rgba(255,196,90,0.5)",
+  goldenClear: "rgba(255,196,90,0)",
   label: "#fffaf3",
   scrim: "rgba(6,4,10,0.62)",
   shade: "rgba(0,0,0,0.45)",
@@ -64,7 +68,7 @@ const ink = {
 
 export const frameOf = (width: number, height: number) => ({
   base: Math.min(width, height * 0.62),
-  max: height * 0.6,
+  max: Math.min(height * 0.54, height * 0.8 - 205),
   oy: height * 0.8,
   rest: height * 0.27,
   stroke: height * 0.3,
@@ -351,6 +355,8 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   let rise = 1;
   let shake = 0;
   let flash = 0;
+  let danger = 0;
+  let golden = 0;
   let seen: Run | null = null;
   const breaks = new WeakMap<Strand, number>();
   let snapped = 0;
@@ -669,6 +675,37 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.restore();
   };
 
+  const rim = (colour: string, clear: string, level: number) => {
+    if (ctx === null || level < 0.01) {
+      return;
+    }
+    const g = ctx.createRadialGradient(
+      width / 2,
+      height * 0.5,
+      Math.min(width, height) * 0.3,
+      width / 2,
+      height * 0.5,
+      Math.hypot(width, height) * 0.5
+    );
+    g.addColorStop(0, clear);
+    g.addColorStop(1, colour);
+    ctx.globalAlpha = Math.min(1, level);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, width, height);
+    ctx.globalAlpha = 1;
+  };
+
+  const trackFeel = (view: View) => {
+    const { run } = view;
+    const live = !view.idle && run.end === null;
+    const over = live
+      ? Math.min(1, Math.max(0, (run.load - 1) * 3) + run.strain)
+      : 0;
+    danger += (over - danger) * (1 - Math.exp(-view.dt / 0.08));
+    const sweet = live && isSweet(run.load) ? 1 : 0;
+    golden += (sweet - golden) * (1 - Math.exp(-view.dt / 0.2));
+  };
+
   const drawOverlay = (view: View) => {
     if (ctx === null) {
       return;
@@ -698,6 +735,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.globalAlpha = view.idle ? 0.5 : 0.8;
     ctx.fillStyle = top;
     ctx.fillRect(0, 0, width, height * 0.22);
+    rim(ink.golden, ink.goldenClear, golden * 0.8);
+    rim(
+      ink.danger,
+      ink.dangerClear,
+      danger * (calm ? 1 : 0.8 + 0.2 * Math.sin(view.clock * 20))
+    );
     if (flash > 0.01) {
       ctx.globalAlpha = calm ? flash * 0.3 : flash;
       ctx.fillStyle = ink.flash;
@@ -771,6 +814,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       );
       sparks = tick(sparks, view.dt, 0);
       bits = tick(bits, view.dt, 1100);
+      trackFeel(view);
       shake *= Math.exp(-view.dt * 9);
       flash *= Math.exp(-view.dt * 5);
       const look = lookAt(scene.cam.altitude);

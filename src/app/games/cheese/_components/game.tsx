@@ -21,6 +21,7 @@ import type { Notice } from "./hud";
 import { ResultSheet } from "./result-sheet";
 
 const tint: Record<Feel, string> = {
+  loose: "#fffaf3",
   slack: "#fffaf3",
   sweet: "#ffd27a",
   tight: "#ff6b4a",
@@ -42,7 +43,10 @@ const styles = stylex.create({
   },
 });
 
-const feelOf = (load: number): Feel => {
+const feelOf = ({ load, loose }: Meter): Feel => {
+  if (loose) {
+    return "loose";
+  }
   if (load > 1) {
     return "tight";
   }
@@ -116,8 +120,9 @@ export const Game = ({
             )
       );
     };
-    const showMeter = ({ load, heat }: Meter) => {
-      const feel = feelOf(load);
+    const showMeter = (meter: Meter) => {
+      const { load, heat } = meter;
+      const feel = feelOf(meter);
       if (needleRef.current) {
         needleRef.current.style.left = `${(Math.min(1.5, load) / 1.5) * 100}%`;
       }
