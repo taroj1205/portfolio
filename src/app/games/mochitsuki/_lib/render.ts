@@ -1,10 +1,14 @@
+import { createAtlas } from "../../_lib/atlas";
+import type { Layer } from "../../_lib/atlas";
 import type { Lang, Text } from "../../_lib/i18n";
+import type { Frame, Sprite } from "../../_lib/svg";
 import {
   MOCHI,
   SCENE,
   STRIKE,
   USU,
   armPose,
+  backdrop,
   bruise,
   forearm,
   hand,
@@ -21,9 +25,7 @@ import {
   tub,
   usu,
 } from "./art";
-import type { Frame, Place, Sprite } from "./art";
-import { createAtlas } from "./atlas";
-import type { Layer } from "./atlas";
+import type { Place } from "./art";
 
 export interface View {
   sweep: number | null;
@@ -209,7 +211,7 @@ export const createRenderer = (
     getComputedStyle(document.documentElement)
       .getPropertyValue("--font-mincho")
       .trim() || "serif";
-  const atlas = createAtlas(SPRITES);
+  const atlas = createAtlas(SPRITES, (w, h, at) => backdrop(w, h, at, false));
   const glow = glowSprite();
   const amber = tinted(glow, "#ff9448");
   const rose = tinted(glow, "#ff5a3a");

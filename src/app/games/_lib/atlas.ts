@@ -1,5 +1,5 @@
-import { backdrop, dataUri, docOf, spriteDoc } from "./art";
-import type { Frame, Sprite } from "./art";
+import { dataUri, docOf, spriteDoc } from "./svg";
+import type { Frame, Sprite } from "./svg";
 
 const rasterize = async (svg: string, width: number, height: number) => {
   try {
@@ -23,7 +23,9 @@ export interface Layer {
   frame: Frame;
 }
 
-export const createAtlas = (sprites: readonly Sprite[]) => {
+type Backdrop = (width: number, height: number, frame: Frame) => string;
+
+export const createAtlas = (sprites: readonly Sprite[], backdrop: Backdrop) => {
   const bitmaps = new Map<Sprite, HTMLCanvasElement>();
   let scale = 0;
   let wanted = "";
@@ -78,7 +80,7 @@ export const createAtlas = (sprites: readonly Sprite[]) => {
           { h: height, w: width, x: 0, y: 0 },
           width * dpr,
           height * dpr,
-          backdrop(width, height, frame, false)
+          backdrop(width, height, frame)
         ),
         width * dpr,
         height * dpr,
