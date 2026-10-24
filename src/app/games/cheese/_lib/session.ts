@@ -76,7 +76,8 @@ export const startSession = (
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const render = createRenderer(canvas, calm);
   const sound = createSound();
-  const dish = dishes[challenge?.dish ?? dishOfDay(Date.now())];
+  const dishNow = () => dishes[challenge?.dish ?? dishOfDay(Date.now())];
+  let dish = dishNow();
   let save = loadSave();
   let settings = loadSettings();
   let stage: Stage = "idle";
@@ -339,6 +340,12 @@ export const startSession = (
   };
 
   const idle = (clock: number) => {
+    const today = dishNow();
+    if (today !== dish) {
+      dish = today;
+      demo = createRun(dish, 7);
+      on.dish(dish.id);
+    }
     const wave = (1 - Math.cos(clock * 1.05)) / 2;
     const { rest } = frameOf(canvas.clientWidth, canvas.clientHeight);
     demo.length = 3 * (1 + 0.6 * wave);
