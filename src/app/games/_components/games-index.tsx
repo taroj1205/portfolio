@@ -100,7 +100,7 @@ const styles = stylex.create({
     display: "grid",
     gap: { default: "1.5rem", [media.stack]: "0.75rem" },
     gridTemplateColumns: {
-      default: null,
+      default: "repeat(3, minmax(0, 1fr))",
       [media.stack]: "repeat(2, minmax(0, 1fr))",
     },
     listStyle: "none",
