@@ -354,6 +354,14 @@ const styles = stylex.create({
     fontSize: "0.95rem",
     fontWeight: 600,
   },
+  keys: {
+    color: ink.soft,
+    display: {
+      default: "none",
+      "@media (hover: hover) and (pointer: fine)": "block",
+    },
+    fontSize: "0.75rem",
+  },
   finger: {
     animationDuration: "1.8s",
     animationIterationCount: "infinite",
@@ -627,6 +635,9 @@ export const Hud = ({
         <div {...stylex.props(styles.hint)}>
           {phase === "ready" ? <span {...stylex.props(styles.finger)} /> : null}
           <span {...stylex.props(styles.hintText)}>{hint}</span>
+          {phase === "ready" || phase === "flying" ? (
+            <span {...stylex.props(styles.keys)}>{copy.keys[phase]}</span>
+          ) : null}
         </div>
       )}
     </div>
