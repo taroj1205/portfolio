@@ -26,6 +26,7 @@ const STARS = Array.from({ length: 120 }, (_, i) => {
   const b = Math.sin(i * 78.233) * 12_543.1234;
   const u = a - Math.floor(a);
   const v = b - Math.floor(b);
+
   return {
     o: 0.25 + ((u * 7) % 1) * 0.55,
     r: 0.5 + ((v * 5) % 1) * 1.4,
@@ -62,6 +63,7 @@ export const GET = async (request: NextRequest) => {
   const dare = result ? words.challenge.dare : "";
   const seal = rank?.seal ?? ["円", "相"];
   const headlineSize = result ? { size: 150, spacing: 0 } : pitchSize[lang];
+
   const font = await loadMincho(
     `${headline}${caption}${line}${dare}${seal.join("")}%${copy.ja.name}ひとふでのつき${copy.en.name}`
   );

@@ -41,14 +41,17 @@ export const percentOf = (carving: Carving) =>
 
 const touch = (carving: Carving, at: Point) => {
   let nearest = Infinity;
+
   for (const [i, notch] of carving.mould.outline.entries()) {
     const gap = Math.hypot(notch.x - at.x, notch.y - at.y);
     nearest = Math.min(nearest, gap);
+
     if (gap <= REACH && !carving.carved[i]) {
       carving.carved[i] = true;
       carving.count += 1;
     }
   }
+
   return nearest;
 };
 
@@ -71,23 +74,29 @@ export const scratch = (
   if (carving.over) {
     return [];
   }
+
   const snaps: Snap[] = [];
   const moved = Math.hypot(to.x - from.x, to.y - from.y);
   const steps = Math.max(1, Math.ceil(moved / STEP));
   const rush = (Math.max(0, moved - SAFE * seconds) / SAFE) * RUSH;
+
   for (let i = 1; i <= steps; i += 1) {
     const at = {
       x: from.x + ((to.x - from.x) * i) / steps,
       y: from.y + ((to.y - from.y) * i) / steps,
     };
+
     const off = touch(carving, at) - LINE;
     carving.touching ||= off <= 0;
+
     if (carving.touching) {
       const stray = STRAY * Math.min(1, Math.max(0, off) / LINE);
       carving.tension += (rush + moved * stray) / steps;
     }
   }
+
   warnings(carving, to, snaps);
+
   if (carving.count === NOTCHES) {
     carving.over = true;
     snaps.push({ type: "clear" });
@@ -96,6 +105,7 @@ export const scratch = (
     carving.over = true;
     snaps.push({ at: to, type: "break" });
   }
+
   return snaps;
 };
 
@@ -107,7 +117,9 @@ export const rest = (carving: Carving, seconds: number) => {
   if (carving.over) {
     return;
   }
+
   carving.tension = Math.max(0, carving.tension - EASE * seconds);
+
   while (
     carving.warned > 0 &&
     carving.tension < WARNINGS[carving.warned - 1] - REARM

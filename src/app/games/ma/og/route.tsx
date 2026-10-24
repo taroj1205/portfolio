@@ -38,6 +38,7 @@ const ZOOM = 50;
 
 const roll = (i: number, salt: number) => {
   const value = Math.sin(i * 12.9898 + salt * 78.233) * 43_758.5453;
+
   return value - Math.floor(value);
 };
 
@@ -51,14 +52,17 @@ const FLAKES = Array.from({ length: 140 }, (_, i) => ({
 const ridge = (base: number, height: number, salt: number) => {
   const points = Array.from({ length: 61 }, (_, i) => {
     const u = i / 60;
+
     const y =
       base -
       height *
         (0.5 +
           0.3 * Math.sin(u * 5.1 + salt) +
           0.2 * Math.sin(u * 13.7 + salt * 2));
+
     return `${(u * W).toFixed(1)},${y.toFixed(1)}`;
   });
+
   return `M0,${H} L${points.join(" L")} L${W},${H} Z`;
 };
 
@@ -99,11 +103,14 @@ const Ruler = ({ gap, label }: { gap: number; label: string }) => {
   const span = (RULER.right - RULER.left) / 2;
   const near = Math.max(-ZOOM, Math.min(ZOOM, gap));
   const pin = RULER.mid + (near / ZOOM) * span;
+
   const ticks = Array.from(
     { length: (ZOOM / 5) * 2 + 1 },
     (_, i) => i * 5 - ZOOM
   );
+
   const color = gap === 0 ? ink.gold : ink.gap;
+
   return (
     <div
       style={{
@@ -127,6 +134,7 @@ const Ruler = ({ gap, label }: { gap: number; label: string }) => {
         {ticks.map((step) => {
           const x = RULER.mid + (step / ZOOM) * span;
           const size = step % 10 === 0 ? 16 : 8;
+
           return (
             <line
               key={step}
@@ -217,6 +225,7 @@ interface Face {
 
 const faceOf = (result: Result | null, lang: Lang): Face => {
   const words = copy[lang];
+
   if (result === null) {
     return {
       ...pitch[lang],
@@ -229,8 +238,10 @@ const faceOf = (result: Result | null, lang: Lang): Face => {
       tag: words.modes.standard,
     };
   }
+
   const gap = gapOf(result);
   const rank = rankOf(gap);
+
   const shared = {
     caption: rank.name[lang],
     dare: gap === 0 ? words.challenge.match : words.challenge.dare,
@@ -238,6 +249,7 @@ const faceOf = (result: Result | null, lang: Lang): Face => {
     gap,
     rank,
   };
+
   return result.day === null
     ? {
         ...shared,
@@ -260,9 +272,12 @@ export const GET = async (request: NextRequest) => {
   const result = readResult(params);
   const lang = langFrom(request.nextUrl.searchParams.get("l") ?? undefined);
   const { unit } = copy[lang];
+
   const { tag, headline, side, caption, detail, dare, center, gap, rank } =
     faceOf(result, lang);
+
   const perfect = rank?.level === PERFECT;
+
   const font = await loadMincho(
     `${headline}${unit}${caption}${detail}${dare}${tag}${side}${center}${copy.ja.name}むおんのじゅうびょう${copy.en.name}0123456789.+−±`
   );

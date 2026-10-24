@@ -1,17 +1,23 @@
 import type { Text } from "../../_lib/i18n";
 
 export const skies = ["dusk", "dawn", "night"] as const;
+
 export type Sky = (typeof skies)[number];
 
 export const boosts = ["duck", "rock", "fish", "lotus", "dragonfly"] as const;
+
 export type Boost = (typeof boosts)[number];
+
 export const events = [...boosts, "wall"] as const;
+
 export type Event = (typeof events)[number];
 
 export const endings = ["plop", "sink", "leaf"] as const;
+
 export type Ending = (typeof endings)[number];
 
 export const grades = ["perfect", "good", "early", "miss"] as const;
+
 export type Grade = (typeof grades)[number];
 
 export type Coast =
@@ -80,6 +86,7 @@ export interface Vec {
   y: number;
   z: number;
 }
+
 export interface Prop {
   kind: "duck" | "leaf" | "rock" | "lotus" | "dragonfly";
   x: number;
@@ -87,16 +94,19 @@ export interface Prop {
   z: number;
   turn: number;
 }
+
 export interface River {
   seed: number;
   sky: Sky;
   shore: number;
 }
+
 export interface ThrowInput {
   speed: number;
   tilt: number;
   aim: number;
 }
+
 export interface Splash {
   time: number;
   x: number;
@@ -107,6 +117,7 @@ export interface Splash {
   event: Event | null;
   combo: number;
 }
+
 interface Bump {
   kind: Event;
   prop: Prop | null;
@@ -155,11 +166,13 @@ const SEGMENT = 30;
 const SINK = 3;
 const HOP = 4.5;
 const MODULUS = 2_147_483_647;
+
 const BODY = {
   dragonfly: { half: 0.3, radius: 0.5, push: 1.25, rise: 2.5 },
   duck: { half: 0.4, radius: 0.45, push: 1.3, rise: 4 },
   rock: { half: 0.5, radius: 0.6, push: 1.5, rise: 6.5 },
 };
+
 type Solid = Prop & { kind: keyof typeof BODY };
 
 const solid = (prop: Prop): prop is Solid => prop.kind in BODY;
@@ -172,19 +185,23 @@ const seedOf = (seed: number) =>
 
 export const randomFrom = (seed: number) => {
   let state = seedOf(seed);
+
   return () => {
     state = (state * 48_271) % MODULUS;
+
     return (state - 1) / (MODULUS - 1);
   };
 };
 
 const roll = (flight: Flight) => {
   flight.roll = (flight.roll * 48_271) % MODULUS;
+
   return (flight.roll - 1) / (MODULUS - 1);
 };
 
 export const createRiver = (seed: number): River => {
   const random = randomFrom(seed);
+
   return {
     seed,
     shore: 6 + random() * 2,
@@ -196,35 +213,45 @@ const segmentProps = (river: River, index: number): Prop[] => {
   if (index < 0) {
     return [];
   }
+
   const random = randomFrom(river.seed * 31 + index * 7919 + 17);
   const lane = shoreAt(river, index * SEGMENT) - 1.2;
   const props: Prop[] = [];
+
   const add = (kind: Prop["kind"], x: number, z: number, y = 0) => {
     if (z > 8) {
       props.push({ kind, turn: random() * Math.PI * 2, x, y, z });
     }
   };
+
   const spot = (): [number, number] => [
     (random() - 0.5) * 2 * lane,
     index * SEGMENT + random() * SEGMENT,
   ];
+
   if (random() < 0.35) {
     add("duck", ...spot());
   }
+
   if (random() < 0.3) {
     add("rock", ...spot());
   }
+
   if (random() < 0.6) {
     const [cx, cz] = spot();
     const pads = 3 + Math.floor(random() * 4);
+
     for (let i = 0; i < pads; i += 1) {
       add("lotus", cx + (random() - 0.5) * 3, cz + (random() - 0.5) * 3);
     }
   }
+
   const leaves = Math.floor(random() * 3);
+
   for (let i = 0; i < leaves; i += 1) {
     add("leaf", ...spot());
   }
+
   if (random() < 0.25) {
     add(
       "dragonfly",
@@ -232,12 +259,14 @@ const segmentProps = (river: River, index: number): Prop[] => {
       random() < 0.7 ? 0.2 + random() * 0.3 : 0.7 + random() * 0.6
     );
   }
+
   return props;
 };
 
 export const propsIn = (river: River, from: number, to: number) => {
   const props: Prop[] = [];
   const last = Math.floor(to / SEGMENT);
+
   for (let index = Math.floor(from / SEGMENT); index <= last; index += 1) {
     for (const prop of segmentProps(river, index)) {
       if (prop.z >= from && prop.z <= to) {
@@ -245,6 +274,7 @@ export const propsIn = (river: River, from: number, to: number) => {
       }
     }
   }
+
   return props;
 };
 
@@ -275,6 +305,7 @@ const grit = (hold: number) => 0.8 + 0.06 * hold;
 export const qualityOf = (input: ThrowInput) => {
   const angle = Math.exp(-(((input.tilt - 20) / 6) ** 2));
   const arm = Math.min(1, Math.max(0, (input.speed - 5) / 11)) ** 1.5;
+
   return Math.round(angle * arm * 100);
 };
 
@@ -298,26 +329,33 @@ const contact = (hop: Hop, prop: Solid) => {
   const body = BODY[prop.kind];
   const { x, z } = hop.velocity;
   const along = x * x + z * z;
+
   const closest =
     along === 0
       ? 0
       : ((prop.x - hop.from.x) * x + (prop.z - hop.from.z) * z) / along;
+
   const gap = Math.hypot(
     hop.from.x + x * closest - prop.x,
     hop.from.z + z * closest - prop.z
   );
+
   if (gap >= body.radius) {
     return null;
   }
+
   const reach =
     along === 0
       ? Number.POSITIVE_INFINITY
       : Math.sqrt(body.radius ** 2 - gap ** 2) / Math.sqrt(along);
+
   const end = Math.min(hop.end - hop.start, closest + reach);
   const start = Math.max(0, closest - reach);
   const step = Math.min(STEP, (end - start) / 16);
+
   for (let t = start; t < end; t += step) {
     const p = positionIn(hop, t);
+
     if (
       Math.abs(p.y - prop.y) < body.half &&
       Math.hypot(p.x - prop.x, p.z - prop.z) < body.radius
@@ -325,6 +363,7 @@ const contact = (hop: Hop, prop: Solid) => {
       return t;
     }
   }
+
   return null;
 };
 
@@ -347,8 +386,10 @@ const wallTime = (river: River, from: Vec, velocity: Vec) => {
   if (velocity.x === 0) {
     return null;
   }
+
   const edge = Math.sign(velocity.x) * (shoreAt(river, from.z) - WALL);
   const t = Math.max(0, (edge - from.x) / velocity.x);
+
   return isOpen(from.z + velocity.z * t) ? null : t;
 };
 
@@ -368,6 +409,7 @@ const ricochet = (flight: Flight, hop: Hop, t: number) => {
     z: at.z,
   });
   const falling = hop.velocity.y - GRAVITY * t;
+
   return {
     at,
     velocity: {
@@ -385,17 +427,21 @@ const fly = (flight: Flight, from: Vec, velocity: Vec, start: number): void => {
     start,
     velocity,
   };
+
   const reach = from.z + velocity.z * (hop.end - start);
   const wall = wallTime(flight.river, from, velocity);
   let struck: { prop: Solid; t: number } | null = null;
+
   for (const prop of propsIn(flight.river, from.z - 1, reach + 1).filter(
     solid
   )) {
     const t = bumped(flight, prop) ? null : contact(hop, prop);
+
     if (t !== null && (struck === null || t < struck.t)) {
       struck = { prop, t };
     }
   }
+
   if (
     wall !== null &&
     wall < hop.end - start &&
@@ -403,12 +449,16 @@ const fly = (flight: Flight, from: Vec, velocity: Vec, start: number): void => {
   ) {
     const bounce = ricochet(flight, hop, wall);
     fly(flight, bounce.at, bounce.velocity, hop.end);
+
     return;
   }
+
   if (struck === null) {
     flight.hops.push(hop);
+
     return;
   }
+
   hop.end = start + struck.t;
   flight.hops.push(hop);
   flight.pending = struck.prop;
@@ -422,6 +472,7 @@ export const launch = (
   const hold = grip(input.tilt);
   const quality = qualityOf(input);
   const speed = input.speed * traits.speed * (1 + 4 * (quality / 100) ** 8);
+
   const flight: Flight = {
     bestCombo: 0,
     bumps: [],
@@ -447,6 +498,7 @@ export const launch = (
     tilt: input.tilt,
     top: traits.top,
   };
+
   fly(
     flight,
     HAND,
@@ -457,6 +509,7 @@ export const launch = (
     },
     0
   );
+
   return flight;
 };
 
@@ -465,6 +518,7 @@ const NARROWEST = 3.6;
 export const windowFor = (flight: Flight) => {
   const shrink =
     Math.min(NARROWEST, 1 + flight.skips * 0.06) / flight.focusScale;
+
   return { good: flight.good / shrink, perfect: flight.perfect / shrink };
 };
 
@@ -474,6 +528,7 @@ export const nextContact = (flight: Flight) =>
 export const isLate = (flight: Flight, landedAt: number, time: number) => {
   const since = time - landedAt;
   const next = nextContact(flight);
+
   return (
     since <= windowFor(flight).good && (next === null || since <= next - time)
   );
@@ -483,14 +538,18 @@ const gradeFor = (flight: Flight, tapAt: number | null, time: number) => {
   if (tapAt === null) {
     return "miss";
   }
+
   const early = time - tapAt;
   const window = windowFor(flight);
+
   if (early >= 0 && early <= window.perfect) {
     return "perfect";
   }
+
   if (early >= 0 && early <= window.good) {
     return "good";
   }
+
   return "early";
 };
 
@@ -511,6 +570,7 @@ export const surgeTier = (streak: number) =>
 
 const surge = (flight: Flight, speed: number) => {
   const tier = surges[surgeTier(flight.streak) - 1];
+
   return tier === undefined
     ? 1
     : Math.max(1, Math.min(tier.boost, tier.ceiling / speed));
@@ -531,11 +591,13 @@ const rate = (flight: Flight, grade: Grade, forgiving = false) => {
   } else if (!(forgiving && grade === "miss")) {
     flight.streak = 0;
   }
+
   if (grade === "perfect" || grade === "good") {
     flight.combo += 1;
   } else if (!forgiving) {
     flight.combo = 0;
   }
+
   flight.bestCombo = Math.max(flight.bestCombo, flight.combo);
 };
 
@@ -564,9 +626,11 @@ const bounce = (
     z: at.z,
   });
   const speed = Math.hypot(hop.velocity.x, hop.velocity.z);
+
   const push =
     fade(flight, speed, 1 + (body.push - 1) * flight.impact) *
     GAIN[grade](flight, speed);
+
   fly(
     flight,
     at,
@@ -581,13 +645,17 @@ const bounce = (
 
 export const land = (flight: Flight, tapAt: number | null) => {
   const hop = flight.hops.at(-1);
+
   if (hop === undefined || flight.ending !== null) {
     return;
   }
+
   if (flight.pending !== null) {
     bounce(flight, hop, flight.pending, tapAt);
+
     return;
   }
+
   const time = hop.end;
   const at = { ...positionIn(hop, time - hop.start), y: 0 };
   const speed = Math.hypot(hop.velocity.x, hop.velocity.z);
@@ -596,8 +664,10 @@ export const land = (flight: Flight, tapAt: number | null) => {
 
   if (leaf !== undefined) {
     finish(flight, "leaf", at, { x: leaf.x, y: 0.02, z: leaf.z });
+
     return;
   }
+
   if (!lotus && speed < SINK) {
     flight.splashes.push({
       big: true,
@@ -610,6 +680,7 @@ export const land = (flight: Flight, tapAt: number | null) => {
       z: at.z,
     });
     finish(flight, flight.skips === 0 ? "plop" : "sink", at, null);
+
     return;
   }
 
@@ -618,11 +689,13 @@ export const land = (flight: Flight, tapAt: number | null) => {
   flight.skips += 1;
   rate(flight, grade);
   let boost: Boost | null = null;
+
   if (lotus) {
     boost = "lotus";
   } else if (carp) {
     boost = "fish";
   }
+
   flight.splashes.push({
     big: false,
     combo: flight.combo,
@@ -633,12 +706,14 @@ export const land = (flight: Flight, tapAt: number | null) => {
     y: 0,
     z: at.z,
   });
+
   if (carp) {
     flight.bumps.push({ at, kind: "fish", prop: null, time });
   }
 
   let factor = GAIN[grade](flight, speed);
   let rise = 1;
+
   if (lotus) {
     factor *= fade(flight, speed, 1.2);
     rise = 2.4;
@@ -646,6 +721,7 @@ export const land = (flight: Flight, tapAt: number | null) => {
     factor *= fade(flight, speed, 1.4);
     rise = 3;
   }
+
   const forward = speed * factor * (1 + (roll(flight) - 0.5) * 0.04);
   const scale = forward / speed;
   const kicked = rise > 1 ? kick(flight, speed) : 1;
@@ -669,6 +745,7 @@ const paceOf = (hop: Hop) => Math.hypot(hop.velocity.x, hop.velocity.z);
 
 export const speedAt = (flight: Flight, time: number) => {
   const hop = flight.hops.find((h) => time < h.end) ?? flight.hops.at(-1);
+
   return hop === undefined ? 0 : paceOf(hop);
 };
 
@@ -685,13 +762,17 @@ export const ringTipDue = (
 
 export const stoneAt = (flight: Flight, time: number): Vec | null => {
   const hop = flight.hops.find((h) => time < h.end);
+
   if (hop !== undefined) {
     return positionIn(hop, Math.max(0, time - hop.start));
   }
+
   if (flight.ending !== null) {
     return flight.rest;
   }
+
   const last = flight.hops.at(-1);
+
   return last === undefined
     ? null
     : { ...positionIn(last, last.end - last.start), y: 0 };

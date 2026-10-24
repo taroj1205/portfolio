@@ -17,6 +17,7 @@ const BLADE =
 export const knifeSvg = (tip: Point, toward: Point) => {
   const angle =
     (Math.atan2(toward.y - tip.y, toward.x - tip.x) * 180) / Math.PI + 180;
+
   return (
     <g
       transform={`translate(${tip.x.toFixed(4)} ${tip.y.toFixed(4)}) rotate(${angle.toFixed(2)})`}

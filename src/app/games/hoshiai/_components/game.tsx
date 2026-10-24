@@ -39,12 +39,15 @@ const shoutOf = (merge: Merge, lang: Lang): Omit<Shout, "id"> | null => {
   if (merge.made === null) {
     return { gold: true, text: `${copy[lang].result.galaxy}！` };
   }
+
   if (merge.chain > 1) {
     return { gold: true, text: copy[lang].chain(merge.chain) };
   }
+
   if (merge.made >= TIER.saturn) {
     return { gold: merge.made === TOP, text: kindOf(merge.made).name[lang] };
   }
+
   return null;
 };
 
@@ -67,14 +70,17 @@ export const Game = ({
   const [drops, setDrops] = useState(0);
   const [alert, setAlert] = useState(false);
   const [shout, setShout] = useState<Shout | null>(null);
+
   const [banner, setBanner] = useState<{ id: number; tier: number } | null>(
     null
   );
+
   const [ending, setEnding] = useState<Ending | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const lang = settings?.lang ?? hint;
   const picking = settings?.lang === null;
+
   const share =
     save === null || save.runs === 0 || save.top < 0
       ? null
@@ -87,10 +93,13 @@ export const Game = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
+
     const nextId = () => {
       shouts.current += 1;
+
       return shouts.current;
     };
+
     session.current =
       canvas === null
         ? null
@@ -99,6 +108,7 @@ export const Game = ({
               if (vignette.current) {
                 vignette.current.style.opacity = String(level);
               }
+
               setAlert(level > ALERT);
             },
             discover: (tier) => {
@@ -109,6 +119,7 @@ export const Game = ({
             },
             merge: (merge) => {
               const call = shoutOf(merge, langRef.current);
+
               if (call !== null) {
                 setShout({ ...call, id: nextId() });
               }
@@ -121,6 +132,7 @@ export const Game = ({
             score: setScore,
             settings: setSettings,
           });
+
     return () => {
       session.current?.stop();
       session.current = null;

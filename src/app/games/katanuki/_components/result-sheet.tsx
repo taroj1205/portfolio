@@ -183,22 +183,28 @@ const versus = (result: Result, challenge: Result, lang: Lang) => {
   const words = copy[lang].result;
   const mine = scoreOf(result);
   const theirs = scoreOf(challenge);
+
   if (mine > theirs) {
     return { strong: true, text: words.won };
   }
+
   if (mine < theirs) {
     return { strong: false, text: words.lost };
   }
+
   return { strong: true, text: words.tied };
 };
 
 const nextText = (result: Result, lang: Lang) => {
   const words = copy[lang].result;
   const next = nextOf(result);
+
   if (next === null) {
     return words.top;
   }
+
   const name = next.rank.name[lang];
+
   return next.time === null
     ? words.further(name, next.carved)
     : words.faster(name, formatTime(next.time));
@@ -225,14 +231,17 @@ export const ResultSheet = ({
   const best = save.best[result.mould] ?? null;
   const against = challenge === null ? null : versus(result, challenge, lang);
   const again = useRef<HTMLButtonElement>(null);
+
   const focus = () => {
     again.current?.focus({ preventScroll: true });
   };
+
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
       again.current?.focus({ preventScroll: true });
     }
   }, []);
+
   return (
     <section
       aria-labelledby="katanuki-result"

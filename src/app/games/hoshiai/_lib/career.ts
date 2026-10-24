@@ -22,10 +22,13 @@ export const readCareer = (
   params: Record<string, string | string[] | undefined>
 ): Save | null => {
   const parsed = shared.safeParse(params);
+
   if (!parsed.success) {
     return null;
   }
+
   const { b, c, g, m, r, t } = parsed.data;
+
   return { best: b, chain: c, galaxies: g, merges: m, runs: r, top: t };
 };
 
@@ -47,6 +50,7 @@ export const careerShare = (
   const query = new URLSearchParams(careerQuery(career));
   query.set("l", lang);
   const best = scoreText(career.best, lang);
+
   return {
     image: `${origin}/games/hoshiai/og?${query.toString()}`,
     text: [

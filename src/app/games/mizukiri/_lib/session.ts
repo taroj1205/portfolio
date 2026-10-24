@@ -97,6 +97,7 @@ const newSeed = () => crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
 const rateAt = (flight: Flight, time: number) => {
   const first = flight.hops.at(0);
   const opening = first !== undefined && time < Math.min(0.3, first.end - 0.15);
+
   return flight.quality === 100 && opening ? SLOW : 1;
 };
 
@@ -109,10 +110,12 @@ export const startSession = (
   const draw = createRenderer(surfaces);
   const sound = createSound();
   let all = loadProfiles();
+
   if (challenged && all.mode !== "duel") {
     all = { ...all, mode: "duel" };
     storeProfiles(all);
   }
+
   let save = viewOf(all);
   let settings = loadSettings();
   let river = createRiver(newSeed());
@@ -154,14 +157,19 @@ export const startSession = (
   const stopFlick = listenFlick(canvas, {
     release: (input) => {
       sound.unlock();
+
       if (mode !== "aiming") {
         return;
       }
+
       aimFrom = null;
+
       if (input === null) {
         enter("ready");
+
         return;
       }
+
       flight = launch(river, input, traitsFor(save));
       time = 0;
       tap = null;
@@ -178,16 +186,20 @@ export const startSession = (
         if (flight === null) {
           return;
         }
+
         if (isLate(flight, landedAt, time)) {
           on.late();
         } else {
           tap ??= time;
         }
+
         return;
       }
+
       if (mode !== "ready") {
         return;
       }
+
       sound.unlock();
       aimFrom = performance.now();
       enter("aiming");
@@ -197,18 +209,23 @@ export const startSession = (
   const play = (splash: Splash) => {
     if (splash.big) {
       sound.splash(skips, null);
+
       return;
     }
+
     if (splash.grade !== null && !isBounce(splash.event)) {
       skips += 1;
       sound.splash(skips, splash.grade);
     }
+
     if (splash.event !== null) {
       sound.event(splash.event);
     }
+
     if (splash.grade === "perfect" || splash.event !== null) {
       navigator.vibrate?.(splash.event === null ? 12 : 30);
     }
+
     on.beat({
       event: splash.event,
       combo: splash.combo,
@@ -222,6 +239,7 @@ export const startSession = (
     const settled = settle(save, done);
     let next: Save = settled.save;
     let gain: Gain | null = null;
+
     if (save.mode === "journey" && settled.save.mode === "journey") {
       const earned = earn(save, settled.save, done);
       next = earned.save;
@@ -231,7 +249,9 @@ export const startSession = (
         unlocked: earned.unlocked,
       };
     }
+
     keep(next);
+
     if (
       settled.record ||
       (gain !== null && (gain.climbed > 0 || gain.unlocked.length > 0))
@@ -240,13 +260,16 @@ export const startSession = (
     } else {
       sound.reward();
     }
+
     const top = topSpeed(done);
     const ringTip = ringTipDue(settings.distantRing, settings.ringTipSeen, top);
+
     if (ringTip) {
       settings = { ...settings, ringTipSeen: true };
       storeSettings(settings);
       on.settings(settings);
     }
+
     on.land({
       combo: done.bestCombo,
       gain,
@@ -260,6 +283,7 @@ export const startSession = (
 
   const advance = (current: Flight, dt: number) => {
     time += dt * rateAt(current, time);
+
     for (
       let contact = nextContact(current);
       contact !== null && contact <= time;
@@ -269,6 +293,7 @@ export const startSession = (
       landedAt = contact;
       tap = null;
     }
+
     for (
       let next = current.splashes[heard];
       next !== undefined && next.time <= time;
@@ -277,13 +302,17 @@ export const startSession = (
       play(next);
       heard += 1;
     }
+
     if (current.ending !== null && !ended && time >= current.duration) {
       ended = true;
+
       if (current.ending === "leaf") {
         sound.leaf();
       }
+
       on.end(current.ending);
     }
+
     const z = Math.max(0, stoneAt(current, time)?.z ?? current.distance);
     on.distance(z);
     on.speed(
@@ -292,10 +321,12 @@ export const startSession = (
         : speedAt(current, time)
     );
     const zone = zoneIndex(z);
+
     if (zone > reached) {
       reached = zone;
       on.zone(zones[zone]?.name ?? { en: "", ja: "" });
     }
+
     if (
       mode === "flying" &&
       current.ending !== null &&
@@ -306,12 +337,15 @@ export const startSession = (
   };
 
   let frame = 0;
+
   const tick = (now: number) => {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
+
     if (flight) {
       advance(flight, dt);
     }
+
     draw({
       clock: now / 1000,
       river,
@@ -324,18 +358,21 @@ export const startSession = (
     });
     frame = requestAnimationFrame(tick);
   };
+
   frame = requestAnimationFrame(tick);
 
   return {
     again: reset,
     wear: (part: Part, id: string) => {
       const next = wear(save, part, id);
+
       if (next) {
         keep(next);
       }
     },
     wearCombo: (id: string) => {
       const next = save.mode === "journey" ? wearCombo(save, id) : null;
+
       if (next) {
         keep(next);
       }
@@ -344,7 +381,9 @@ export const startSession = (
       if (save.mode !== "duel") {
         return;
       }
+
       const tuning = tune(save.tuning, key, step);
+
       if (tuning) {
         keep({ ...save, tuning });
       }
@@ -353,7 +392,9 @@ export const startSession = (
       if (save.mode !== "journey") {
         return;
       }
+
       const gear = spend(save, key, step);
+
       if (gear) {
         keep({ ...save, gear });
       }
@@ -367,6 +408,7 @@ export const startSession = (
     },
     seen: () => {
       const next = save.mode === "journey" ? seen(save) : null;
+
       if (next) {
         keep(next);
       }
@@ -375,6 +417,7 @@ export const startSession = (
       if (next === all.mode) {
         return;
       }
+
       all = { ...all, mode: next };
       save = viewOf(all);
       storeProfiles(all);

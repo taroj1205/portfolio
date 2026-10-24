@@ -12,15 +12,19 @@ const round = (value: number) => Math.round(value * 10) / 10;
 
 const grainOf = (w: number, h: number) => {
   const roll = seeded(1205);
+
   return Array.from({ length: 38 }, (_, i) => {
     const y = (i / 38) * h + (roll() - 0.5) * (h / 30);
     const amp = 2 + roll() * h * 0.012;
     const freq = 0.004 + roll() * 0.006;
     const phase = roll() * Math.PI * 2;
+
     const points = Array.from({ length: 25 }, (__, k) => {
       const x = (k / 24) * (w + 40) - 20;
+
       return `${round(x)} ${round(y + Math.sin(x * freq + phase) * amp + (roll() - 0.5) * 1.6)}`;
     });
+
     return {
       colour: wood.grain[i % wood.grain.length],
       d: `M${points.join("L")}`,
@@ -32,11 +36,13 @@ const grainOf = (w: number, h: number) => {
 
 const marksOf = (w: number, h: number) => {
   const roll = seeded(4242);
+
   return Array.from({ length: 26 }, () => {
     const x = roll() * w;
     const y = roll() * h;
     const a = -0.5 + roll() * 1;
     const length = 14 + roll() * 46;
+
     return `M${round(x)} ${round(y)}l${round(Math.cos(a) * length)} ${round(Math.sin(a) * length)}`;
   });
 };

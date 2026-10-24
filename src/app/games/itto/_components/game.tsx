@@ -117,6 +117,7 @@ export const Game = ({
               view: setView,
             }
           );
+
     return () => {
       session.current?.stop();
       session.current = null;

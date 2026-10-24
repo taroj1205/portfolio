@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, it } from "vite-plus/test";
 
 import { day, compact } from "./format";
 import { getTranslator, isLocale } from "./i18n";
 import messages from "./messages/ja.json";
 
 describe("i18n", () => {
-  test("nested messages resolve through typed dotted keys", () => {
+  it("nested messages resolve through typed dotted keys", () => {
     const t = getTranslator("ja");
     assert.equal(t("contact.title", "Say hi."), messages.contact.title);
     assert.equal(
@@ -20,14 +20,14 @@ describe("i18n", () => {
     );
   });
 
-  test("only supported locales are accepted", () => {
+  it("only supported locales are accepted", () => {
     assert.equal(isLocale("en"), true);
     assert.equal(isLocale("ja"), true);
     assert.equal(isLocale("fr"), false);
     assert.equal(isLocale("toString"), false);
   });
 
-  test("English copy can change without breaking the Japanese translation", () => {
+  it("English copy can change without breaking the Japanese translation", () => {
     const en = getTranslator("en");
     const ja = getTranslator("ja");
     assert.equal(en("contact.title", "Say hi."), "Say hi.");

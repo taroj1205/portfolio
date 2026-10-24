@@ -5,6 +5,7 @@ import { speedOf } from "./physics";
 
 export const formIds = ["standard", "long", "cube", "jumbo"] as const;
 export const coreIds = ["soft", "normal", "hard"] as const;
+
 export const sleeveIds = [
   "blue",
   "red",
@@ -13,13 +14,18 @@ export const sleeveIds = [
   "black",
   "pink",
 ] as const;
+
 export const patternIds = ["bands", "plain", "dots", "check"] as const;
 export const rubberIds = ["white", "sakura", "sky", "lemon"] as const;
 
 export type FormId = (typeof formIds)[number];
+
 export type CoreId = (typeof coreIds)[number];
+
 export type SleeveId = (typeof sleeveIds)[number];
+
 export type PatternId = (typeof patternIds)[number];
+
 export type RubberId = (typeof rubberIds)[number];
 
 export interface Size {
@@ -142,6 +148,7 @@ export const designFrom = (code: string): Design | null => {
   if (!/^\d{5}$/u.test(code)) {
     return null;
   }
+
   const design = {
     core: at(coreIds, code, 1),
     form: at(formIds, code, 0),
@@ -149,6 +156,7 @@ export const designFrom = (code: string): Design | null => {
     rubber: at(rubberIds, code, 4),
     sleeve: at(sleeveIds, code, 2),
   };
+
   return Object.values(design).includes(undefined)
     ? null
     : designSchema.parse(design);
@@ -164,6 +172,7 @@ export interface Body extends Size {
 export const bodyOf = (design: Design): Body => {
   const size = forms[design.form];
   const core = cores[design.core];
+
   return {
     bounce: core.bounce,
     d: size.d,
@@ -200,6 +209,7 @@ export type StatKey = (typeof statKeys)[number];
 
 export const statsOf = (design: Design): Record<StatKey, number> => {
   const body = bodyOf(design);
+
   return {
     bounce: level(body.bounce, ranges.bounce),
     speed: level(speedOf(body, 1), ranges.speed),

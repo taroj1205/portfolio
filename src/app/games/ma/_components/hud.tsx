@@ -317,6 +317,7 @@ interface HudProps {
 export const Hud = ({ lang, playing, muted, onLang, onMute }: HudProps) => {
   const words = copy[lang];
   const other: Lang = lang === "ja" ? "en" : "ja";
+
   return (
     <header {...stylex.props(styles.top)}>
       <div {...stylex.props(styles.brand)}>
@@ -359,12 +360,15 @@ const ChallengeCard = ({
   const gap = gapOf(challenge);
   const off = secondsText(formatGap(gap), lang);
   const rank = rankOf(gap).name[lang];
+
   const paren =
     lang === "en" ? ` (${formatGap(gap)})` : `（${formatGap(gap)}）`;
+
   const title =
     challenge.day === null
       ? `${secondsText(formatTime(challenge.time), lang)}${paren} · ${rank}`
       : `${words.challenge.day(challenge.day)} · ${off} · ${rank}`;
+
   return (
     <div {...stylex.props(glass.surface, styles.challenge)}>
       <span {...stylex.props(styles.label)}>{words.challenge.received}</span>
@@ -406,12 +410,14 @@ export const Prompt = ({
   const words = copy[lang];
   const target = formatTime(plan.target);
   let status: string | null = null;
+
   if (plan.today) {
     status =
       daily === null
         ? words.daily.fresh
         : words.daily.done(formatGap(daily.gap), daily.streak);
   }
+
   return (
     <div {...stylex.props(styles.prompt)}>
       {notice === null ? null : (

@@ -35,7 +35,9 @@ const langOf = async (param: string | string[] | undefined) => {
   if (param !== undefined) {
     return langFrom(param);
   }
+
   const incoming = await headers();
+
   return langFromHeader(incoming.get("accept-language"));
 };
 
@@ -48,16 +50,19 @@ export const generateMetadata = async ({
   const piece = shared === null ? null : pieceOf(shared);
   const query = new URLSearchParams(shared === null ? "" : queryOf(shared));
   query.set("l", lang);
+
   const title =
     piece === null
       ? copy[lang].name
       : `${ratioText(piece.split.small)} · ${kindTitle(piece.food.kind, lang)} · ${rankOf(piece.split.small).name[lang]} | ${copy[lang].name}`;
+
   const image = {
     alt: title,
     height: 630,
     url: `/games/itto/og?${query.toString()}`,
     width: 1200,
   };
+
   return {
     description: DESCRIPTION[lang],
     openGraph: {
@@ -78,6 +83,7 @@ export const generateMetadata = async ({
 
 const Page = async ({ searchParams }: PageProps<"/games/itto">) => {
   const params = await searchParams;
+
   return (
     <div {...stylex.props(styles.page)}>
       <Game challenge={readResult(params)} hint={await langOf(params.l)} />

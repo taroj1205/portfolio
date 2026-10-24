@@ -41,6 +41,7 @@ export const orbDefs = (id: string) => (
 
 const bands = ({ r, x, y, tier }: OrbProps) => {
   const { deep, light } = kindOf(tier);
+
   return [-0.55, -0.22, 0.12, 0.42].map((at, i) => (
     <ellipse
       cx={x}
@@ -71,9 +72,11 @@ export const orbSvg = ({ id, tier, x, y, r }: OrbProps) => {
       r={r * (tier === TIER.sun || tier === TOP ? 2.4 : 1.7)}
     />
   );
+
   if (tier === TIER.stardust) {
     const arm = r * 1.5;
     const waist = r * 0.28;
+
     return (
       <g>
         {glow}
@@ -85,6 +88,7 @@ export const orbSvg = ({ id, tier, x, y, r }: OrbProps) => {
       </g>
     );
   }
+
   if (tier === TOP) {
     const disk = (front: boolean) =>
       [
@@ -101,6 +105,7 @@ export const orbSvg = ({ id, tier, x, y, r }: OrbProps) => {
           strokeWidth={r * layer.width}
         />
       ));
+
     const lens = (top: boolean) => (
       <path
         d={`M${x - r * 1.06} ${y}A${r * 1.06} ${r * 1.14} 0 0 ${top ? 1 : 0} ${x + r * 1.06} ${y}`}
@@ -111,6 +116,7 @@ export const orbSvg = ({ id, tier, x, y, r }: OrbProps) => {
         strokeWidth={r * (top ? 0.16 : 0.08)}
       />
     );
+
     return (
       <g transform={`rotate(-12 ${x} ${y})`}>
         {glow}
@@ -130,6 +136,7 @@ export const orbSvg = ({ id, tier, x, y, r }: OrbProps) => {
       </g>
     );
   }
+
   const ring = (front: boolean) => (
     <path
       d={`M${x - r * 1.85} ${y}A${r * 1.85} ${r * 0.58} 0 0 ${front ? 0 : 1} ${x + r * 1.85} ${y}`}
@@ -140,6 +147,7 @@ export const orbSvg = ({ id, tier, x, y, r }: OrbProps) => {
       transform={`rotate(-16 ${x} ${y})`}
     />
   );
+
   return (
     <g>
       {glow}

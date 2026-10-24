@@ -439,6 +439,7 @@ export const Hud = ({
 }: HudProps) => {
   const words = copy[lang];
   const other: Lang = lang === "ja" ? "en" : "ja";
+
   return (
     <header {...stylex.props(styles.top)}>
       <div {...stylex.props(styles.brand)}>
@@ -488,12 +489,14 @@ export const ScoreSheet = ({
   const words = copy[lang];
   const frames = framesOf(rolls);
   const state = stateOf(rolls);
+
   return (
     <ol aria-label={words.sheet} {...stylex.props(styles.sheet)}>
       {frameSlots.map(({ index, last, boxes }) => {
         const frame = frames.at(index);
         const marks = frame?.marks ?? [];
         const now = !state.over && state.frame === index;
+
         return (
           <li
             aria-current={now ? "step" : undefined}
@@ -514,6 +517,7 @@ export const ScoreSheet = ({
               <span {...stylex.props(styles.boxes)}>
                 {boxes.map((box) => {
                   const mark = marks.at(box) ?? "";
+
                   return (
                     <span
                       key={box}
@@ -552,6 +556,7 @@ export const ChallengeChip = ({
 }) => {
   const words = copy[lang];
   const score = scoreOf(challenge.rolls);
+
   return (
     <div {...stylex.props(glass.surface, styles.challenge)}>
       <span {...stylex.props(styles.challengeThumb)}>
@@ -595,6 +600,7 @@ export const Prompt = ({
   onWorkshop,
 }: PromptProps) => {
   const words = copy[lang];
+
   return (
     <div {...stylex.props(styles.prompt)}>
       <p {...stylex.props(styles.stats)}>

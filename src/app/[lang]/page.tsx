@@ -45,13 +45,17 @@ export const revalidate = 3600;
 const arrive = stylex.keyframes({
   from: { opacity: 0, rotate: "-4deg", translate: "0 96px" },
 });
+
 const thunk = stylex.keyframes({
   from: { opacity: 0, scale: 1.8 },
 });
+
 const surface = stylex.keyframes({
   from: { rotate: "7deg", translate: "0 118%" },
 });
+
 const draw = stylex.keyframes({ from: { strokeDashoffset: 1 } });
+
 const recede = stylex.keyframes({
   to: { [motion.heft]: 250, opacity: 0, scale: 0.92, translate: "0 -30%" },
 });
@@ -418,27 +422,34 @@ const styles = stylex.create({
 
 const Home = async ({ params }: PageProps<"/[lang]">) => {
   const { lang: locale } = await params;
+
   if (!isLocale(locale)) {
     notFound();
   }
+
   const t = getTranslator(locale);
   const greeting = t("hero.greeting", "Hello world,").split(" ");
+
   const heroWords = [
     ...greeting,
     ...t("hero.name", "I'm Shintaro.").split(" "),
   ];
+
   const total = heroWords.join("").length;
   let lineBreak = 0;
   let diff = total;
   let chars = 0;
+
   for (const word of heroWords) {
     chars += word.length;
     const d = Math.abs(total - 2 * chars);
+
     if (d < diff) {
       diff = d;
       lineBreak += 1;
     }
   }
+
   const band: Photo[] = [
     {
       caption: t(
@@ -583,8 +594,10 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
       ),
     },
   ];
+
   const github = await getGitHub();
   const now = new Date(github.updatedAt);
+
   const updated = now.toLocaleString(intlLocale(locale), {
     day: "numeric",
     hour: "numeric",

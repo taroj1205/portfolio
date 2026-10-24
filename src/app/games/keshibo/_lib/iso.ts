@@ -64,6 +64,7 @@ export const isoEraser = (design: Design) => {
       at(face, a1, b1),
       at(face, a0, b1),
     ].map(toScreen);
+
     points.push(...corners);
     plates.push({
       fill: tint(color, face.light),
@@ -77,10 +78,12 @@ export const isoEraser = (design: Design) => {
   const dot = (face: Face, a: number, b: number, radius: number) => {
     const ring = Array.from({ length: 10 }, (_, i) => {
       const angle = (i / 10) * Math.PI * 2;
+
       return toScreen(
         at(face, a + Math.cos(angle) * radius, b + Math.sin(angle) * radius)
       );
     });
+
     plates.push({
       fill: tint(WHITE, face.light),
       opacity: 1,
@@ -91,6 +94,7 @@ export const isoEraser = (design: Design) => {
   const sleeveOn = (face: Face, across: number) => {
     const s = (w / 2) * 0.64;
     rect(face, [-s, s], [-across, across], sleeve);
+
     if (design.pattern === "bands") {
       const third = (2 * across) / 3;
       rect(face, [-s, s], [-across + third, -across + 2 * third], WHITE);
@@ -115,9 +119,11 @@ export const isoEraser = (design: Design) => {
           0.34
         );
       }
+
       rect(face, [-s, s], [-across * 0.18, across * 0.18], WHITE, 0.34);
     } else {
       const radius = Math.min(across, s) * 0.2;
+
       for (const i of [-0.72, -0.24, 0.24, 0.72]) {
         for (const j of [-0.5, 0.5]) {
           dot(face, i * s, j * across, radius);
@@ -132,12 +138,14 @@ export const isoEraser = (design: Design) => {
     u: { x: 1, y: 0, z: 0 },
     v: { x: 0, y: 1, z: 0 },
   };
+
   const front: Face = {
     light: 0.84,
     origin: { x: 0, y: d / 2, z: 0 },
     u: { x: 1, y: 0, z: 0 },
     v: { x: 0, y: 0, z: -1 },
   };
+
   const end: Face = {
     light: 0.7,
     origin: { x: w / 2, y: 0, z: 0 },
@@ -155,6 +163,7 @@ export const isoEraser = (design: Design) => {
   const ys = points.map((p) => p.y);
   const minX = Math.min(...xs);
   const minY = Math.min(...ys);
+
   return {
     height: Math.max(...ys) - minY,
     plates,

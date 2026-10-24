@@ -47,8 +47,10 @@ interface Split {
 
 const seeded = (seed: number) => {
   let state = seed % 2_147_483_647 || 1;
+
   return () => {
     state = (state * 16_807) % 2_147_483_647;
+
     return state / 2_147_483_647;
   };
 };
@@ -59,6 +61,7 @@ const makeCanvas = (size: number) => {
   const canvas = document.createElement("canvas");
   canvas.width = Math.max(1, Math.round(size));
   canvas.height = canvas.width;
+
   return canvas;
 };
 
@@ -70,6 +73,7 @@ const tracePath = (
   if (fresh) {
     ctx.beginPath();
   }
+
   for (const [i, point] of points.entries()) {
     if (i === 0) {
       ctx.moveTo(point.x, point.y);
@@ -107,6 +111,7 @@ const paintCandy = (
   disc(ctx);
   ctx.clip();
   const roll = seeded(4127);
+
   for (let i = 0; i < 900; i += 1) {
     const angle = roll() * Math.PI * 2;
     const reach = Math.sqrt(roll()) * CANDY.r;
@@ -121,6 +126,7 @@ const paintCandy = (
     );
     ctx.fill();
   }
+
   ctx.restore();
 
   ctx.save();
@@ -133,6 +139,7 @@ const paintCandy = (
   ctx.save();
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
+
   const press = (dx: number, dy: number, color: string, width: number) => {
     ctx.save();
     ctx.translate(dx, dy);
@@ -143,6 +150,7 @@ const paintCandy = (
     ctx.stroke();
     ctx.restore();
   };
+
   press(0.0018, 0.0022, paint.grooveLight, 0.0055);
   press(-0.001, -0.0012, paint.grooveDark, 0.0055);
   press(0, 0, paint.groove, 0.0042);
@@ -159,6 +167,7 @@ const jagged = (
   let tip = from;
   let heading = angle;
   let walked = 0;
+
   while (walked < length) {
     const step = 0.008 + roll() * 0.01;
     heading += (roll() - 0.5) * 0.9;
@@ -169,6 +178,7 @@ const jagged = (
     points.push(tip);
     walked += step;
   }
+
   return points;
 };
 
@@ -176,6 +186,7 @@ const splitLine = (at: Point, angle: number, roll: () => number) => {
   const half = (direction: number) => {
     const points: Point[] = [];
     let wobble = 0;
+
     for (let walked = 0.012; walked < 1; walked += 0.014) {
       wobble = Math.max(-0.02, Math.min(0.02, wobble + (roll() - 0.5) * 0.012));
       points.push({
@@ -189,16 +200,20 @@ const splitLine = (at: Point, angle: number, roll: () => number) => {
           Math.cos(angle) * wobble,
       });
     }
+
     return points;
   };
+
   return [...half(-1).toReversed(), at, ...half(1)];
 };
 
 export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const context = canvas.getContext("2d");
+
   if (!context) {
     throw new Error("Canvas 2D is not available");
   }
+
   const ctx = context;
   let size = 0;
   let dpr = 1;
@@ -219,6 +234,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const repaint = () => {
     sprite = makeCanvas(size * dpr);
     const spriteContext = sprite.getContext("2d");
+
     if (spriteContext && mould) {
       unit(spriteContext);
       paintCandy(spriteContext, mould, size * dpr);
@@ -228,9 +244,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const fit = () => {
     const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
     const nextSize = Math.min(canvas.clientWidth, canvas.clientHeight);
+
     if (nextSize === 0 || (nextSize === size && nextDpr === dpr)) {
       return;
     }
+
     size = nextSize;
     dpr = nextDpr;
     canvas.width = Math.round(canvas.clientWidth * dpr);
@@ -243,12 +261,15 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (!carving) {
       return;
     }
+
     const {
       carved,
       mould: { outline },
     } = carving;
+
     target.save();
     target.lineCap = "round";
+
     for (const [color, width, dx] of [
       [paint.carvedLight, GROOVE * 1.25, 0.0016],
       [paint.carved, GROOVE, 0],
@@ -256,15 +277,19 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       target.strokeStyle = color;
       target.lineWidth = width;
       target.beginPath();
+
       for (const [i, point] of outline.entries()) {
         const next = (i + 1) % outline.length;
+
         if (carved[i] && carved[next]) {
           target.moveTo(point.x + dx, point.y + dx);
           target.lineTo(outline[next].x + dx, outline[next].y + dx);
         }
       }
+
       target.stroke();
     }
+
     target.restore();
   };
 
@@ -272,12 +297,15 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     target.save();
     target.lineCap = "round";
     target.lineJoin = "round";
+
     for (const crack of cracks) {
       const grown = calm ? 1 : easeOut((now - crack.born) / 140);
+
       const shown = crack.points.slice(
         0,
         Math.max(2, Math.ceil(crack.points.length * grown))
       );
+
       target.strokeStyle = paint.crackLight;
       target.lineWidth = 0.004;
       target.save();
@@ -290,6 +318,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       tracePath(target, shown);
       target.stroke();
     }
+
     target.restore();
   };
 
@@ -314,6 +343,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     next.width = canvas.width;
     next.height = canvas.height;
     const plateContext = next.getContext("2d");
+
     if (plateContext) {
       plateContext.setTransform(
         dpr * size,
@@ -325,6 +355,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       );
       candy(plateContext, Infinity);
     }
+
     return next;
   };
 
@@ -354,13 +385,16 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (!split || !plate) {
       return;
     }
+
     const t = calm ? 1 : easeOut((now - split.born) / SPLIT);
     const { line, normal } = split;
+
     for (const side of [1, -1]) {
       const far = line.toReversed().map((point) => ({
         x: point.x + normal.x * side * 2,
         y: point.y + normal.y * side * 2,
       }));
+
       drawPlate(
         plate,
         () => {
@@ -381,9 +415,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (!mould || age > GLINT) {
       return;
     }
+
     ctx.save();
     place();
     const roll = seeded(91);
+
     for (let i = 0; i < 14; i += 1) {
       const point = mould.outline[Math.floor(roll() * mould.outline.length)];
       const phase = (age / 900 + roll()) % 1;
@@ -398,6 +434,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.lineTo(point.x - r * 0.35, point.y - 0.03);
       ctx.fill();
     }
+
     ctx.restore();
   };
 
@@ -405,6 +442,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (popped === null || !plate || !mould) {
       return;
     }
+
     const { outline } = mould;
     const t = calm ? 1 : easeOut((now - popped) / POP);
     drawPlate(
@@ -447,6 +485,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       },
       { scale: 1 + 0.05 * t, turn: 0, x: 0, y: -0.025 * t }
     );
+
     if (!calm) {
       glints(now - popped);
     }
@@ -457,6 +496,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.save();
     place();
     ctx.fillStyle = paint.dust;
+
     for (const mote of motes) {
       const age = (now - mote.born) / 1000;
       ctx.globalAlpha = Math.max(0, 1 - age / 0.9);
@@ -470,6 +510,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       );
       ctx.fill();
     }
+
     ctx.restore();
   };
 
@@ -477,16 +518,20 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (!needle) {
       return;
     }
+
     const { at, down, shake } = needle;
     const jitter = calm ? 0 : shake * 0.0025;
+
     const tip = {
       x: at.x + (Math.random() - 0.5) * jitter,
       y: at.y + (Math.random() - 0.5) * jitter,
     };
+
     const end = {
       x: tip.x + Math.cos(NEEDLE_ANGLE) * NEEDLE_LENGTH,
       y: tip.y + Math.sin(NEEDLE_ANGLE) * NEEDLE_LENGTH,
     };
+
     ctx.save();
     place();
     const hover = down ? 0.006 : 0.03;
@@ -499,12 +544,14 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.lineTo(end.x + hover + 0.04, end.y + hover * 0.6 + 0.02);
     ctx.stroke();
     ctx.globalAlpha = down ? 1 : 0.7;
+
     const steel = ctx.createLinearGradient(
       tip.x - 0.006,
       tip.y,
       tip.x + 0.006,
       tip.y
     );
+
     const [shine, mid, dark] = paint.needle;
     steel.addColorStop(0, shine);
     steel.addColorStop(0.5, mid);
@@ -536,6 +583,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     crack: (at: Point, level: number, now: number) => {
       const roll = seeded(Math.floor(now * 1000 + level));
       const away = Math.atan2(at.y - CANDY.y, at.x - CANDY.x);
+
       for (let i = 0; i < 1 + level; i += 1) {
         const side = i % 2 === 0 ? 0 : Math.PI;
         cracks.push({
@@ -548,15 +596,19 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
           ),
         });
       }
+
       cracks = cracks.slice(-24);
     },
     draw: (now: number) => {
       fit();
+
       if (plate === null && (split !== null || popped !== null)) {
         plate = snapshot();
       }
+
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
       if (split) {
         halves(now);
       } else if (popped === null) {
@@ -565,6 +617,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       } else {
         lift(now);
       }
+
       dust(now);
       drawNeedle();
     },
@@ -572,6 +625,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       if (calm || motes.length > 120) {
         return;
       }
+
       motes.push({
         born: now,
         vx: (Math.random() - 0.5) * 0.05,
@@ -589,10 +643,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     },
     reset: (next: Carving) => {
       carving = next;
+
       if (mould !== next.mould) {
         ({ mould } = next);
         repaint();
       }
+
       cracks = [];
       motes = [];
       split = null;

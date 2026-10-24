@@ -2,6 +2,7 @@ import { createAudio } from "../../_lib/audio";
 
 export const createSound = () => {
   let swish: GainNode | null = null;
+
   const { close, mute, tone, unlock } = createAudio((audio, out, noise) => {
     const source = audio.createBufferSource();
     source.buffer = noise;
@@ -34,6 +35,7 @@ export const createSound = () => {
     mute,
     ring: (score: number, record: boolean) => {
       bell(392 + score * 1.6, 0.16, 0);
+
       if (record) {
         bell(784 + score * 3.2, 0.1, 0.32);
       }

@@ -31,6 +31,7 @@ export const createSound = () => {
       });
       tone(92, { at: 0.05, bend: 1.5, length: 0.22, peak: 0.18 });
       const error = errorOf(small);
+
       if (error === 0) {
         tone(1047, { at: 0.32, bend: 1, length: 1.6, peak: 0.08 });
         tone(1568, { at: 0.44, bend: 1, length: 1.4, peak: 0.06 });

@@ -38,6 +38,7 @@ const arc = (
 ) =>
   Array.from({ length: steps + 1 }, (_, i) => {
     const angle = from + ((to - from) * i) / steps;
+
     return { x: cx + Math.cos(angle) * rx, y: cy + Math.sin(angle) * ry };
   });
 
@@ -45,6 +46,7 @@ const polar = (radius: (angle: number) => number, steps = 360) =>
   Array.from({ length: steps }, (_, i) => {
     const angle = -Math.PI / 2 + (i / steps) * Math.PI * 2;
     const r = radius(angle);
+
     return { x: Math.cos(angle) * r, y: Math.sin(angle) * r };
   });
 
@@ -53,6 +55,7 @@ const corners = (count: number, outer: number, inner = outer) =>
     const step = inner === outer ? i * 2 : i;
     const angle = -Math.PI / 2 + (step * Math.PI) / count;
     const r = step % 2 === 0 ? outer : inner;
+
     return { x: Math.cos(angle) * r, y: Math.sin(angle) * r };
   });
 
@@ -62,6 +65,7 @@ const wrap = (angle: number, span: number) =>
 const sakura = polar((angle) => {
   const u = wrap(angle + Math.PI / 2, (Math.PI * 2) / 5);
   const petal = Math.sqrt(Math.max(0, Math.cos((u * 5) / 2)));
+
   return 0.15 + 0.14 * petal - 0.055 * Math.exp(-((u / 0.085) ** 2));
 });
 
@@ -70,14 +74,18 @@ const fishHalf = (t: number) =>
 
 const fish = (() => {
   const steps = 40;
+
   const upper = Array.from({ length: steps + 1 }, (_, i) => {
     const t = i / steps;
+
     return { x: 0.18 + 0.48 * t, y: 0.5 - fishHalf(t) };
   });
+
   const lower = upper.map(({ x }, i) => ({
     x,
     y: 0.5 + fishHalf(i / steps),
   }));
+
   return [
     ...upper,
     { x: 0.82, y: 0.33 },
@@ -89,8 +97,10 @@ const fish = (() => {
 
 const umbrella = (() => {
   const rim = 0.48;
+
   const scallop = (from: number, to: number) =>
     arc((from + to) / 2, rim, (to - from) / 2, 0.035, 0, -Math.PI, 12);
+
   return [
     ...arc(0.5, rim, 0.3, 0.24, Math.PI, Math.PI * 2, 48),
     ...scallop(0.65, 0.8),
@@ -107,10 +117,12 @@ const umbrella = (() => {
 
 const lengthOf = (points: readonly Point[]) => {
   let total = 0;
+
   for (const [i, point] of points.entries()) {
     const next = points[(i + 1) % points.length];
     total += Math.hypot(next.x - point.x, next.y - point.y);
   }
+
   return total;
 };
 
@@ -120,6 +132,7 @@ const fitted = (points: readonly Point[]) => {
   const [left, right] = [Math.min(...xs), Math.max(...xs)];
   const [top, bottom] = [Math.min(...ys), Math.max(...ys)];
   const scale = SIZE / Math.max(right - left, bottom - top);
+
   return points.map(({ x, y }) => ({
     x: 0.5 + (x - (left + right) / 2) * scale,
     y: 0.5 + (y - (top + bottom) / 2) * scale,
@@ -130,10 +143,12 @@ const resample = (points: readonly Point[], count: number) => {
   const total = lengthOf(points);
   const out: Point[] = [];
   let walked = 0;
+
   for (let i = 0; i < points.length && out.length < count; i += 1) {
     const a = points[i];
     const b = points[(i + 1) % points.length];
     const span = Math.hypot(b.x - a.x, b.y - a.y);
+
     while (
       out.length < count &&
       (out.length * total) / count <= walked + span
@@ -141,8 +156,10 @@ const resample = (points: readonly Point[], count: number) => {
       const u = span === 0 ? 0 : ((out.length * total) / count - walked) / span;
       out.push({ x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u });
     }
+
     walked += span;
   }
+
   return out;
 };
 
@@ -153,6 +170,7 @@ const make = (
   points: readonly Point[]
 ): Mould => {
   const outline = resample(fitted(points), NOTCHES);
+
   return { emoji, id, length: lengthOf(outline), name, outline };
 };
 

@@ -6,6 +6,7 @@ const YO = [0, 2, 5, 7, 9];
 const pitch = (step: number) => {
   const capped = Math.min(step, 14);
   const degree = YO[capped % YO.length] ?? 0;
+
   return 587.33 * 2 ** ((degree + 12 * Math.floor(capped / YO.length)) / 12);
 };
 
@@ -98,10 +99,13 @@ export const createSound = () => {
     splash: (step: number, grade: Grade | null) => {
       if (grade === null) {
         plunge();
+
         return;
       }
+
       tone(pitch(step), {});
       spray(2600, 0.5, 0.08);
+
       if (grade === "perfect") {
         tone(pitch(step + 7), {
           at: 0.04,

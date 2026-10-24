@@ -45,6 +45,7 @@ const tenth = (value: number) => Math.round(value * 10) / 10;
 export const settle = (save: Save, { rolls, seconds, at }: Game) => {
   const score = scoreOf(rolls);
   const tally = tallyOf(rolls);
+
   return {
     record: save.runs > 0 && score > save.best,
     save: {

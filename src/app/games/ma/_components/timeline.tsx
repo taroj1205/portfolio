@@ -168,10 +168,12 @@ export const Timeline = ({ lang, target, time, id, onLand }: TimelineProps) => {
   const words = copy[lang].timeline;
   const span = secondsOf(target, time) * 100;
   const at = (value: number) => LEFT + (value / span) * WIDTH;
+
   const ticks = Array.from(
     { length: span / 100 + 1 },
     (_, i) => i * 100
   ).filter((tick) => span <= 2000 || tick % 500 === 0);
+
   const gap = time - target;
   const near = Math.max(-ZOOM, Math.min(ZOOM, gap));
   const pinX = MID + (near / ZOOM) * (WIDTH / 2);
@@ -181,6 +183,7 @@ export const Timeline = ({ lang, target, time, id, onLand }: TimelineProps) => {
   const crowded = at(time) - at(SHOWN) < 24;
   const side = gap > 0 ? "end" : "start";
   const fine = Array.from({ length: ZOOM * 2 + 1 }, (_, i) => i - ZOOM);
+
   return (
     <figure {...stylex.props(styles.figure)}>
       <figcaption {...stylex.props(styles.caption)}>
@@ -355,11 +358,13 @@ export const Timeline = ({ lang, target, time, id, onLand }: TimelineProps) => {
           {fine.map((step) => {
             const x = MID + (step / ZOOM) * (WIDTH / 2);
             let size = 3;
+
             if (step % 10 === 0) {
               size = 9;
             } else if (step % 5 === 0) {
               size = 6;
             }
+
             return (
               <line
                 key={step}

@@ -180,11 +180,14 @@ const rgb = (hex: string): [number, number, number] => [
 
 const compile = (gl: WebGLRenderingContext, type: number, source: string) => {
   const shader = gl.createShader(type);
+
   if (!shader) {
     return null;
   }
+
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
+
   return gl.getShaderParameter(shader, gl.COMPILE_STATUS) === true
     ? shader
     : null;
@@ -192,21 +195,27 @@ const compile = (gl: WebGLRenderingContext, type: number, source: string) => {
 
 export const createWater = (canvas: HTMLCanvasElement) => {
   const gl = canvas.getContext("webgl", { alpha: false, antialias: false });
+
   if (!gl) {
     return null;
   }
+
   const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
   const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT);
   const program = gl.createProgram();
+
   if (!vertex || !fragment) {
     return null;
   }
+
   gl.attachShader(program, vertex);
   gl.attachShader(program, fragment);
   gl.linkProgram(program);
+
   if (gl.getProgramParameter(program, gl.LINK_STATUS) !== true) {
     return null;
   }
+
   gl.useProgram(program);
 
   const quad = gl.createBuffer();
@@ -228,10 +237,12 @@ export const createWater = (canvas: HTMLCanvasElement) => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
     return texture;
   });
 
   const at = (name: string) => gl.getUniformLocation(program, name);
+
   const slots = {
     cam: at("uCam"),
     deep: at("uDeep"),
@@ -255,6 +266,7 @@ export const createWater = (canvas: HTMLCanvasElement) => {
     time: at("uTime"),
     zoom: at("uZoom"),
   };
+
   const ripples = new Float32Array(MAX_RIPPLES * 4);
 
   return {
@@ -275,10 +287,12 @@ export const createWater = (canvas: HTMLCanvasElement) => {
     draw: (frame: WaterFrame) => {
       const width = Math.round(frame.width * frame.dpr);
       const height = Math.round(frame.height * frame.dpr);
+
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
       }
+
       gl.viewport(0, 0, width, height);
       const scale = frame.dpr;
       gl.uniform2f(slots.res, width, height);
@@ -297,12 +311,14 @@ export const createWater = (canvas: HTMLCanvasElement) => {
       gl.uniform1f(slots.mistAlpha, frame.mistAlpha);
       gl.uniform1f(slots.shore, frame.shore);
       ripples.fill(0);
+
       for (const [i, ripple] of frame.ripples.slice(0, MAX_RIPPLES).entries()) {
         ripples.set(
           [ripple.x, ripple.z - frame.camera.z, ripple.age, ripple.strength],
           i * 4
         );
       }
+
       gl.uniform4fv(slots.ripples, ripples);
       gl.uniform1i(slots.sky, 0);
       gl.uniform1i(slots.next, 1);

@@ -116,10 +116,13 @@ const carriedOver = (older: z.infer<typeof legacy>): Profiles => ({
 
 export const loadProfiles = (): Profiles => {
   const saved = current.read();
+
   if (saved !== null) {
     return saved;
   }
+
   const older = previous.read();
+
   return older === null ? fresh : carriedOver(older);
 };
 
@@ -133,9 +136,12 @@ export const viewOf = (all: Profiles): Save =>
 export const withView = (all: Profiles, view: Save): Profiles => {
   if (view.mode === "duel") {
     const { mode: _mode, ...duel } = view;
+
     return { ...all, duel };
   }
+
   const { mode: _mode, ...journey } = view;
+
   return { ...all, journey };
 };
 
@@ -147,6 +153,7 @@ export const wear = <S extends Save>(
   const option = parts
     .find((entry) => entry.part === part)
     ?.options.find((entry) => entry.id === id);
+
   if (
     option === undefined ||
     save.look[part] === id ||
@@ -154,6 +161,7 @@ export const wear = <S extends Save>(
   ) {
     return null;
   }
+
   return { ...save, look: { ...save.look, [part]: id } };
 };
 
@@ -162,9 +170,11 @@ export const wearCombo = (
   id: string
 ): JourneySave | null => {
   const entry = foundOf(save).find((combo) => combo.id === id);
+
   if (!entry || comboOf(save.look)?.id === id) {
     return null;
   }
+
   return {
     ...save,
     look: { ...save.look, color: entry.color, form: entry.form },
@@ -179,9 +189,11 @@ const counted = <Key extends string>(
   keys: Key[]
 ) => {
   const next = { ...counts };
+
   for (const key of keys) {
     next[key] = (next[key] ?? 0) + 1;
   }
+
   return next;
 };
 

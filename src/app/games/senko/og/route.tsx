@@ -31,6 +31,7 @@ const STARS = Array.from({ length: 110 }, (_, i) => {
   const b = Math.sin(i * 78.233) * 12_543.1234;
   const u = a - Math.floor(a);
   const v = b - Math.floor(b);
+
   return {
     o: 0.2 + ((u * 7) % 1) * 0.5,
     r: 0.6 + ((v * 5) % 1) * 1.3,
@@ -59,16 +60,20 @@ export const GET = async (request: NextRequest) => {
   const words = copy[lang];
   const reached = result ? reachedOf(result) : LAST;
   const done = result !== null && finished(result);
+
   const { caption, detail } = result
     ? { caption: titleOf(result, lang), detail: words.challenge.dare }
     : pitch[lang];
+
   const headline = result ? formatTime(result.time) : words.name;
   const unit = result ? words.unit : "";
   const spacing = lang === "ja" ? 18 : 4;
   const ladder = phases.map((phase) => phase.name.ja).join("");
+
   const font = await loadMincho(
     `${headline}${unit}${caption}${detail}${ladder}${copy.ja.name}ひだまのいっしょう火${words.result.finished}`
   );
+
   const art = sparklerParts({
     id: "og",
     phase: result ? reached : 2,

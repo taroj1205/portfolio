@@ -79,8 +79,10 @@ const burstOf = (phase: number) =>
 
 const randomFrom = (seed: number) => {
   let state = seed;
+
   return () => {
     state = (state * 16_807) % 2_147_483_647;
+
     return state / 2_147_483_647;
   };
 };
@@ -92,16 +94,19 @@ const sparkPaths = (phase: number, variant: number) => {
   const roll = randomFrom(97 + phase * 31 + variant * 7919);
   const rays: string[] = [];
   const forks: string[] = [];
+
   for (let i = 0; i < burst.rays; i += 1) {
     const angle =
       burst.droop > 0
         ? Math.PI * (0.05 + roll() * 0.9)
         : (i / burst.rays) * Math.PI * 2 + roll() * 0.4;
+
     const reach = burst.reach[0] + roll() * (burst.reach[1] - burst.reach[0]);
     const sx = Math.cos(angle) * burst.radius;
     const sy = Math.sin(angle) * burst.radius;
     const ex = Math.cos(angle) * reach;
     const ey = Math.sin(angle) * reach;
+
     if (burst.droop > 0) {
       const sag = reach * (0.5 + roll() * 0.5);
       rays.push(
@@ -109,13 +114,16 @@ const sparkPaths = (phase: number, variant: number) => {
       );
       continue;
     }
+
     rays.push(`M${pt(sx, sy)}L${pt(ex, ey)}`);
+
     for (let f = 0; f < burst.forks; f += 1) {
       const turn = angle + (roll() * 2 - 1) * burst.spread;
       const length = reach * (0.18 + roll() * 0.2);
       const fx = ex + Math.cos(turn) * length;
       const fy = ey + Math.sin(turn) * length;
       forks.push(`M${pt(ex, ey)}L${pt(fx, fy)}`);
+
       for (let t = 0; t < burst.twigs; t += 1) {
         const bend = turn + (roll() * 2 - 1) * burst.spread;
         const short = length * (0.35 + roll() * 0.2);
@@ -125,6 +133,7 @@ const sparkPaths = (phase: number, variant: number) => {
       }
     }
   }
+
   return { forks: forks.join(""), rays: rays.join("") };
 };
 
@@ -172,6 +181,7 @@ export const sparklerParts = ({
   const pivot = y - 100 * scale;
   const handle = pivot - top;
   const transform = `translate(${x} ${y}) scale(${scale})`;
+
   return {
     back: (
       <>
@@ -184,6 +194,7 @@ export const sparklerParts = ({
         />
         {HANDLE.map((color, i) => {
           const from = pivot - handle * (0.45 + i * 0.14);
+
           return (
             <line
               key={color}

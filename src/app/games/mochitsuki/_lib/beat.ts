@@ -15,6 +15,7 @@ export const intervalAt = (beat: number) => 60_000 / tempoAt(beat);
 
 export const windowsAt = (beat: number) => {
   const interval = intervalAt(beat);
+
   return {
     good: Math.min(GOOD_MS, interval * HAND.from),
     great: Math.min(GREAT_MS, interval * 0.1),
@@ -68,15 +69,18 @@ export const counting = (run: Run, now: number) => now < run.at - run.gap;
 
 export const advance = (run: Run, now: number) => {
   let missed = 0;
+
   while (run.over === null && now > run.at + windowsAt(run.beat).good) {
     missed += 1;
     run.misses += 1;
     run.streak = 0;
     step(run);
+
     if (run.misses >= LIVES) {
       run.over = "miss";
     }
   }
+
   return missed;
 };
 
@@ -89,12 +93,16 @@ export const strike = (run: Run, now: number): Strike => {
   if (run.over !== null || counting(run, now)) {
     return { kind: "idle" };
   }
+
   advance(run, now);
+
   if (run.over !== null) {
     return { kind: "idle" };
   }
+
   const offset = now - run.at;
   const { good, great } = windowsAt(run.beat);
+
   if (Math.abs(offset) <= good) {
     const kind = Math.abs(offset) <= great ? "great" : "good";
     const { beat } = run;
@@ -104,22 +112,30 @@ export const strike = (run: Run, now: number): Strike => {
     run.longest = Math.max(run.longest, run.streak);
     run.tempo = tempoAt(beat);
     step(run);
+
     return { beat, kind, offset };
   }
+
   const at = sweep(run, now);
+
   if (at >= HAND.from && at <= HAND.to) {
     run.over = "hand";
+
     return { kind: "hand" };
   }
+
   run.streak = 0;
+
   return { kind: "flub" };
 };
 
 export const reach = (at: number) => {
   const from = HAND.from - 0.06;
   const to = HAND.to + 0.04;
+
   if (at <= from || at >= to) {
     return 0;
   }
+
   return Math.sin(((at - from) / (to - from)) * Math.PI);
 };

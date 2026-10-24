@@ -124,6 +124,7 @@ export const Game = ({
               stats: setStats,
             }
           );
+
     return () => {
       session.current?.stop();
       session.current = null;

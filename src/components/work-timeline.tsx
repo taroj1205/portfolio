@@ -7,10 +7,13 @@ import { shared } from "@/styles/shared";
 import { color, ease, media } from "../styles/tokens.stylex";
 
 const FIRST_YEAR = 2024;
+
 const index = (ym: string) => {
   const [y = FIRST_YEAR, m = 1] = ym.split("-").map(Number);
+
   return (y - FIRST_YEAR) * 12 + m - 1;
 };
+
 const format = (ym: string, locale: Locale) =>
   new Date(`${ym}-01T00:00:00Z`).toLocaleString(intlLocale(locale), {
     month: "short",
@@ -136,6 +139,7 @@ export const WorkTimeline = ({
   locale: Locale;
 }) => {
   const t = getTranslator(locale);
+
   const roles = [
     {
       end: "2024-02",
@@ -196,7 +200,9 @@ export const WorkTimeline = ({
       start: "2025-12",
     },
   ];
+
   const months = index(now.toISOString().slice(0, 7)) + 1;
+
   const years = Array.from(
     { length: now.getUTCFullYear() - FIRST_YEAR + 1 },
     (_, i) => FIRST_YEAR + i
@@ -234,6 +240,7 @@ export const WorkTimeline = ({
           const from = index(r.start);
           const to = r.end === undefined ? months : index(r.end) + 1;
           const left = (from / months) * 100;
+
           return (
             <li data-reveal key={r.org} {...stylex.props(styles.row)}>
               <div>

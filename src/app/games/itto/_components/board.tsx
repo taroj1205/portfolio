@@ -195,6 +195,7 @@ const share = (value: number) => `${(value / SPAN) * 100}%`;
 
 const Whole = ({ food, leaving }: { food: Food; leaving: boolean }) => {
   const scene = useId().replaceAll(":", "");
+
   return (
     <svg
       aria-hidden="true"
@@ -216,6 +217,7 @@ const Parts = ({
   leaving: boolean;
 }) => {
   const scene = useId().replaceAll(":", "");
+
   return (
     <>
       {layersOf(split).map(({ faces, half, key, side, turn }) => (
@@ -247,6 +249,7 @@ const Parts = ({
       ))}
       {split.sides.map((side, index) => {
         const tag = tagAt(side, 1);
+
         return (
           <span
             key={index === 0 ? "plus" : "minus"}
@@ -269,6 +272,7 @@ const Sweep = ({ slash }: { slash: Slash }) => {
   useEffect(() => {
     const start = performance.now();
     let frame = 0;
+
     const step = (now: number) => {
       const t = Math.min(1, (now - start) / 600);
       const k = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
@@ -278,15 +282,19 @@ const Sweep = ({ slash }: { slash: Slash }) => {
         "transform",
         `translate(${(x - slash.from.x).toFixed(4)} ${(y - slash.from.y).toFixed(4)})`
       );
+
       if (t < 1) {
         frame = requestAnimationFrame(step);
       }
     };
+
     frame = requestAnimationFrame(step);
+
     return () => {
       cancelAnimationFrame(frame);
     };
   }, [slash]);
+
   return (
     <g ref={ref}>
       {knifeSvg(slash.from, {
@@ -302,12 +310,16 @@ const line = (slash: Slash) =>
 
 const aimSlash = (food: Food, aim: Cut): Slash => {
   const reach = reachOf(food.parts, aim);
+
   const hit =
     Math.hypot(reach.to.x - reach.from.x, reach.to.y - reach.from.y) > 0.7;
+
   if (hit) {
     return reach;
   }
+
   const guide = lineOf(aim);
+
   return { from: pointOn(guide, -1.3), to: pointOn(guide, 1.3) };
 };
 
@@ -324,6 +336,7 @@ export const Board = ({ view, trail, tag, rare, boxRef }: BoardProps) => {
   const leaving = view.beat === "clear";
   const aim = view.aim === null ? null : aimSlash(view.food, view.aim);
   const key = `${view.stage === "title" ? "demo" : "dish"}-${view.serving}`;
+
   return (
     <div {...stylex.props(styles.board)}>
       <svg

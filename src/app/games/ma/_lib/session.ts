@@ -50,6 +50,7 @@ const interactive = (target: EventTarget | null) =>
 
 const stampOf = (event: Event) => {
   const now = performance.now();
+
   return event.timeStamp > 0 && event.timeStamp <= now ? event.timeStamp : now;
 };
 
@@ -61,6 +62,7 @@ const shade = (elapsed: number, calm: boolean) => {
   if (calm) {
     return elapsed < VISIBLE ? 1 : 0;
   }
+
   return Math.max(0, Math.min(1, (VISIBLE - elapsed) / FADE));
 };
 
@@ -86,6 +88,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   on.settings(settings);
   on.today(dayOf(Date.now()));
   on.phase(phase);
+
   if (calm) {
     on.demo(true);
   }
@@ -111,9 +114,11 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const begin = (stamp: number) => {
     const today = dayOf(Date.now());
+
     if (phase === "demo") {
       ready();
     }
+
     plan = on.plan(today);
     start = stamp;
     hushed = false;
@@ -128,28 +133,36 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (phase !== "shown" && phase !== "hidden") {
       return;
     }
+
     ready();
     on.voided(reason);
   };
 
   const finish = (stamp: number) => {
     const elapsed = stamp - start;
+
     if (elapsed < VISIBLE) {
       sound.nudge();
       on.early();
+
       return;
     }
+
     const time = hundredthsBetween(start, stamp);
+
     if (time > LONGEST) {
       cancel("long");
+
       return;
     }
+
     const settled = settle(save, {
       at: Date.now(),
       plan,
       seconds: elapsed / 1000,
       time,
     });
+
     keep(settled.save);
     const { level } = rankOf(time - plan.target);
     const perfect = level === PERFECT;
@@ -171,12 +184,16 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const press = (stamp: number) => {
     if (phase === "demo" || phase === "ready") {
       begin(stamp);
+
       return true;
     }
+
     if (phase === "shown" || phase === "hidden") {
       finish(stamp);
+
       return true;
     }
+
     return false;
   };
 
@@ -184,9 +201,11 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (event.pointerType === "mouse" && event.button !== 0) {
       return;
     }
+
     const first = held.size === 0;
     held.add(event.pointerId);
     canvas.setPointerCapture(event.pointerId);
+
     if (first && press(stampOf(event))) {
       event.preventDefault();
     }
@@ -206,7 +225,9 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     ) {
       return;
     }
+
     event.preventDefault();
+
     if (!event.repeat && press(stampOf(event)) && phase === "done") {
       swallow = true;
     }
@@ -245,21 +266,26 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     const at = now - demoAt;
     const counting = at - DEMO.lead;
     const stop = DEMO.lead + VISIBLE + DEMO.hidden;
+
     if (at < stop) {
       const elapsed = Math.max(0, counting);
       on.clock(Math.floor(elapsed / 10), shade(elapsed, false));
+
       return;
     }
+
     if (!demoShown) {
       demoShown = true;
       render.still(true);
       on.demo(true);
     }
+
     if (at > stop + DEMO.hold) {
       on.demo(false);
       render.still(false);
       on.clock(0, 1);
     }
+
     if (at > stop + DEMO.hold + DEMO.rest) {
       demoShown = false;
       demoAt = now;
@@ -269,40 +295,51 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const watch = (now: number) => {
     const elapsed = Math.max(0, now - start);
     const time = hundredthsBetween(0, elapsed);
+
     if (time > LONGEST) {
       cancel("long");
+
       return;
     }
+
     if (phase !== "shown") {
       return;
     }
+
     if (!hushed && elapsed > VISIBLE - FADE) {
       hushed = true;
       sound.hush();
     }
+
     on.clock(time, shade(elapsed, calm));
+
     if (elapsed >= VISIBLE) {
       enter("hidden");
     }
   };
 
   let frame = 0;
+
   const tick = (now: number) => {
     const dt = Math.min(0.05, Math.max(0, now - last) / 1000);
     last = now;
+
     if (phase === "demo" && !calm) {
       playDemo(now);
     }
+
     if (phase === "shown" || phase === "hidden") {
       watch(now);
     } else if (now - dated > 1000) {
       dated = now;
       on.today(dayOf(Date.now()));
     }
+
     render.draw(dt);
     sound.wind(render.wind() * (phase === "demo" ? 0.5 : 1));
     frame = requestAnimationFrame(tick);
   };
+
   frame = requestAnimationFrame(tick);
 
   return {
@@ -315,10 +352,13 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       if (phase !== "done" || landed === null) {
         return;
       }
+
       sound.reveal(landed);
+
       if (landed === PERFECT) {
         sound.perfect();
       }
+
       landed = null;
     },
     again: () => {

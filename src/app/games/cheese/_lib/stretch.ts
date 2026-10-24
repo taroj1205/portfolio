@@ -37,14 +37,17 @@ export interface Run {
 
 const randomFrom = (seed: number) => {
   let state = (Math.abs(Math.floor(seed)) % (MODULUS - 1)) + 1;
+
   return () => {
     state = (state * 48_271) % MODULUS;
+
     return (state - 1) / (MODULUS - 1);
   };
 };
 
 export const createRun = (dish: Dish, seed: number): Run => {
   const roll = randomFrom(seed);
+
   return {
     dish,
     end: null,
@@ -76,6 +79,7 @@ export const isSweet = (load: number) => load >= SWEET && load <= 1;
 
 const snap = (run: Run) => {
   let weakest: Strand | null = null;
+
   for (const strand of run.strands) {
     if (
       strand.snapped === null &&
@@ -84,10 +88,13 @@ const snap = (run: Run) => {
       weakest = strand;
     }
   }
+
   if (weakest !== null) {
     weakest.snapped = run.time;
   }
+
   run.strain = AFTER;
+
   if (aliveOf(run) === 0) {
     run.end = "snapped";
   }
@@ -97,25 +104,31 @@ export const step = (run: Run, growth: number) => {
   if (run.end !== null) {
     return;
   }
+
   run.time += TICK;
   run.rate += (Math.max(0, growth) / TICK - run.rate) * SMOOTH;
   run.load = run.rate / Math.max(1e-3, limitOf(run));
   const sweet = isSweet(run.load);
+
   if (sweet) {
     run.sweet += TICK;
   }
+
   run.heat -= (TICK / run.dish.cool) * (sweet ? SLOW : 1);
   run.length = Math.min(MOON, run.length * Math.exp(Math.max(0, growth)));
   run.strain =
     run.load > 1
       ? run.strain + (run.load - 1) * GRIP * TICK
       : Math.max(0, run.strain - RELAX * TICK);
+
   if (run.strain >= 1) {
     snap(run);
   }
+
   if (run.end !== null) {
     return;
   }
+
   if (run.length >= MOON) {
     run.end = "moon";
   } else if (run.heat <= FLOOR) {

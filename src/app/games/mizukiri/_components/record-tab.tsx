@@ -186,6 +186,7 @@ export const RecordTab = ({ save }: { save: Save }) => {
   const career = careerOf(save);
   const { facts, perfect, reached, title } = describeCareer(career, lang);
   const [value, unit] = distanceParts(career.best);
+
   return (
     <>
       <div {...stylex.props(styles.card)}>

@@ -49,11 +49,13 @@ const formatAirtime = (seconds: number, lang: Lang) => {
   const hours = Math.floor(whole / 3600);
   const minutes = Math.floor((whole % 3600) / 60);
   let start = 2;
+
   if (hours > 0) {
     start = 0;
   } else if (minutes > 0) {
     start = 1;
   }
+
   return [hours, minutes, whole % 60]
     .slice(start, start + 2)
     .map((count, i) => `${count}${clock[lang][start + i] ?? ""}`)
@@ -63,6 +65,7 @@ const formatAirtime = (seconds: number, lang: Lang) => {
 export const describeCareer = (career: Career, lang: Lang) => {
   const area = zones[zoneIndex(career.best)]?.name[lang] ?? "";
   const airtime = formatAirtime(career.airtime, lang);
+
   return {
     airtime,
     area,
@@ -97,10 +100,13 @@ export const readCareer = (
   params: Record<string, string | string[] | undefined>
 ): Career | null => {
   const parsed = shared.safeParse(params);
+
   if (!parsed.success) {
     return null;
   }
+
   const { air, best, combo, lv, perfect, runs, top, total } = parsed.data;
+
   return {
     airtime: air,
     best,
@@ -122,12 +128,15 @@ export const careerQuery = (career: Career) => {
     top: career.speed.toFixed(1),
     total: career.total.toFixed(1),
   });
+
   if (career.level !== null) {
     query.set("lv", String(career.level));
   }
+
   if (career.perfect) {
     query.set("perfect", "1");
   }
+
   return query.toString();
 };
 
@@ -143,6 +152,7 @@ export const careerShare = (
   const total = formatDistance(career.total).replace(" ", "");
   const runs = career.runs.toLocaleString(copy[lang].locale);
   const rank = career.level === null ? null : journeyTag(career.level, lang);
+
   return {
     text:
       lang === "en"

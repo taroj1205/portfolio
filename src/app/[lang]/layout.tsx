@@ -20,19 +20,24 @@ const display = Bricolage_Grotesque({
   subsets: ["latin"],
   variable: "--font-display",
 });
+
 const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 
 const currentYear = () => new Date().getFullYear();
+
 export const generateStaticParams = () => [{ lang: "en" }, { lang: "ja" }];
 
 export const generateMetadata = async ({
   params,
 }: LayoutProps<"/[lang]">): Promise<Metadata> => {
   const { lang } = await params;
+
   if (!isLocale(lang)) {
     notFound();
   }
+
   const t = getTranslator(lang);
+
   return {
     alternates: { languages: { en: "/", ja: "/ja", "x-default": "/" } },
     description: t(
@@ -79,10 +84,13 @@ const styles = stylex.create({
 
 const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
   const { lang } = await params;
+
   if (!isLocale(lang)) {
     notFound();
   }
+
   const t = getTranslator(lang);
+
   return (
     <html className={`${display.variable} ${body.variable}`} lang={lang}>
       <body {...stylex.props(styles.body)}>

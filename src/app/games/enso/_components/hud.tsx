@@ -211,6 +211,7 @@ interface HudProps {
 export const Hud = ({ lang, best, draws, muted, onLang, onMute }: HudProps) => {
   const words = copy[lang];
   const other: Lang = lang === "ja" ? "en" : "ja";
+
   return (
     <header {...stylex.props(styles.top)}>
       <div {...stylex.props(styles.brand)}>
@@ -252,6 +253,7 @@ interface PromptProps {
 
 export const Prompt = ({ lang, drawing, misses, challenge }: PromptProps) => {
   const words = copy[lang];
+
   return (
     <div
       aria-hidden={drawing}

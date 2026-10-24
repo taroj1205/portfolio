@@ -29,10 +29,12 @@ const morph = {
   new: { height: "100%", objectFit: "cover", overflow: "clip" },
   old: { height: "100%", objectFit: "cover", overflow: "clip" },
 } as const;
+
 const opening = stylex.viewTransitionClass({
   ...morph,
   group: { animationDuration: "420ms", animationTimingFunction: ease.drawer },
 });
+
 const closing = stylex.viewTransitionClass({
   ...morph,
   group: { animationDuration: "260ms", animationTimingFunction: ease.out },
@@ -43,20 +45,24 @@ const slow = stylex.keyframes({
   from: { translate: "0 2rem" },
   to: { translate: "0 -2rem" },
 });
+
 const brisk = stylex.keyframes({
   from: { translate: "0 4.5rem" },
   to: { translate: "0 -4.5rem" },
 });
+
 const quick = stylex.keyframes({
   from: { translate: "0 7rem" },
   to: { translate: "0 -7rem" },
 });
+
 const deal = stylex.keyframes({
   from: {
     opacity: 0,
     transform: "translateY(45vh) rotate(-14deg) scale(0.92)",
   },
 });
+
 // A photo slides inside its frame against the page, like a window.
 const through = stylex.keyframes({
   from: { translate: "0 -7%" },
@@ -383,6 +389,7 @@ export const Photos = ({
     const transition = document.startViewTransition(options);
     moving.current = transition;
     await transition.finished;
+
     if (moving.current === transition) {
       moving.current = null;
     }
@@ -403,14 +410,18 @@ export const Photos = ({
     if (!open) {
       return;
     }
+
     const next = neighbour(open, direction);
+
     if (next === undefined) {
       return;
     }
+
     // Closing morphs back into this photo only if it is on screen.
     thumb.current =
       [...(list.current?.querySelectorAll("img") ?? [])].find((img) => {
         const box = img.getBoundingClientRect();
+
         return (
           img.alt === next.caption &&
           box.right > 0 &&
@@ -419,12 +430,14 @@ export const Photos = ({
           box.top < innerHeight
         );
       }) ?? null;
+
     const swap = async () => {
       flushSync(() => {
         setOpen(next);
       });
       await ready();
     };
+
     if (canMorph()) {
       void transit({
         types: [direction < 0 ? "back" : "forward"],
@@ -437,10 +450,13 @@ export const Photos = ({
 
   const show = (photo: Photo, event: MouseEvent<HTMLButtonElement>) => {
     thumb.current = event.currentTarget.querySelector("img");
+
     if (!canMorph()) {
       void reveal(photo);
+
       return;
     }
+
     nameThumb("photo");
     void transit({
       update: async () => {
@@ -453,8 +469,10 @@ export const Photos = ({
   const hide = async () => {
     if (!canMorph()) {
       dialog.current?.close();
+
       return;
     }
+
     await transit({
       update: () => {
         dialog.current?.close();
@@ -492,12 +510,14 @@ export const Photos = ({
   );
 
   const speeds = [styles.slow, styles.quick, styles.brisk];
+
   const sides = [
     [styles.left, styles.numeralAfter],
     [styles.right, styles.numeralBefore],
     [styles.leftIn, styles.numeralOver],
     [styles.rightIn, styles.numeralOver],
   ] as const;
+
   const isBroad = (photo: Photo) => photo.src.width > photo.src.height * 1.2;
 
   return (
@@ -536,12 +556,14 @@ export const Photos = ({
         <div ref={list} {...stylex.props(styles.spread)}>
           {photos.map((photo, i) => {
             const broad = isBroad(photo);
+
             const [side, numeral] = broad
               ? [styles.wide, styles.numeralOver]
               : (sides[
                   photos.slice(0, i).filter((other) => !isBroad(other)).length %
                     sides.length
                 ] ?? [styles.left, styles.numeralAfter]);
+
             return (
               <figure key={photo.caption} {...stylex.props(styles.piece, side)}>
                 <span
@@ -595,6 +617,7 @@ export const Photos = ({
         closedby="any"
         onCancel={(event) => {
           event.preventDefault();
+
           if (!moving.current) {
             void hide();
           }
@@ -612,6 +635,7 @@ export const Photos = ({
         }}
         onPointerUp={(event) => {
           const distance = event.clientX - swipe.current;
+
           if (event.pointerType !== "mouse" && Math.abs(distance) > 60) {
             step(distance < 0 ? 1 : -1);
           }
@@ -672,6 +696,7 @@ export const Photos = ({
             </figcaption>
             {chevrons.map(([direction]) => {
               const near = neighbour(open, direction);
+
               return near === undefined ? null : (
                 <Image
                   alt=""

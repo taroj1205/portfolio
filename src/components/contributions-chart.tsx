@@ -242,6 +242,7 @@ export const ContributionsChart = ({
   updated: string;
 }) => {
   const t = getTranslator(locale);
+
   const milestones = new Map([
     [
       "2024-02",
@@ -265,20 +266,25 @@ export const ContributionsChart = ({
       },
     ],
   ]);
+
   const last = monthly.length - 1;
   const firstVisible = last - VISIBLE + 1;
   const [active, setActive] = useState(last);
   const clamp = (i: number) => Math.min(last, Math.max(0, i));
   const yearAt = (i: number) => monthly[clamp(i)]?.month.slice(0, 4);
+
   const [viewYear, setViewYear] = useState(() =>
     yearAt(last - Math.floor(VISIBLE / 2))
   );
+
   const [chart, inView] = useInView<HTMLElement>();
   const readout = useRef<HTMLElement>(null);
   const bars = useRef<HTMLOListElement>(null);
   const peak = Math.max(...monthly.map((m) => m.contributions));
+
   const label = (i: number) => {
     const month = monthly[i]?.month ?? "";
+
     return i === last
       ? `${monthName(month, "short", locale)} ${t("activity.soFar", "so far")}`
       : new Date(`${month}-01T00:00:00Z`).toLocaleString(intlLocale(locale), {
@@ -292,7 +298,9 @@ export const ContributionsChart = ({
     if (i === active) {
       return;
     }
+
     setActive(i);
+
     if (!calm()) {
       readout.current?.animate(
         [
@@ -310,6 +318,7 @@ export const ContributionsChart = ({
     ["Home", -last],
     ["End", last],
   ]);
+
   const reveal = (i: number, inline: ScrollLogicalPosition) => {
     const bar = bars.current?.querySelectorAll("button")[i];
     bar?.scrollIntoView({
@@ -317,28 +326,38 @@ export const ContributionsChart = ({
       block: "nearest",
       inline,
     });
+
     return bar;
   };
+
   const step = (event: KeyboardEvent<HTMLButtonElement>) => {
     const move = moves.get(event.key);
+
     if (move === undefined) {
       return;
     }
+
     event.preventDefault();
     reveal(clamp(active + move), "nearest")?.focus({
       preventScroll: true,
     });
   };
+
   const years = [...new Set(monthly.map((m) => m.month.slice(0, 4)))];
+
   const track = (event: UIEvent<HTMLDivElement>) => {
     const first = bars.current?.firstElementChild?.getBoundingClientRect();
+
     if (!first) {
       return;
     }
+
     const view = event.currentTarget.getBoundingClientRect();
+
     const i = Math.floor(
       ((view.left + view.right) / 2 - first.left) / first.width
     );
+
     setViewYear(yearAt(i));
   };
 
@@ -372,6 +391,7 @@ export const ContributionsChart = ({
           {monthly.map((m, i) => {
             const order = Math.max(0, i - firstVisible);
             const milestone = milestones.get(m.month);
+
             return (
               <li key={m.month}>
                 <button

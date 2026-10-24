@@ -12,6 +12,7 @@ import { color, ease, font, media, shadow } from "../styles/tokens.stylex";
 
 const W = 600;
 const H = 722;
+
 // The land path spans 108°E–182°E and 42°N–47°S.
 const x = (lon: number) => ((lon - 108) / 74) * W;
 const y = (lat: number) => ((42 - lat) / 89) * H;
@@ -226,6 +227,7 @@ const styles = stylex.create({
 
 export const JourneyMap = ({ locale }: { locale: Locale }) => {
   const t = getTranslator(locale);
+
   const places = [
     {
       at: tokyo,
@@ -292,6 +294,7 @@ export const JourneyMap = ({ locale }: { locale: Locale }) => {
       ),
     },
   ];
+
   const [frame, inView] = useInView<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);
 
@@ -340,6 +343,7 @@ export const JourneyMap = ({ locale }: { locale: Locale }) => {
 
         {places.map((p) => {
           const lit = active !== null && p.stops.includes(active);
+
           return (
             <span
               aria-hidden="true"

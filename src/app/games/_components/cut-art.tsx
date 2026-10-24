@@ -157,6 +157,7 @@ export const CutArt = () => (
         ? null
         : split.sides.map((side, index) => {
             const { x, y } = tagAt(side, 1.4);
+
             return (
               <g
                 key={index === 0 ? "plus" : "minus"}

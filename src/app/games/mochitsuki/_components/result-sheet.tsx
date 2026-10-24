@@ -190,18 +190,22 @@ const styles = stylex.create({
 const versus = (result: Result, challenge: Result, lang: Lang) => {
   const words = copy[lang].result;
   const lead = beats(result, challenge);
+
   if (lead > 0) {
     return { strong: true, text: words.won };
   }
+
   if (lead < 0) {
     return { strong: false, text: words.lost };
   }
+
   return { strong: true, text: words.tied };
 };
 
 const nextText = (result: Result, lang: Lang) => {
   const words = copy[lang].result;
   const next = nextOf(result.pounds);
+
   return next === null
     ? words.top
     : words.more(next.rank.name[lang], next.more);
@@ -227,14 +231,17 @@ export const ResultSheet = ({
   const rank = rankOf(result.pounds);
   const against = challenge === null ? null : versus(result, challenge, lang);
   const again = useRef<HTMLButtonElement>(null);
+
   const focus = () => {
     again.current?.focus({ preventScroll: true });
   };
+
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
       again.current?.focus({ preventScroll: true });
     }
   }, []);
+
   return (
     <section
       aria-labelledby="mochitsuki-result"

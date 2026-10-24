@@ -147,6 +147,7 @@ const castellaArt = (art: Art) => (
 
 const onigiriArt = (art: Art) => {
   const sesame = art.variant === 2;
+
   return (
     <>
       {riceGrains(art)}
@@ -245,6 +246,7 @@ const daifukuArt = (art: Art, id: string) => (
 const kagamiArt = (art: Art) => {
   const top = art.h;
   const orange = { x: art.spot.x + top * 0.1, y: art.spot.y - top * 0.12 };
+
   return (
     <>
       {art.grains.map((grain) => (
@@ -317,6 +319,7 @@ const taiyakiArt = (art: Art, gold: boolean) => {
   const scale = gold ? paint.goldDeep : paint.scale;
   const eye = gold ? paint.goldDeep : paint.taiyakiDeep;
   const glow = gold ? paint.goldLight : paint.taiyakiCrisp;
+
   return (
     <>
       <ellipse fill={glow} opacity={0.35} rx={art.w * 0.55} ry={art.h * 0.45} />
@@ -385,6 +388,7 @@ const taiyakiArt = (art: Art, gold: boolean) => {
 
 const kakiArt = (art: Art) => {
   const turn = (art.phase * 180) / Math.PI;
+
   return (
     <>
       {[0, 1, 2, 3].map((k) => (
@@ -442,6 +446,7 @@ const nerikiriArt = (art: Art, id: string) => {
   const tint = nerikiriTints[art.variant] ?? nerikiriTints[0];
   const petals = art.w;
   const turn = (art.phase * 180) / Math.PI;
+
   return (
     <>
       <defs>
@@ -488,6 +493,7 @@ interface Nigiri {
 const nigiriArt = ({ w, h, bow, variant }: Nigiri) => {
   const neta = netaTints[variant] ?? netaTints[0];
   const top = -h * 1.02 + bow * 0.5;
+
   return (
     <>
       <rect
@@ -608,8 +614,10 @@ const rakuganArt = (art: Art) => {
       r={grain.r}
     />
   ));
+
   if (art.variant < 4) {
     const { y } = art.spot;
+
     return (
       <>
         {powder}
@@ -627,12 +635,16 @@ const rakuganArt = (art: Art) => {
       </>
     );
   }
+
   const spread = art.w;
   const from = -Math.PI / 2 - spread / 2;
+
   const ribs = Array.from({ length: 7 }, (_, k) => {
     const a = from + ((k + 1) / 8) * spread;
+
     return `M${n(Math.cos(a) * art.h * 1.15)} ${n(Math.sin(a) * art.h * 1.15 + 0.5)}L${n(Math.cos(a) * 0.9)} ${n(Math.sin(a) * 0.9 + 0.5)}`;
   });
+
   return (
     <>
       {powder}
@@ -674,6 +686,7 @@ const curved = (curl: number, points: readonly Point[]) =>
 const run = (from: number, to: number, y: (x: number) => number, steps = 24) =>
   Array.from({ length: steps + 1 }, (_, i) => {
     const x = from + ((to - from) * i) / steps;
+
     return { x, y: y(x) };
   });
 
@@ -725,6 +738,7 @@ const kashiwaArt = (art: Art) => {
   const r = art.w;
   const deep = art.h;
   const lobes = art.phase;
+
   return (
     <>
       <path
@@ -756,11 +770,14 @@ const kashiwaArt = (art: Art) => {
       />
       {Array.from({ length: lobes }, (_, k) => {
         const a = ((k + 0.5) / lobes) * Math.PI;
+
         const tip = {
           x: Math.cos(a) * r * 0.88,
           y: Math.sin(a) * r * deep * 0.88,
         };
+
         const start = { x: Math.cos(a) * r * 0.3, y: 0.09 };
+
         return (
           <path
             d={`M${n(start.x)} ${n(start.y)}Q${n((start.x + tip.x) / 2 + Math.cos(a) * 0.08)} ${n((start.y + tip.y) / 2)} ${n(tip.x)} ${n(tip.y)}`}
@@ -781,6 +798,7 @@ const gyozaArt = (art: Art, id: string) => {
   const curl = art.phase;
   const toast = at(curl, 0, art.h * 0.15);
   const browned = art.variant === 1;
+
   return (
     <>
       <defs>
@@ -811,11 +829,14 @@ const gyozaArt = (art: Art, id: string) => {
           x: grain.x + Math.cos(grain.a) * grain.r,
           y: grain.y + Math.sin(grain.a) * grain.r,
         };
+
         const bow = {
           x: (grain.x + end.x) / 2 - Math.sin(grain.a) * 0.04,
           y: (grain.y + end.y) / 2 + Math.cos(grain.a) * 0.04,
         };
+
         const d = `M${n(grain.x)} ${n(grain.y)}Q${n(bow.x)} ${n(bow.y)} ${n(end.x)} ${n(end.y)}`;
+
         return (
           <g key={`${grain.x}-${grain.y}`}>
             <path
@@ -846,6 +867,7 @@ const mikanArt = (art: Art) => {
   const curl = art.phase;
   const L = art.w;
   const width = (x: number) => art.h * Math.sqrt(Math.max(0, 1 - (x / L) ** 2));
+
   return (
     <>
       {[0.25, 0.5, 0.75].map((k) => (
@@ -876,6 +898,7 @@ const mikanArt = (art: Art) => {
       {art.grains.map((grain) => {
         const from = (grain.x - grain.r / 2) * L;
         const to = (grain.x + grain.r / 2) * L;
+
         return (
           <path
             d={curved(
@@ -898,6 +921,7 @@ const mikanArt = (art: Art) => {
 const chikuwaArt = (art: Art) => {
   const curl = art.phase;
   const L = art.w;
+
   return (
     <>
       <path
@@ -987,6 +1011,7 @@ const sanmaArt = (art: Art) => {
   const L = art.w;
   const fat = art.h;
   const eye = at(curl, L * 0.8, -fat * 0.12);
+
   return (
     <>
       <path
@@ -1021,6 +1046,7 @@ const sanmaArt = (art: Art) => {
       />
       {art.grains.map((grain) => {
         const centre = at(curl, grain.x, 0);
+
         return (
           <g
             key={grain.x}
@@ -1097,6 +1123,7 @@ const nasuArt = (art: Art) => {
   const curl = art.phase;
   const L = art.w;
   const fat = art.h;
+
   return (
     <>
       <path
@@ -1165,6 +1192,7 @@ const takenokoArt = (art: Art) => {
   const L = art.w;
   const fat = art.h;
   const sheaths = art.variant;
+
   return (
     <>
       {Array.from({ length: sheaths }, (_, i) => {
@@ -1172,6 +1200,7 @@ const takenokoArt = (art: Art) => {
         const x = -L * 0.95 + (k / sheaths) * L * 1.7;
         const reach = L * 0.5;
         const tip = (k % 2 === 0 ? 1 : -1) * fat * 0.18;
+
         const edge = (side: number) =>
           run(
             0,
@@ -1179,12 +1208,14 @@ const takenokoArt = (art: Art) => {
             (t) => tip + (side * fat * 1.2 - tip) * (1 - t ** 1.5),
             12
           ).map(({ x: t, y }) => ({ x: x + reach * t, y }));
+
         const d = `${curved(curl, [
           { x: x - 0.6, y: -fat * 1.2 },
           ...edge(-1),
           ...edge(1).toReversed(),
           { x: x - 0.6, y: fat * 1.2 },
         ])}Z`;
+
         return (
           <g key={k}>
             <path
@@ -1246,6 +1277,7 @@ const takenokoArt = (art: Art) => {
 const ninjinArt = (art: Art) => {
   const deep = art.h;
   const twist = art.variant === 0;
+
   return (
     <g transform={`rotate(${n((-art.phase * 180) / Math.PI)})`}>
       {Array.from({ length: 5 }, (_, k) => {
@@ -1253,11 +1285,14 @@ const ninjinArt = (art: Art) => {
         const mid = notch + TAU / 10;
         const edge = 0.95 - deep;
         const from = { x: Math.cos(notch) * edge, y: Math.sin(notch) * edge };
+
         const bow = {
           x: Math.cos(notch + 0.55) * 0.42,
           y: Math.sin(notch + 0.55) * 0.42,
         };
+
         const crest = { x: Math.cos(mid) * 0.96, y: Math.sin(mid) * 0.96 };
+
         return twist ? (
           <g key={k}>
             <path
@@ -1339,6 +1374,7 @@ const edamameArt = (art: Art) => {
   const curl = art.phase;
   const L = art.w;
   const beans = art.units.length;
+
   return (
     <>
       <path
@@ -1378,6 +1414,7 @@ const edamameArt = (art: Art) => {
       ))}
       {art.units.slice(1).map((unit, k) => {
         const x = (unit.a + art.units[k].a) / 2;
+
         return (
           <path
             d={curved(curl, [
@@ -1411,11 +1448,14 @@ const edamameArt = (art: Art) => {
 
 const narutoArt = (art: Art) => {
   const turns = 2.6;
+
   const points = Array.from({ length: 120 }, (_, i) => {
     const t = (i / 119) * turns * TAU;
     const r = 0.06 + (t / (turns * TAU)) * 0.66;
+
     return `${n(Math.cos(t) * r)} ${n(Math.sin(t) * r)}`;
   });
+
   return (
     <g
       transform={`scale(${n(art.w)} 1) rotate(${n((art.phase * 180) / Math.PI)})`}
@@ -1444,6 +1484,7 @@ const kuriArt = (art: Art) => {
   const curl = art.phase;
   const L = art.w;
   const fat = art.h;
+
   const seat = [
     ...run(-L * 1.05, -L * 0.62, () => -fat * 1.1, 4),
     ...run(-fat * 1.1, fat * 1.1, (y) => y, 24).map((p) => ({
@@ -1452,6 +1493,7 @@ const kuriArt = (art: Art) => {
     })),
     ...run(-L * 0.62, -L * 1.05, () => fat * 1.1, 4),
   ];
+
   return (
     <>
       {[-0.55, -0.25, 0.1, 0.4].map((k) => (
@@ -1664,6 +1706,7 @@ const senbeiArt = (art: Art, id: string) => (
 
 const makiArt = (art: Art) => {
   const filling = makiFillings[art.variant] ?? makiFillings[0];
+
   return (
     <>
       {riceGrains(art)}
@@ -1723,11 +1766,14 @@ const fujiArt = (art: Art, id: string) => {
   const red = art.variant === 1;
   const snow = 0.6;
   const edge = 1 - (1 - art.phase) * snow ** (2 / 3);
+
   const teeth = Array.from({ length: 13 }, (_, i) => {
     const t = -edge + (2 * edge * i) / 12;
     const drop = i % 2 === 0 ? 0 : 0.12 + 0.06 * Math.cos(i * 1.7);
+
     return { x: t * L, y: -tall * snow + drop };
   });
+
   return (
     <>
       <defs>
@@ -1779,15 +1825,19 @@ const nekoArt = (art: Art) => {
   const black = art.variant === 2;
   const feature = black ? paint.goldLight : paint.char;
   const tip = 0.8 + art.h * 0.62;
+
   const point = (angle: number, r: number) =>
     `${n(Math.cos(angle) * r * stretch)} ${n(Math.sin(angle) * r)}`;
+
   const ears = [-1, 1].map((side) => {
     const a = -Math.PI / 2 + side * art.phase;
+
     return {
       d: `M${point(a, tip)}L${point(a - 0.2, 0.74)}L${point(a + 0.2, 0.74)}Z`,
       side,
     };
   });
+
   return (
     <>
       {art.variant === 1 ? (
@@ -1891,8 +1941,10 @@ const matsutakeArt = (art: Art, id: string) => {
   const cap = art.h;
   const margin = at(curl, L * CAP_AT, 0);
   const reach = L * (1 - CAP_AT);
+
   const dome = (k: number) =>
     `M0 ${n(-cap * k)}A${n(reach * k)} ${n(cap * k)} 0 0 1 0 ${n(cap * k)}`;
+
   return (
     <>
       <defs>
@@ -1955,15 +2007,19 @@ export const stickSvg = (stick: Stick) => {
   const dx = stick.to.x - stick.from.x;
   const dy = stick.to.y - stick.from.y;
   const length = Math.hypot(dx, dy) || 1;
+
   const side = {
     x: (-dy / length) * (stick.width / 2),
     y: (dx / length) * (stick.width / 2),
   };
+
   const neck = {
     x: stick.to.x - (dx / length) * stick.width * 2,
     y: stick.to.y - (dy / length) * stick.width * 2,
   };
+
   const d = `M${n(stick.from.x + side.x)} ${n(stick.from.y + side.y)}L${n(neck.x + side.x)} ${n(neck.y + side.y)}L${n(stick.to.x)} ${n(stick.to.y)}L${n(neck.x - side.x)} ${n(neck.y - side.y)}L${n(stick.from.x - side.x)} ${n(stick.from.y - side.y)}Z`;
+
   return (
     <>
       <path

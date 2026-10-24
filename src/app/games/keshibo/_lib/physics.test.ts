@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, it } from "vite-plus/test";
 
 import { bodyOf, firstDesign } from "./eraser";
 import type { Design } from "./eraser";
@@ -21,25 +21,25 @@ import { bendOf } from "./session";
 const body = bodyOf(firstDesign);
 
 describe("keshibo physics", () => {
-  test("a firm flick down the middle knocks every pin over", () => {
+  it("a firm flick down the middle knocks every pin over", () => {
     const world = simulate(body, { angle: 0, power: 0.55, x: 0 });
     assert.equal(knockedDown(world), 10);
     assert.equal(world.rolling, false);
   });
 
-  test("a soft flick stops short and leaves the rack standing", () => {
+  it("a soft flick stops short and leaves the rack standing", () => {
     const world = simulate(body, { angle: 0, power: 0.15, x: 0 });
     assert.equal(knockedDown(world), 0);
     assert.equal(world.ball.dropped, false);
   });
 
-  test("a hard flick angled away falls off the side of the desk", () => {
+  it("a hard flick angled away falls off the side of the desk", () => {
     const world = simulate(body, { angle: 0.32, power: 1, x: 10 });
     assert.equal(world.ball.dropped, true);
     assert.equal(knockedDown(world), 0);
   });
 
-  test("the same flick always gives the same pinfall", () => {
+  it("the same flick always gives the same pinfall", () => {
     const flick = { angle: -0.04, power: 0.7, x: 2.5 };
     assert.equal(
       knockedDown(simulate(body, flick)),
@@ -47,7 +47,7 @@ describe("keshibo physics", () => {
     );
   });
 
-  test("pins left standing keep their spots and ids for the second roll", () => {
+  it("pins left standing keep their spots and ids for the second roll", () => {
     const world = simulate(body, { angle: 0, power: 0.3, x: -6 });
     const standing = standingOf(world);
     assert.ok(standing.length > 0 && standing.length < 10);
@@ -65,6 +65,7 @@ const flight = (design: Design, launchWith: Launch) => {
   let top = 0;
   let landings = 0;
   let flatAfterFlip = false;
+
   while (!advance(world, 1 / 240)) {
     const { ball } = world;
     top = Math.max(top, ball.z);
@@ -76,6 +77,7 @@ const flight = (design: Design, launchWith: Launch) => {
       Math.abs(ball.pitch) >= Math.PI &&
       ball.pitch === Math.round(ball.pitch / Math.PI) * Math.PI;
   }
+
   return { ball: world.ball, flatAfterFlip, landings, top };
 };
 
@@ -84,40 +86,44 @@ const soft: Design = { ...firstDesign, core: "soft" };
 const curlAt = (power: number, curl: number) => {
   const world = createWorld(bodyOf(firstDesign), rack([]));
   launch(world, { angle: 0, curl, power, x: 0 });
+
   while (world.ball.y < LANE.head && !advance(world, 1 / 600)) {
     world.contacts.length = 0;
   }
+
   return world.ball.x;
 };
 
 describe("keshibo hops and curl", () => {
-  test("a full pull on a soft eraser hops and flips, then lands flat", () => {
+  it("a full pull on a soft eraser hops and flips, then lands flat", () => {
     const { flatAfterFlip, landings, top } = flight(soft, {
       angle: 0,
       power: 1,
       x: 0,
     });
+
     assert.ok(top > 0.2, `top ${top}`);
     assert.ok(landings >= 1);
     assert.ok(flatAfterFlip);
   });
 
-  test("a pull below the hop point never leaves the desk", () => {
+  it("a pull below the hop point never leaves the desk", () => {
     const { top } = flight(soft, {
       angle: 0,
       power: hopsAt(bodyOf(soft)) - 0.05,
       x: 0,
     });
+
     assert.equal(top, 0);
   });
 
-  test("a jumbo eraser stays down even at full pull", () => {
+  it("a jumbo eraser stays down even at full pull", () => {
     const jumbo: Design = { ...soft, form: "jumbo" };
     assert.equal(hopsAt(bodyOf(jumbo)), 1);
     assert.equal(flight(jumbo, { angle: 0, power: 1, x: 0 }).top, 0);
   });
 
-  test("the same hard flick always hops and lands the same way", () => {
+  it("the same hard flick always hops and lands the same way", () => {
     const flick = { angle: 0.03, curl: -0.4, power: 1, x: 1.5 };
     const a = flight(soft, flick);
     const b = flight(soft, flick);
@@ -127,7 +133,7 @@ describe("keshibo hops and curl", () => {
     );
   });
 
-  test("curl bends the path the way the finger flicked, more on a slow roll", () => {
+  it("curl bends the path the way the finger flicked, more on a slow roll", () => {
     assert.ok(curlAt(0.5, 1) > 1);
     assert.ok(curlAt(0.5, -1) < -1);
     assert.equal(curlAt(0.5, 0), 0);
@@ -144,14 +150,14 @@ const pullWith = (bulge: number, depth = 140) =>
   );
 
 describe("keshibo pull shape", () => {
-  test("a straight pull has no curl, and a curved one curls the way it bulges", () => {
+  it("a straight pull has no curl, and a curved one curls the way it bulges", () => {
     assert.equal(pullWith(0), 0);
     assert.equal(pullWith(0.3), 1);
     assert.equal(pullWith(-0.3), -1);
     assert.ok(Math.abs(pullWith(0.135) - 0.5) < 0.01);
   });
 
-  test("a slightly wobbly pull and a tiny pull stay straight", () => {
+  it("a slightly wobbly pull and a tiny pull stay straight", () => {
     assert.equal(pullWith(0.04), 0);
     assert.equal(pullWith(0.3, 30), 0);
     assert.equal(bendOf([{ x: 1, y: 1 }]), 0);

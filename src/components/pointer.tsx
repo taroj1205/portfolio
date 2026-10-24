@@ -6,6 +6,7 @@ const tiltProps = ["--tilt-x", "--tilt-y", "--glare"];
 
 const falloff = (distance: number, reach: number) => {
   const t = Math.max(0, 1 - distance / reach);
+
   return t * t * (3 - 2 * t);
 };
 
@@ -17,15 +18,19 @@ export const Pointer = () => {
 
     const tilt = (target: Element | null, x: number, y: number) => {
       const el = target?.closest<HTMLElement>("[data-tilt]") ?? null;
+
       if (el !== tilted) {
         for (const prop of tiltProps) {
           tilted?.style.removeProperty(prop);
         }
+
         tilted = el;
       }
+
       if (!el) {
         return;
       }
+
       const box = el.getBoundingClientRect();
       const tiltX = (x - box.left) / box.width;
       const tiltY = (y - box.top) / box.height;
@@ -40,17 +45,21 @@ export const Pointer = () => {
 
     const swell = (x: number, y: number) => {
       const nears: [HTMLElement, number][] = [];
+
       for (const title of document.querySelectorAll<HTMLElement>(
         "[data-near]"
       )) {
         const letters = title.querySelectorAll<HTMLElement>(
           ":scope > span > span > span"
         );
+
         const reach = letters[0]?.offsetHeight ?? 0;
         const box = title.getBoundingClientRect();
         const close = y > box.top - reach && y < box.bottom + reach;
+
         for (const letter of letters) {
           const r = letter.getBoundingClientRect();
+
           const near = close
             ? falloff(
                 Math.hypot(
@@ -60,9 +69,11 @@ export const Pointer = () => {
                 reach
               )
             : 0;
+
           nears.push([letter, near]);
         }
       }
+
       for (const [letter, near] of nears) {
         letter.style.setProperty("--near", near.toFixed(2));
       }
@@ -70,16 +81,19 @@ export const Pointer = () => {
 
     const update = () => {
       frame = 0;
+
       if (last) {
         tilt(last.target, last.x, last.y);
         swell(last.x, last.y);
       }
     };
+
     const schedule = () => {
       if (frame === 0) {
         frame = requestAnimationFrame(update);
       }
     };
+
     const move = (event: PointerEvent) => {
       last = {
         target: event.target instanceof Element ? event.target : null,
@@ -88,6 +102,7 @@ export const Pointer = () => {
       };
       schedule();
     };
+
     const leave = (event: PointerEvent) => {
       if (event.relatedTarget === null) {
         last = { target: null, x: -1e4, y: -1e4 };
@@ -98,17 +113,21 @@ export const Pointer = () => {
     const query = matchMedia(
       "(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)"
     );
+
     const sync = () => {
       if (query.matches) {
         addEventListener("pointermove", move, { passive: true });
         document.addEventListener("pointerout", leave);
+
         return;
       }
+
       removeEventListener("pointermove", move);
       document.removeEventListener("pointerout", leave);
       cancelAnimationFrame(frame);
       frame = 0;
       tilt(null, 0, 0);
+
       for (const letter of document.querySelectorAll<HTMLElement>(
         "[data-near] > span > span > span"
       )) {
@@ -118,6 +137,7 @@ export const Pointer = () => {
 
     sync();
     query.addEventListener("change", sync);
+
     return () => {
       query.removeEventListener("change", sync);
       cancelAnimationFrame(frame);
@@ -125,5 +145,6 @@ export const Pointer = () => {
       document.removeEventListener("pointerout", leave);
     };
   }, []);
+
   return null;
 };

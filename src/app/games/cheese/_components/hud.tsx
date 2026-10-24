@@ -466,6 +466,7 @@ const Idle = ({
   challenge: Result | null;
 }) => {
   const words = copy[lang];
+
   return (
     <>
       {challenge === null ? null : (
@@ -511,6 +512,7 @@ const Gauge = ({
   heat: Slot;
 }) => {
   const words = copy[lang];
+
   return (
     <div {...stylex.props(styles.stats)}>
       <span {...stylex.props(styles.stat)}>
@@ -562,6 +564,7 @@ export const Hud = ({
   const other: Lang = lang === "ja" ? "en" : "ja";
   const playing = stage === "pulling" || stage === "ending";
   const reached = shout === null ? null : heightAt(shout.index);
+
   return (
     <div {...stylex.props(styles.root)}>
       <div {...stylex.props(styles.top)}>

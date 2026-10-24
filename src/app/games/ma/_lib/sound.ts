@@ -8,6 +8,7 @@ export const createSound = () => {
     band: BiquadFilterNode;
     gain: GainNode;
   } | null = null;
+
   const { close, mute, spray, tone, unlock } = createAudio(
     (audio, out, noise) => {
       const source = audio.createBufferSource();
@@ -58,6 +59,7 @@ export const createSound = () => {
       for (const [i, step] of PENTATONIC.entries()) {
         bell(523.25 * 2 ** (step / 12), 0.08, 1.8, 0.1 + i * 0.08);
       }
+
       bell(261.63, 0.12, 2.6, 0.1);
     },
     reveal: (level: number) => {

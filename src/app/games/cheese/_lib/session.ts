@@ -128,20 +128,25 @@ export const startSession = (
     if (stage === "idle") {
       begin();
     }
+
     if (stage !== "pulling") {
       return false;
     }
+
     sound.grab();
     navigator.vibrate?.(6);
+
     return true;
   };
 
   const interrupt = () => {
     holder = null;
     keyRate = 0;
+
     if (stage !== "pulling") {
       return;
     }
+
     run = null;
     sound.pull(0, 0, false, false);
     enter("idle");
@@ -155,6 +160,7 @@ export const startSession = (
     ) {
       return;
     }
+
     if (grab()) {
       canvas.setPointerCapture(event.pointerId);
       holder = event.pointerId;
@@ -166,9 +172,11 @@ export const startSession = (
     if (event.pointerId !== holder || run === null) {
       return;
     }
+
     const frame = frameOf(canvas.clientWidth, canvas.clientHeight);
     const dy = lastY - event.clientY;
     lastY = event.clientY;
+
     if (dy > 0) {
       queued += dy / frame.stroke;
       lift = Math.min(frame.max, lift + dy);
@@ -177,6 +185,7 @@ export const startSession = (
 
   const up = (event: PointerEvent) => {
     sound.unlock();
+
     if (event.pointerId === holder) {
       holder = null;
       letGo = performance.now();
@@ -187,7 +196,9 @@ export const startSession = (
     if (!isPullKey(event)) {
       return;
     }
+
     event.preventDefault();
+
     if (!event.repeat && holder === null && grab()) {
       holder = "key";
       keyRate = 0.35;
@@ -220,22 +231,27 @@ export const startSession = (
 
   const advance = (current: Run, dt: number) => {
     const frame = frameOf(canvas.clientWidth, canvas.clientHeight);
+
     if (holder === "key") {
       keyRate = Math.min(3, keyRate + 0.6 * dt);
       queued += keyRate * dt;
       lift = Math.min(frame.max, lift + keyRate * dt * frame.stroke);
     }
+
     const moving = queued > 0;
     pending += dt;
     const steps = Math.floor(pending / TICK);
     pending -= steps * TICK;
+
     if (steps > 0) {
       const each = queued / steps;
       queued = 0;
+
       for (let i = 0; i < steps; i += 1) {
         step(current, each);
       }
     }
+
     const ease = holder === null ? 0.35 : 1.4;
     lift += (frame.rest - lift) * (1 - Math.exp(-dt / ease));
     sound.pull(
@@ -248,6 +264,7 @@ export const startSession = (
 
   const finish = (ended: Run, end: End) => {
     const result = resultOf(ended);
+
     const settled = settle(save, {
       at: Date.now(),
       end,
@@ -256,12 +273,15 @@ export const startSession = (
       snaps: ended.strands.length - aliveOf(ended),
       sweet: ended.sweet,
     });
+
     ({ save } = settled);
     storeSave(save);
     on.save(save);
+
     if (settled.record) {
       sound.record();
     }
+
     enter("result");
     on.over({ end, record: settled.record, result, sweet: ended.sweet });
   };
@@ -270,6 +290,7 @@ export const startSession = (
     if (current.end === null) {
       return;
     }
+
     if (stage === "pulling") {
       endedAt = now;
       holder = null;
@@ -277,6 +298,7 @@ export const startSession = (
       enter("ending");
       on.end(current.end);
       sound.pull(0, 0, false, false);
+
       if (current.end === "moon") {
         sound.moon();
         render.flash(1);
@@ -286,6 +308,7 @@ export const startSession = (
         navigator.vibrate?.([20, 50, 20]);
       }
     }
+
     if (stage === "ending" && now - endedAt > REVEAL[current.end] * 1000) {
       finish(current, current.end);
     }
@@ -300,29 +323,36 @@ export const startSession = (
       strain: current.strain,
     });
     const height = reachedOf(current.length);
+
     if (height > reached) {
       reached = height;
       sound.height(height);
       navigator.vibrate?.(10);
       on.height(height);
     }
+
     const left = aliveOf(current);
+
     if (left < alive) {
       alive = left;
       sound.snap(left);
       navigator.vibrate?.([25, 30, 40]);
       on.alive(left, current.strands.length);
     }
+
     if (challenge !== null && !passed && current.length * 10 > challenge.mm) {
       passed = true;
       sound.passed();
       on.passed();
     }
+
     const best = save.dishes[dish.id];
+
     if (!beaten && best > 0 && current.length * 10 > best) {
       beaten = true;
       on.beat();
     }
+
     watchEnd(current, now);
   };
 
@@ -330,6 +360,7 @@ export const startSession = (
     const words = copy[langOf()].marks;
     const marks: Mark[] = [];
     const best = save.dishes[dish.id] / 10;
+
     if (best > 0) {
       marks.push({
         cm: best,
@@ -337,6 +368,7 @@ export const startSession = (
         label: `${words.best} ${lengthText(best, langOf())}`,
       });
     }
+
     if (challenge !== null) {
       marks.push({
         cm: cmOf(challenge),
@@ -344,16 +376,19 @@ export const startSession = (
         label: `${words.challenge} ${lengthText(cmOf(challenge), langOf())}`,
       });
     }
+
     return marks;
   };
 
   const idle = (clock: number) => {
     const today = dishNow();
+
     if (today !== dish) {
       dish = today;
       demo = createRun(dish, 7);
       on.dish(dish.id);
     }
+
     const wave = (1 - Math.cos(clock * 1.05)) / 2;
     const { rest } = frameOf(canvas.clientWidth, canvas.clientHeight);
     demo.length = 3 * (1 + 0.6 * wave);
@@ -362,19 +397,23 @@ export const startSession = (
   };
 
   let frame = 0;
+
   const tick = (now: number) => {
     const dt = Math.min(0.05, Math.max(0, now - drawn) / 1000);
     drawn = now;
     const clock = now / 1000;
     const live = stage === "idle" ? null : run;
+
     if (live === null) {
       idle(clock);
     } else {
       if (stage === "pulling") {
         advance(live, dt);
       }
+
       watch(live, now);
     }
+
     render.draw({
       clock,
       dt,
@@ -387,6 +426,7 @@ export const startSession = (
     });
     frame = requestAnimationFrame(tick);
   };
+
   frame = requestAnimationFrame(tick);
 
   return {
@@ -394,6 +434,7 @@ export const startSession = (
       if (stage !== "result") {
         return;
       }
+
       run = null;
       demo = createRun(dish, 7);
       enter("idle");

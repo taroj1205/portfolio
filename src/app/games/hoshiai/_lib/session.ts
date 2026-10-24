@@ -78,11 +78,14 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const learn = (tier: number, loud: boolean) => {
     const next = discover(save, tier);
+
     if (next === null) {
       return;
     }
+
     known = tier;
     keep(next);
+
     if (loud) {
       on.discover(tier);
     }
@@ -99,13 +102,16 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const release = () => {
     const orb = drop(world, aim);
+
     if (orb === null) {
       return;
     }
+
     shown = aim;
     sound.drop();
     on.queue(world.queue);
     on.drop();
+
     if (orb.tier > known) {
       learn(orb.tier, false);
     }
@@ -115,6 +121,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (event.pointerType === "mouse" && event.button !== 0) {
       return;
     }
+
     sound.unlock();
     canvas.setPointerCapture(event.pointerId);
     held = true;
@@ -131,6 +138,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (!held) {
       return;
     }
+
     held = false;
     aimAt(event);
     wanted = true;
@@ -144,6 +152,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     if (interactive(event.target) || event.metaKey || event.ctrlKey) {
       return;
     }
+
     if (LEFT_KEYS.has(event.key)) {
       turning = -1;
     } else if (RIGHT_KEYS.has(event.key)) {
@@ -151,13 +160,16 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     } else if (DROP_KEYS.has(event.key)) {
       event.preventDefault();
       sound.unlock();
+
       if (!event.repeat) {
         wanted = true;
       }
+
       return;
     } else {
       return;
     }
+
     event.preventDefault();
   };
 
@@ -186,6 +198,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   const merged = (merges: Merge[]) => {
     for (const merge of merges) {
       render.burst(merge);
+
       if (merge.made === null) {
         sound.galaxy();
         navigator.vibrate?.([30, 40, 80]);
@@ -193,14 +206,18 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
         sound.merge(merge.made, merge.chain);
         navigator.vibrate?.(Math.min(40, 6 + merge.made * 3));
       }
+
       if (!calm && (merge.made === null || merge.made === TOP)) {
         slow = 0.8;
       }
+
       on.merge(merge);
+
       if (merge.made !== null && merge.made > known) {
         learn(merge.made, true);
       }
     }
+
     if (merges.length > 0) {
       on.score(world.score);
     }
@@ -211,9 +228,11 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
     const result = resultOf(world);
     const settled = settle(save, result);
     keep(settled.save);
+
     if (settled.record) {
       sound.record();
     }
+
     on.over({ record: settled.record, result });
   };
 
@@ -225,6 +244,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       ({ danger } = world);
       on.danger(danger);
     }
+
     if (danger > 0.15 && now - warned > 500) {
       warned = now;
       sound.warn();
@@ -232,20 +252,24 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
   };
 
   let frame = 0;
+
   const tick = (now: number) => {
     const real = paused ? 0 : Math.min(0.05, (now - last) / 1000);
     last = now;
     const rate = slow > 0 ? SLOW : 1;
     slow = Math.max(0, slow - real);
     aim += turning * TURN * real;
+
     if (world.over) {
       wanted = false;
     } else if (wanted && canDrop(world)) {
       wanted = false;
       release();
     }
+
     pending += real * rate;
     let steps = 0;
+
     while (pending >= TICK && steps < MAX_STEPS) {
       pending -= TICK;
       steps += 1;
@@ -253,23 +277,29 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       landed(ticked.landed);
       merged(ticked.merges);
     }
+
     if (steps === MAX_STEPS) {
       pending = 0;
     }
+
     const swing = Math.atan2(Math.sin(aim - shown), Math.cos(aim - shown));
     shown += swing * Math.min(1, real * 20);
     watchDanger(now);
+
     if (world.over && overAt === null) {
       overAt = now;
       sound.over();
       navigator.vibrate?.([60, 50, 60]);
     }
+
     if (overAt !== null && !ended && now - overAt > REVEAL * 1000) {
       finish();
     }
+
     render.draw({ aim: shown, clock: now / 1000, dt: real * rate, world });
     frame = requestAnimationFrame(tick);
   };
+
   frame = requestAnimationFrame(tick);
 
   return {
@@ -277,6 +307,7 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
       if (!ended && world.drops > 0) {
         keep(settle(save, resultOf(world)).save);
       }
+
       world = createWorld(newSeed());
       render.reset();
       overAt = null;

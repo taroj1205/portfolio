@@ -319,6 +319,7 @@ interface HudProps {
 export const Hud = ({ lang, playing, muted, onLang, onMute }: HudProps) => {
   const words = copy[lang];
   const other: Lang = lang === "ja" ? "en" : "ja";
+
   return (
     <header {...stylex.props(styles.top)}>
       <div {...stylex.props(styles.brand)}>
@@ -359,6 +360,7 @@ interface MeterProps {
 
 export const Meter = ({ lang, carved, percent, stress }: MeterProps) => {
   const words = copy[lang].meter;
+
   return (
     <div {...stylex.props(styles.prompt)}>
       <div {...stylex.props(styles.meter)}>
@@ -391,6 +393,7 @@ const ChallengeCard = ({
   challenge: Result;
 }) => {
   const words = copy[lang];
+
   return (
     <div {...stylex.props(glass.surface, styles.challenge)}>
       <span {...stylex.props(styles.label)}>
@@ -426,6 +429,7 @@ export const Prompt = ({
   onMould,
 }: PromptProps) => {
   const words = copy[lang];
+
   return (
     <div {...stylex.props(styles.prompt)}>
       {challenge === null ? (

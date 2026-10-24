@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { afterEach, describe, test, vi } from "vite-plus/test";
+import { afterEach, describe, it, vi } from "vite-plus/test";
 
 import { dailyTarget } from "./daily";
 import { planOf } from "./result";
@@ -18,14 +18,14 @@ describe("ma save", () => {
     vi.unstubAllGlobals();
   });
 
-  test("an older or partial save fills in every field instead of resetting", () => {
+  it("an older or partial save fills in every field instead of resetting", () => {
     vi.stubGlobal("localStorage", {
       getItem: () => JSON.stringify({ perfect: 2, runs: 7 }),
     });
     assert.deepEqual(loadSave(), { ...fresh, perfect: 2, runs: 7 });
   });
 
-  test("keeps the totals a player profile would need", () => {
+  it("keeps the totals a player profile would need", () => {
     const first = play(fresh, standard, 1012, 5000).save;
     const second = play(first, standard, 990, 6000).save;
     const third = play(second, standard, 1000, 9000).save;
@@ -42,7 +42,7 @@ describe("ma save", () => {
     });
   });
 
-  test("the first run is never a new best, and best is the closest per mode", () => {
+  it("the first run is never a new best, and best is the closest per mode", () => {
     const first = play(fresh, standard, 1050);
     assert.equal(first.record, false);
     const closer = play(first.save, standard, 980);
@@ -56,7 +56,7 @@ describe("ma save", () => {
     assert.deepEqual(other.save.best, { daily: 40, standard: 20 });
   });
 
-  test("only the first daily try of the day is official", () => {
+  it("only the first daily try of the day is official", () => {
     const target = dailyTarget(3);
     const first = play(fresh, daily(3), target - 12);
     assert.equal(first.official, true);
@@ -78,7 +78,7 @@ describe("ma save", () => {
     assert.equal(officialOf(practice.save, 4), null);
   });
 
-  test("standard runs and other days' challenges don't touch the daily", () => {
+  it("standard runs and other days' challenges don't touch the daily", () => {
     const old = planOf("standard", { day: 2, time: 900 }, 3);
     const run = play(fresh, old, dailyTarget(2));
     assert.equal(run.official, false);
@@ -87,11 +87,13 @@ describe("ma save", () => {
     assert.deepEqual(play(fresh).save.daily, fresh.daily);
   });
 
-  test("streaks grow on back-to-back days and restart after a gap", () => {
+  it("streaks grow on back-to-back days and restart after a gap", () => {
     let save = fresh;
+
     for (const day of [1, 2, 3]) {
       ({ save } = play(save, daily(day), 900));
     }
+
     assert.equal(save.daily.streak, 3);
     assert.equal(streakOn(save, 3), 3);
     assert.equal(streakOn(save, 4), 3);
@@ -102,7 +104,7 @@ describe("ma save", () => {
     assert.equal(save.daily.played, 4);
   });
 
-  test("a clock that went backwards can't replay an earlier day", () => {
+  it("a clock that went backwards can't replay an earlier day", () => {
     const later = play(fresh, daily(9), 900).save;
     const earlier = play(later, daily(8), 900);
     assert.equal(earlier.official, false);

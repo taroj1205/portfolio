@@ -5,6 +5,7 @@ const SCALE = [0, 2, 4, 7, 9];
 const note = (step: number) => {
   const octave = Math.floor(step / SCALE.length);
   const degree = SCALE[step - octave * SCALE.length] ?? 0;
+
   return 261.63 * 2 ** ((degree + 12 * octave) / 12);
 };
 
@@ -18,6 +19,7 @@ interface Voices {
 
 export const createSound = () => {
   let voices: Voices | null = null;
+
   const { close, mute, spray, tone, unlock } = createAudio(
     (audio, out, noise) => {
       const room = audio.createBufferSource();
@@ -43,12 +45,14 @@ export const createSound = () => {
       creak.start();
       const pad = audio.createGain();
       pad.gain.value = 0;
+
       for (const frequency of [note(5), note(7), note(9)]) {
         const voice = audio.createOscillator();
         voice.frequency.value = frequency;
         voice.connect(pad);
         voice.start();
       }
+
       pad.connect(out);
       voices = { audio, band, creak, pad, stretch };
     }
@@ -81,6 +85,7 @@ export const createSound = () => {
       if (voices === null) {
         return;
       }
+
       const now = voices.audio.currentTime;
       const tense = Math.min(1.6, load);
       voices.creak.frequency.setTargetAtTime(

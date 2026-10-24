@@ -97,20 +97,25 @@ export const foodOf = (kind: Kind, seed: number): Food => {
   const angle = (turn * Math.PI) / 180;
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
+
   const turned = parts.map((points) =>
     points.map((p) => ({
       x: p.x * cos - p.y * sin,
       y: p.x * sin + p.y * cos,
     }))
   );
+
   const centre = centreOf(turned);
+
   const reach = Math.max(
     ...turned.flat().map((p) => Math.hypot(p.x - centre.x, p.y - centre.y))
   );
+
   const scale = 1 / reach;
   const heading = roll() * TAU;
   const away = between(roll, DRIFT[0], DRIFT[1]);
   const drift = { x: Math.cos(heading) * away, y: Math.sin(heading) * away };
+
   return {
     art,
     kind,
@@ -119,6 +124,7 @@ export const foodOf = (kind: Kind, seed: number): Food => {
         x: (p.x - centre.x) * scale + drift.x,
         y: (p.y - centre.y) * scale + drift.y,
       }));
+
       return signedArea(placed) < 0 ? placed.toReversed() : placed;
     }),
     place: {
@@ -132,10 +138,12 @@ export const foodOf = (kind: Kind, seed: number): Food => {
 
 const draw = (seed: number) => {
   const roll = seeded(seed);
+
   const kind: Kind =
     roll() < RARITY
       ? rares[pick(roll, rares.length)]
       : kinds[pick(roll, kinds.length)];
+
   return { kind, mould: 1 + Math.floor(roll() * SEED_MAX) };
 };
 
@@ -143,5 +151,6 @@ export const kindOf = (seed: number) => draw(seed).kind;
 
 export const dishOf = (seed: number) => {
   const { kind, mould } = draw(seed);
+
   return foodOf(kind, mould);
 };

@@ -56,6 +56,7 @@ const interactive = (target: EventTarget | null) =>
 
 const stampOf = (event: Event) => {
   const now = performance.now();
+
   return event.timeStamp > 0 && event.timeStamp <= now ? event.timeStamp : now;
 };
 
@@ -81,6 +82,7 @@ const still = (run: Run | null): View => ({
 const viewOf = (run: Run, now: number): View => {
   const early = counting(run, now);
   const at = sweep(run, now);
+
   return {
     count: early ? Math.ceil((run.at - now) / run.gap) - 1 : null,
     heat: heatOf(run),
@@ -133,7 +135,9 @@ export const startSession = (
       pounds: current.pounds,
       tempo: tempoAt(current.beat),
     };
+
     const key = `${stats.pounds}:${stats.tempo}:${stats.lives}`;
+
     if (key !== shown) {
       shown = key;
       on.stats(stats);
@@ -142,6 +146,7 @@ export const startSession = (
 
   const finish = (current: Run, ending: Finish) => {
     const result = resultOf(current, ending);
+
     const settled = settle(save, {
       at: Date.now(),
       greats: current.greats,
@@ -149,6 +154,7 @@ export const startSession = (
       result,
       seconds: played,
     });
+
     keep(settled.save);
     enter("done");
     on.over({ greats: current.greats, record: settled.record, result });
@@ -156,11 +162,13 @@ export const startSession = (
 
   const missed = (current: Run, stamp: number) => {
     const count = advance(current, stamp);
+
     if (count > 0) {
       render.call("miss", stamp);
       sound.miss();
       navigator.vibrate?.(30);
     }
+
     if (current.over === "miss") {
       finish(current, "miss");
     }
@@ -181,10 +189,13 @@ export const startSession = (
 
   const hit = (current: Run, stamp: number) => {
     missed(current, stamp);
+
     if (current.over !== null) {
       return;
     }
+
     const outcome = strike(current, stamp);
+
     if (outcome.kind === "great" || outcome.kind === "good") {
       const great = outcome.kind === "great";
       render.pound(stamp, great, heatOf(current));
@@ -200,20 +211,26 @@ export const startSession = (
       sound.hand();
       navigator.vibrate?.([60, 40, 120]);
       finish(current, "hand");
+
       return;
     }
+
     report(current);
   };
 
   const press = (stamp: number) => {
     if (phase === "demo" || phase === "ready") {
       begin(stamp);
+
       return true;
     }
+
     if (phase === "playing" && run !== null) {
       hit(run, stamp);
+
       return true;
     }
+
     return false;
   };
 
@@ -221,6 +238,7 @@ export const startSession = (
     if (event.pointerType === "mouse" && event.button !== 0) {
       return;
     }
+
     event.preventDefault();
     press(stampOf(event));
   };
@@ -235,7 +253,9 @@ export const startSession = (
     ) {
       return;
     }
+
     event.preventDefault();
+
     if (!event.repeat && press(stampOf(event)) && phase === "done") {
       swallow = true;
     }
@@ -275,6 +295,7 @@ export const startSession = (
       { at: current.at, play: sound.tick },
       { at: current.at + intervalAt(current.beat) / 2, play: sound.turn },
     ];
+
     for (const mark of marks) {
       if (
         mark.at > cued + 1 &&
@@ -291,30 +312,38 @@ export const startSession = (
     if (calm) {
       return still(null);
     }
+
     if (demo === null || demo.beat >= DEMO_BEATS) {
       demo = createRun(now - (COUNT_IN - 1) * intervalAt(0));
       render.reset();
     }
+
     if (now >= demo.at) {
       const { at } = demo;
       strike(demo, at);
       render.pound(at, true, heatOf(demo));
     }
+
     return { ...viewOf(demo, now), streak: 0 };
   };
 
   const step = (current: Run, now: number) => {
     missed(current, now);
+
     if (current.over !== null) {
       return still(current);
     }
+
     const next = tempoAt(current.beat);
+
     if (next > tempo) {
       tempo = next;
       sound.rise();
     }
+
     cue(current, now);
     report(current);
+
     return viewOf(current, now);
   };
 
@@ -322,20 +351,25 @@ export const startSession = (
     if (phase === "demo") {
       return playDemo(now);
     }
+
     if (phase === "playing" && run !== null) {
       played += dt;
+
       return step(run, now);
     }
+
     return still(run);
   };
 
   let frame = 0;
+
   const tick = (now: number) => {
     const dt = Math.min(0.05, Math.max(0, now - previous) / 1000);
     previous = now;
     render.draw(viewNow(now, dt), now);
     frame = requestAnimationFrame(tick);
   };
+
   frame = requestAnimationFrame(tick);
 
   return {

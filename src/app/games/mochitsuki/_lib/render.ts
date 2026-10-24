@@ -129,10 +129,13 @@ const SPRITES: readonly Sprite[] = [
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 const easeOut = (t: number) => 1 - (1 - clamp(t)) ** 3;
+
 const smoothstep = (from: number, to: number, value: number) => {
   const t = clamp((value - from) / (to - from));
+
   return t * t * (3 - 2 * t);
 };
+
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
 
 const glowSprite = () => {
@@ -140,6 +143,7 @@ const glowSprite = () => {
   glow.width = 128;
   glow.height = 128;
   const paint = glow.getContext("2d");
+
   if (paint) {
     const light = paint.createRadialGradient(64, 64, 0, 64, 64, 64);
     light.addColorStop(0, "rgb(255 255 255 / 1)");
@@ -148,6 +152,7 @@ const glowSprite = () => {
     paint.fillStyle = light;
     paint.fillRect(0, 0, 128, 128);
   }
+
   return glow;
 };
 
@@ -156,12 +161,14 @@ const tinted = (source: HTMLCanvasElement, color: string) => {
   out.width = source.width;
   out.height = source.height;
   const paint = out.getContext("2d");
+
   if (paint) {
     paint.drawImage(source, 0, 0);
     paint.globalCompositeOperation = "source-in";
     paint.fillStyle = color;
     paint.fillRect(0, 0, out.width, out.height);
   }
+
   return out;
 };
 
@@ -170,8 +177,10 @@ const noiseTile = () => {
   tile.width = 160;
   tile.height = 160;
   const paint = tile.getContext("2d");
+
   if (paint) {
     const image = paint.createImageData(160, 160);
+
     for (let i = 0; i < image.data.length; i += 4) {
       const value = Math.random() * 255;
       image.data[i] = value;
@@ -179,14 +188,17 @@ const noiseTile = () => {
       image.data[i + 2] = value;
       image.data[i + 3] = 255;
     }
+
     paint.putImageData(image, 0, 0);
   }
+
   return tile;
 };
 
 const snowfall = (): Flake[] =>
   Array.from({ length: 70 }, (_, i) => {
     const near = i < 6;
+
     return {
       near,
       r: near ? 2.4 + Math.random() * 1.6 : 0.8 + Math.random() * 1.6,
@@ -203,14 +215,18 @@ export const createRenderer = (
   calm: boolean
 ) => {
   const context = canvas.getContext("2d");
+
   if (!context) {
     throw new Error("Canvas 2D is not available");
   }
+
   const ctx = context;
+
   const font =
     getComputedStyle(document.documentElement)
       .getPropertyValue("--font-mincho")
       .trim() || "serif";
+
   const atlas = createAtlas(SPRITES, (w, h, at) => backdrop(w, h, at, false));
   const glow = glowSprite();
   const amber = tinted(glow, "#ff9448");
@@ -238,6 +254,7 @@ export const createRenderer = (
     const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
     const nextWidth = canvas.clientWidth;
     const nextHeight = canvas.clientHeight;
+
     if (nextWidth !== width || nextHeight !== height || nextDpr !== dpr) {
       width = nextWidth;
       height = nextHeight;
@@ -245,8 +262,10 @@ export const createRenderer = (
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
     }
+
     const box = stage();
     const own = canvas.getBoundingClientRect();
+
     if (box && box.width > 0 && box.height > 0) {
       const size = Math.min(box.width * 1.15, box.height, 680);
       goal = {
@@ -255,6 +274,7 @@ export const createRenderer = (
         y: box.top - own.top + box.height - size,
       };
     }
+
     const follow = calm || shown === null ? 1 : 1 - Math.exp(-dt * GLIDE);
     frame = {
       size: mix(frame.size, goal.size, follow),
@@ -280,15 +300,19 @@ export const createRenderer = (
 
   const put = (sprite: Sprite, place?: Place, alpha = 1) => {
     const bitmap = atlas.sprite(sprite);
+
     if (bitmap === null || alpha <= 0) {
       return;
     }
+
     ctx.save();
+
     if (place) {
       ctx.translate(place.x, place.y);
       ctx.rotate(place.angle);
       ctx.scale(place.sx, place.sy);
     }
+
     ctx.globalAlpha *= alpha;
     const { box } = sprite;
     ctx.drawImage(bitmap, box.x, box.y, box.w, box.h);
@@ -311,6 +335,7 @@ export const createRenderer = (
     ctx.fillStyle = ink.night;
     ctx.fillRect(0, 0, width, height);
     const layer = atlas.backdrop();
+
     if (layer) {
       lay(layer);
     }
@@ -319,14 +344,17 @@ export const createRenderer = (
   const lanterns = (now: number) => {
     screen();
     ctx.globalCompositeOperation = "lighter";
+
     for (const [i, spot] of lanternsOf(width, height, frame).entries()) {
       const flicker = calm
         ? 0.5
         : 0.5 + 0.3 * Math.sin(now / 170 + i * 2.1) * Math.sin(now / 410 + i);
+
       const r = spot.size * (2.4 + flicker * 0.5);
       ctx.globalAlpha = 0.16 + flicker * 0.14;
       ctx.drawImage(amber, spot.x - r, spot.y - r, r * 2, r * 2);
     }
+
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = "source-over";
   };
@@ -335,23 +363,29 @@ export const createRenderer = (
     if (calm) {
       return;
     }
+
     screen();
+
     for (const flake of flakes) {
       if (flake.near !== near) {
         continue;
       }
+
       flake.y += flake.speed * dt;
       flake.sway += dt * 0.8;
+
       if (flake.y > 1.05) {
         flake.y = -0.05;
         flake.x = Math.random();
       }
+
       const x = flake.x * width + Math.sin(flake.sway) * 14;
       const y = flake.y * height;
       const r = flake.r * (near ? 2.6 : 2);
       ctx.globalAlpha = near ? 0.22 : 0.7;
       ctx.drawImage(snow, x - r, y - r, r * 2, r * 2);
     }
+
     ctx.globalAlpha = 1;
   };
 
@@ -359,10 +393,13 @@ export const createRenderer = (
     if (calm) {
       return 0;
     }
+
     const t = now - pounded;
+
     if (t < 0 || t > 700) {
       return 0;
     }
+
     return firm * Math.exp(-t / 140) * Math.cos((t / 210) * Math.PI * 2);
   };
 
@@ -382,26 +419,34 @@ export const createRenderer = (
   const liftOf = (view: View, now: number) => {
     const since = now - struck;
     const rise = Math.min(220, view.interval * 0.55);
+
     const poise =
       view.sweep === null ? 0 : smoothstep(0.4, 0.92, view.sweep) * 0.12;
+
     const hold = hurt === null ? HOLD : PINNED;
+
     if (since < hold) {
       return 0;
     }
+
     return easeOut((since - hold) / rise) * (1 + poise);
   };
 
   const strand = (lift: number, now: number) => {
     const since = now - pounded;
+
     if (calm || hurt !== null || since < HOLD || since > HOLD + STRETCH) {
       return;
     }
+
     const face = toWorld(kinePose(lift), STRIKE.x, STRIKE.y);
     const base = { x: USU.cx, y: MOCHI.y - MOCHI.h + 8 };
     const reach = Math.hypot(face.x - base.x, face.y - base.y);
+
     if (reach > SNAP) {
       return;
     }
+
     const t = reach / SNAP;
     const waist = mix(46, 4, t);
     const foot = mix(80, 50, t);
@@ -428,16 +473,21 @@ export const createRenderer = (
     if (calm) {
       return;
     }
+
     ctx.save();
+
     for (let i = 0; i < 6; i += 1) {
       const t = (now / 2800 + i / 6) % 1;
+
       const x =
         USU.cx + (i - 2.5) * 34 + Math.sin(now / 900 + i * 1.7) * 30 * t;
+
       const y = MOCHI.y - MOCHI.h - t * 320;
       const r = 40 + t * 70;
       ctx.globalAlpha = 0.14 * Math.sin(t * Math.PI);
       ctx.drawImage(snow, x - r, y - r, r * 2, r * 2);
     }
+
     ctx.restore();
   };
 
@@ -445,10 +495,13 @@ export const createRenderer = (
     if (view.sweep === null) {
       return;
     }
+
     const near = smoothstep(0.45, 1, view.sweep);
+
     if (near <= 0) {
       return;
     }
+
     const grow = 1 + (1 - near) * 0.9;
     ctx.save();
     ctx.globalAlpha = near * 0.85;
@@ -473,9 +526,11 @@ export const createRenderer = (
 
   const shock = (now: number) => {
     const age = now - pounded;
+
     if (calm || age < 0 || age > 300) {
       return;
     }
+
     const t = age / 300;
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
@@ -504,23 +559,30 @@ export const createRenderer = (
     if (hurt === null) {
       return view.reach;
     }
+
     const age = now - hurt;
+
     return age < PINNED ? 1 : mix(1, 0.25, easeOut((age - PINNED) / 500));
   };
 
   const arm = (view: View, now: number) => {
     const age = hurt === null ? Infinity : now - hurt;
     const fresh = age < OUCH;
+
     const swell = fresh
       ? 1 + 0.14 * Math.sin(Math.min(1, age / 200) * Math.PI)
       : 1;
+
     const pose = armPose(reachOf(view, now), swell);
+
     if (!calm && fresh) {
       pose.hand.y += Math.sin(age / 18) * 8 * (1 - age / OUCH);
     }
+
     put(sleeve, pose.sleeve);
     put(forearm, pose.forearm);
     put(hand, pose.hand);
+
     if (fresh) {
       put(bruise, pose.hand, 1 - age / OUCH);
     }
@@ -529,6 +591,7 @@ export const createRenderer = (
   const splash = (now: number) => {
     drops = drops.filter((drop) => now - drop.born < DROP_LIFE);
     ctx.save();
+
     for (const drop of drops) {
       const t = (now - drop.born) / 1000;
       const x = drop.x + drop.vx * t;
@@ -539,14 +602,17 @@ export const createRenderer = (
       ctx.ellipse(x, y, drop.r, drop.r * 0.85, 0, 0, Math.PI * 2);
       ctx.fill();
     }
+
     ctx.restore();
   };
 
   const warmth = (view: View, now: number) => {
     const pulse = calm ? 0 : Math.exp(-(now - pounded) / 180);
+
     const flicker = calm
       ? 0
       : 0.04 * Math.sin(now / 130) * Math.sin(now / 370 + 1);
+
     const heat = clamp(view.heat);
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
@@ -566,9 +632,11 @@ export const createRenderer = (
     ctx.globalAlpha = alpha;
     ctx.font = `700 ${px}px ${font}`;
     const paint = ctx.createLinearGradient(0, y - px / 2, 0, y + px / 2);
+
     for (const [i, color] of fill.entries()) {
       paint.addColorStop(i / Math.max(1, fill.length - 1), color);
     }
+
     ctx.shadowColor = "rgb(0 0 0 / 0.55)";
     ctx.shadowBlur = px * 0.35;
     ctx.lineWidth = Math.max(2, px * 0.09);
@@ -587,13 +655,16 @@ export const createRenderer = (
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.lineJoin = "round";
+
     const at = (x: number, y: number) => ({
       x: frame.x + (x / SCENE) * frame.size,
       y: frame.y + (y / SCENE) * frame.size,
     });
+
     const { size } = frame;
     const lane = at(270, 150);
     const sky = Math.max(110, lane.y);
+
     if (view.count !== null) {
       text(
         String(view.count),
@@ -613,19 +684,23 @@ export const createRenderer = (
         0.9
       );
     }
+
     floaters = floaters.filter(
       (floater) => now - floater.born < (floater.call === "hand" ? OUCH : FLOAT)
     );
+
     for (const floater of floaters) {
       const life = floater.call === "hand" ? OUCH : FLOAT;
       const t = (now - floater.born) / life;
       const style = calls[floater.call];
       const rise = calm ? 0 : easeOut(t) * 60;
       const pop = calm ? 1 : 1 + 0.35 * Math.max(0, 1 - t * 7);
+
       const spot =
         floater.call === "hand"
           ? at(300, 440 - rise)
           : { x: lane.x, y: sky + size * 0.04 - (rise / SCENE) * size };
+
       text(
         style.word[lang],
         spot.x,
@@ -635,11 +710,13 @@ export const createRenderer = (
         t < 0.65 ? 1 : 1 - (t - 0.65) / 0.35
       );
     }
+
     ctx.restore();
   };
 
   const finish = (now: number) => {
     screen();
+
     if (grain) {
       ctx.save();
       ctx.globalAlpha = ink.grain;
@@ -650,10 +727,13 @@ export const createRenderer = (
       ctx.fillRect(0, 0, width + 160, height + 160);
       ctx.restore();
     }
+
     if (shown === null && atlas.ready()) {
       shown = now;
     }
+
     const reveal = shown === null ? 0 : clamp((now - shown) / REVEAL);
+
     if (reveal < 1) {
       ctx.globalAlpha = calm && shown !== null ? 0 : 1 - easeOut(reveal);
       ctx.fillStyle = ink.night;
@@ -666,6 +746,7 @@ export const createRenderer = (
     if (calm) {
       return;
     }
+
     for (let i = 0; i < 8 + strength * 10; i += 1) {
       const side = i % 2 === 0 ? -1 : 1;
       drops.push({
@@ -678,6 +759,7 @@ export const createRenderer = (
         y: MOCHI.y - MOCHI.h * 0.6,
       });
     }
+
     drops = drops.slice(-110);
   };
 

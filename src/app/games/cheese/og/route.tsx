@@ -58,8 +58,10 @@ const pitchSize: Record<Lang, number> = { en: 84, ja: 104 };
 
 const starsOf = (alpha: number) => {
   const roll = seeded(5);
+
   return Array.from({ length: 120 }, () => {
     const r = 0.6 + roll() * 1.6;
+
     return ellipse(
       roll() * W,
       roll() * H * 0.8,
@@ -72,21 +74,25 @@ const starsOf = (alpha: number) => {
 
 const marksOf = (reached: number) => {
   const parts: string[] = [];
+
   if (reached >= 7 && reached < 9) {
     parts.push(
       landmarkBody("fuji", "og-fuji", { x: 760, y: H }, 260, 0.9),
       landmarkBody("snow", "og-snow", { x: 760, y: H }, 260)
     );
   }
+
   if (reached >= 5 && reached < 8) {
     parts.push(
       landmarkBody("tower", "og-tower", { x: 1080, y: H }, 330),
       landmarkBody("skytree", "og-tree", { x: 690, y: H }, 470, 0.9)
     );
   }
+
   if (reached === 8) {
     parts.push(landmarkBody("airliner", "og-plane", { x: 690, y: 170 }, 120));
   }
+
   if (reached >= 9) {
     parts.push(
       `<defs>${linearBox(
@@ -106,17 +112,22 @@ const marksOf = (reached: number) => {
       )
     );
   }
+
   if (reached === 10) {
     parts.push(landmarkBody("iss", "og-iss", { x: 690, y: 150 }, 110));
   }
+
   return parts.join("");
 };
 
 const sceneOf = (result: Result | null) => {
   const reached = result === null ? 6 : reachedBy(result);
+
   const altitude =
     result === null ? 5.2 : Math.log10(Math.max(3, cmOf(result)));
+
   const look = lookAt(altitude);
+
   const sky = `<defs>${linearBox(
     "og-sky",
     [0, 0, 0, 1],
@@ -125,10 +136,12 @@ const sceneOf = (result: Result | null) => {
       [1, look.skyLow],
     ]
   )}</defs><rect width="${W}" height="${H}" fill="url(#og-sky)"/>`;
+
   const moonArt =
     result !== null && isMoon(result)
       ? moonBodyAt(true, { x: 905, y: 40 }, 150)
       : "";
+
   return `${sky}${starsOf(look.stars)}${marksOf(reached)}${moonArt}`;
 };
 
@@ -167,13 +180,16 @@ export const GET = async (request: NextRequest) => {
   const words = copy[lang];
   const length = result === null ? null : measure(cmOf(result));
   const caption = result === null ? pitch[lang].caption : titleOf(result, lang);
+
   const detail =
     result === null
       ? pitch[lang].detail
       : `${dishes[result.dish].name[lang]} · ${words.challenge.dare}`;
+
   const font = await loadMincho(
     `${copy.ja.name}${copy.ja.reading}${caption}${detail}${length?.value ?? ""}${length?.unit ?? ""}${words.name}`
   );
+
   return await ogImage(
     <div
       style={{

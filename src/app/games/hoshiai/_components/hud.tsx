@@ -423,6 +423,7 @@ export const Hud = ({
   const words = copy[lang];
   const other: Lang = lang === "ja" ? "en" : "ja";
   const upcoming = kindOf(next);
+
   return (
     <>
       <div ref={vignette} {...stylex.props(styles.vignette)} />

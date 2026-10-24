@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { afterEach, describe, test, vi } from "vite-plus/test";
+import { afterEach, describe, it, vi } from "vite-plus/test";
 
 import type { MouldId } from "./moulds";
 import type { Result } from "./result";
@@ -33,14 +33,14 @@ describe("katanuki save", () => {
     vi.unstubAllGlobals();
   });
 
-  test("an older or partial save fills in every field instead of resetting", () => {
+  it("an older or partial save fills in every field instead of resetting", () => {
     vi.stubGlobal("localStorage", {
       getItem: () => JSON.stringify({ clears: 2, runs: 7 }),
     });
     assert.deepEqual(loadSave(), { ...fresh, clears: 2, runs: 7 });
   });
 
-  test("keeps the totals a player profile would need", () => {
+  it("keeps the totals a player profile would need", () => {
     const first = play(fresh, broke("fish", 40), 5000).save;
     const second = play(first, clear("fish", 500), 9000).save;
     assert.deepEqual(second, {
@@ -57,7 +57,7 @@ describe("katanuki save", () => {
     });
   });
 
-  test("best is the fastest clear for each shape, and the first clear is not a record", () => {
+  it("best is the fastest clear for each shape, and the first clear is not a record", () => {
     const first = play(fresh, clear("star", 600));
     assert.equal(first.record, false);
     const faster = play(first.save, clear("star", 450));
@@ -71,7 +71,7 @@ describe("katanuki save", () => {
     assert.deepEqual(other.save.best, { star: 450, umbrella: 900 });
   });
 
-  test("a break never touches the best times", () => {
+  it("a break never touches the best times", () => {
     const cleared = play(fresh, clear("star", 600)).save;
     const broken = play(cleared, broke("star", 99));
     assert.equal(broken.record, false);

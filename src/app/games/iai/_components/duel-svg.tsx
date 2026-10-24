@@ -107,6 +107,7 @@ export const grassSvg = (at: Layout) => (
       const bx = x * at.w;
       const by = at.h - (h * 0.2 + 0.01) * (at.h - at.ground);
       const tall = (40 + h * 60) * at.scale;
+
       return `M${bx.toFixed(1)} ${by.toFixed(1)}Q${(bx + lean * tall * 0.2).toFixed(1)} ${(by - tall * 0.6).toFixed(1)} ${(bx + lean * tall).toFixed(1)} ${(by - tall).toFixed(1)}`;
     }).join("")}
     fill="none"
@@ -126,6 +127,7 @@ export const figureSvg = (
   const figure = figures[pose];
   const flip = side === "left" ? 1 : -1;
   const [kx, ky] = figure.knot;
+
   const parts = (fill: string) => (
     <>
       {figure.body.map((d) => (
@@ -143,6 +145,7 @@ export const figureSvg = (
       ))}
     </>
   );
+
   return (
     <g
       transform={`translate(${x} ${at.ground}) scale(${at.scale * LIFT * flip} ${at.scale * LIFT})`}
@@ -182,6 +185,7 @@ const glyph = (r: number) => (
 
 export const signalSvg = (at: Layout) => {
   const r = 44 * at.scale;
+
   return (
     <g transform={`translate(${at.mid} ${at.ground - SIGNAL_Y * at.scale})`}>
       {glyph(r)}
@@ -199,10 +203,13 @@ export const MARK = "「！」";
 
 export const slashSvg = (at: Layout, side: Side) => {
   const from = homeOf(at, side);
+
   const to =
     homeOf(at, side === "left" ? "right" : "left") +
     (side === "left" ? 1 : -1) * at.gap * 0.5;
+
   const y = at.ground - BLADE_Y * at.scale * LIFT;
+
   return (
     <path
       d={`M${from} ${y + 6 * at.scale}Q${(from + to) / 2} ${y - 4 * at.scale} ${to} ${y - 6 * at.scale}Q${(from + to) / 2} ${y + 4 * at.scale} ${from} ${y + 6 * at.scale}Z`}
@@ -240,6 +247,7 @@ const catParts = (fill: string) => (
 const fakeSvg = (at: Layout, kind: Fake) => {
   if (kind === "cat") {
     const size = at.scale * CAT_SIZE * 0.85;
+
     return (
       <g
         transform={`translate(${at.mid + at.gap * 0.1} ${at.ground + 22 * at.scale}) scale(${size})`}
@@ -259,6 +267,7 @@ const fakeSvg = (at: Layout, kind: Fake) => {
       </g>
     );
   }
+
   if (kind === "leaf") {
     return (
       <g
@@ -269,6 +278,7 @@ const fakeSvg = (at: Layout, kind: Fake) => {
       </g>
     );
   }
+
   if (kind === "crow") {
     return (
       <g
@@ -279,6 +289,7 @@ const fakeSvg = (at: Layout, kind: Fake) => {
       </g>
     );
   }
+
   return (
     <g
       fill="none"
@@ -291,6 +302,7 @@ const fakeSvg = (at: Layout, kind: Fake) => {
         const x = at.mid - at.gap * (1.1 - i * 0.18);
         const y = at.ground - (30 + i * 26) * at.scale;
         const length = (120 + (i % 3) * 50) * at.scale;
+
         return (
           <path
             d={`M${x} ${y}C${x + length * 0.35} ${y - 8 * at.scale} ${x + length * 0.7} ${y + 6 * at.scale} ${x + length} ${y - 4 * at.scale}`}
@@ -315,7 +327,9 @@ const standAt = (at: Layout, moment: Moment, side: Side) => {
   if (moment.lunge !== side) {
     return homeOf(at, side);
   }
+
   const reach = moment.slash === null ? EARLY_REACH : 1;
+
   return homeOf(at, side) + (lungeOf(at, side) - homeOf(at, side)) * reach;
 };
 

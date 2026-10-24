@@ -17,6 +17,7 @@ type Ambience = (
 const wake = async (audio: AudioContext) => {
   try {
     await audio.resume();
+
     return true;
   } catch {
     return false;
@@ -42,12 +43,15 @@ export const createAudio = (ambience: Ambience) => {
       );
       const data = noise.getChannelData(0);
       let last = 0;
+
       for (let i = 0; i < data.length; i += 1) {
         last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
         data[i] = last * 3.5;
       }
+
       ambience(context, master, noise);
     }
+
     return context.state === "closed" ? null : context;
   };
 
@@ -62,9 +66,11 @@ export const createAudio = (ambience: Ambience) => {
     }: ToneOptions
   ) => {
     const audio = ready();
+
     if (!audio || !master) {
       return;
     }
+
     const start = audio.currentTime + at;
     const osc = audio.createOscillator();
     const gain = audio.createGain();
@@ -81,9 +87,11 @@ export const createAudio = (ambience: Ambience) => {
 
   const spray = (center: number, peak: number, length: number) => {
     const audio = ready();
+
     if (!audio || !master || !noise) {
       return;
     }
+
     const source = audio.createBufferSource();
     source.buffer = noise;
     const band = audio.createBiquadFilter();
@@ -104,6 +112,7 @@ export const createAudio = (ambience: Ambience) => {
     },
     mute: (next: boolean) => {
       muted = next;
+
       if (context && master) {
         master.gain.setTargetAtTime(
           next ? 0 : VOLUME,
@@ -116,6 +125,7 @@ export const createAudio = (ambience: Ambience) => {
     tone,
     unlock: () => {
       const audio = ready();
+
       if (audio) {
         void wake(audio);
       }

@@ -93,16 +93,19 @@ export const tuningOrFlat = z
   .optional()
   .transform((value): Tuning => {
     const parsed = tuningSchema.safeParse(value);
+
     return parsed.success ? parsed.data : flatTuning;
   });
 
 export const tune = (tuning: Tuning, key: Axis, by: 1 | -1): Tuning | null => {
   const next = { ...tuning, [key]: tuning[key] + by };
+
   return tuningSchema.safeParse(next).success ? next : null;
 };
 
 export const traitsOf = (tuning: Tuning): Traits => {
   const scale = (key: Axis) => (1 + STEP[key]) ** tuning[key];
+
   return {
     ...plain,
     focus: plain.focus * scale("focus"),
@@ -116,14 +119,18 @@ export const traitsOf = (tuning: Tuning): Traits => {
 export const noteOf = (tuning: Tuning, lang: Lang) => {
   const marks = axes.flatMap(({ key, label }) => {
     const by = tuning[key];
+
     if (by === 0) {
       return [];
     }
+
     return [`${label[lang]}${(by > 0 ? "↑" : "↓").repeat(Math.abs(by))}`];
   });
+
   if (marks.length > 0) {
     return marks.join(" ");
   }
+
   return lang === "en" ? "Balanced" : "クセなし";
 };
 
@@ -132,11 +139,14 @@ export const tuningCode = (tuning: Tuning) =>
 
 export const tuningFrom = (code: string): Tuning | null => {
   const parts = code.split(".");
+
   if (parts.length !== axes.length || !parts.every((p) => /^-?\d+$/u.test(p))) {
     return null;
   }
+
   const parsed = tuningSchema.safeParse(
     Object.fromEntries(axes.map(({ key }, i) => [key, Number(parts[i])]))
   );
+
   return parsed.success ? parsed.data : null;
 };

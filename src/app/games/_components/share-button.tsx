@@ -60,6 +60,7 @@ const SaveMark = () => (
 const shareNatively = async (data: ShareData) => {
   try {
     await navigator.share(data);
+
     return true;
   } catch {
     return false;
@@ -69,6 +70,7 @@ const shareNatively = async (data: ShareData) => {
 const copyText = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text);
+
     return true;
   } catch {
     return false;
@@ -78,9 +80,11 @@ const copyText = async (text: string) => {
 const fetchImage = async (url: string, name: string) => {
   try {
     const response = await fetch(url);
+
     if (!response.ok) {
       return null;
     }
+
     return new File([await response.blob()], name, { type: "image/png" });
   } catch {
     return null;
@@ -113,12 +117,15 @@ export const ShareButton = ({
   style,
 }: ShareButtonProps) => {
   const [copied, setCopied] = useState(false);
+
   const image = useRef<{ url: string; file: Promise<File | null> } | null>(
     null
   );
+
   const native = "share" in navigator;
   const files = native && canShareFiles(fileName);
   const link = { text: share.text, url: share.url };
+
   const imageFile = async () => {
     if (image.current?.url !== share.image) {
       image.current = {
@@ -126,8 +133,10 @@ export const ShareButton = ({
         url: share.image,
       };
     }
+
     return await image.current.file;
   };
+
   const shareImage = async () => {
     const file = await imageFile();
     await shareNatively(
@@ -136,6 +145,7 @@ export const ShareButton = ({
         : { files: [file], text: `${share.text}\n${share.url}` }
     );
   };
+
   const copyLink = async () => {
     setCopied(await copyText(share.url));
   };
@@ -145,6 +155,7 @@ export const ShareButton = ({
       onOpenChange={(open) => {
         setCopied(false);
         onOpenChange?.(open);
+
         if (open && files) {
           void imageFile();
         }

@@ -409,6 +409,7 @@ export const Hud = ({
   const other: Lang = lang === "ja" ? "en" : "ja";
   const playing = stage === "burning" || stage === "ending";
   const current = phaseOf(phase);
+
   return (
     <div {...stylex.props(styles.root)}>
       <div {...stylex.props(styles.top)}>

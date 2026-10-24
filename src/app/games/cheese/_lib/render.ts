@@ -78,11 +78,14 @@ export const frameOf = (width: number, height: number) => ({
 const createSprites = () => {
   const bitmaps = new Map<Sprite, HTMLCanvasElement>();
   const scales = new Map<Sprite, number>();
+
   const want = (sprite: Sprite, scale: number) => {
     const had = scales.get(sprite) ?? 0;
+
     if (had > 0 && Math.abs(scale / had - 1) < 0.15) {
       return;
     }
+
     scales.set(sprite, scale);
     void (async () => {
       const bitmap = await rasterize(
@@ -90,11 +93,13 @@ const createSprites = () => {
         sprite.box.w * scale,
         sprite.box.h * scale
       );
+
       if (bitmap !== null && scales.get(sprite) === scale) {
         bitmaps.set(sprite, bitmap);
       }
     })();
   };
+
   return { get: (sprite: Sprite) => bitmaps.get(sprite) ?? null, want };
 };
 
@@ -106,6 +111,7 @@ const puffImage = () => {
     puffCanvas.width = 64;
     puffCanvas.height = 64;
     const ctx = puffCanvas.getContext("2d");
+
     if (ctx) {
       const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
       g.addColorStop(0, "rgba(255,255,255,0.9)");
@@ -114,6 +120,7 @@ const puffImage = () => {
       ctx.fillRect(0, 0, 64, 64);
     }
   }
+
   return puffCanvas;
 };
 
@@ -128,6 +135,7 @@ const place = (
   if (bitmap === null) {
     return;
   }
+
   const k = size / UNIT;
   ctx.save();
   ctx.translate(at.x, at.y);
@@ -144,6 +152,7 @@ const place = (
 
 const fillPoints = (ctx: Context, points: readonly Point[]) => {
   ctx.beginPath();
+
   for (const [i, point] of points.entries()) {
     if (i === 0) {
       ctx.moveTo(point.x, point.y);
@@ -151,20 +160,24 @@ const fillPoints = (ctx: Context, points: readonly Point[]) => {
       ctx.lineTo(point.x, point.y);
     }
   }
+
   ctx.closePath();
   ctx.fill();
 };
 
 const spine = (ctx: Context, thread: Thread, offset: number) => {
   ctx.beginPath();
+
   for (let i = 0; i <= 18; i += 1) {
     const point = pointAt(thread, 0.04 + (i / 18) * 0.92);
+
     if (i === 0) {
       ctx.moveTo(point.x + offset, point.y);
     } else {
       ctx.lineTo(point.x + offset, point.y);
     }
   }
+
   ctx.stroke();
 };
 
@@ -176,6 +189,7 @@ interface Tone {
 
 const toneOf = (heat: number): Tone => {
   const cold = 1 - Math.max(0, Math.min(1, heat));
+
   return {
     body: mix(paint.cheese[1], "#e0a640", cold * 0.85),
     deep: mix(paint.cheese[2], "#b97a22", cold),
@@ -228,6 +242,7 @@ const drawThread = (ctx: Context, thread: Thread, tone: Tone) => {
 const drawWebs = (ctx: Context, threads: readonly Thread[], tone: Tone) => {
   ctx.fillStyle = tone.body;
   ctx.globalAlpha = 0.6;
+
   for (const { ea, pa, mid, pb, eb } of websOf(threads)) {
     ctx.beginPath();
     ctx.moveTo(ea.x, ea.y);
@@ -237,6 +252,7 @@ const drawWebs = (ctx: Context, threads: readonly Thread[], tone: Tone) => {
     ctx.closePath();
     ctx.fill();
   }
+
   ctx.globalAlpha = 1;
 };
 
@@ -251,13 +267,17 @@ const stubsOf = (
   const height = thread.from.y - thread.to.y;
   const e = spring(Math.max(0, since));
   const lean = (side >= 0 ? 1 : -1) * (0.2 + Math.abs(side) * 0.5);
+
   const low =
     height * strand.at +
     (Math.min(height * 0.3, thread.ends * 2.4) - height * strand.at) * e;
+
   const high =
     height * (1 - strand.at) +
     (Math.min(height * 0.25, thread.ends * 2) - height * (1 - strand.at)) * e;
+
   const neck = thread.neck * 1.3;
+
   return [
     {
       ...thread,
@@ -282,15 +302,18 @@ const glowSpines = (
   if (level <= 0.01) {
     return;
   }
+
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
   ctx.strokeStyle = ink.gold;
   ctx.lineCap = "round";
+
   for (const thread of threads) {
     ctx.globalAlpha = 0.14 * level;
     ctx.lineWidth = thread.neck * 2.4 + 3;
     spine(ctx, thread, 0);
   }
+
   ctx.restore();
 };
 
@@ -301,6 +324,7 @@ const tick = (bits: Bit[], dt: number, gravity: number) => {
     bit.x += bit.vx * dt;
     bit.y += bit.vy * dt;
   }
+
   return bits.filter((bit) => bit.age < bit.life);
 };
 
@@ -352,6 +376,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const nextDpr = Math.min(2, window.devicePixelRatio || 1);
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
+
     if (w !== width || h !== height || nextDpr !== dpr) {
       width = w;
       height = h;
@@ -373,12 +398,15 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const frame = frameOf(width, height);
     const floor = frame.base * (0.44 - 0.24 * smooth(altitude, 6, 10.3));
     const room = ((oy - lift - height * 0.12) * UNIT) / plate.crown;
+
     const target = Math.max(
       frame.base * 0.18,
       Math.min(frame.base * 1.12, room, Math.max(floor, scale * run.dish.width))
     );
+
     hero =
       hero === 0 ? target : hero + (target - hero) * (1 - Math.exp(-dt / 0.18));
+
     return hero;
   };
 
@@ -392,6 +420,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const oy = frame.oy - rise * height * 0.16;
     const size = heroFor(run, lift, scale, altitude, plate, dt, oy);
     const table = oy + (plate.feet * size) / UNIT;
+
     const cam: Camera = {
       altitude,
       base: frame.base,
@@ -405,31 +434,38 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       table,
       width,
     };
+
     const pull: Pull = {
       base: { x: cam.ox, y: oy },
       dish: run.dish.id,
       size,
       top: oy - lift,
     };
+
     const thin =
       Math.max(0.28, Math.min(1.3, 1.3 - 0.075 * Math.log(run.length / 3))) *
       (1 - 0.45 * run.strain);
+
     const tremble = run.strain > 0.25 ? run.strain * 3 : 0;
     const alive: number[] = [];
+
     const threads = run.strands.map((twist, i) => {
       if (twist.snapped === null) {
         alive.push(i);
       }
+
       const thread = threadOf(pull, twist, sideOf(i, run.strands.length), {
         clock,
         sway: 0.45 + run.strain * 1.4,
         thin,
       });
+
       return {
         ...thread,
         bend: thread.bend + Math.sin(clock * 41 + twist.phase) * tremble,
       };
     });
+
     return { alive, cam, plate, pull, threads };
   };
 
@@ -439,10 +475,13 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       snapped = 0;
       flash = 0;
     }
+
     const count = run.strands.length - scene.alive.length;
+
     if (count > snapped) {
       for (const [i, strand] of run.strands.entries()) {
         const thread = scene.threads[i];
+
         if (
           strand.snapped !== null &&
           thread !== undefined &&
@@ -457,15 +496,18 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
           );
         }
       }
+
       shake = calm ? 0 : 10;
       flash = Math.max(flash, 0.25);
     }
+
     snapped = count;
   };
 
   const emit = (view: View, scene: Scene) => {
     const { run, dt } = view;
     const k = scene.pull.size / UNIT;
+
     if (Math.random() < dt * 7 * Math.max(0.15, run.heat)) {
       steam.push({
         age: 0,
@@ -477,10 +519,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         y: scene.cam.oy - 10 * k,
       });
     }
+
     const pick =
       scene.threads[
         scene.alive[Math.floor(Math.random() * scene.alive.length)] ?? -1
       ];
+
     if (pick !== undefined && Math.random() < dt * 1.6 * run.heat) {
       const at = pointAt(pick, 0.25 + Math.random() * 0.5);
       drips.push({
@@ -493,6 +537,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         y: at.y,
       });
     }
+
     if (
       pick !== undefined &&
       isSweet(run.load) &&
@@ -515,13 +560,16 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const drawMoon = (scene: Scene, run: Run, since: number) => {
     const { cam } = scene;
     const alpha = smooth(cam.altitude, 7.6, 8.1);
+
     if (alpha <= 0.01 || ctx === null) {
       return;
     }
+
     const r = Math.min(
       cam.base * 0.26,
       Math.max(MOON_RADIUS * cam.scale, cam.base * 0.17)
     );
+
     const truth = cam.oy - MOON * cam.scale - r * 0.92;
     const y = Math.max(truth, -r * 0.55);
     const swapped = run.end === "moon" ? smooth(since, 0.15, 0.9) : 0;
@@ -538,12 +586,15 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (ctx === null) {
       return;
     }
+
     const { cam } = scene;
     ctx.font = `700 ${Math.round(Math.max(11, cam.base * 0.032))}px "Hiragino Sans", system-ui, sans-serif`;
     ctx.textAlign = "right";
     ctx.textBaseline = "bottom";
+
     for (const mark of marks) {
       const y = cam.oy - mark.cm * cam.scale;
+
       if (y > height * 0.12 && y < cam.oy - 24) {
         ctx.strokeStyle = mark.gold ? ink.gold : ink.label;
         ctx.globalAlpha = 0.75;
@@ -565,17 +616,23 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (ctx === null) {
       return;
     }
+
     const tone = toneOf(run.heat);
+
     const live = scene.threads.filter(
       (_, i) => run.strands[i]?.snapped === null
     );
+
     drawWebs(ctx, live, tone);
     glowSpines(ctx, live, isSweet(run.load) && run.end === null ? 1 : 0);
+
     for (const [i, thread] of scene.threads.entries()) {
       const strand = run.strands[i];
+
       if (strand === undefined) {
         continue;
       }
+
       if (strand.snapped === null) {
         drawThread(ctx, thread, tone);
       } else {
@@ -589,14 +646,17 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         }
       }
     }
+
     if (run.strain > 0.5 && run.end === null) {
       ctx.globalAlpha =
         (run.strain - 0.5) * 0.8 * (0.6 + 0.4 * Math.sin(clock * 30));
       ctx.strokeStyle = "#fffdf2";
       ctx.lineWidth = 1;
+
       for (const thread of live) {
         spine(ctx, thread, 0);
       }
+
       ctx.globalAlpha = 1;
     }
   };
@@ -605,7 +665,9 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (ctx === null) {
       return;
     }
+
     ctx.fillStyle = colour;
+
     for (const bit of list) {
       ctx.globalAlpha = 1 - bit.age / bit.life;
       ctx.beginPath();
@@ -620,6 +682,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       );
       ctx.fill();
     }
+
     ctx.globalAlpha = 1;
   };
 
@@ -627,13 +690,16 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (ctx === null) {
       return;
     }
+
     const image = puffImage();
+
     for (const puff of steam) {
       const t = puff.age / puff.life;
       const size = puff.size * (0.6 + t);
       ctx.globalAlpha = 0.16 * Math.sin(Math.PI * t);
       ctx.drawImage(image, puff.x - size / 2, puff.y - size / 2, size, size);
     }
+
     ctx.globalAlpha = 1;
   };
 
@@ -641,9 +707,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (ctx === null) {
       return;
     }
+
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
     ctx.fillStyle = ink.spark;
+
     for (const spark of sparks) {
       const t = spark.age / spark.life;
       const r = spark.size * Math.sin(Math.PI * t);
@@ -656,6 +724,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.quadraticCurveTo(spark.x, spark.y, spark.x, spark.y - r);
       ctx.fill();
     }
+
     ctx.restore();
   };
 
@@ -663,6 +732,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (ctx === null || level < 0.01) {
       return;
     }
+
     const g = ctx.createRadialGradient(
       width / 2,
       height * 0.5,
@@ -671,6 +741,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       height * 0.5,
       Math.hypot(width, height) * 0.5
     );
+
     g.addColorStop(0, clear);
     g.addColorStop(1, colour);
     ctx.globalAlpha = Math.min(1, level);
@@ -682,9 +753,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   const trackFeel = (view: View) => {
     const { run } = view;
     const live = !view.idle && run.end === null;
+
     const over = live
       ? Math.min(1, Math.max(0, (run.load - 1) * 3) + run.strain)
       : 0;
+
     danger += (over - danger) * (1 - Math.exp(-view.dt / 0.08));
     const sweet = live && isSweet(run.load) ? 1 : 0;
     golden += (sweet - golden) * (1 - Math.exp(-view.dt / 0.2));
@@ -694,6 +767,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (ctx === null) {
       return;
     }
+
     const v = ctx.createRadialGradient(
       width / 2,
       height * 0.5,
@@ -702,6 +776,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       height * 0.5,
       Math.max(width, height) * 0.8
     );
+
     v.addColorStop(0, "rgba(0,0,0,0)");
     v.addColorStop(1, ink.shade);
     ctx.fillStyle = v;
@@ -725,11 +800,13 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ink.dangerClear,
       danger * (calm ? 1 : 0.8 + 0.2 * Math.sin(view.clock * 20))
     );
+
     if (flash > 0.01) {
       ctx.globalAlpha = calm ? flash * 0.3 : flash;
       ctx.fillStyle = ink.flash;
       ctx.fillRect(0, 0, width, height);
     }
+
     ctx.globalAlpha = 1;
   };
 
@@ -737,10 +814,12 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     if (ctx === null) {
       return;
     }
+
     const { plate, pull } = scene;
     sprites.want(plate.base, (frameOf(width, height).base * 1.12 * dpr) / UNIT);
     sprites.want(plate.held, (frameOf(width, height).base * 1.12 * dpr) / UNIT);
     const glow = 1 - smooth(scene.cam.altitude, 3, 5);
+
     if (glow > 0.01) {
       const g = ctx.createRadialGradient(
         pull.base.x,
@@ -750,6 +829,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
         pull.base.y,
         pull.size * 0.9
       );
+
       g.addColorStop(0, "rgba(255,200,120,0.35)");
       g.addColorStop(1, "rgba(255,200,120,0)");
       ctx.globalAlpha = glow;
@@ -762,14 +842,17 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       );
       ctx.globalAlpha = 1;
     }
+
     place(ctx, sprites.get(plate.base), plate.base, pull.base, pull.size);
     drawSteam();
     drawCheese(scene, view.run, view.clock);
+
     const tilt =
       Math.sin(view.clock * 1.4) * 0.025 +
       (view.run.strain > 0.3
         ? Math.sin(view.clock * 38) * 0.01 * view.run.strain
         : 0);
+
     place(
       ctx,
       sprites.get(plate.held),
@@ -786,9 +869,11 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
   return {
     draw: (view: View) => {
       fit();
+
       if (ctx === null || width === 0 || height === 0) {
         return;
       }
+
       const scene = sceneOf(view);
       watchSnaps(view.run, scene, view.clock);
       emit(view, scene);

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, it } from "vite-plus/test";
 
 import { postUrl } from "../../_lib/share";
 import type { KindId } from "./fish";
@@ -24,19 +24,20 @@ const roundTrip = (result: Result) =>
   readResult(Object.fromEntries(new URLSearchParams(queryOf(result))));
 
 describe("share links", () => {
-  test("round-trip the count of every kind", () => {
+  it("round-trip the count of every kind", () => {
     const result = resultOf([
       ...many("wakin", 12),
       ...many("demekin", 3),
       "ogon",
       "nushi",
     ]);
+
     assert.equal(queryOf(result), "f=12.0.3.0.0.1.1");
     assert.deepEqual(roundTrip(result), result);
     assert.deepEqual(roundTrip(resultOf([])), resultOf([]));
   });
 
-  test("reject broken and tampered links", () => {
+  it("reject broken and tampered links", () => {
     const bad = [
       {},
       { f: "" },
@@ -50,6 +51,7 @@ describe("share links", () => {
       { f: "1000.0.0.0.0.0.0" },
       { f: ["1.0.0.0.0.0.0", "2.0.0.0.0.0.0"] },
     ];
+
     for (const params of bad) {
       assert.equal(readResult(params), null, JSON.stringify(params));
     }
@@ -57,7 +59,7 @@ describe("share links", () => {
 });
 
 describe("ranks", () => {
-  test("climb with the number of fish", () => {
+  it("climb with the number of fish", () => {
     assert.equal(rankOf(0).name.ja, "破れた");
     assert.equal(rankOf(1).name.ja, "一匹");
     assert.equal(rankOf(9).name.ja, "いい腕");
@@ -66,13 +68,13 @@ describe("ranks", () => {
     assert.equal(rankOf(500).level, PERFECT);
   });
 
-  test("the next rank says how many more", () => {
+  it("the next rank says how many more", () => {
     assert.equal(nextOf(7)?.more, 3);
     assert.equal(nextOf(7)?.rank.name.ja, "すくい名人");
     assert.equal(nextOf(22), null);
   });
 
-  test("the bar puts the rarest catches first and counts the rest", () => {
+  it("the bar puts the rarest catches first and counts the rest", () => {
     assert.equal(barOf(resultOf([])), "💧");
     assert.equal(barOf(resultOf(["wakin", "ogon", "ryukin"])), "🌟🐠🐟");
     assert.equal(
@@ -83,7 +85,7 @@ describe("ranks", () => {
 });
 
 describe("share text", () => {
-  test("names the count, the rank and the rarest catch", () => {
+  it("names the count, the rank and the rarest catch", () => {
     const result = resultOf([...many("wakin", 10), "ogon", "sarasa"]);
     assert.equal(countOf(result), 12);
     const share = shareOf(result, "https://x.y", "ja");
@@ -99,7 +101,7 @@ describe("share text", () => {
     assert.equal(new URL(postUrl(share)).hostname, "x.com");
   });
 
-  test("a poi torn before the first fish dares for just one", () => {
+  it("a poi torn before the first fish dares for just one", () => {
     const { text } = shareOf(resultOf([]), "https://x.y", "en");
     assert.equal(
       text,
@@ -107,7 +109,7 @@ describe("share text", () => {
     );
   });
 
-  test("only common fish leave out the brag line", () => {
+  it("only common fish leave out the brag line", () => {
     const { text } = shareOf(resultOf(many("sarasa", 3)), "https://x.y", "en");
     assert.equal(
       text,

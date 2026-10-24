@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-import { describe, test } from "vite-plus/test";
+import { describe, it } from "vite-plus/test";
 
 import { postUrl } from "../../_lib/share";
 import { halving, judgeSwipe, reachOf, splitBy } from "./cut";
@@ -19,6 +19,7 @@ import { fresh, settleCut } from "./save";
 
 const played = (seed: number, nudge: number): Result => {
   const angle = 3000;
+
   return {
     cut: { angle, offset: halving(dishOf(seed).parts, angle) + nudge },
     seed,
@@ -39,7 +40,7 @@ const rareSeed = () => {
 };
 
 describe("scoring a cut", () => {
-  test("the cut is scored from the shape its seed gives", () => {
+  it("the cut is scored from the shape its seed gives", () => {
     const piece = pieceOf(cut);
     assert.ok(piece !== null);
     assert.equal(piece.food.kind, dishOf(777).kind);
@@ -47,13 +48,13 @@ describe("scoring a cut", () => {
     assert.equal(piece.split.sides[0].share + piece.split.sides[1].share, 1000);
   });
 
-  test("halving exactly scores 50.0 : 50.0 and the top rank", () => {
+  it("halving exactly scores 50.0 : 50.0 and the top rank", () => {
     const piece = pieceOf(played(777, 0));
     assert.equal(piece?.split.small, 500);
     assert.equal(rankOf(500).name.en, "Divine hand");
   });
 
-  test("ranks follow how far the cut is from half", () => {
+  it("ranks follow how far the cut is from half", () => {
     assert.equal(rankOf(500).name.ja, "神業");
     assert.equal(rankOf(499).name.ja, "板長");
     assert.equal(rankOf(497).name.ja, "板長");
@@ -66,7 +67,7 @@ describe("scoring a cut", () => {
     assert.equal(rankOf(0).name.en, "Offcut");
   });
 
-  test("a cut reads as a ratio to one decimal, smaller side first", () => {
+  it("a cut reads as a ratio to one decimal, smaller side first", () => {
     assert.equal(ratioText(497), "49.7 : 50.3");
     assert.equal(ratioText(500), "50.0 : 50.0");
     assert.equal(ratioText(0), "0.0 : 100.0");
@@ -74,7 +75,7 @@ describe("scoring a cut", () => {
 });
 
 describe("one game", () => {
-  test("one swipe through a piece cuts it, scores it, saves it and sends the same piece", () => {
+  it("one swipe through a piece cuts it, scores it, saves it and sends the same piece", () => {
     const seed = 4242;
     const food = dishOf(seed);
     const aim = played(seed, 150).cut;
@@ -85,6 +86,7 @@ describe("one game", () => {
     const piece = pieceOf(result);
     assert.ok(piece !== null);
     assert.equal(piece.food.kind, food.kind);
+
     const { save } = settleCut(fresh, {
       at: 1000,
       challenged: false,
@@ -92,6 +94,7 @@ describe("one game", () => {
       seconds: 3,
       small: piece.split.small,
     });
+
     assert.equal(save.cuts, 1);
     assert.equal(save.kinds[food.kind], 1);
     assert.equal(save.bestCut, 500 - piece.split.small);
@@ -103,16 +106,17 @@ describe("one game", () => {
 });
 
 describe("share links", () => {
-  test("carry only the seed and the one cut, and round-trip", () => {
+  it("carry only the seed and the one cut, and round-trip", () => {
     assert.deepEqual(roundTrip(cut), cut);
     assert.equal(queryOf(cut), `c=${cut.cut.angle}.${cut.cut.offset}&s=777`);
+
     for (const seed of [1, 42, 99_999, 2_147_483_646]) {
       const result = played(seed, -37);
       assert.deepEqual(roundTrip(result), result, `seed ${seed}`);
     }
   });
 
-  test("a rare piece comes back from its link", () => {
+  it("a rare piece comes back from its link", () => {
     const seed = rareSeed();
     const result = played(seed, 12);
     const back = roundTrip(result);
@@ -122,8 +126,9 @@ describe("share links", () => {
     assert.deepEqual(piece.food, dishOf(seed));
   });
 
-  test("reject broken, tampered and impossible links", () => {
+  it("reject broken, tampered and impossible links", () => {
     const c = `${cut.cut.angle}.${cut.cut.offset}`;
+
     const bad = [
       {},
       { s: "777" },
@@ -147,12 +152,13 @@ describe("share links", () => {
       { c: "0.11999", s: "777" },
       { c: `${c}${"9".repeat(5000)}`, s: "777" },
     ];
+
     for (const params of bad) {
       assert.equal(readResult(params), null, JSON.stringify(params));
     }
   });
 
-  test("the same cut on another seed is judged on that seed's shape", () => {
+  it("the same cut on another seed is judged on that seed's shape", () => {
     const moved = { ...cut, seed: 778 };
     assert.deepEqual(
       pieceOf(moved)?.split ?? null,
@@ -160,7 +166,7 @@ describe("share links", () => {
     );
   });
 
-  test("the share text names the split, the food, the rank and the link", () => {
+  it("the share text names the split, the food, the rank and the link", () => {
     const piece = pieceOf(cut);
     assert.ok(piece !== null);
     const share = shareOf(cut, piece, "https://x.y", "ja");
@@ -173,7 +179,7 @@ describe("share links", () => {
     assert.equal(new URL(postUrl(share)).hostname, "x.com");
   });
 
-  test("a rare piece says so in the share text", () => {
+  it("a rare piece says so in the share text", () => {
     const result = played(rareSeed(), 40);
     const piece = pieceOf(result);
     assert.ok(piece !== null);
@@ -187,7 +193,7 @@ describe("share links", () => {
     );
   });
 
-  test("the demo always cuts its food in two", () => {
+  it("the demo always cuts its food in two", () => {
     for (let round = 0; round < 40; round += 1) {
       const small = demoOf(round).split?.small ?? 0;
       assert.ok(small > 480, `round ${round}: ${small}`);

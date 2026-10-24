@@ -99,11 +99,13 @@ export const LAST = heights.length - 1;
 
 export const reachedOf = (cm: number) => {
   let reached = -1;
+
   for (const [index, height] of heights.entries()) {
     if (cm >= height.cm) {
       reached = index;
     }
   }
+
   return reached;
 };
 
