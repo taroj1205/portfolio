@@ -24,7 +24,7 @@ const wake = async (audio: AudioContext) => {
   }
 };
 
-export const createAudio = (ambience: Ambience) => {
+export const createAudio = (ambience?: Ambience) => {
   let context: AudioContext | null = null;
   let master: GainNode | null = null;
   let noise: AudioBuffer | null = null;
@@ -49,7 +49,7 @@ export const createAudio = (ambience: Ambience) => {
         data[i] = last * 3.5;
       }
 
-      ambience(context, master, noise);
+      ambience?.(context, master, noise);
     }
 
     return context.state === "closed" ? null : context;
