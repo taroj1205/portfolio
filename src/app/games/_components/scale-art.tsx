@@ -17,7 +17,6 @@ const HANG = 92;
 const LOOP = "6s";
 
 const DRIFT = [
-  { id: "iss", size: 92, x: 330, y: 66 },
   { id: "blue-whale", size: 120, x: 526, y: 104 },
   { id: "elephant", size: 100, x: 118, y: 346 },
   { id: "tokyo-tower", size: 140, x: 556, y: 352 },
