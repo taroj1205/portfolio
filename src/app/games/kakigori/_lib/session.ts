@@ -143,6 +143,10 @@ export const startSession = (canvas: HTMLCanvasElement, on: Listeners) => {
 
   const react = (events: readonly Outcome[], now: number) => {
     for (const event of events) {
+      if (phase !== "piling") {
+        return;
+      }
+
       if (event.type === "slump") {
         render.slump(now);
         sound.wobble();
