@@ -8,6 +8,8 @@ import {
   SPRITES,
   backdrop,
   block,
+  clump,
+  clumpsOf,
   counter,
   crank,
   flake,
@@ -80,6 +82,7 @@ const DONE: Text = { en: "Done!", ja: "完成！" };
 const BEST: Text = { en: "Best", ja: "ベスト" };
 
 const ink = {
+  edge: "rgb(124 196 232 / 0.12)",
   gold: ["#fff6d8", "#ffd27a", "#c9862c"],
   guide: "rgb(255 255 255 / 0.55)",
   line: "#ffffff",
@@ -324,6 +327,16 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       }
     }
 
+    const puff = atlas.sprite(clump);
+
+    if (puff !== null) {
+      ctx.globalAlpha = 1;
+
+      for (const { x, y, rx, ry } of clumpsOf(heights)) {
+        ctx.drawImage(puff, x - rx, y - ry, rx * 2, ry * 2);
+      }
+    }
+
     const sideways = ctx.createLinearGradient(-MOUTH / 2, 0, MOUTH / 2, 0);
     sideways.addColorStop(0, "rgb(255 255 255 / 0.5)");
     sideways.addColorStop(0.35, "rgb(255 255 255 / 0)");
@@ -332,6 +345,9 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.globalAlpha = 1;
     ctx.fillStyle = sideways;
     ctx.fillRect(-MOUTH / 2 - 10, top - 10, MOUTH + 20, -top + 20);
+    ctx.lineWidth = 14;
+    ctx.strokeStyle = ink.edge;
+    ctx.stroke();
 
     if (danger > 0.3) {
       const warn = ctx.createLinearGradient(

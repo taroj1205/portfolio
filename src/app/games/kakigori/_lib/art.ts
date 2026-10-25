@@ -34,7 +34,51 @@ const ink = {
   steel: "#4a5560",
 } as const;
 
+const CLUMP_STOPS = [
+  [0, "#ffffff", 0.55],
+  [0.5, "#ffffff", 0.22],
+  [0.8, "#a8c4da", 0.14],
+  [1, "#a8c4da", 0],
+] as const;
+
+const FOCUS = [-0.32, -0.38] as const;
+const FLAT = 0.72;
+
+export interface Clump {
+  x: number;
+  y: number;
+  rx: number;
+  ry: number;
+}
+
+const hash = (a: number, b: number) => {
+  const wave = Math.sin(a * 127.1 + b * 311.7) * 43_758.5453;
+
+  return wave - Math.floor(wave);
+};
+
+const clumpShade = (id: string) => radial(id, [0, 0, 1], CLUMP_STOPS, FOCUS);
+
+const blob = (id: string, { x, y, rx, ry }: Clump) =>
+  `<circle r="1" transform="translate(${n(x)} ${n(y)}) scale(${n(rx)} ${n(ry)})" fill="url(#${id})"/>`;
+
+const bowlIce = () => {
+  const out: string[] = [];
+
+  for (let row = 0; row < 6; row += 1) {
+    for (let col = -9; col <= 9; col += 1) {
+      const x = (col + (row % 2) * 0.5) * 20 + (hash(row, col) - 0.5) * 10;
+      const y = 6 + row * 18 + hash(col, row) * 8;
+      const r = 11 + hash(row + 40, col) * 7;
+      out.push(blob("gb-clump", { rx: r, ry: r * FLAT, x, y }));
+    }
+  }
+
+  return out.join("");
+};
+
 const BOWL = `M${-LIP} 0C${-LIP} 70 -92 118 -42 120L42 120C92 118 ${LIP} 70 ${LIP} 0Z`;
+const INSIDE = `M${-LIP + 8} 0C${-LIP + 8} 62 -88 108 -40 110L40 110C88 108 ${LIP - 8} 62 ${LIP - 8} 0Z`;
 
 export const glassBack: Sprite = {
   body: [
@@ -57,6 +101,8 @@ export const glassBack: Sprite = {
       ]
     ),
     blur("gb-drop", 10),
+    clumpShade("gb-clump"),
+    `<clipPath id="gb-inside"><path d="${INSIDE}"/></clipPath>`,
     "</defs>",
     ellipse(
       14,
@@ -66,10 +112,8 @@ export const glassBack: Sprite = {
       `fill="#1b2a3a" fill-opacity="0.35" filter="url(#gb-drop)"`
     ),
     path(BOWL, `fill="url(#gb-wall)"`),
-    path(
-      `M${-LIP + 8} 0C${-LIP + 8} 62 -88 108 -40 110L40 110C88 108 ${LIP - 8} 62 ${LIP - 8} 0Z`,
-      `fill="url(#gb-ice)"`
-    ),
+    path(INSIDE, `fill="url(#gb-ice)"`),
+    `<g clip-path="url(#gb-inside)">${bowlIce()}</g>`,
   ].join(""),
   box: { h: FOOT + 40, w: LIP * 2 + 40, x: -LIP - 20, y: -10 },
 };
@@ -241,8 +285,13 @@ export const crank: Sprite = {
 };
 
 export const snowTile: Sprite = {
-  body: `<defs><filter id="snow-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.22" numOctaves="2" seed="5" stitchTiles="stitch" result="noise"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.78 0 0 0 0 0.86 0 0 0 0 0.94 0 0 0 -2.6 1.5"/></filter></defs><rect width="240" height="240" filter="url(#snow-grain)"/>`,
+  body: `<defs><filter id="snow-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="2" seed="5" stitchTiles="stitch" result="noise"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.78 0 0 0 0 0.86 0 0 0 0 0.94 0 0 0 -2.6 1.5"/></filter></defs><rect width="240" height="240" filter="url(#snow-grain)"/>`,
   box: { h: 240, w: 240, x: 0, y: 0 },
+};
+
+export const clump: Sprite = {
+  body: `<defs>${radial("cl-shade", [0, 0, 50], CLUMP_STOPS, [FOCUS[0] * 50, FOCUS[1] * 50])}</defs><circle r="50" fill="url(#cl-shade)"/>`,
+  box: { h: 100, w: 100, x: -50, y: -50 },
 };
 
 export const flake: Sprite = {
@@ -288,6 +337,7 @@ export const SPRITES: readonly Sprite[] = [
   block,
   crank,
   snowTile,
+  clump,
   flake,
   counter,
 ];
@@ -477,6 +527,48 @@ const soften = (profile: readonly number[]) => {
   return smooth.map((h) => (peak > 0 ? (h / peak) * top : 0));
 };
 
+const CLUMP = 30;
+
+export const clumpsOf = (profile: readonly number[]): Clump[] => {
+  const surface = soften(profile);
+  const last = surface.length - 1;
+  const top = Math.max(0, ...surface);
+
+  const heightAt = (x: number) => {
+    const at = ((x + MOUTH / 2) / MOUTH) * last;
+
+    if (at < 0 || at > last) {
+      return 0;
+    }
+
+    const low = Math.floor(at);
+    const high = Math.min(last, low + 1);
+
+    return surface[low] + (surface[high] - surface[low]) * (at - low);
+  };
+
+  const out: Clump[] = [];
+  const rows = Math.ceil(top / (CLUMP * 0.75)) + 1;
+
+  for (let row = rows; row >= 0; row -= 1) {
+    for (let col = -10; col <= 10; col += 1) {
+      const x =
+        (col + (row % 2) * 0.5) * CLUMP + (hash(row, col) - 0.5) * CLUMP * 1.1;
+
+      const y = -row * CLUMP * 0.75 - hash(col, row) * CLUMP * 0.9;
+      const r = CLUMP * (0.45 + hash(row + 99, col) * 0.75);
+
+      const under = heightAt(x);
+
+      if (under > 0 && -y < under + r * 0.3) {
+        out.push({ rx: r, ry: r * FLAT, x, y });
+      }
+    }
+  }
+
+  return out;
+};
+
 const spaced = (line: readonly Point[], gap: number) => {
   const out = [line[0]];
   let carried = 0;
@@ -545,8 +637,7 @@ export const moundPoints = (profile: readonly number[]): Point[] => {
       const dy = next.y - point.y;
       const length = Math.hypot(dx, dy) || 1;
 
-      const bump =
-        Math.min(LUMP, length * 0.4) * (0.75 + 0.25 * Math.sin(i * 2.3));
+      const bump = Math.min(LUMP * (0.45 + hash(i, 3) * 0.9), length * 0.45);
 
       fluffy.push({
         x: (point.x + next.x) / 2 + (dy / length) * bump,
@@ -696,8 +787,9 @@ export const moundBody = (
         [1, "#7fa6c4", 0.35],
       ]
     ),
-    `<filter id="${prefix}-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.2" numOctaves="2" seed="5" result="noise"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.78 0 0 0 0 0.86 0 0 0 0 0.94 0 0 0 -2.6 1.5"/><feComposite in2="SourceGraphic" operator="in"/></filter>`,
+    `<filter id="${prefix}-grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.11" numOctaves="2" seed="5" result="noise"/><feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.78 0 0 0 0 0.86 0 0 0 0 0.94 0 0 0 -2.6 1.5"/><feComposite in2="SourceGraphic" operator="in"/></filter>`,
     blur(`${prefix}-wet`, 3),
+    clumpShade(`${prefix}-clump`),
     `<clipPath id="${prefix}-clip"><path d="${d}"/></clipPath>`,
     syrup === null
       ? ""
@@ -709,8 +801,15 @@ export const moundBody = (
     syrup === null
       ? ""
       : `<g filter="url(#${prefix}-wet)"><g clip-path="url(#${prefix}-soak)">${syrupLayer(syrup, prefix)}</g></g>`,
+    clumpsOf(profile)
+      .map((each) => blob(`${prefix}-clump`, each))
+      .join(""),
     `<rect ${box} fill="#fff" filter="url(#${prefix}-grain)" opacity="0.35"/>`,
     path(d, `fill="url(#${prefix}-side)"`),
+    path(
+      d,
+      `fill="none" stroke="${ink.rim}" stroke-opacity="0.12" stroke-width="14"`
+    ),
     `<rect ${box} fill="url(#${prefix}-foot)"/>`,
     syrup === "uji" ? beans(points, top) : "",
     "</g>",
