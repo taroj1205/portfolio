@@ -10,6 +10,7 @@ import { EraserArt } from "./_components/eraser-art";
 import type { Game } from "./_components/game-card";
 import { GamesIndex } from "./_components/games-index";
 import { GoldfishArt } from "./_components/goldfish-art";
+import { KakigoriArt } from "./_components/kakigori-art";
 import { MergeArt } from "./_components/merge-art";
 import { MochiArt } from "./_components/mochi-art";
 import { PauseArt } from "./_components/pause-art";
@@ -23,6 +24,8 @@ import { copy as hoshiai } from "./hoshiai/_lib/copy";
 import { copy as iai } from "./iai/_lib/copy";
 import { copy as itto } from "./itto/_lib/copy";
 import { kinds } from "./itto/_lib/foods";
+import { copy as kakigori } from "./kakigori/_lib/copy";
+import { syrupIds } from "./kakigori/_lib/syrups";
 import { copy as katanuki } from "./katanuki/_lib/copy";
 import { copy as keshibo } from "./keshibo/_lib/copy";
 import { copy as kingyo } from "./kingyo/_lib/copy";
@@ -218,6 +221,23 @@ const GAMES: Game[] = [
       },
     ],
     title: { en: tenbin.en.name, ja: tenbin.ja.name },
+  },
+  {
+    art: <KakigoriArt />,
+    blurb: {
+      en: "Hold to shave ice and pile it into a mountain. The taller it gets, the more it wobbles, so slide the glass to keep it standing and pour the syrup before it falls.",
+      ja: "押すと氷が削れて、山に盛れる。高くなるほどぐらぐらするから、器を動かして立て直して、崩れる前にシロップをかける。",
+    },
+    href: "/games/kakigori",
+    tags: [
+      { en: "Hold & slide", ja: "押して動かす" },
+      {
+        en: `${syrupIds.length} syrups`,
+        ja: `${syrupIds.length}つのシロップ`,
+      },
+      { en: "Challenge a friend", ja: "友だちに挑戦" },
+    ],
+    title: { en: kakigori.en.name, ja: kakigori.ja.name },
   },
 ];
 
