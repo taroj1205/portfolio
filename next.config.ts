@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
       "/games/mochitsuki/art/:layer",
       "/games/cheese/art/:layer",
       "/games/kingyo/art/:layer",
+      "/games/kakigori/art/:layer",
     ].map((source) => ({ headers: daily, source }));
   },
   rewrites() {
