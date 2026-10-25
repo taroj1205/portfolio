@@ -260,7 +260,6 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ];
 
     ctx.save();
-    ctx.textAlign = "left";
     ctx.textBaseline = "bottom";
     ctx.lineJoin = "round";
 
@@ -276,9 +275,10 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.globalAlpha = 1;
+      ctx.textAlign = line.gold ? "right" : "left";
       text(
         line.label,
-        -LIP - 120,
+        line.gold ? LIP + 120 : -LIP - 120,
         y - 8,
         Math.max(30, 18 / scale),
         line.gold ? ink.gold : ink.white
