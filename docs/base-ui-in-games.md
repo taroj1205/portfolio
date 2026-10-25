@@ -30,8 +30,9 @@ Do not write Base UI code from memory. Part names, props, and `data-*` attribute
 | On/off setting | `Switch` | `src/app/games/mizukiri/_components/workshop.tsx` |
 | Pick one of a few | `ToggleGroup` with `Toggle` | `src/app/games/mizukiri/_components/workshop.tsx` |
 | Read-only value bar | `Meter` | `src/app/games/keshibo/_components/workshop.tsx` |
+| Pick a value on a scale | `Slider` | `src/app/games/tenbin/_components/weight-slider.tsx` |
 
-Everything else Base UI ships (Tooltip, Slider, RadioGroup, Select, NumberField, Field, Toast) has no game example yet. Read its page in `node_modules/@base-ui/react/docs/react/components/` and add the first example to the table.
+Everything else Base UI ships (Tooltip, RadioGroup, Select, NumberField, Field, Toast) has no game example yet. Read its page in `node_modules/@base-ui/react/docs/react/components/` and add the first example to the table.
 
 ## Patterns in use
 

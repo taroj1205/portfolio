@@ -14,6 +14,7 @@ import { KakigoriArt } from "./_components/kakigori-art";
 import { MergeArt } from "./_components/merge-art";
 import { MochiArt } from "./_components/mochi-art";
 import { PauseArt } from "./_components/pause-art";
+import { ScaleArt } from "./_components/scale-art";
 import { SkipArt } from "./_components/skip-art";
 import { SparkArt } from "./_components/spark-art";
 import { langFromHeader } from "./_lib/i18n";
@@ -32,6 +33,8 @@ import { copy as ma } from "./ma/_lib/copy";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
 import { copy as mochitsuki } from "./mochitsuki/_lib/copy";
 import { copy as senko } from "./senko/_lib/copy";
+import { copy as tenbin } from "./tenbin/_lib/copy";
+import { items } from "./tenbin/_lib/items";
 
 const GAMES: Game[] = [
   {
@@ -201,6 +204,23 @@ const GAMES: Game[] = [
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
     title: { en: cheese.en.name, ja: cheese.ja.name },
+  },
+  {
+    art: <ScaleArt />,
+    blurb: {
+      en: "One thing a day, from a ¥1 coin to a year of Japan's rubbish. Slide from 1 g to 100 million tonnes and weigh it in five tries, then see the real figure and its source.",
+      ja: "1日ひとつ、1円玉から日本の1年分のごみまで。1gから1億トンのスライダーで、5回以内に重さを当てる。答え合わせで本当の重さと出典が見られる。",
+    },
+    href: "/games/tenbin",
+    tags: [
+      { en: "Slide & weigh", ja: "スライドして量る" },
+      { en: "Daily puzzle", ja: "毎日のお題" },
+      {
+        en: `${items.length} sourced weights`,
+        ja: `出典つき${items.length}品`,
+      },
+    ],
+    title: { en: tenbin.en.name, ja: tenbin.ja.name },
   },
   {
     art: <KakigoriArt />,
