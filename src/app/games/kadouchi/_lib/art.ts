@@ -12,7 +12,7 @@ import {
   spriteDoc,
 } from "../../_lib/svg";
 import type { Frame, Sprite } from "../../_lib/svg";
-import { SHELVES, kinds, prizeIds } from "./prizes";
+import { LID, SHELVES, kinds, prizeIds } from "./prizes";
 import type { PrizeId } from "./prizes";
 
 export const SCENE = 1000;
@@ -20,7 +20,7 @@ export const VIEW = { h: 1150, w: 840, x: 80, y: 0 } as const;
 export const STALL = { left: 110, right: 890 } as const;
 export const GUN = { x: 500, y: 1190 } as const;
 export const BARREL = 300;
-export const LID = 0.25;
+
 const SLAB = 26;
 const COUNTER = 960;
 

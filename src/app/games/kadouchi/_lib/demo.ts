@@ -1,5 +1,5 @@
 import { kinds } from "./prizes";
-import { FULL, cleared, faceOf, still } from "./stall";
+import { FULL, cleared, spotOf, still } from "./stall";
 import type { Stall } from "./stall";
 
 const PACE = { again: 1.6, rest: 0.9, start: 1.2, steer: 6 };
@@ -28,13 +28,9 @@ export const createDemo = (random: () => number) => {
       return aim;
     }
 
-    const face = faceOf(prize);
     const u = kinds[prize.id].size === "small" ? 0 : side * 0.85;
 
-    return {
-      x: face.x + u * face.half,
-      y: face.bottom - 0.9 * (face.bottom - face.top),
-    };
+    return spotOf(prize, u, 0.9);
   };
 
   const next = (stall: Stall, dt: number): DemoMove => {

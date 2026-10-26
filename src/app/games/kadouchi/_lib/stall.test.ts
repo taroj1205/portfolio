@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 
 import { describe, it } from "vite-plus/test";
 
-import { kinds, prizeIds } from "./prizes";
+import { LID, kinds, prizeIds } from "./prizes";
 import type { PrizeId } from "./prizes";
 import {
   CORK,
@@ -13,6 +13,7 @@ import {
   faceOf,
   powerOf,
   shoot,
+  spotOf,
   step,
   still,
   strike,
@@ -36,13 +37,8 @@ const settle = (stall: Stall) => {
 const fire = (stall: Stall, id: PrizeId, aim: Aim) => {
   const prize = stall.prizes.find((each) => each.id === id);
   assert.ok(prize);
-  const face = faceOf(prize);
-  shoot(
-    stall,
-    face.x + aim.u * face.half,
-    face.bottom - aim.v * (face.bottom - face.top),
-    aim.power
-  );
+  const spot = spotOf(prize, aim.u, aim.v);
+  shoot(stall, spot.x, spot.y, aim.power);
   settle(stall);
 
   return prize;
@@ -275,5 +271,40 @@ describe("the cork", () => {
       targetOf(stall, face.x + face.half + CORK + 4, face.top + 10),
       null
     );
+  });
+
+  it("clips a box on its lid, which is drawn above the front", () => {
+    const stall = createStall(() => 0.5);
+    const prize = stall.prizes.find((each) => each.id === "hanabi");
+    assert.ok(prize);
+    const face = faceOf(prize);
+    const lid = kinds.hanabi.d * LID;
+    assert.equal(targetOf(stall, face.x, face.top - lid)?.v, 1);
+    assert.equal(targetOf(stall, face.x, face.top - lid - CORK - 1), null);
+  });
+
+  it("misses the empty shelf beside a round prize and clips its drawn edge", () => {
+    const stall = createStall(() => 0.5);
+    const prize = stall.prizes.find((each) => each.id === "daruma");
+    assert.ok(prize);
+    const face = faceOf(prize);
+    const high = spotOf(prize, -1, 0.86);
+    assert.equal(targetOf(stall, face.x - face.half + 6, high.y), null);
+    assert.equal(targetOf(stall, high.x - CORK - 1, high.y), null);
+    const edge = targetOf(stall, high.x - CORK + 1, high.y);
+    assert.equal(edge?.prize.id, "daruma");
+    assert.equal(edge?.u, -1);
+  });
+
+  it("follows the lucky cat's raised paw on one side only", () => {
+    const stall = createStall(() => 0.5);
+    const prize = stall.prizes.find((each) => each.id === "neko");
+    assert.ok(prize);
+    const face = faceOf(prize);
+    const paw = spotOf(prize, 1, 0.8);
+    const cheek = spotOf(prize, -1, 0.8);
+    assert.ok(paw.x - face.x > face.x - cheek.x + 15);
+    assert.equal(targetOf(stall, paw.x, paw.y)?.prize.id, "neko");
+    assert.equal(targetOf(stall, 2 * face.x - paw.x, paw.y), null);
   });
 });

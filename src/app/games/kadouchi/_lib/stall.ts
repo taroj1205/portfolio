@@ -1,4 +1,4 @@
-import { SHELVES, kinds, prizeIds } from "./prizes";
+import { LID, SHELVES, kinds, prizeIds } from "./prizes";
 import type { PrizeId } from "./prizes";
 
 export const CORKS = 18;
@@ -16,7 +16,7 @@ const SLIDE_SHARE = 0.5;
 const LAND = 0.4;
 const TICK = 1 / 240;
 const JITTER = 16;
-export const CORK = 16;
+export const CORK = 11;
 
 export interface Prize {
   id: PrizeId;
@@ -62,6 +62,7 @@ export type Outcome =
 
 export interface Face {
   x: number;
+  floor: number;
   bottom: number;
   top: number;
   half: number;
@@ -97,20 +98,62 @@ const reach = (prize: Prize) => {
   );
 };
 
+export const squeeze = (yaw: number) => 1 - 0.2 * Math.abs(Math.sin(yaw));
+
 export const faceOf = (prize: Prize): Face => {
-  const { w, h, d, row } = kinds[prize.id];
+  const { w, h, d, row, box } = kinds[prize.id];
   const scale = 1 - prize.z * SHRINK;
-  const bottom = SHELVES[row] - prize.z * RISE;
+  const floor = SHELVES[row] - prize.z * RISE;
+
+  const lift =
+    prize.pitch > 0 ? d * Math.sin(Math.min(1.2, prize.pitch)) * 0.3 : 0;
+
+  const bottom = floor - lift;
+
+  const half =
+    box === null
+      ? (w / 2) * squeeze(prize.yaw)
+      : (w / 2) * Math.abs(Math.cos(prize.yaw)) +
+        (d / 2) * Math.abs(Math.sin(prize.yaw));
 
   return {
     bottom,
-    half:
-      scale *
-      ((w / 2) * Math.abs(Math.cos(prize.yaw)) +
-        (d / 2) * Math.abs(Math.sin(prize.yaw))),
+    floor,
+    half: scale * half,
     scale,
     top: bottom - scale * h * Math.cos(Math.min(DOWN, Math.abs(prize.pitch))),
     x: prize.x,
+  };
+};
+
+const widthAt = (id: PrizeId, v: number, side: number) => {
+  const { outline } = kinds[id];
+
+  if (outline === null) {
+    return 1;
+  }
+
+  const at = clamp(v, 0, 1);
+  const pick = side < 0 ? 1 : 2;
+
+  const next = Math.max(
+    1,
+    outline.findIndex((knot) => knot[0] >= at)
+  );
+
+  const low = outline[next - 1];
+  const high = outline[next];
+  const t = (at - low[0]) / Math.max(1e-6, high[0] - low[0]);
+
+  return low[pick] + (high[pick] - low[pick]) * clamp(t, 0, 1);
+};
+
+export const spotOf = (prize: Prize, u: number, v: number) => {
+  const face = faceOf(prize);
+
+  return {
+    x: face.x + u * face.half * widthAt(prize.id, v, u),
+    y: face.bottom - v * (face.bottom - face.top),
   };
 };
 
@@ -127,17 +170,18 @@ export const targetOf = (stall: Stall, x: number, y: number) => {
 
   for (const prize of standing) {
     const face = faceOf(prize);
+    const { box, d } = kinds[prize.id];
+    const cap = box === null ? 0 : d * LID * face.scale;
+    const v = (face.bottom - y) / Math.max(1, face.bottom - face.top);
+    const dx = x - face.x;
+    const edge = Math.max(1, face.half * widthAt(prize.id, v, dx));
 
     if (
-      Math.abs(x - face.x) <= face.half + CORK &&
+      Math.abs(dx) <= edge + CORK &&
       y <= face.bottom &&
-      y >= face.top - CORK
+      y >= face.top - cap - CORK
     ) {
-      return {
-        prize,
-        u: clamp((x - face.x) / face.half, -1, 1),
-        v: clamp((face.bottom - y) / Math.max(1, face.bottom - face.top), 0, 1),
-      };
+      return { prize, u: clamp(dx / edge, -1, 1), v: clamp(v, 0, 1) };
     }
   }
 

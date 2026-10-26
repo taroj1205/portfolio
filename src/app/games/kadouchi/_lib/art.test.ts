@@ -1,11 +1,21 @@
 import assert from "node:assert/strict";
 
+import sharp from "sharp";
 import { describe, it } from "vite-plus/test";
 
 import { spriteDoc } from "../../_lib/svg";
-import { SPRITES, backdrop, frameFor, counterOf, sceneDoc } from "./art";
+import {
+  SPRITES,
+  backdrop,
+  frameFor,
+  counterOf,
+  prizeSprites,
+  sceneDoc,
+} from "./art";
 import { cardDoc, cardLayers } from "./card";
-import { prizeIds } from "./prizes";
+import { kinds, prizeIds } from "./prizes";
+import type { PrizeId } from "./prizes";
+import { createStall, faceOf, spotOf } from "./stall";
 
 const idsOf = (svg: string) =>
   [...svg.matchAll(/ id="(?<id>[^"]+)"/gu)].map((match) => match.groups?.id);
@@ -72,5 +82,71 @@ describe("the prizes on the counter", () => {
     const [first] = spots;
     const [last] = spots.slice(-1);
     assert.ok(first.x > 110 && last.x < 890, `${first.x} ${last.x}`);
+  });
+});
+
+const SCALE = 2;
+const SLACK = 5;
+
+const rowsOf = async (id: PrizeId) => {
+  const sprite = prizeSprites[id];
+
+  const { data, info } = await sharp(Buffer.from(spriteDoc(sprite, SCALE)))
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  const columns = Array.from({ length: info.width }, (_, column) => column);
+
+  return Array.from({ length: info.height }, (_, row) => {
+    const xs = columns
+      .filter((column) => data[(row * info.width + column) * 4 + 3] > 24)
+      .map((column) => sprite.box.x + (column + 0.5) / SCALE);
+
+    return {
+      left: xs.length === 0 ? 0 : -Math.min(...xs),
+      right: xs.length === 0 ? 0 : Math.max(...xs),
+      v: -(sprite.box.y + (row + 0.5) / SCALE) / kinds[id].h,
+    };
+  });
+};
+
+describe("where the cork can hit", () => {
+  it("covers every drawing and reaches no more than a few units past it", async () => {
+    const stall = createStall(() => 0.5);
+
+    const drawn = await Promise.all(
+      stall.prizes.map(async ({ id }) => await rowsOf(id))
+    );
+
+    for (const [index, prize] of stall.prizes.entries()) {
+      const face = faceOf(prize);
+      const rows = drawn[index];
+
+      for (const [i, { v, left, right }] of rows.entries()) {
+        if (v < 0.01 || v > 0.99) {
+          continue;
+        }
+
+        const near = rows.slice(i - SCALE, i + SCALE + 1);
+
+        const reach = {
+          left: face.x - spotOf(prize, -1, v).x,
+          right: spotOf(prize, 1, v).x - face.x,
+        };
+
+        const where = `${prize.id} at ${v.toFixed(3)}`;
+        assert.ok(reach.left >= left - SLACK, where);
+        assert.ok(reach.right >= right - SLACK, where);
+        assert.ok(
+          reach.left <= Math.max(...near.map((r) => r.left)) + SLACK,
+          where
+        );
+        assert.ok(
+          reach.right <= Math.max(...near.map((r) => r.right)) + SLACK,
+          where
+        );
+      }
+    }
   });
 });

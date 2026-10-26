@@ -4,7 +4,6 @@ import type { Point, Sprite } from "../../_lib/svg";
 import {
   BARREL,
   GUN,
-  LID,
   SCENE,
   SPRITES,
   STALL,
@@ -15,9 +14,9 @@ import {
   counterOf,
   prizeSprites,
 } from "./art";
-import { SHELVES, kinds } from "./prizes";
+import { LID, SHELVES, kinds } from "./prizes";
 import type { PrizeId } from "./prizes";
-import { FLIGHT, faceOf, powerOf } from "./stall";
+import { FLIGHT, faceOf, powerOf, spotOf, squeeze } from "./stall";
 import type { Outcome, Prize, Stall } from "./stall";
 
 interface Floater {
@@ -255,7 +254,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const tilt = Math.min(1.1, Math.abs(prize.pitch));
 
     if (kind.box === null) {
-      ctx.scale(1 - 0.2 * Math.abs(Math.sin(pose.yaw)), Math.cos(tilt));
+      ctx.scale(squeeze(pose.yaw), Math.cos(tilt));
       put(prizeSprites[prize.id]);
 
       return;
@@ -288,7 +287,7 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.globalAlpha = 0.45 + pulse * 0.55;
 
     for (const way of [-1, 1]) {
-      const x = face.x + way * (face.half + 8);
+      const x = spotOf(prize, way, 1).x + way * 8;
       const y = face.top - 8;
       ctx.beginPath();
       ctx.moveTo(x - way * size, y);
@@ -313,9 +312,6 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     const jolt = calm ? 0 : pose.jolt * Math.sin(now / 14) * 7;
     const drop = 1200 * fallen * fallen;
 
-    const lift =
-      prize.pitch > 0 ? kind.d * Math.sin(Math.min(1.2, prize.pitch)) * 0.3 : 0;
-
     ctx.save();
 
     if (pose.fell !== null) {
@@ -333,10 +329,10 @@ export const createRenderer = (canvas: HTMLCanvasElement, calm: boolean) => {
     ctx.globalAlpha =
       Math.cos(Math.min(1.4, Math.abs(prize.pitch))) * (1 - fallen);
     ctx.beginPath();
-    ctx.ellipse(face.x, face.bottom + 2, face.half * 1.1, 9, 0, 0, Math.PI * 2);
+    ctx.ellipse(face.x, face.floor + 2, face.half * 1.1, 9, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
-    ctx.translate(face.x + jolt, face.bottom - lift + drop);
+    ctx.translate(face.x + jolt, face.bottom + drop);
     ctx.scale(face.scale, face.scale);
     body(prize, pose);
     ctx.restore();
