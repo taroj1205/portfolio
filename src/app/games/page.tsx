@@ -7,6 +7,7 @@ import { CandyArt } from "./_components/candy-art";
 import { CheeseArt } from "./_components/cheese-art";
 import { CutArt } from "./_components/cut-art";
 import { EraserArt } from "./_components/eraser-art";
+import { EyeballArt } from "./_components/eyeball-art";
 import type { Game } from "./_components/game-card";
 import { GamesIndex } from "./_components/games-index";
 import { GoldfishArt } from "./_components/goldfish-art";
@@ -30,6 +31,8 @@ import { copy as katanuki } from "./katanuki/_lib/copy";
 import { copy as keshibo } from "./keshibo/_lib/copy";
 import { copy as kingyo } from "./kingyo/_lib/copy";
 import { copy as ma } from "./ma/_lib/copy";
+import { copy as mebunryo } from "./mebunryo/_lib/copy";
+import { ROUNDS } from "./mebunryo/_lib/puzzles";
 import { copy as mizukiri } from "./mizukiri/_lib/copy";
 import { copy as mochitsuki } from "./mochitsuki/_lib/copy";
 import { copy as senko } from "./senko/_lib/copy";
@@ -238,6 +241,20 @@ const GAMES: Game[] = [
       { en: "Challenge a friend", ja: "友だちに挑戦" },
     ],
     title: { en: kakigori.en.name, ja: kakigori.ja.name },
+  },
+  {
+    art: <EyeballArt />,
+    blurb: {
+      en: "Ten puzzles and no ruler. Find the middle of a line, the centre of a circle, a right angle and more by eye, then see how many pixels or degrees you were off.",
+      ja: "定規なしの10問。線の真ん中、円の中心、直角などを目だけで当てる。何pxか何度ずれたかが出る。",
+    },
+    href: "/games/mebunryo",
+    tags: [
+      { en: "Drag & aim", ja: "なぞって当てる" },
+      { en: `${ROUNDS} kinds of puzzle`, ja: `${ROUNDS}種類の問題` },
+      { en: "Same-puzzle challenge", ja: "同じ問題で挑戦" },
+    ],
+    title: { en: mebunryo.en.name, ja: mebunryo.ja.name },
   },
 ];
 
