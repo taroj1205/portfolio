@@ -16,9 +16,10 @@ const styles = stylex.create({
   top: {
     alignItems: "flex-start",
     display: "flex",
+    columnGap: "0.25rem",
     flexWrap: "wrap",
-    gap: "0.5rem",
     justifyContent: "space-between",
+    rowGap: "0.5rem",
   },
   brand: {
     alignItems: "center",
