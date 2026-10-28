@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
       "/games/cheese/art/:layer",
       "/games/kingyo/art/:layer",
       "/games/kakigori/art/:layer",
+      "/games/kadouchi/art/:layer",
     ].map((source) => ({ headers: daily, source }));
   },
   rewrites() {

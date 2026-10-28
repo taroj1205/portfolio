@@ -11,6 +11,7 @@ import { EyeballArt } from "./_components/eyeball-art";
 import type { Game } from "./_components/game-card";
 import { GamesIndex } from "./_components/games-index";
 import { GoldfishArt } from "./_components/goldfish-art";
+import { KadouchiArt } from "./_components/kadouchi-art";
 import { KakigoriArt } from "./_components/kakigori-art";
 import { MergeArt } from "./_components/merge-art";
 import { MochiArt } from "./_components/mochi-art";
@@ -25,6 +26,8 @@ import { copy as hoshiai } from "./hoshiai/_lib/copy";
 import { copy as iai } from "./iai/_lib/copy";
 import { copy as itto } from "./itto/_lib/copy";
 import { kinds } from "./itto/_lib/foods";
+import { copy as kadouchi } from "./kadouchi/_lib/copy";
+import { prizeIds } from "./kadouchi/_lib/prizes";
 import { copy as kakigori } from "./kakigori/_lib/copy";
 import { syrupIds } from "./kakigori/_lib/syrups";
 import { copy as katanuki } from "./katanuki/_lib/copy";
@@ -255,6 +258,23 @@ const GAMES: Game[] = [
       { en: "Same-puzzle challenge", ja: "同じ問題で挑戦" },
     ],
     title: { en: mebunryo.en.name, ja: mebunryo.ja.name },
+  },
+  {
+    art: <KadouchiArt />,
+    blurb: {
+      en: "A festival shooting gallery. Hold to aim the cork rifle and let go to fire. Small prizes tip from a high hit, but the big ones only twist off the shelf when you hit a top corner.",
+      ja: "お祭りの射的。押して狙って、離してコルクを撃つ。小さい景品は上に当てれば倒れるけど、大物は上の角に当てないと棚から落ちない。",
+    },
+    href: "/games/kadouchi",
+    tags: [
+      { en: "Hold & release", ja: "押して離す" },
+      {
+        en: `${prizeIds.length} prizes`,
+        ja: `景品${prizeIds.length}種`,
+      },
+      { en: "Challenge a friend", ja: "友だちに挑戦" },
+    ],
+    title: { en: kadouchi.en.name, ja: kadouchi.ja.name },
   },
 ];
 
