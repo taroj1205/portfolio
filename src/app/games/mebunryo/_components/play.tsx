@@ -32,12 +32,24 @@ const bounce = stylex.keyframes({
 const styles = stylex.create({
   play: {
     alignItems: "center",
+    containerType: "inline-size",
     display: "flex",
     flexDirection: "column",
+    flexGrow: 1,
     gap: "0.65rem",
     marginInline: "auto",
     maxWidth: "30rem",
     width: "100%",
+  },
+  stage: {
+    alignItems: "center",
+    alignSelf: "stretch",
+    containerType: "size",
+    display: "flex",
+    flexGrow: 1,
+    justifyContent: "center",
+    maxHeight: "100cqi",
+    minHeight: "12rem",
   },
   meta: {
     alignItems: "center",
@@ -99,7 +111,7 @@ const styles = stylex.create({
     overflow: "hidden",
     touchAction: "none",
     userSelect: "none",
-    width: "min(100%, calc(100dvh - 17rem))",
+    width: "100cqmin",
     WebkitUserSelect: "none",
   },
   cue: {
@@ -327,35 +339,37 @@ export const Play = ({
       <h2 id="mebunryo-ask" {...stylex.props(styles.ask)}>
         {words.ask[puzzle.kind]}
       </h2>
-      <svg
-        aria-label={words.board}
-        onPointerCancel={() => {
-          dragging.current = false;
-        }}
-        onPointerDown={(event) => {
-          event.currentTarget.setPointerCapture(event.pointerId);
-          dragging.current = true;
-          aim(event);
-        }}
-        onPointerMove={(event) => {
-          if (dragging.current) {
+      <div {...stylex.props(styles.stage)}>
+        <svg
+          aria-label={words.board}
+          onPointerCancel={() => {
+            dragging.current = false;
+          }}
+          onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
+            dragging.current = true;
             aim(event);
-          }
-        }}
-        onPointerUp={() => {
-          dragging.current = false;
-        }}
-        ref={board}
-        viewBox={`0 0 ${SIZE} ${SIZE}`}
-        {...stylex.props(styles.board)}
-      >
-        <Figure
-          animate
-          answer={graded?.answer ?? null}
-          guess={guess}
-          puzzle={puzzle}
-        />
-      </svg>
+          }}
+          onPointerMove={(event) => {
+            if (dragging.current) {
+              aim(event);
+            }
+          }}
+          onPointerUp={() => {
+            dragging.current = false;
+          }}
+          ref={board}
+          viewBox={`0 0 ${SIZE} ${SIZE}`}
+          {...stylex.props(styles.board)}
+        >
+          <Figure
+            animate
+            answer={graded?.answer ?? null}
+            guess={guess}
+            puzzle={puzzle}
+          />
+        </svg>
+      </div>
       <div {...stylex.props(styles.cue)}>
         {graded === null || verdict === null ? (
           <p {...stylex.props(styles.hint)}>
