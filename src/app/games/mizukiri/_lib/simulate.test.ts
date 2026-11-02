@@ -379,7 +379,7 @@ describe("flight", () => {
     }
 
     assert.ok(kicked > 0);
-  }, 30_000);
+  });
 
   it("bounces and perfect taps cannot run the speed past twice the top surge", () => {
     let fastest = 0;
