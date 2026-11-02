@@ -1,0 +1,44 @@
+name: Workflow checks
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  workflow_checks:
+    name: ${{ matrix.tool }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tool: jactionlint
+            package: github:jdx/jactionlint
+            version: 2.4.0
+            command: jactionlint --profile correctness
+          - tool: zizmor
+            package: zizmor
+            version: 1.31.1
+            command: zizmor --no-progress .github/workflows
+          - tool: pinact
+            package: pinact
+            version: 4.0.0-1
+            command: pinact run --fix=false --verify
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup workflow checker
+        uses: jdx/mise-action@9149ea85001c7435d5a66bb127d6a1b6227cb0a5 # v5.0.0
+        with:
+          version: 2026.9.14
+          tool_versions: ${{ matrix.package }} ${{ matrix.version }}
+          cache: false
+
+      - name: Check workflows
+        run: ${{ matrix.command }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,41 @@
+name: Quality
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: ${{ matrix.check }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - check: Format
+            command: bunx vp fmt --check
+          - check: Lint
+            command: bunx vp lint
+          - check: Typecheck
+            command: bunx vp check --no-fmt --no-lint
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: package.json
+
+      - name: Install dependencies
+        run: bun ci
+
+      - name: Generate Next.js types
+        if: matrix.check == 'Lint' || matrix.check == 'Typecheck'
+        run: bunx next typegen
+
+      - name: Run ${{ matrix.check }}
+        run: ${{ matrix.command }}

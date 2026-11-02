@@ -46,7 +46,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   check:
-    name: Format, lint and types
+    name: Quality
+    uses: $/.github/workflows/quality.yml
+
+  test:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -60,13 +64,6 @@ jobs:
 
       - name: Install dependencies
         run: bun ci
-
-      # next-env.d.ts is gitignored; without it image imports have no types.
-      - name: Generate Next.js types
-        run: bunx next typegen
-
-      - name: Run vp check
-        run: bunx vp check
 
       - name: Run tests
         run: bunx vp test run
@@ -91,37 +88,8 @@ jobs:
         run: bun run knip
 
   workflow_checks:
-    name: ${{ matrix.tool }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - tool: actionlint
-            version: 1.7.12
-            command: actionlint
-          - tool: zizmor
-            version: 1.25.2
-            command: zizmor --no-progress .github/workflows
-          - tool: pinact
-            version: 4.0.0-1
-            command: pinact run --fix=false --verify
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup workflow checker
-        uses: jdx/mise-action@9149ea85001c7435d5a66bb127d6a1b6227cb0a5 # v5.0.0
-        with:
-          version: 2026.9.14
-          tool_versions: ${{ matrix.tool }} ${{ matrix.version }}
-          cache: false
-
-      - name: Check workflows
-        run: ${{ matrix.command }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    name: Workflow checks
+    uses: $/.github/workflows/workflow-checks.yml
 
   spell_check:
     name: Spell Check
@@ -138,7 +106,7 @@ jobs:
 
   verify:
     name: Verify
-    needs: [build, check, knip, workflow_checks, spell_check]
+    needs: [build, check, test, knip, workflow_checks, spell_check]
     runs-on: ubuntu-latest
     if: always()
     steps:
