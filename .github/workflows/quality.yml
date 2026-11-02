@@ -8,8 +8,18 @@ permissions:
 
 jobs:
   check:
-    name: Quality
+    name: ${{ matrix.check }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - check: Format
+            command: bunx vp fmt --check
+          - check: Lint
+            command: bunx vp lint
+          - check: Typecheck
+            command: bunx vp check --no-fmt --no-lint
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -24,14 +34,8 @@ jobs:
         run: bun ci
 
       - name: Generate Next.js types
+        if: matrix.check == 'Lint' || matrix.check == 'Typecheck'
         run: bunx next typegen
 
-      - parallel:
-          - name: Format
-            run: bunx vp fmt --check
-
-          - name: Lint
-            run: bunx vp lint
-
-          - name: Typecheck
-            run: bunx vp check --no-fmt --no-lint
+      - name: Run ${{ matrix.check }}
+        run: ${{ matrix.command }}
