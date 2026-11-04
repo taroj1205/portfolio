@@ -1,0 +1,84 @@
+name: Bundle size
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    name: Measure
+    runs-on: ubuntu-latest
+    outputs:
+      report: ${{ steps.report.outputs.report }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: head
+          persist-credentials: false
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: head/package.json
+
+      - name: Build base
+        working-directory: base
+        run: bun ci && bun run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build this PR
+        working-directory: head
+        run: bun ci && bun run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compare builds
+        id: report
+        run: |
+          {
+            bun head/scripts/bundle-report.ts base head
+            echo
+            echo "Measured against base $BASE_SHA."
+          } > report.md
+          cat report.md >> "$GITHUB_STEP_SUMMARY"
+          delimiter="report-$(openssl rand -hex 16)"
+          {
+            echo "report<<$delimiter"
+            cat report.md
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+
+  comment:
+    name: Comment
+    needs: measure
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Post or update the report
+        run: |
+          ids=$(gh api --paginate "repos/$GH_REPO/issues/$PR/comments" \
+            --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("<!-- bundle-report -->"))) | .id')
+          id=${ids%%$'\n'*}
+          if [[ -n "$id" ]]; then
+            gh api --method PATCH "repos/$GH_REPO/issues/comments/$id" -f body="$REPORT" > /dev/null
+          else
+            gh pr comment "$PR" --body "$REPORT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          REPORT: ${{ needs.measure.outputs.report }}
