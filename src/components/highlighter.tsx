@@ -37,6 +37,50 @@ interface Line {
   top: number;
 }
 
+const unclipped: Line = {
+  bottom: Number.POSITIVE_INFINITY,
+  left: Number.NEGATIVE_INFINITY,
+  right: Number.POSITIVE_INFINITY,
+  top: Number.NEGATIVE_INFINITY,
+};
+
+const clipOf = (el: Element | null, seen: Map<Element, Line>): Line => {
+  if (!el || el === document.body) {
+    return unclipped;
+  }
+
+  const known = seen.get(el);
+
+  if (known) {
+    return known;
+  }
+
+  const outer = clipOf(el.parentElement, seen);
+  const style = getComputedStyle(el);
+  const box = el.getBoundingClientRect();
+  const clipX = style.overflowX !== "visible";
+  const clipY = style.overflowY !== "visible";
+
+  const clip = {
+    bottom: clipY ? Math.min(outer.bottom, box.bottom) : outer.bottom,
+    left: clipX ? Math.max(outer.left, box.left) : outer.left,
+    right: clipX ? Math.min(outer.right, box.right) : outer.right,
+    top: clipY ? Math.max(outer.top, box.top) : outer.top,
+  };
+
+  seen.set(el, clip);
+
+  return clip;
+};
+
+const leadingOf = (el: Element | null) => {
+  const value = el ? getComputedStyle(el).lineHeight : "";
+
+  return value.endsWith("px")
+    ? Number(value.slice(0, -2))
+    : Number.POSITIVE_INFINITY;
+};
+
 const measure = (): Line[] => {
   const selection = getSelection();
 
@@ -53,6 +97,7 @@ const measure = (): Line[] => {
 
   const lines: Line[] = [];
   const piece = document.createRange();
+  const seen = new Map<Element, Line>();
 
   for (
     let node: Node | null = walker.currentNode;
@@ -73,15 +118,30 @@ const measure = (): Line[] => {
       piece.setEnd(node, range.endOffset);
     }
 
-    for (const box of piece.getClientRects()) {
-      if (box.width < 1) {
+    const clip = clipOf(node.parentElement, seen);
+
+    const leading = leadingOf(node.parentElement);
+
+    for (const glyphs of piece.getClientRects()) {
+      const height = Math.min(leading, glyphs.height);
+
+      const middle = (glyphs.top + glyphs.bottom) / 2;
+
+      const box = {
+        bottom: Math.min(middle + height / 2, clip.bottom),
+        left: Math.max(glyphs.left, clip.left),
+        right: Math.min(glyphs.right, clip.right),
+        top: Math.max(middle - height / 2, clip.top),
+      };
+
+      if (box.right - box.left < 1 || box.bottom - box.top < 1) {
         continue;
       }
 
       const line = lines.find(
         (l) =>
           Math.min(l.bottom, box.bottom) - Math.max(l.top, box.top) >
-            Math.min(l.bottom - l.top, box.height) / 2 &&
+            Math.min(l.bottom - l.top, box.bottom - box.top) / 2 &&
           box.left <= l.right + 24 &&
           box.right >= l.left - 24
       );
@@ -92,12 +152,7 @@ const measure = (): Line[] => {
         line.top = Math.min(line.top, box.top);
         line.bottom = Math.max(line.bottom, box.bottom);
       } else {
-        lines.push({
-          bottom: box.bottom,
-          left: box.left,
-          right: box.right,
-          top: box.top,
-        });
+        lines.push({ ...box });
       }
     }
   }
@@ -116,10 +171,20 @@ export const Highlighter = () => {
   useEffect(() => {
     const root = document.documentElement;
     let frame = 0;
+    let last = "[]";
 
     const update = () => {
       frame = 0;
-      setLines(measure());
+      const next = measure();
+      const key = JSON.stringify(next);
+
+      if (key === last) {
+        return;
+      }
+
+      last = key;
+      setLines(next);
+      frame = requestAnimationFrame(update);
     };
 
     const schedule = () => {
