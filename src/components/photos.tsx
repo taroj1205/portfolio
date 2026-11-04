@@ -10,7 +10,7 @@ import { flushSync } from "react-dom";
 import { Smooth } from "@/components/smooth";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
-import { canTransition } from "@/lib/view-transition";
+import { OUT, canTransition, turnTiming } from "@/lib/view-transition";
 import { shared } from "@/styles/shared";
 
 import { color, ease, font, media, size } from "../styles/tokens.stylex";
@@ -323,6 +323,7 @@ const styles = stylex.create({
     maxWidth: "100vw",
     overflow: "visible",
     padding: inset,
+    touchAction: "pinch-zoom",
   },
   full: {
     borderRadius: FULL_RADIUS,
@@ -394,6 +395,30 @@ const styles = stylex.create({
 
 const reduced = "(prefers-reduced-motion: reduce)";
 
+const TURN_MS = 260;
+
+const transitionParts = () =>
+  document
+    .getAnimations()
+    .filter(
+      (part) =>
+        part.effect instanceof KeyframeEffect &&
+        part.effect.pseudoElement?.startsWith("::view-transition") === true
+    );
+
+const within = (box: DOMRect, point: { clientX: number; clientY: number }) =>
+  point.clientX >= box.left &&
+  point.clientX <= box.right &&
+  point.clientY >= box.top &&
+  point.clientY <= box.bottom;
+
+interface Run {
+  back: boolean;
+  transition: ViewTransition;
+  turns: number;
+  undo: () => void;
+}
+
 const slideOut = (image: HTMLElement, direction: number) => {
   const ghost = image.cloneNode();
   const dialog = image.closest("dialog");
@@ -439,7 +464,7 @@ const slideOut = (image: HTMLElement, direction: number) => {
     ],
     {
       duration: 200,
-      easing: "cubic-bezier(0.23, 1, 0.32, 1)",
+      easing: OUT,
       fill: "forwards",
     }
   );
@@ -468,7 +493,7 @@ const slideIn = (image: HTMLElement, direction: number) => {
       },
       { filter: "blur(0px)", opacity: 1, translate: "0 0" },
     ],
-    { duration: 360, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
+    { duration: 360, easing: OUT }
   );
 
   const settle = () => {
@@ -497,8 +522,8 @@ export const Photos = ({
   const thumb = useRef<HTMLButtonElement | null>(null);
   const list = useRef<HTMLDivElement>(null);
   const swipe = useRef(0);
-  const moving = useRef<ViewTransition | null>(null);
-  const rewinding = useRef(false);
+  const pressed = useRef<EventTarget | null>(null);
+  const moving = useRef<Run | null>(null);
   const t = getTranslator(locale);
   const [open, setOpen] = useState<Photo | null>(null);
 
@@ -547,15 +572,90 @@ export const Photos = ({
     ]);
   };
 
-  const transit = async (options: StartViewTransitionOptions) => {
+  const turn = () => {
+    const run = moving.current;
+    const parts = transitionParts();
+
+    if (!run || parts.length === 0) {
+      return false;
+    }
+
+    run.back = !run.back;
+    run.turns += 1;
+
+    const { back, turns } = run;
+    let left = parts.length;
+
+    const settle = () => {
+      left -= 1;
+
+      if (left === 0 && run.turns === turns) {
+        run.undo();
+      }
+    };
+
+    for (const part of parts) {
+      const progress = part.effect?.getComputedTiming().progress ?? 1;
+
+      const { at, easing } = turnTiming(progress, back);
+
+      part.effect?.updateTiming({ duration: TURN_MS, easing });
+      part.currentTime = at * TURN_MS;
+      part.playbackRate = back ? -1 : 1;
+
+      if (back) {
+        part.addEventListener("finish", settle, { once: true });
+      }
+    }
+
+    return true;
+  };
+
+  const transit = async (
+    options: StartViewTransitionOptions,
+    undo: () => void
+  ) => {
     const transition = document.startViewTransition(options);
+    const run = { back: false, transition, turns: 0, undo };
+    const listening = new AbortController();
+    const during = { capture: true, signal: listening.signal };
 
-    moving.current = transition;
+    moving.current = run;
     transition.ready.catch(() => null);
-    await transition.finished;
+    document.addEventListener(
+      "click",
+      (event) => {
+        const box = thumb.current?.getBoundingClientRect();
+        const onThumb = box !== undefined && within(box, event);
 
-    if (moving.current === transition) {
+        if (dialog.current?.open !== true && (run.back || onThumb)) {
+          turn();
+        }
+      },
+      during
+    );
+    document.addEventListener(
+      "keydown",
+      (event) => {
+        if (
+          event.key === "Escape" &&
+          dialog.current?.open !== true &&
+          run.back
+        ) {
+          turn();
+        }
+      },
+      during
+    );
+    await transition.finished;
+    listening.abort();
+
+    if (moving.current === run) {
       moving.current = null;
+    }
+
+    if (dialog.current?.open !== true) {
+      setOpen(null);
     }
   };
 
@@ -621,13 +721,19 @@ export const Photos = ({
     }
 
     nameThumb("photo");
-    void transit({
-      update: async () => {
-        nameThumb("");
-        lift(true);
-        await reveal(photo);
+    void transit(
+      {
+        update: async () => {
+          nameThumb("");
+          lift(true);
+          await reveal(photo);
+        },
       },
-    });
+      () => {
+        dialog.current?.close();
+        lift(false);
+      }
+    );
   };
 
   const hide = async () => {
@@ -642,56 +748,36 @@ export const Photos = ({
       return;
     }
 
-    if (!thumb.current && full.current) {
-      full.current.style.viewTransitionName = "none";
+    if (full.current) {
+      full.current.style.viewTransitionName = thumb.current ? "" : "none";
     }
 
-    await transit({
-      update: () => {
-        dialog.current?.close();
-        lift(false);
-        nameThumb("photo");
+    await transit(
+      {
+        update: () => {
+          dialog.current?.close();
+          lift(false);
+          nameThumb("photo");
+        },
       },
-    });
+      () => {
+        dialog.current?.showModal();
+        lift(true);
+      }
+    );
     nameThumb("");
   };
 
-  const rewind = () => {
-    if (rewinding.current) {
-      return true;
-    }
-
-    const parts = document
-      .getAnimations()
-      .filter(
-        (part) =>
-          part.effect instanceof KeyframeEffect &&
-          part.effect.pseudoElement?.startsWith("::view-transition") === true
-      );
-
-    if (parts.length === 0) {
-      return false;
-    }
-
-    rewinding.current = true;
-    let left = parts.length;
-
-    const settle = () => {
-      left -= 1;
-
-      if (left === 0) {
-        rewinding.current = false;
-        dialog.current?.close();
-        lift(false);
+  const dismiss = () => {
+    if (moving.current) {
+      if (!turn()) {
+        void moving.current.transition.finished.then(hide);
       }
-    };
 
-    for (const part of parts) {
-      part.addEventListener("finish", settle, { once: true });
-      part.reverse();
+      return;
     }
 
-    return true;
+    void hide();
   };
 
   const opener = (
@@ -832,19 +918,12 @@ export const Photos = ({
         closedby="any"
         onCancel={(event) => {
           event.preventDefault();
-
-          if (moving.current) {
-            if (!rewind()) {
-              void moving.current.finished.then(hide);
-            }
-
-            return;
-          }
-
-          void hide();
+          dismiss();
         }}
         onClose={() => {
-          setOpen(null);
+          if (!moving.current) {
+            setOpen(null);
+          }
         }}
         onKeyDown={(event) => {
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
@@ -852,6 +931,7 @@ export const Photos = ({
           }
         }}
         onPointerDown={(event) => {
+          pressed.current = event.target;
           swipe.current = event.clientX;
         }}
         onPointerUp={(event) => {
@@ -859,6 +939,25 @@ export const Photos = ({
 
           if (event.pointerType !== "mouse" && Math.abs(distance) > 60) {
             step(distance < 0 ? 1 : -1);
+
+            return;
+          }
+
+          const spot = event.target;
+
+          const beside =
+            spot instanceof Element &&
+            spot.closest("img, figcaption, button") === null &&
+            (spot !== event.currentTarget ||
+              within(spot.getBoundingClientRect(), event));
+
+          if (
+            beside &&
+            spot === pressed.current &&
+            event.button === 0 &&
+            Math.abs(distance) < 10
+          ) {
+            dismiss();
           }
         }}
         ref={dialog}
