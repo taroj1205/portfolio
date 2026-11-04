@@ -46,8 +46,8 @@ const styles = stylex.create({
       [media.hover]: {
         default: "rgb(228 220 209 / 0.7)",
         ":first-child": "transparent",
-        ":hover": "transparent",
-        ":is(:hover + *)": "transparent",
+        ":has(> :hover)": "transparent",
+        ":is(:has(> :hover) + *)": "transparent",
       },
     },
     borderTopStyle: "solid",
