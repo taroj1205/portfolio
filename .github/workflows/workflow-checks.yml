@@ -8,29 +8,37 @@ permissions:
 
 jobs:
   workflow_checks:
-    name: Validate
+    name: ${{ matrix.tool }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tool: jactionlint
+            package: github:jdx/jactionlint
+            version: 2.4.0
+            command: jactionlint --profile correctness
+          - tool: zizmor
+            package: zizmor
+            version: 1.31.1
+            command: zizmor --no-progress .github/workflows
+          - tool: pinact
+            package: pinact
+            version: 4.0.0-1
+            command: pinact run --fix=false --verify
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Setup workflow checkers
+      - name: Setup workflow checker
         uses: jdx/mise-action@6be3c7ed4c21d4f76b208d351d95aac273ebb76d # v5.2.4
         with:
           version: 2026.9.14
-          tool_versions: |
-            github:jdx/jactionlint 2.4.0
-            zizmor 1.31.1
-            pinact 4.0.0-1
+          tool_versions: ${{ matrix.package }} ${{ matrix.version }}
           cache: false
 
-      - parallel:
-          - name: jactionlint
-            run: jactionlint --profile correctness
-          - name: zizmor
-            run: zizmor --no-progress .github/workflows
-          - name: pinact
-            run: pinact run --fix=false --verify
-            env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check workflows
+        run: ${{ matrix.command }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
