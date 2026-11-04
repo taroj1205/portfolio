@@ -701,7 +701,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
           <p {...stylex.props(styles.paragraph)}>
             {t(
               "about.interests",
-              "I taught myself to code in 2022 by making small games, and I still mostly build things because someone I know needs them. Outside of screens it's kendama, juggling, table tennis, badminton and football, even after three knee injuries."
+              "I taught myself to code in 2022 by making small games, and I still mostly build things because someone I know needs them. I used to do kendama, juggling, table tennis, badminton and football, but these days I'm mostly building apps and sites, and working out how AI can make the work easier."
             )}
           </p>
           <dl data-reveal="stagger" {...stylex.props(styles.facts)}>
