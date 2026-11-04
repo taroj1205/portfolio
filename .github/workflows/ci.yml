@@ -14,10 +14,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build
-    uses: $/.github/workflows/build.yml
-
   check:
     name: Quality
     uses: $/.github/workflows/quality.yml
@@ -28,7 +24,7 @@ jobs:
 
   bundle_size:
     name: Bundle size
-    needs: build
+    needs: check
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -37,7 +33,7 @@ jobs:
 
   verify:
     name: Verify
-    needs: [build, check, workflow_checks, bundle_size]
+    needs: [check, workflow_checks, bundle_size]
     runs-on: ubuntu-latest
     if: always()
     steps:
