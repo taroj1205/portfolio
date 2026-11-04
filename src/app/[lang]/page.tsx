@@ -55,7 +55,7 @@ const surface = stylex.keyframes({
   from: { rotate: "7deg", translate: "0 118%" },
 });
 
-const draw = stylex.keyframes({ from: { strokeDashoffset: 1 } });
+const draw = stylex.keyframes({ from: { maskPosition: "100% 0" } });
 
 const recede = stylex.keyframes({
   to: { [motion.heft]: 250, opacity: 0, scale: 0.92, translate: "0 -30%" },
@@ -351,13 +351,15 @@ const styles = stylex.create({
     animationFillMode: "both",
     animationName: { default: null, [media.motion]: draw },
     animationTimingFunction: ease.drawer,
-    bottom: "-0.1em",
+    bottom: "-0.15em",
     color: color.vermilion,
-    height: "0.2em",
+    height: "0.3em",
     left: "-0.02em",
+    maskImage: "linear-gradient(90deg, #000 46%, transparent 54%)",
+    maskRepeat: "no-repeat",
+    maskSize: "250% 100%",
     overflow: "visible",
     position: "absolute",
-    strokeDasharray: 1,
     width: "calc(100% - 0.2em)",
     zIndex: -1,
   },
@@ -648,13 +650,12 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
                     <svg
                       aria-hidden="true"
                       preserveAspectRatio="none"
-                      viewBox="0 0 300 20"
+                      viewBox="0 0 300 30"
                       {...stylex.props(styles.marker)}
                     >
                       <path
-                        d="M3 13C70 6 170 3 297 9C210 8 110 11 36 17"
+                        d="M3 16C70 9 170 7 297 13C210 13 110 18 36 24.5"
                         fill="none"
-                        pathLength={1}
                         stroke="currentColor"
                         strokeLinecap="round"
                         strokeLinejoin="round"

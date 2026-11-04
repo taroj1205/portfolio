@@ -22,6 +22,7 @@ Every visual element needs a job a visitor would notice it doing. Do not add dec
 
 - Mona Sans is the only Latin face. Its `tabular-nums` figures are slab-serif monospace digits, so do not set `fontVariantNumeric: "tabular-nums"`.
 - The second accent is `color.vermilion`. Cream with orange reads as Claude's brand, so keep orange out.
+- The hero underline is one path drawn out and back, so it reads as two marker passes. It is revealed by sliding a feathered `mask-image`, not by `stroke-dasharray`. The SVG stretches with `preserveAspectRatio="none"` and uses `non-scaling-stroke`, so a `pathLength` dash is measured before the stretch and only covers part of the stretched stroke. In English at 1440 that hid the second pass. The mask clips to the SVG box, so the box is tall enough for the stroke.
 - Text selection is drawn by `Highlighter` (`src/components/highlighter.tsx`) as a vermilion marker stroke per line. Native `::selection` is hidden only under `[data-highlighter]`, so it comes back if the script fails.
 - Add `data-spotlight` to a list of peer choices, such as the contact links or side projects. Hovering one item dims and blurs the rest. Leave it off lists people read.
 
