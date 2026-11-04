@@ -55,7 +55,7 @@ const surface = stylex.keyframes({
   from: { rotate: "7deg", translate: "0 118%" },
 });
 
-const draw = stylex.keyframes({ from: { maskPosition: "100% 0" } });
+const draw = stylex.keyframes({ from: { strokeDashoffset: 1 } });
 
 const recede = stylex.keyframes({
   to: { [motion.heft]: 250, opacity: 0, scale: 0.92, translate: "0 -30%" },
@@ -346,23 +346,25 @@ const styles = stylex.create({
     transitionTimingFunction: ease.out,
   },
   marker: {
-    animationDelay: "900ms",
-    animationDuration: "900ms",
-    animationFillMode: "both",
-    animationName: { default: null, [media.motion]: draw },
-    animationTimingFunction: ease.drawer,
     bottom: "-0.15em",
     color: color.vermilion,
     height: "0.3em",
+    isolation: "isolate",
     left: "-0.02em",
-    maskImage: "linear-gradient(90deg, #000 46%, transparent 54%)",
-    maskRepeat: "no-repeat",
-    maskSize: "250% 100%",
     overflow: "visible",
     position: "absolute",
     width: "calc(100% - 0.2em)",
     zIndex: -1,
   },
+  pass: (delay: string, duration: string) => ({
+    animationDelay: delay,
+    animationDuration: duration,
+    animationFillMode: "both",
+    animationName: { default: null, [media.motion]: draw },
+    animationTimingFunction: "cubic-bezier(0.55, 0, 0.15, 1)",
+    mixBlendMode: "multiply",
+    strokeDasharray: "1 2",
+  }),
   intro: {
     color: color.muted,
     fontSize: "clamp(1.125rem, 1.6vw, 1.3rem)",
@@ -649,18 +651,25 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
                   {i === heroWords.length - 1 && (
                     <svg
                       aria-hidden="true"
+                      fill="none"
                       preserveAspectRatio="none"
-                      viewBox="0 0 300 30"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      viewBox="0 0 300 16"
                       {...stylex.props(styles.marker)}
                     >
                       <path
-                        d="M3 16C70 9 170 7 297 13C210 13 110 18 36 24.5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="0.06em"
-                        vectorEffect="non-scaling-stroke"
+                        d="M3 8.5C70 4.8 170 3.7 297 6.9"
+                        pathLength={1}
+                        strokeWidth={3.2}
+                        {...stylex.props(styles.pass("900ms", "420ms"))}
+                      />
+                      <path
+                        d="M297 6.9C210 6.9 110 9.6 36 13"
+                        pathLength={1}
+                        strokeOpacity={0.85}
+                        strokeWidth={2.6}
+                        {...stylex.props(styles.pass("1360ms", "460ms"))}
                       />
                     </svg>
                   )}
