@@ -3,14 +3,19 @@
 import * as stylex from "@stylexjs/stylex";
 import Image from "next/image";
 import type { StaticImageData } from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { flushSync } from "react-dom";
 
 import { Smooth } from "@/components/smooth";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
-import { OUT, canTransition, turnTiming } from "@/lib/view-transition";
+import {
+  OUT,
+  canTransition,
+  easedProgress,
+  turnTiming,
+} from "@/lib/view-transition";
 import { shared } from "@/styles/shared";
 
 import { color, ease, font, media, size } from "../styles/tokens.stylex";
@@ -400,10 +405,11 @@ const TURN_MS = 260;
 const transitionParts = () =>
   document
     .getAnimations()
-    .filter(
-      (part) =>
-        part.effect instanceof KeyframeEffect &&
-        part.effect.pseudoElement?.startsWith("::view-transition") === true
+    .flatMap((part) =>
+      part.effect instanceof KeyframeEffect &&
+      part.effect.pseudoElement?.startsWith("::view-transition") === true
+        ? [{ effect: part.effect, part }]
+        : []
     );
 
 const within = (box: DOMRect, point: { clientX: number; clientY: number }) =>
@@ -412,11 +418,25 @@ const within = (box: DOMRect, point: { clientX: number; clientY: number }) =>
   point.clientY >= box.top &&
   point.clientY <= box.bottom;
 
+const heading = (run: Run) => run.opens !== run.back;
+
+const easeAt = (easing: string, time: number) => {
+  const probe = new Animation(
+    new KeyframeEffect(null, null, { duration: 1, easing, fill: "both" })
+  );
+
+  probe.currentTime = time;
+
+  return probe.effect?.getComputedTiming().progress ?? time;
+};
+
 interface Run {
   back: boolean;
+  opens: boolean;
   transition: ViewTransition;
   turns: number;
   undo: () => void;
+  want: boolean;
 }
 
 const slideOut = (image: HTMLElement, direction: number) => {
@@ -600,12 +620,25 @@ export const Photos = ({
       }
     };
 
-    for (const part of parts) {
-      const progress = part.effect?.getComputedTiming().progress ?? 1;
+    for (const { effect, part } of parts) {
+      const frames = effect.getKeyframes();
+
+      const progress = easedProgress(
+        frames,
+        effect.getComputedTiming().progress ?? 1,
+        easeAt
+      );
 
       const { at, easing } = turnTiming(progress, back);
 
-      part.effect?.updateTiming({ duration: TURN_MS, easing });
+      effect.setKeyframes(
+        frames.map((frame) => ({
+          ...frame,
+          easing: "linear",
+          offset: frame.computedOffset,
+        }))
+      );
+      effect.updateTiming({ duration: TURN_MS, easing });
       part.currentTime = at * TURN_MS;
       part.playbackRate = back ? -1 : 1;
 
@@ -622,42 +655,18 @@ export const Photos = ({
     undo: () => void
   ) => {
     const transition = document.startViewTransition(options);
-    const run = { back: false, transition, turns: 0, undo };
-    const listening = new AbortController();
-    const during = { capture: true, signal: listening.signal };
+
+    const opens = dialog.current?.open !== true;
+    const run = { back: false, opens, transition, turns: 0, undo, want: opens };
 
     moving.current = run;
+    dialog.current?.setAttribute("closedby", "closerequest");
     transition.ready.catch(() => null);
-    document.addEventListener(
-      "click",
-      (event) => {
-        const box = thumb.current?.getBoundingClientRect();
-        const onThumb = box !== undefined && within(box, event);
-
-        if (dialog.current?.open !== true && (run.back || onThumb)) {
-          turn();
-        }
-      },
-      during
-    );
-    document.addEventListener(
-      "keydown",
-      (event) => {
-        if (
-          event.key === "Escape" &&
-          dialog.current?.open !== true &&
-          run.back
-        ) {
-          turn();
-        }
-      },
-      during
-    );
     await transition.finished;
-    listening.abort();
 
     if (moving.current === run) {
       moving.current = null;
+      dialog.current?.setAttribute("closedby", "any");
     }
 
     const shown = dialog.current?.open === true;
@@ -778,16 +787,20 @@ export const Photos = ({
     nameThumb("");
   };
 
-  const dismiss = async () => {
+  const steer = async (toOpen: boolean) => {
     const run = moving.current;
 
     if (!run) {
-      await hide();
+      if (!toOpen) {
+        await hide();
+      }
 
       return;
     }
 
-    if (turn()) {
+    run.want = toOpen;
+
+    if (heading(run) === toOpen || turn()) {
       return;
     }
 
@@ -796,10 +809,44 @@ export const Photos = ({
       () => false
     );
 
-    if (!started || (!run.back && !turn())) {
+    if (heading(run) === run.want || (started && turn())) {
+      return;
+    }
+
+    if (!run.want) {
       await hide();
     }
   };
+
+  const pressDuring = useEffectEvent((event: PointerEvent) => {
+    const run = moving.current;
+
+    if (run && event.button === 0) {
+      const box = thumb.current?.getBoundingClientRect();
+      const onThumb = box !== undefined && within(box, event);
+
+      void steer(onThumb && !run.want);
+    }
+  });
+
+  const escapeDuring = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === "Escape" && moving.current) {
+      event.preventDefault();
+      void steer(false);
+    }
+  });
+
+  useEffect(() => {
+    const options = { capture: true };
+
+    document.addEventListener("pointerdown", pressDuring, options);
+    document.addEventListener("keydown", escapeDuring, options);
+
+    return () => {
+      document.removeEventListener("pointerdown", pressDuring, options);
+      document.removeEventListener("keydown", escapeDuring, options);
+    };
+  }, []);
 
   const opener = (
     photo: Photo,
@@ -939,7 +986,7 @@ export const Photos = ({
         closedby="any"
         onCancel={(event) => {
           event.preventDefault();
-          void dismiss();
+          void steer(false);
         }}
         onClose={() => {
           if (!moving.current) {
@@ -954,12 +1001,16 @@ export const Photos = ({
         }}
         onPointerDown={(event) => {
           press.current = {
-            target: event.target,
+            target: moving.current ? null : event.target,
             x: event.clientX,
             y: event.clientY,
           };
         }}
         onPointerUp={(event) => {
+          if (press.current.target === null) {
+            return;
+          }
+
           const distance = event.clientX - press.current.x;
 
           if (event.pointerType !== "mouse" && Math.abs(distance) > 60) {
@@ -982,7 +1033,7 @@ export const Photos = ({
             event.button === 0 &&
             Math.hypot(distance, event.clientY - press.current.y) < 10
           ) {
-            void dismiss();
+            void steer(false);
           }
         }}
         ref={dialog}

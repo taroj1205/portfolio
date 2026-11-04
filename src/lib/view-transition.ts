@@ -21,3 +21,20 @@ export const turnTiming = (progress: number, back: boolean) =>
         easing: `cubic-bezier(${1 - X2}, 0, ${1 - X1}, 0)`,
       }
     : { at: outTime(progress), easing: OUT };
+
+export const easedProgress = (
+  frames: readonly { computedOffset: number; easing: string }[],
+  progress: number,
+  ease: (easing: string, time: number) => number
+) => {
+  const next = frames.findIndex((frame) => frame.computedOffset > progress);
+
+  if (next <= 0) {
+    return progress;
+  }
+
+  const { computedOffset: from, easing } = frames[next - 1];
+  const span = frames[next].computedOffset - from;
+
+  return from + ease(easing, (progress - from) / span) * span;
+};

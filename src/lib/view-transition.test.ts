@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 
 import { describe, it } from "vite-plus/test";
 
-import { turnTiming } from "./view-transition";
+import { easedProgress, turnTiming } from "./view-transition";
 
 const along = (s: number, a: number, b: number) =>
   3 * (1 - s) ** 2 * s * a + 3 * (1 - s) * s ** 2 * b + s ** 3;
@@ -36,5 +36,41 @@ describe(turnTiming, () => {
   it("leaves more of the turn to run the further it has to travel", () => {
     assert.ok(turnTiming(0.9, true).at > turnTiming(0.2, true).at);
     assert.ok(turnTiming(0.2, false).at < turnTiming(0.9, false).at);
+  });
+});
+
+const ease = (easing: string, time: number) => curve(easing)(time);
+
+describe(easedProgress, () => {
+  const drawer = "cubic-bezier(0.32, 0.72, 0, 1)";
+
+  it("reads a single segment through its keyframe easing", () => {
+    const frames = [
+      { computedOffset: 0, easing: drawer },
+      { computedOffset: 1, easing: drawer },
+    ];
+
+    for (const progress of [0, 0.25, 0.6, 1]) {
+      assert.ok(
+        Math.abs(
+          easedProgress(frames, progress, ease) - curve(drawer)(progress)
+        ) < 1e-9
+      );
+    }
+  });
+
+  it("eases each segment on its own span", () => {
+    const frames = [
+      { computedOffset: 0, easing: drawer },
+      { computedOffset: 0.6, easing: drawer },
+      { computedOffset: 1, easing: drawer },
+    ];
+
+    assert.equal(easedProgress(frames, 0.6, ease), 0.6);
+    assert.ok(
+      Math.abs(
+        easedProgress(frames, 0.8, ease) - (0.6 + curve(drawer)(0.5) * 0.4)
+      ) < 1e-9
+    );
   });
 });
