@@ -298,7 +298,7 @@ const styles = stylex.create({
   },
   liquid: {
     backgroundColor: {
-      default: `color-mix(in srgb, ${color.paper} calc(34% + var(--dusk) * 44%), transparent)`,
+      default: `color-mix(in srgb, ${color.paper} calc(52% + var(--dusk) * 30%), transparent)`,
       "@media (prefers-reduced-transparency: reduce)": color.paper,
     },
   },
@@ -322,7 +322,7 @@ const styles = stylex.create({
     letterSpacing: "-0.01em",
     minWidth: 0,
     outlineOffset: -2,
-    paddingInline: { default: "1rem", [media.tablet]: "0.25rem" },
+    paddingInline: { default: "1.25rem", [media.tablet]: "0.25rem" },
     position: "relative",
     textDecoration: "none",
     textShadow: `0 0 10px color-mix(in srgb, ${color.paper} 90%, transparent)`,
@@ -378,6 +378,21 @@ const styles = stylex.create({
     transitionDuration: "520ms, 520ms, 240ms, 520ms",
     transitionProperty: "left, right, opacity, scale",
     transitionTimingFunction: ease.spring,
+    "::after": {
+      backgroundColor: color.vermilion,
+      borderRadius: 2,
+      bottom: 5,
+      content: '""',
+      height: 2,
+      left: 14,
+      position: "absolute",
+      right: 14,
+      transform: "scaleX(var(--progress, 0))",
+      transformOrigin: "left",
+      transitionDuration: "160ms",
+      transitionProperty: "transform",
+      transitionTimingFunction: ease.out,
+    },
   },
   shown: {
     opacity: 1,
@@ -432,15 +447,28 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
       frame = 0;
       const root = document.documentElement;
       const atEnd = root.scrollTop + innerHeight >= root.scrollHeight - 2;
-      setActive(
-        atEnd
-          ? sections.length - 1
-          : targets.findLastIndex(
-              (target) =>
-                target !== null &&
-                target.getBoundingClientRect().top <= innerHeight * 0.4
-            )
-      );
+      const line = innerHeight * 0.4;
+
+      const index = atEnd
+        ? sections.length - 1
+        : targets.findLastIndex(
+            (target) =>
+              target !== null && target.getBoundingClientRect().top <= line
+          );
+
+      setActive(index);
+
+      const start = targets[index]?.getBoundingClientRect().top ?? line;
+
+      const end =
+        targets[index + 1]?.getBoundingClientRect().top ??
+        root.scrollHeight - root.scrollTop;
+
+      const progress = atEnd
+        ? 1
+        : Math.min(1, Math.max(0, (line - start) / (end - start)));
+
+      blob.current?.style.setProperty("--progress", progress.toFixed(3));
     };
 
     const schedule = () => {
