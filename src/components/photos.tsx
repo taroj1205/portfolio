@@ -591,6 +591,7 @@ export const Photos = ({
 
       if (left === 0 && run.turns === turns) {
         run.undo();
+        run.transition.skipTransition();
       }
     };
 
@@ -654,7 +655,11 @@ export const Photos = ({
       moving.current = null;
     }
 
-    if (dialog.current?.open !== true) {
+    const shown = dialog.current?.open === true;
+
+    lift(shown);
+
+    if (!shown) {
       setOpen(null);
     }
   };
@@ -768,16 +773,27 @@ export const Photos = ({
     nameThumb("");
   };
 
-  const dismiss = () => {
-    if (moving.current) {
-      if (!turn()) {
-        void moving.current.transition.finished.then(hide);
-      }
+  const dismiss = async () => {
+    const run = moving.current;
+
+    if (!run) {
+      await hide();
 
       return;
     }
 
-    void hide();
+    if (turn()) {
+      return;
+    }
+
+    const started = await run.transition.ready.then(
+      () => true,
+      () => false
+    );
+
+    if (!started || (!run.back && !turn())) {
+      await hide();
+    }
   };
 
   const opener = (
@@ -918,10 +934,11 @@ export const Photos = ({
         closedby="any"
         onCancel={(event) => {
           event.preventDefault();
-          dismiss();
+          void dismiss();
         }}
         onClose={() => {
           if (!moving.current) {
+            lift(false);
             setOpen(null);
           }
         }}
@@ -957,7 +974,7 @@ export const Photos = ({
             event.button === 0 &&
             Math.abs(distance) < 10
           ) {
-            dismiss();
+            void dismiss();
           }
         }}
         ref={dialog}
