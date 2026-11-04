@@ -11,21 +11,18 @@ interface Build {
   totals: Sizes;
 }
 
-const routeBundleStats = z.array(
-  z.object({ firstLoadChunkPaths: z.array(z.string()), route: z.string() })
-);
-
-const buildManifest = z.object({ rootMainFiles: z.array(z.string()) });
-
-const readJson = <T>(schema: z.ZodType<T>, file: string) =>
-  schema.parse(JSON.parse(readFileSync(file, "utf-8")));
+const routeBundleStats = z
+  .array(
+    z.object({ firstLoadChunkPaths: z.array(z.string()), route: z.string() })
+  )
+  .nonempty();
 
 const filesIn = (dir: string) =>
   readdirSync(dir, { recursive: true, withFileTypes: true })
     .filter((entry) => entry.isFile())
     .map((entry) => path.join(entry.parentPath, entry.name));
 
-const measure = (dir: string): Build => {
+export const measure = (dir: string): Build => {
   const gzipped = new Map<string, number>();
 
   const gzip = (file: string) => {
@@ -39,14 +36,19 @@ const measure = (dir: string): Build => {
   const sum = (files: string[], size = gzip) =>
     files.reduce((total, file) => total + size(file), 0);
 
-  const routes = readJson(
-    routeBundleStats,
-    path.join(dir, ".next/diagnostics/route-bundle-stats.json")
+  const routes = routeBundleStats.parse(
+    JSON.parse(
+      readFileSync(
+        path.join(dir, ".next/diagnostics/route-bundle-stats.json"),
+        "utf-8"
+      )
+    )
   );
 
-  const { rootMainFiles } = readJson(
-    buildManifest,
-    path.join(dir, ".next/build-manifest.json")
+  const shared = routes[0].firstLoadChunkPaths.filter((file) =>
+    routes.every(({ firstLoadChunkPaths }) =>
+      firstLoadChunkPaths.includes(file)
+    )
   );
 
   const chunks = filesIn(path.join(dir, ".next/static/chunks"));
@@ -62,7 +64,7 @@ const measure = (dir: string): Build => {
       "All CSS": sum(chunks.filter((file) => file.endsWith(".css"))),
       "All JS": sum(chunks.filter((file) => file.endsWith(".js"))),
       "JS shared by every route": sum(
-        rootMainFiles.map((file) => path.join(dir, ".next", file))
+        shared.map((file) => path.join(dir, file))
       ),
       "Static media (raw)": sum(
         filesIn(path.join(dir, ".next/static/media")),

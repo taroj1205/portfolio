@@ -91,6 +91,14 @@ jobs:
     name: Workflow checks
     uses: $/.github/workflows/workflow-checks.yml
 
+  bundle_size:
+    name: Bundle size
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: $/.github/workflows/bundle-size.yml
+
   spell_check:
     name: Spell Check
     runs-on: ubuntu-latest
@@ -106,7 +114,7 @@ jobs:
 
   verify:
     name: Verify
-    needs: [build, check, test, knip, workflow_checks, spell_check]
+    needs: [build, check, test, knip, workflow_checks, bundle_size, spell_check]
     runs-on: ubuntu-latest
     if: always()
     steps:
