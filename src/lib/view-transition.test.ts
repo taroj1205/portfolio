@@ -60,12 +60,18 @@ describe(easedProgress, () => {
   });
 
   it("eases each segment on its own span", () => {
+    const first = "cubic-bezier(0.5, 0, 0.5, 1)";
+
     const frames = [
-      { computedOffset: 0, easing: drawer },
+      { computedOffset: 0, easing: first },
       { computedOffset: 0.6, easing: drawer },
       { computedOffset: 1, easing: drawer },
     ];
 
+    assert.ok(
+      Math.abs(easedProgress(frames, 0.15, ease) - curve(first)(0.25) * 0.6) <
+        1e-9
+    );
     assert.equal(easedProgress(frames, 0.6, ease), 0.6);
     assert.ok(
       Math.abs(
