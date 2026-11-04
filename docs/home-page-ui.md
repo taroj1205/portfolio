@@ -10,7 +10,6 @@ Every visual element needs a job a visitor would notice it doing. Do not add dec
 - `stylex.when.ancestor(":hover")` needs `stylex.defaultMarker()` on the ancestor. Without it the child hover (such as the `Arrow` nudge) never fires.
 - Under reduced motion nothing animates and nothing moves on hover or press. `globals.css` zeroes transition durations and delays, keyframe animations (fades included) run only under `media.motion`, and every hover or `:active` transform, `translate`, `scale` or `rotate` sits behind `media.motion`.
 - Pace follows ja.mt: interactions run 150–350ms, reveals 550–900ms over at most 1rem, on `ease.out` or `ease.spring`.
-- The nav's active chip carries a vermilion hairline that fills as you read through that section, up to the next nav section. It is the only accent in the nav; keep it that way so it reads as progress.
 
 ## Smooth corners
 
