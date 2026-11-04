@@ -361,7 +361,7 @@ const styles = stylex.create({
     animationDuration: duration,
     animationFillMode: "both",
     animationName: { default: null, [media.motion]: draw },
-    animationTimingFunction: "cubic-bezier(0.55, 0, 0.15, 1)",
+    animationTimingFunction: ease.pen,
     mixBlendMode: "multiply",
     strokeDasharray: "1 2",
   }),

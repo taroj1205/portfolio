@@ -9,7 +9,7 @@ Every visual element needs a job a visitor would notice it doing. Do not add dec
 - In `stylex.props(a, b)` a later style that sets `transitionProperty` or `transitionDuration` replaces the earlier one whole. Put `shared.pressable` before a style with its own transitions, or the hover colour snaps.
 - `stylex.when.ancestor(":hover")` needs `stylex.defaultMarker()` on the ancestor. Without it the child hover (such as the `Arrow` nudge) never fires.
 - Under reduced motion nothing animates and nothing moves on hover or press. `globals.css` zeroes transition durations and delays, keyframe animations (fades included) run only under `media.motion`, and every hover or `:active` transform, `translate`, `scale` or `rotate` sits behind `media.motion`.
-- Pace follows ja.mt: interactions run 150–350ms, reveals 550–900ms over at most 1rem, on `ease.out` or `ease.spring`.
+- Pace follows ja.mt: interactions run 150–350ms, reveals 550–900ms over at most 1rem, on `ease.out` or `ease.spring`. Hand-drawn strokes like the hero underline use `ease.pen`, which speeds up then settles the way a hand does.
 
 ## Smooth corners
 
