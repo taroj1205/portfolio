@@ -86,12 +86,34 @@ const leadingOf = (el: Element | null) => {
     return Number.POSITIVE_INFINITY;
   }
 
+  const box = el.getBoundingClientRect();
+
   const scale =
-    el.offsetHeight > 0
-      ? el.getBoundingClientRect().height / el.offsetHeight
+    el.offsetHeight > 0 && el.offsetWidth > 0
+      ? Math.min(box.height / el.offsetHeight, box.width / el.offsetWidth)
       : 1;
 
   return Number(value.slice(0, -2)) * scale;
+};
+
+const separate = (lines: Line[]) => {
+  lines.sort((a, b) => a.top - b.top);
+
+  for (const [i, upper] of lines.entries()) {
+    for (const lower of lines.slice(i + 1)) {
+      const stacked =
+        lower.left < upper.right &&
+        lower.right > upper.left &&
+        lower.top > upper.top &&
+        lower.top < upper.bottom;
+
+      if (stacked) {
+        const seam = (upper.bottom + lower.top) / 2;
+        upper.bottom = seam;
+        lower.top = seam;
+      }
+    }
+  }
 };
 
 const measure = (): Line[] => {
@@ -169,6 +191,8 @@ const measure = (): Line[] => {
       }
     }
   }
+
+  separate(lines);
 
   return lines.map((line) => ({
     bottom: line.bottom + scrollY,
