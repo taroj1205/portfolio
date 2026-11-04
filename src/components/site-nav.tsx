@@ -462,7 +462,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
 
       const end =
         targets[index + 1]?.getBoundingClientRect().top ??
-        root.scrollHeight - root.scrollTop;
+        root.scrollHeight - innerHeight - root.scrollTop + line;
 
       const progress = atEnd
         ? 1

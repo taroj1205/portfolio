@@ -9,6 +9,8 @@ const grain = `url("data:image/svg+xml,${encodeURIComponent(
   '<svg xmlns="http://www.w3.org/2000/svg" width="256" height="64"><filter id="g" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.04 0.7" seed="3" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.18 0.82"/></filter><rect width="256" height="64" filter="url(#g)"/></svg>'
 )}")`;
 
+const SETTLE_FRAMES = 12;
+
 const appear = stylex.keyframes({ from: { opacity: 0 } });
 
 const styles = stylex.create({
@@ -172,6 +174,7 @@ export const Highlighter = () => {
     const root = document.documentElement;
     let frame = 0;
     let last = "[]";
+    let still = 0;
 
     const update = () => {
       frame = 0;
@@ -179,15 +182,23 @@ export const Highlighter = () => {
       const key = JSON.stringify(next);
 
       if (key === last) {
-        return;
+        still += 1;
+
+        if (still >= SETTLE_FRAMES) {
+          return;
+        }
+      } else {
+        still = 0;
+        last = key;
+        setLines(next);
       }
 
-      last = key;
-      setLines(next);
       frame = requestAnimationFrame(update);
     };
 
     const schedule = () => {
+      still = 0;
+
       if (frame === 0) {
         frame = requestAnimationFrame(update);
       }
