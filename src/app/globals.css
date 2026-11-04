@@ -125,6 +125,10 @@
     background: transparent;
   }
 
+  [data-highlighter] dialog ::selection {
+    background: rgb(224 65 43 / 0.4);
+  }
+
   :focus-visible {
     border-radius: 6px;
     outline: 2px solid #2b4cff;
@@ -157,7 +161,7 @@
       filter 250ms ease-out;
   }
 
-  [data-spotlight]:has(> :hover) > :not(:hover) {
+  [data-spotlight]:has(> :hover) > :not(:hover, :focus-within) {
     filter: blur(2px);
     opacity: 0.4;
   }

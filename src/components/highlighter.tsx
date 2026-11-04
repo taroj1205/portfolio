@@ -197,6 +197,7 @@ export const Highlighter = () => {
     document.addEventListener("selectionchange", schedule);
     addEventListener("scroll", schedule, { capture: true, passive: true });
     addEventListener("resize", schedule);
+    schedule();
 
     return () => {
       delete root.dataset.highlighter;

@@ -289,8 +289,6 @@ const styles = stylex.create({
     maxWidth: "100vw",
     overflow: "visible",
     padding: inset,
-    userSelect: "none",
-    WebkitTouchCallout: "none",
   },
   full: {
     borderRadius: FULL_RADIUS,
@@ -301,8 +299,10 @@ const styles = stylex.create({
     // In vw, not %: a percentage inside the shrink-to-fit dialog collapses it.
     maxWidth: `calc(100vw - 2 * ${inset})`,
     objectFit: "contain",
+    userSelect: "none",
     viewTransitionClass: opening,
     viewTransitionName: "photo",
+    WebkitTouchCallout: "none",
     width: "auto",
   },
   fullFigure: {
@@ -337,6 +337,7 @@ const styles = stylex.create({
     transitionDuration: "200ms",
     transitionProperty: "background-color, transform",
     transitionTimingFunction: ease.out,
+    userSelect: "none",
   },
   turn: {
     alignItems: "center",
