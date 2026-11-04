@@ -372,6 +372,7 @@ const styles = stylex.create({
     transitionProperty: "background-color, transform",
     transitionTimingFunction: ease.out,
     userSelect: "none",
+    zIndex: 1,
   },
   turn: {
     alignItems: "center",
