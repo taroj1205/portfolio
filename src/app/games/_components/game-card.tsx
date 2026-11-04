@@ -22,10 +22,10 @@ const styles = stylex.create({
       default: null,
       [stylex.when.ancestor(":hover")]: {
         default: null,
-        [media.hover]: "scale(1.05)",
+        [media.hover]: { default: null, [media.motion]: "scale(1.05)" },
       },
     },
-    transitionDuration: "900ms",
+    transitionDuration: { default: "900ms", [media.reduce]: "0s" },
     transitionProperty: "transform",
     transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
     width: "100%",
@@ -77,12 +77,23 @@ const styles = stylex.create({
     outlineOffset: 4,
     overflow: "hidden",
     textDecoration: "none",
+    scale: {
+      default: null,
+      ":active": { default: null, [media.motion]: 0.98 },
+    },
     transform: {
       default: null,
-      [media.hover]: { default: null, ":hover": "translateY(-4px)" },
+      [media.hover]: {
+        default: null,
+        ":hover": { default: null, [media.motion]: "translateY(-4px)" },
+      },
     },
-    transitionDuration: "500ms",
-    transitionProperty: "transform, box-shadow, border-color",
+    transitionDuration: {
+      default: "500ms",
+      ":active": { default: "160ms", [media.reduce]: "0s" },
+      [media.reduce]: "0s",
+    },
+    transitionProperty: "transform, box-shadow, border-color, scale",
     transitionTimingFunction: "cubic-bezier(0.32, 0.72, 0, 1)",
   },
   mode: {
@@ -138,7 +149,7 @@ const styles = stylex.create({
     lineHeight: 1.2,
     margin: 0,
     textShadow: "0 2px 24px rgb(255 190 120 / 0.25)",
-    transitionDuration: "400ms",
+    transitionDuration: { default: "400ms", [media.reduce]: "0s" },
     transitionProperty: "color",
   },
 });
@@ -159,7 +170,11 @@ export const GameCard = ({
   tags: [mode, ...tags],
   lang,
 }: Game & { lang: Lang }) => (
-  <Link href={href} prefetch={false} {...stylex.props(styles.card)}>
+  <Link
+    href={href}
+    prefetch={false}
+    {...stylex.props(styles.card, stylex.defaultMarker())}
+  >
     <div {...stylex.props(styles.art)}>
       <div {...stylex.props(styles.artInner)}>{art}</div>
       <div {...stylex.props(styles.scrim)} />

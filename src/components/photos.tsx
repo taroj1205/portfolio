@@ -7,18 +7,13 @@ import { useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { flushSync } from "react-dom";
 
+import { Smooth } from "@/components/smooth";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
+import { canTransition } from "@/lib/view-transition";
 import { shared } from "@/styles/shared";
 
-import {
-  color,
-  ease,
-  font,
-  media,
-  shadow,
-  size,
-} from "../styles/tokens.stylex";
+import { color, ease, font, media, size } from "../styles/tokens.stylex";
 
 export interface Photo {
   src: StaticImageData;
@@ -30,14 +25,34 @@ const morph = {
   old: { height: "100%", objectFit: "cover", overflow: "clip" },
 } as const;
 
+const FULL_RADIUS = "12px";
+const THUMB_RADIUS = `var(--thumb-radius, ${FULL_RADIUS})`;
+
+const grow = stylex.keyframes({ from: { borderRadius: THUMB_RADIUS } });
+const shrink = stylex.keyframes({ from: { borderRadius: FULL_RADIUS } });
+
 const opening = stylex.viewTransitionClass({
   ...morph,
   group: { animationDuration: "420ms", animationTimingFunction: ease.drawer },
+  imagePair: {
+    animationDuration: "420ms",
+    animationName: grow,
+    animationTimingFunction: ease.drawer,
+    borderRadius: FULL_RADIUS,
+    overflow: "clip",
+  },
 });
 
 const closing = stylex.viewTransitionClass({
   ...morph,
   group: { animationDuration: "260ms", animationTimingFunction: ease.out },
+  imagePair: {
+    animationDuration: "260ms",
+    animationName: shrink,
+    animationTimingFunction: ease.out,
+    borderRadius: THUMB_RADIUS,
+    overflow: "clip",
+  },
 });
 
 // Prints drift upward at three speeds as they pass, like layered paper.
@@ -127,8 +142,26 @@ const styles = stylex.create({
   print: {
     backgroundColor: "#fff",
     borderRadius: 6,
-    boxShadow:
-      "0 1px 2px rgb(18 16 14 / 0.12), 0 22px 44px -22px rgb(18 16 14 / 0.5)",
+    boxShadow: {
+      default:
+        "0 1px 2px rgb(18 16 14 / 0.12), 0 22px 44px -22px rgb(18 16 14 / 0.5)",
+      ":hover": {
+        default: null,
+        [media.hover]:
+          "0 1px 2px rgb(18 16 14 / 0.1), 0 36px 60px -24px rgb(18 16 14 / 0.45)",
+      },
+    },
+    scale: {
+      default: null,
+      ":hover": {
+        default: null,
+        [media.hover]: { default: null, [media.motion]: 1.04 },
+      },
+    },
+    transitionDuration: "350ms",
+    transitionProperty: "scale, box-shadow, transform",
+    transitionTimingFunction: ease.spring,
+    zIndex: { default: null, ":hover": 1 },
     paddingBlock: "clamp(0.3rem, 0.6vw, 0.5rem) clamp(1rem, 2.2vw, 1.75rem)",
     paddingInline: "clamp(0.3rem, 0.6vw, 0.5rem)",
   },
@@ -149,21 +182,6 @@ const styles = stylex.create({
   }),
   printButton: {
     borderRadius: 2,
-    boxShadow: {
-      default: null,
-      ":hover": { default: null, [media.hover]: shadow.lift },
-    },
-    scale: {
-      default: null,
-      ":hover": { default: null, [media.hover]: 1.05 },
-    },
-    transitionDuration: "450ms",
-    transitionProperty: "scale, translate, box-shadow, transform",
-    transitionTimingFunction: ease.spring,
-    translate: {
-      default: null,
-      ":hover": { default: null, [media.hover]: "0 -0.5rem" },
-    },
     width: "100%",
   },
   printImage: {
@@ -206,7 +224,6 @@ const styles = stylex.create({
     color: color.line,
     fontFamily: font.display,
     fontSize: "clamp(5rem, 13vw, 11rem)",
-    fontVariantNumeric: "tabular-nums",
     fontWeight: 750,
     letterSpacing: "-0.06em",
     lineHeight: 0.8,
@@ -231,6 +248,7 @@ const styles = stylex.create({
   },
   window: {
     borderRadius: 20,
+    outlineOffset: { default: null, ":focus-visible": -4 },
     transitionDuration: "500ms",
     transitionProperty: "transform",
     transitionTimingFunction: ease.out,
@@ -256,16 +274,9 @@ const styles = stylex.create({
     marginTop: "0.9rem",
   },
   close: {
-    backgroundColor: "rgb(255 255 255 / 0.14)",
-    borderRadius: 999,
-    borderWidth: 0,
-    color: "#fff",
-    cursor: "pointer",
     fontSize: "0.9375rem",
-    outlineColor: { default: null, ":focus-visible": "#fff" },
     paddingBlock: "0.5rem",
     paddingInline: "1rem",
-    position: "fixed",
     right: "1rem",
     top: "1rem",
   },
@@ -278,9 +289,11 @@ const styles = stylex.create({
     maxWidth: "100vw",
     overflow: "visible",
     padding: inset,
+    userSelect: "none",
+    WebkitTouchCallout: "none",
   },
   full: {
-    borderRadius: 12,
+    borderRadius: FULL_RADIUS,
     maxHeight: {
       default: "calc(100dvh - 8rem)",
       [media.tablet]: "calc(100dvh - 12rem)",
@@ -304,33 +317,34 @@ const styles = stylex.create({
     opacity: 0.8,
   },
   count: {
-    fontVariantNumeric: "tabular-nums",
     opacity: 0.6,
   },
   // The global reset makes every img a block, which beats `hidden`.
   preload: {
     display: "none",
   },
-  turn: {
-    alignItems: "center",
+  glass: {
     backgroundColor: {
       default: "rgb(255 255 255 / 0.14)",
-      ":hover": "rgb(255 255 255 / 0.26)",
+      [media.hover]: { default: null, ":hover": "rgb(255 255 255 / 0.26)" },
     },
     borderRadius: 999,
     borderWidth: 0,
-    bottom: { default: null, [media.tablet]: "1.25rem" },
     color: "#fff",
     cursor: "pointer",
-    display: "grid",
-    height: 48,
-    justifyContent: "center",
     outlineColor: { default: null, ":focus-visible": "#fff" },
     position: "fixed",
-    top: { default: "50%", [media.tablet]: "auto" },
     transitionDuration: "200ms",
     transitionProperty: "background-color, transform",
     transitionTimingFunction: ease.out,
+  },
+  turn: {
+    alignItems: "center",
+    bottom: { default: null, [media.tablet]: "1.25rem" },
+    display: "grid",
+    height: 48,
+    justifyContent: "center",
+    top: { default: "50%", [media.tablet]: "auto" },
     translate: { default: "0 -50%", [media.tablet]: "none" },
     width: 48,
   },
@@ -342,10 +356,37 @@ const styles = stylex.create({
   },
 });
 
+type Scope = HTMLElement & Pick<Document, "startViewTransition">;
+
+const isScope = (el: HTMLElement | null): el is Scope =>
+  el !== null && "startViewTransition" in el;
+
 const reduced = "(prefers-reduced-motion: reduce)";
 
-const canMorph = () =>
-  "startViewTransition" in document && !matchMedia(reduced).matches;
+const slideIn = (image: HTMLElement, direction: number) => {
+  const query = matchMedia(reduced);
+
+  if (query.matches) {
+    return;
+  }
+
+  const slide = image.animate(
+    [
+      { opacity: 0, scale: 0.97, translate: `${direction * 2.5}rem 0` },
+      { opacity: 1, scale: 1, translate: "0 0" },
+    ],
+    { duration: 320, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
+  );
+
+  const settle = () => {
+    slide.cancel();
+  };
+
+  query.addEventListener("change", settle, { once: true });
+  slide.addEventListener("finish", () => {
+    query.removeEventListener("change", settle);
+  });
+};
 
 export const Photos = ({
   variant,
@@ -360,7 +401,8 @@ export const Photos = ({
 }) => {
   const dialog = useRef<HTMLDialogElement>(null);
   const full = useRef<HTMLImageElement>(null);
-  const thumb = useRef<HTMLImageElement | null>(null);
+  const stage = useRef<HTMLElement>(null);
+  const thumb = useRef<HTMLButtonElement | null>(null);
   const list = useRef<HTMLDivElement>(null);
   const swipe = useRef(0);
   const moving = useRef<ViewTransition | null>(null);
@@ -371,6 +413,21 @@ export const Photos = ({
     if (thumb.current) {
       thumb.current.style.viewTransitionName = name;
       thumb.current.style.viewTransitionClass = name === "" ? "" : closing;
+
+      if (name !== "") {
+        document.documentElement.style.setProperty(
+          "--thumb-radius",
+          getComputedStyle(thumb.current).borderRadius
+        );
+      }
+    }
+  };
+
+  const lift = (lifted: boolean) => {
+    const image = thumb.current?.querySelector("img");
+
+    if (image) {
+      image.style.visibility = lifted ? "hidden" : "";
     }
   };
 
@@ -385,9 +442,16 @@ export const Photos = ({
     ]);
   };
 
-  const transit = async (options: StartViewTransitionOptions) => {
-    const transition = document.startViewTransition(options);
+  const transit = async (
+    options: StartViewTransitionOptions,
+    scope: Scope | null = null
+  ) => {
+    const transition = scope
+      ? scope.startViewTransition(options)
+      : document.startViewTransition(options);
+
     moving.current = transition;
+    transition.ready.catch(() => null);
     await transition.finished;
 
     if (moving.current === transition) {
@@ -417,41 +481,57 @@ export const Photos = ({
       return;
     }
 
+    lift(false);
     // Closing morphs back into this photo only if it is on screen.
     thumb.current =
-      [...(list.current?.querySelectorAll("img") ?? [])].find((img) => {
-        const box = img.getBoundingClientRect();
+      [...(list.current?.querySelectorAll("button") ?? [])].find((button) => {
+        const box = button.getBoundingClientRect();
 
         return (
-          img.alt === next.caption &&
+          button.querySelector("img")?.alt === next.caption &&
           box.right > 0 &&
           box.left < innerWidth &&
           box.bottom > 0 &&
           box.top < innerHeight
         );
       }) ?? null;
+    lift(true);
 
-    const swap = async () => {
+    const swap = () => {
       flushSync(() => {
         setOpen(next);
       });
-      await ready();
     };
 
-    if (canMorph()) {
-      void transit({
-        types: [direction < 0 ? "back" : "forward"],
-        update: swap,
-      });
-    } else {
-      void swap();
+    const scope = stage.current;
+
+    if (isScope(scope) && canTransition() && moving.current?.types.size !== 0) {
+      void transit(
+        {
+          types: [direction < 0 ? "back" : "forward"],
+          update: async () => {
+            swap();
+            await ready();
+          },
+        },
+        scope
+      );
+
+      return;
+    }
+
+    swap();
+
+    if (full.current) {
+      slideIn(full.current, direction);
     }
   };
 
   const show = (photo: Photo, event: MouseEvent<HTMLButtonElement>) => {
-    thumb.current = event.currentTarget.querySelector("img");
+    thumb.current = event.currentTarget;
 
-    if (!canMorph()) {
+    if (!canTransition()) {
+      lift(true);
       void reveal(photo);
 
       return;
@@ -461,14 +541,20 @@ export const Photos = ({
     void transit({
       update: async () => {
         nameThumb("");
+        lift(true);
         await reveal(photo);
       },
     });
   };
 
   const hide = async () => {
-    if (!canMorph()) {
+    if (dialog.current?.open !== true) {
+      return;
+    }
+
+    if (!canTransition()) {
       dialog.current?.close();
+      lift(false);
 
       return;
     }
@@ -476,6 +562,7 @@ export const Photos = ({
     await transit({
       update: () => {
         dialog.current?.close();
+        lift(false);
         nameThumb("photo");
       },
     });
@@ -494,9 +581,8 @@ export const Photos = ({
       onClick={(event) => {
         show(photo, event);
       }}
-      data-tilt
       type="button"
-      {...stylex.props(styles.open, shared.tilt, frame)}
+      {...stylex.props(styles.open, frame)}
     >
       <Image
         alt={photo.caption}
@@ -531,8 +617,10 @@ export const Photos = ({
             >
               <figure
                 data-scroll="cover 0% cover 100%"
+                data-tilt
                 {...stylex.props(
                   shared.scrub,
+                  shared.tilt,
                   styles.print,
                   speeds[i % speeds.length],
                   styles.printAt(
@@ -573,36 +661,38 @@ export const Photos = ({
                 >
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <button
-                  aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
-                  onClick={(event) => {
-                    show(photo, event);
-                  }}
-                  data-tilt
-                  type="button"
-                  {...stylex.props(styles.open, shared.tilt, styles.window)}
-                >
-                  <span data-reveal="wipe" {...stylex.props(shared.unveil)}>
-                    <span>
-                      <Image
-                        alt={photo.caption}
-                        data-scroll="cover 0% cover 100%"
-                        placeholder="blur"
-                        sizes={
-                          broad
-                            ? "(max-width: 800px) 100vw, 1180px"
-                            : "(max-width: 800px) 100vw, 480px"
-                        }
-                        src={photo.src}
-                        {...stylex.props(
-                          shared.scrub,
-                          styles.windowImage,
-                          broad ? styles.broad : styles.tall
-                        )}
-                      />
+                <Smooth radius={20}>
+                  <button
+                    aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
+                    onClick={(event) => {
+                      show(photo, event);
+                    }}
+                    data-tilt
+                    type="button"
+                    {...stylex.props(styles.open, shared.tilt, styles.window)}
+                  >
+                    <span data-reveal="wipe" {...stylex.props(shared.unveil)}>
+                      <span>
+                        <Image
+                          alt={photo.caption}
+                          data-scroll="cover 0% cover 100%"
+                          placeholder="blur"
+                          sizes={
+                            broad
+                              ? "(max-width: 800px) 100vw, 1180px"
+                              : "(max-width: 800px) 100vw, 480px"
+                          }
+                          src={photo.src}
+                          {...stylex.props(
+                            shared.scrub,
+                            styles.windowImage,
+                            broad ? styles.broad : styles.tall
+                          )}
+                        />
+                      </span>
                     </span>
-                  </span>
-                </button>
+                  </button>
+                </Smooth>
                 <figcaption {...stylex.props(styles.caption)}>
                   {photo.caption}
                 </figcaption>
@@ -618,9 +708,14 @@ export const Photos = ({
         onCancel={(event) => {
           event.preventDefault();
 
-          if (!moving.current) {
-            void hide();
+          if (moving.current?.types.size === 0) {
+            void moving.current.finished.then(hide);
+
+            return;
           }
+
+          moving.current?.skipTransition();
+          void hide();
         }}
         onClose={() => {
           setOpen(null);
@@ -648,7 +743,7 @@ export const Photos = ({
             void hide();
           }}
           type="button"
-          {...stylex.props(styles.close, shared.pressable)}
+          {...stylex.props(shared.pressable, styles.glass, styles.close)}
         >
           {t("photos.close", "Close")}
         </button>
@@ -665,16 +760,17 @@ export const Photos = ({
             }}
             type="button"
             {...stylex.props(
+              shared.pressable,
+              styles.glass,
               styles.turn,
-              direction < 0 ? styles.turnBack : styles.turnForward,
-              shared.pressable
+              direction < 0 ? styles.turnBack : styles.turnForward
             )}
           >
             {chevron(path)}
           </button>
         ))}
         {open && (
-          <figure {...stylex.props(styles.fullFigure)}>
+          <figure ref={stage} {...stylex.props(styles.fullFigure)}>
             <Image
               alt={open.caption}
               // Lazy images reject decode() before loading starts.

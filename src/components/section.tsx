@@ -40,7 +40,7 @@ const styles = stylex.create({
     },
     backgroundColor: "#100f0d",
     backgroundImage:
-      "radial-gradient(1100px 620px at 12% 0%, rgb(255 122 69 / 0.14), transparent 60%), radial-gradient(900px 600px at 100% 100%, rgb(43 76 255 / 0.12), transparent 60%)",
+      "radial-gradient(1100px 620px at 12% 0%, rgb(224 65 43 / 0.12), transparent 60%), radial-gradient(900px 600px at 100% 100%, rgb(43 76 255 / 0.12), transparent 60%)",
     bottom: 0,
     clipPath: "inset(0 0 round 0)",
     left: "calc(50% - 50vw)",

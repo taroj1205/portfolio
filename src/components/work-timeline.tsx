@@ -127,7 +127,7 @@ const styles = stylex.create({
     position: "relative",
   },
   volunteer: {
-    backgroundColor: color.tangerine,
+    backgroundColor: color.vermilion,
   },
 });
 

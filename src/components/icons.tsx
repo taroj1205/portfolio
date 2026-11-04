@@ -1,4 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
+import type { StyleXStyles } from "@stylexjs/stylex";
 
 import { ease, media } from "../styles/tokens.stylex";
 
@@ -12,20 +13,20 @@ const styles = stylex.create({
       default: null,
       [stylex.when.ancestor(":hover")]: {
         default: null,
-        [media.hover]: "2px -2px",
+        [media.hover]: { default: null, [media.motion]: "2px -2px" },
       },
     },
   },
 });
 
-export const Arrow = () => (
+export const Arrow = ({ xstyle }: { xstyle?: StyleXStyles }) => (
   <svg
     aria-hidden="true"
     fill="none"
     height="14"
     viewBox="0 0 24 24"
     width="14"
-    {...stylex.props(styles.arrow)}
+    {...stylex.props(styles.arrow, xstyle)}
   >
     <path
       d="M7 17L17 7M9 7h8v8"

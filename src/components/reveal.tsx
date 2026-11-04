@@ -13,7 +13,7 @@ const prepare = (el: HTMLElement) => {
           { rotate: "7deg", translate: "0 118%" },
           { rotate: "0deg", translate: "0 0" },
         ],
-        { delay: i * 70, duration: 1000, easing: settle, fill: "backwards" }
+        { delay: i * 60, duration: 800, easing: settle, fill: "backwards" }
       )
     );
   }
@@ -22,10 +22,10 @@ const prepare = (el: HTMLElement) => {
     return [...el.children].map((child, i) =>
       child.animate(
         [
-          { opacity: 0, translate: "0 0.75rem" },
+          { opacity: 0, translate: "0 0.5rem" },
           { opacity: 1, translate: "0 0" },
         ],
-        { delay: i * 60, duration: 700, easing: settle, fill: "backwards" }
+        { delay: i * 45, duration: 550, easing: settle, fill: "backwards" }
       )
     );
   }
@@ -34,15 +34,15 @@ const prepare = (el: HTMLElement) => {
     return [
       el.animate(
         [
-          { opacity: 0, translate: "0 2rem" },
+          { opacity: 0, translate: "0 1rem" },
           { opacity: 1, translate: "0 0" },
         ],
-        { duration: 800, easing: settle, fill: "backwards" }
+        { duration: 650, easing: settle, fill: "backwards" }
       ),
     ];
   }
 
-  const timing = { duration: 1100, easing: drawer, fill: "backwards" } as const;
+  const timing = { duration: 900, easing: drawer, fill: "backwards" } as const;
 
   const frame = el.animate(
     [{ translate: "0 -100%" }, { translate: "0 0" }],
@@ -59,8 +59,9 @@ const prepare = (el: HTMLElement) => {
 
 export const Reveal = () => {
   useEffect(() => {
-    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const query = matchMedia("(prefers-reduced-motion: reduce)");
     const pending = new Map<Element, Animation[]>();
+    const made: Animation[] = [];
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -79,7 +80,7 @@ export const Reveal = () => {
           for (const animation of animations) {
             const { effect } = animation;
             effect?.updateTiming({
-              delay: order * 90 + (effect.getTiming().delay ?? 0),
+              delay: order * 70 + (effect.getTiming().delay ?? 0),
             });
             animation.play();
           }
@@ -91,7 +92,7 @@ export const Reveal = () => {
     );
 
     for (const el of document.querySelectorAll<HTMLElement>("[data-reveal]")) {
-      if (still || el.getBoundingClientRect().top < innerHeight) {
+      if (query.matches || el.getBoundingClientRect().top < innerHeight) {
         continue;
       }
 
@@ -101,6 +102,8 @@ export const Reveal = () => {
         animation.pause();
       }
 
+      made.push(...animations);
+
       const target =
         el.dataset.reveal === "wipe" ? (el.parentElement ?? el) : el;
 
@@ -108,14 +111,26 @@ export const Reveal = () => {
       observer.observe(target);
     }
 
-    return () => {
+    const release = () => {
       observer.disconnect();
+      pending.clear();
 
-      for (const animations of pending.values()) {
-        for (const animation of animations) {
-          animation.cancel();
-        }
+      for (const animation of made) {
+        animation.cancel();
       }
+    };
+
+    const calm = () => {
+      if (query.matches) {
+        release();
+      }
+    };
+
+    query.addEventListener("change", calm);
+
+    return () => {
+      query.removeEventListener("change", calm);
+      release();
     };
   }, []);
 

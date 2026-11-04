@@ -3,6 +3,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { useState } from "react";
 
+import { useSmooth } from "@/components/smooth";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { land } from "@/lib/land";
@@ -48,7 +49,7 @@ const styles = stylex.create({
     gap: "0.4rem",
     left: 14,
     paddingBlock: "0.25rem",
-    paddingInline: "0.25rem 0.7rem",
+    paddingInline: "0.25rem 0.75rem",
     position: "absolute",
     top: `${dy}px`,
     transformOrigin: "left center",
@@ -89,7 +90,7 @@ const styles = stylex.create({
     width: 14,
   },
   dotActive: {
-    scale: 1.35,
+    scale: { default: null, [media.motion]: 1.35 },
   },
   equator: {
     stroke: "#8e9bb5",
@@ -102,10 +103,7 @@ const styles = stylex.create({
   },
   frame: {
     backgroundColor: "#e7ecf5",
-    borderColor: color.line,
     borderRadius: 28,
-    borderStyle: "solid",
-    borderWidth: 1,
     boxShadow: shadow.soft,
     gridColumn: { default: "1 / span 6", [media.tablet]: "1 / -1" },
     marginBottom: { default: null, [media.tablet]: "2.5rem" },
@@ -127,9 +125,13 @@ const styles = stylex.create({
     height: "auto",
     width: "100%",
   },
+  nums: {
+    display: "flex",
+    gap: "0.15rem",
+  },
   num: {
     alignItems: "center",
-    backgroundColor: color.tangerine,
+    backgroundColor: color.vermilion,
     borderRadius: 999,
     color: "#fff",
     display: "inline-flex",
@@ -146,7 +148,7 @@ const styles = stylex.create({
   },
   route: {
     fill: "none",
-    stroke: color.tangerine,
+    stroke: color.vermilion,
     strokeDasharray: 1,
     strokeDashoffset: 0,
     strokeLinecap: "round",
@@ -170,11 +172,11 @@ const styles = stylex.create({
     position: "relative",
     "::before": {
       backgroundColor: color.line,
-      bottom: 0,
+      bottom: "0.4rem",
       content: '""',
       left: "calc(1rem - 1px)",
       position: "absolute",
-      top: "2.35rem",
+      top: "2.4rem",
       width: 2,
     },
   },
@@ -185,11 +187,11 @@ const styles = stylex.create({
   stopNumber: {
     alignItems: "center",
     backgroundColor: color.paper,
-    borderColor: color.tangerine,
+    borderColor: color.vermilion,
     borderRadius: "50%",
     borderStyle: "solid",
     borderWidth: 2,
-    color: color.tangerineInk,
+    color: color.vermilionInk,
     display: "flex",
     fontFamily: font.display,
     fontSize: "0.9rem",
@@ -202,7 +204,7 @@ const styles = stylex.create({
     width: "2rem",
   },
   stopNumberActive: {
-    backgroundColor: color.tangerine,
+    backgroundColor: color.vermilion,
     color: "#fff",
   },
   stopPlace: {
@@ -296,6 +298,7 @@ export const JourneyMap = ({ locale }: { locale: Locale }) => {
   ];
 
   const [frame, inView] = useInView<HTMLDivElement>();
+  useSmooth(frame, 28, true);
   const [active, setActive] = useState<number | null>(null);
 
   return (
@@ -362,11 +365,13 @@ export const JourneyMap = ({ locale }: { locale: Locale }) => {
                   !inView && styles.chipHidden
                 )}
               >
-                {p.stops.map((s) => (
-                  <span key={s} {...stylex.props(styles.num)}>
-                    {s + 1}
-                  </span>
-                ))}
+                <span {...stylex.props(styles.nums)}>
+                  {p.stops.map((s) => (
+                    <span key={s} {...stylex.props(styles.num)}>
+                      {s + 1}
+                    </span>
+                  ))}
+                </span>
                 {p.name}
               </span>
             </span>

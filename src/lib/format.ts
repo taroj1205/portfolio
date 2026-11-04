@@ -25,3 +25,29 @@ export const splitTitle = (title: string) => {
     type: match?.groups?.type ?? "",
   };
 };
+
+const monthOf = (
+  month: string,
+  locale: Locale,
+  options: Intl.DateTimeFormatOptions
+) =>
+  new Date(`${month}-01T00:00:00Z`).toLocaleString(intlLocale(locale), {
+    ...options,
+    timeZone: "UTC",
+  });
+
+export const nameMonths = (
+  monthly: { month: string; contributions: number }[],
+  locale: Locale
+) =>
+  monthly.map((m) => ({
+    ...m,
+    dated: monthOf(m.month, locale, { month: "short", year: "numeric" }),
+    narrow:
+      locale === "ja"
+        ? String(Number(m.month.slice(5)))
+        : monthOf(m.month, locale, { month: "narrow" }),
+    short: monthOf(m.month, locale, { month: "short" }),
+  }));
+
+export type NamedMonth = ReturnType<typeof nameMonths>[number];

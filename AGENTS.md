@@ -24,4 +24,5 @@ Do not leave comments in code unless explicitly stated.
 - Before drawing art that a game shares between its canvas, its OG image and its games-list card, read `docs/game-art.md`.
 - Before adding or changing a game's setting, switch, tip or button text in `src/app/games`, read `docs/game-settings-and-copy.md`. It covers where flags live, how to pick a default when a player asks for the old behaviour, and the Japanese wording rules.
 - Before running the checks for a game in `src/app/games`, playing one in a headless browser, or capturing screenshots and video for a game PR, read `docs/checking-games.md`.
+- Before changing motion, smooth corners, colours, fonts or the photo viewer on the home page (`src/app/[lang]`, `src/components`), or checking it in Safari or Firefox, read `docs/home-page-ui.md`.
 - When you lose time on something these notes should have told you, such as a wrong guess, a stale instruction, or a failure that took several tries, or when the user corrects you, read `docs/keeping-instructions-current.md` and update the notes in the same change.

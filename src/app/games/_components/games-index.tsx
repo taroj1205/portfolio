@@ -87,8 +87,11 @@ const styles = stylex.create({
     outlineColor: "#ffd27a",
     outlineOffset: 3,
     paddingInline: "1rem",
-    transform: { default: null, ":active": "scale(0.96)" },
-    transitionDuration: "160ms",
+    transform: {
+      default: null,
+      ":active": { default: null, [media.motion]: "scale(0.96)" },
+    },
+    transitionDuration: { default: "160ms", [media.reduce]: "0s" },
     transitionProperty: "transform",
   },
   list: {

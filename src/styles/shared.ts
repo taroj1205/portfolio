@@ -6,8 +6,6 @@ const rise = stylex.keyframes({
   from: { filter: "blur(6px)", opacity: 0, translate: "0 0.5em" },
 });
 
-const fade = stylex.keyframes({ from: { opacity: 0 } });
-
 export const night = stylex.createTheme(color, {
   ink: "color-mix(in oklab, #12100e, #f5f1ea calc(var(--dusk) * 100%))",
   line: "color-mix(in oklab, #e4dcd1, #2e2a26 calc(var(--dusk) * 100%))",
@@ -22,15 +20,12 @@ export const shared = stylex.create({
     animationDelay: delay,
     animationDuration: "900ms",
     animationFillMode: "both",
-    animationName: { default: rise, [media.reduce]: fade },
+    animationName: { default: null, [media.motion]: rise },
     animationTimingFunction: ease.out,
   }),
   card: {
     backgroundColor: color.surface,
-    borderColor: color.line,
     borderRadius: 28,
-    borderStyle: "solid",
-    borderWidth: 1,
     boxShadow: shadow.soft,
     padding: "clamp(1.25rem, 3vw, 1.75rem)",
   },
@@ -47,7 +42,10 @@ export const shared = stylex.create({
     letterSpacing: "-0.03em",
   },
   pressable: {
-    transform: { default: null, ":active": "scale(0.97)" },
+    transform: {
+      default: null,
+      ":active": { default: null, [media.motion]: "scale(0.97)" },
+    },
     transitionDuration: "160ms",
     transitionProperty: "transform",
     transitionTimingFunction: ease.out,
@@ -107,15 +105,17 @@ export const shared = stylex.create({
     width: 1,
   },
   textLink: {
-    alignItems: "center",
     color: color.cobalt,
-    display: "inline-flex",
+    display: "inline-block",
     fontWeight: 650,
-    gap: "0.4rem",
     textDecoration: {
       default: "none",
       [media.hover]: { default: null, ":hover": "underline" },
     },
+  },
+  trail: {
+    marginInlineStart: "0.4rem",
+    verticalAlign: "-0.1em",
   },
   title: {
     fontSize: "clamp(2.25rem, 5vw, 3.75rem)",

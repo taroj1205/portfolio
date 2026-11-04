@@ -8,6 +8,7 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { socials } from "@/lib/socials";
+import { canTransition } from "@/lib/view-transition";
 import { night } from "@/styles/shared";
 
 import { color, ease, font, media } from "../styles/tokens.stylex";
@@ -75,6 +76,9 @@ const lift = stylex.keyframes({
 const pop = stylex.keyframes({
   from: { filter: "blur(4px)", opacity: 0, scale: 0.9 },
 });
+
+const raised =
+  "inset 0 1px 0 #fff, inset 0 -1px 2px rgb(18 16 14 / 0.06), 0 1px 2px rgb(18 16 14 / 0.08), 0 6px 16px -6px rgb(18 16 14 / 0.16)";
 
 const dusk =
   "calc(round(var(--scroll-0, 0)) * (1 - round(var(--scroll-1, 0))))";
@@ -245,7 +249,10 @@ const styles = stylex.create({
     height: 56,
     justifyItems: "center",
     padding: 0,
-    transform: { default: null, ":active": "scale(0.95)" },
+    transform: {
+      default: null,
+      ":active": { default: null, [media.motion]: "scale(0.95)" },
+    },
     transitionDuration: "160ms, 300ms, 300ms",
     transitionProperty: "transform, background-color, color",
     transitionTimingFunction: ease.out,
@@ -287,8 +294,7 @@ const styles = stylex.create({
   },
   chip: {
     backgroundColor: `color-mix(in srgb, ${color.surface} 70%, transparent)`,
-    boxShadow:
-      "inset 0 1px 0 #fff, inset 0 -1px 2px rgb(18 16 14 / 0.06), 0 1px 2px rgb(18 16 14 / 0.08), 0 6px 16px -6px rgb(43 76 255 / 0.35)",
+    boxShadow: raised,
   },
   liquid: {
     backgroundColor: {
@@ -361,8 +367,7 @@ const styles = stylex.create({
     backgroundColor: `color-mix(in srgb, ${color.surface} 70%, transparent)`,
     borderRadius: 999,
     bottom: 5,
-    boxShadow:
-      "inset 0 1px 0 #fff, inset 0 -1px 2px rgb(18 16 14 / 0.06), 0 1px 2px rgb(18 16 14 / 0.08), 0 6px 16px -6px rgb(43 76 255 / 0.35)",
+    boxShadow: raised,
     left: 5,
     opacity: 0,
     pointerEvents: "none",
@@ -536,11 +541,7 @@ export const SiteNav = ({ locale }: { locale: Locale }) => {
               prefetch={false}
               lang={code}
               onNavigate={(event) => {
-                if (
-                  locale === code ||
-                  !("startViewTransition" in document) ||
-                  matchMedia("(prefers-reduced-motion: reduce)").matches
-                ) {
+                if (locale === code || !canTransition()) {
                   return;
                 }
 

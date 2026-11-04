@@ -30,6 +30,7 @@ import { Photos } from "@/components/photos";
 import type { Photo } from "@/components/photos";
 import { Section, Title } from "@/components/section";
 import { Shot } from "@/components/shot";
+import { Smooth } from "@/components/smooth";
 import { Work } from "@/components/work";
 import { WorkTimeline } from "@/components/work-timeline";
 import { fmt } from "@/lib/format";
@@ -89,7 +90,7 @@ const styles = stylex.create({
       default: "-2.5deg",
       [stylex.when.ancestor(":hover")]: {
         default: null,
-        [media.hover]: "0deg",
+        [media.hover]: { default: null, [media.motion]: "0deg" },
       },
     },
     transitionDuration: "500ms",
@@ -144,14 +145,14 @@ const styles = stylex.create({
       default: "4deg",
       [stylex.when.ancestor(":hover")]: {
         default: null,
-        [media.hover]: "0deg",
+        [media.hover]: { default: null, [media.motion]: "0deg" },
       },
     },
     scale: {
       default: null,
       [stylex.when.ancestor(":hover")]: {
         default: null,
-        [media.hover]: 1.06,
+        [media.hover]: { default: null, [media.motion]: 1.06 },
       },
     },
     transitionDuration: "500ms",
@@ -164,16 +165,18 @@ const styles = stylex.create({
       default: "-3deg",
       [stylex.when.ancestor(":hover")]: {
         default: null,
-        [media.hover]: "0deg",
+        [media.hover]: { default: null, [media.motion]: "0deg" },
       },
     },
   },
   contact: {
     paddingBlock: "clamp(6rem, 14vw, 11rem) clamp(4rem, 8vw, 6rem)",
   },
-  postcard: {
+  arrival: {
     animationName: { default: null, [media.motion]: arrive },
     animationTimingFunction: ease.out,
+  },
+  postcard: {
     backgroundColor: color.surface,
     borderRadius: 20,
     boxShadow: `${shadow.lift}, 0 2px 6px rgb(18 16 14 / 0.05)`,
@@ -281,6 +284,7 @@ const styles = stylex.create({
     textDecoration: "none",
     transitionDuration: "160ms, 150ms",
     transitionProperty: "transform, color",
+    transitionTimingFunction: ease.out,
   },
   lineName: {
     fontSize: "clamp(1.5rem, 2.6vw, 2rem)",
@@ -348,7 +352,7 @@ const styles = stylex.create({
     animationName: { default: null, [media.motion]: draw },
     animationTimingFunction: ease.drawer,
     bottom: "-0.1em",
-    color: color.tangerine,
+    color: color.vermilion,
     height: "0.2em",
     left: "-0.02em",
     overflow: "visible",
@@ -392,7 +396,7 @@ const styles = stylex.create({
       default: null,
       [stylex.when.ancestor(":hover")]: {
         default: null,
-        [media.hover]: "0 -4px",
+        [media.hover]: { default: null, [media.motion]: "0 -4px" },
       },
     },
   },
@@ -406,9 +410,9 @@ const styles = stylex.create({
     gridTemplateColumns: "repeat(auto-fit, minmax(16rem, 1fr))",
   },
   prize: {
-    backgroundColor: color.tangerineSoft,
+    backgroundColor: color.vermilionSoft,
     borderRadius: 999,
-    color: color.tangerineInk,
+    color: color.vermilionInk,
     display: "inline-block",
     fontSize: "0.78rem",
     fontWeight: 650,
@@ -653,6 +657,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
                         pathLength={1}
                         stroke="currentColor"
                         strokeLinecap="round"
+                        strokeLinejoin="round"
                         strokeWidth="0.06em"
                         vectorEffect="non-scaling-stroke"
                       />
@@ -774,7 +779,7 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
         id="projects"
         title={t("projects.title", "Things I made for myself, or for family")}
       >
-        <ul {...stylex.props(styles.projects)}>
+        <ul data-spotlight {...stylex.props(styles.projects)}>
           {sideProjects.map((project) => (
             <li data-reveal key={project.name}>
               <a
@@ -828,13 +833,15 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
             >
               <div {...stylex.props(styles.awardPhotos)}>
                 <div data-reveal="wipe" {...stylex.props(shared.unveil)}>
-                  <Image
-                    alt={award.alt}
-                    placeholder="blur"
-                    sizes="(max-width: 800px) 100vw, 50vw"
-                    src={award.photo}
-                    {...stylex.props(styles.awardImage)}
-                  />
+                  <Smooth radius={20}>
+                    <Image
+                      alt={award.alt}
+                      placeholder="blur"
+                      sizes="(max-width: 800px) 100vw, 50vw"
+                      src={award.photo}
+                      {...stylex.props(styles.awardImage)}
+                    />
+                  </Smooth>
                 </div>
                 <Image
                   alt={`${award.prize} — ${t("hackathons.certificate", "certificate")}`}
@@ -870,69 +877,81 @@ const Home = async ({ params }: PageProps<"/[lang]">) => {
       </Section>
 
       <section {...stylex.props(shared.wrap, styles.contact)} id="contact">
-        <article
+        <div
           data-scroll="entry 0% cover 40%"
-          {...stylex.props(shared.scrub, styles.postcard)}
+          {...stylex.props(shared.scrub, styles.arrival)}
         >
-          <div {...stylex.props(styles.message)}>
-            <h2
-              {...stylex.props(
-                styles.contactTitle,
-                locale === "ja" && styles.japaneseContactTitle
-              )}
-            >
-              {t("contact.title", "Say hi.")}
-            </h2>
-            <p {...stylex.props(styles.contactText)}>
-              {t(
-                "contact.description",
-                "Send me a message on any of these, whether it's about a project, uni, or just to chat."
-              )}
-            </p>
-          </div>
-          <div {...stylex.props(styles.address)}>
-            <span aria-hidden="true" {...stylex.props(styles.stamp)}>
-              <span {...stylex.props(styles.stampPaper)}>
-                <Image
-                  alt=""
-                  sizes="80px"
-                  src={skyTower}
-                  {...stylex.props(styles.stampImage)}
-                />
-              </span>
-            </span>
-            <p
-              data-scroll="entry 80% cover 50%"
-              {...stylex.props(shared.scrub, styles.postmark)}
-            >
-              <span>{t("places.auckland", "Auckland")}</span>
-              <span {...stylex.props(styles.postmarkTime)}>
-                <Clock locale={locale} />
-              </span>
-              <span>NZ</span>
-            </p>
-            <ul data-reveal="stagger" {...stylex.props(styles.lines)}>
-              {socials.map(([label, href, handle]) => (
-                <li key={label}>
-                  <a
-                    href={href}
-                    {...stylex.props(
-                      styles.line,
-                      shared.pressable,
-                      stylex.defaultMarker()
-                    )}
-                  >
-                    <span {...stylex.props(shared.display, styles.lineName)}>
-                      {label}
-                    </span>
-                    <span {...stylex.props(styles.lineHandle)}>@{handle}</span>
-                    <Arrow />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </article>
+          <Smooth radius={20}>
+            <article {...stylex.props(styles.postcard)}>
+              <div {...stylex.props(styles.message)}>
+                <h2
+                  {...stylex.props(
+                    styles.contactTitle,
+                    locale === "ja" && styles.japaneseContactTitle
+                  )}
+                >
+                  {t("contact.title", "Say hi.")}
+                </h2>
+                <p {...stylex.props(styles.contactText)}>
+                  {t(
+                    "contact.description",
+                    "Send me a message on any of these, whether it's about a project, uni, or just to chat."
+                  )}
+                </p>
+              </div>
+              <div {...stylex.props(styles.address)}>
+                <span aria-hidden="true" {...stylex.props(styles.stamp)}>
+                  <span {...stylex.props(styles.stampPaper)}>
+                    <Image
+                      alt=""
+                      sizes="80px"
+                      src={skyTower}
+                      {...stylex.props(styles.stampImage)}
+                    />
+                  </span>
+                </span>
+                <p
+                  data-scroll="entry 80% cover 50%"
+                  {...stylex.props(shared.scrub, styles.postmark)}
+                >
+                  <span>{t("places.auckland", "Auckland")}</span>
+                  <span {...stylex.props(styles.postmarkTime)}>
+                    <Clock locale={locale} />
+                  </span>
+                  <span>NZ</span>
+                </p>
+                <ul
+                  data-reveal="stagger"
+                  data-spotlight
+                  {...stylex.props(styles.lines)}
+                >
+                  {socials.map(([label, href, handle]) => (
+                    <li key={label}>
+                      <a
+                        href={href}
+                        {...stylex.props(
+                          shared.pressable,
+                          styles.line,
+                          stylex.defaultMarker()
+                        )}
+                      >
+                        <span
+                          {...stylex.props(shared.display, styles.lineName)}
+                        >
+                          {label}
+                        </span>
+                        <span {...stylex.props(styles.lineHandle)}>
+                          @{handle}
+                        </span>
+                        <Arrow />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          </Smooth>
+        </div>
       </section>
     </>
   );

@@ -12,9 +12,9 @@ export const color = stylex.defineVars({
   paper: "#f5f1ea",
   paperDeep: "#ebe4d8",
   surface: "#fff",
-  tangerine: "#ff7a45",
-  tangerineInk: "#b8461b",
-  tangerineSoft: "#ffede4",
+  vermilion: "#e0412b",
+  vermilionInk: "#a8301e",
+  vermilionSoft: "#fbe6e1",
 });
 
 export const ease = stylex.defineConsts({
@@ -24,7 +24,7 @@ export const ease = stylex.defineConsts({
 });
 
 export const font = stylex.defineConsts({
-  display: "var(--font-display), system-ui, sans-serif",
+  display: "var(--font-sans), system-ui, sans-serif",
   mono: 'ui-monospace, "SF Mono", Menlo, monospace',
 });
 
