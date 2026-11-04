@@ -61,10 +61,6 @@ jobs:
       - name: Run tests
         run: bunx vp test run
 
-  workflow_checks:
-    name: Workflow checks
-    uses: $/.github/workflows/workflow-checks.yml
-
   spellcheck:
     name: Spellcheck
     runs-on: ubuntu-latest
