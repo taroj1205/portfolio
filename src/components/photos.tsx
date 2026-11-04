@@ -37,9 +37,23 @@ const land = stylex.keyframes({
   "100%": { opacity: 1 },
 });
 
+const THUMB_FRAMING = {
+  scale: "var(--thumb-zoom, 1)",
+  translate: "var(--thumb-shift, 0 0)",
+};
+
+const fromThumb = stylex.keyframes({ from: THUMB_FRAMING });
+const toThumb = stylex.keyframes({ to: THUMB_FRAMING });
+
 const opening = stylex.viewTransitionClass({
   group: { animationDuration: "420ms", animationTimingFunction: ease.drawer },
-  new: { ...morph.new, animationName: "none" },
+  new: {
+    ...morph.new,
+    animationDuration: "420ms",
+    animationFillMode: "both",
+    animationName: fromThumb,
+    animationTimingFunction: ease.drawer,
+  },
   old: { ...morph.old, animationName: "none", opacity: 0 },
   imagePair: {
     animationDuration: "420ms",
@@ -59,7 +73,13 @@ const closing = stylex.viewTransitionClass({
     animationName: land,
     animationTimingFunction: ease.out,
   },
-  old: { ...morph.old, animationName: "none" },
+  old: {
+    ...morph.old,
+    animationDuration: "260ms",
+    animationFillMode: "both",
+    animationName: toThumb,
+    animationTimingFunction: ease.out,
+  },
   imagePair: {
     animationDuration: "260ms",
     animationName: shrink,
@@ -406,7 +426,7 @@ const slideOut = (image: HTMLElement, direction: number) => {
 
   const fade = ghost.animate(
     [
-      { opacity: 1 },
+      { opacity: Number(getComputedStyle(image).opacity) },
       { opacity: 0, scale: 0.97, translate: `${direction * -2.5}rem 0` },
     ],
     { duration: 160, easing: "cubic-bezier(0.4, 0, 1, 1)", fill: "forwards" }
@@ -462,6 +482,7 @@ export const Photos = ({
   const list = useRef<HTMLDivElement>(null);
   const swipe = useRef(0);
   const moving = useRef<ViewTransition | null>(null);
+  const rewinding = useRef(false);
   const t = getTranslator(locale);
   const [open, setOpen] = useState<Photo | null>(null);
 
@@ -471,9 +492,21 @@ export const Photos = ({
       thumb.current.style.viewTransitionClass = name === "" ? "" : closing;
 
       if (name !== "") {
-        document.documentElement.style.setProperty(
+        const root = document.documentElement.style;
+        const image = thumb.current.querySelector("img");
+        const framing = image ? getComputedStyle(image) : null;
+
+        root.setProperty(
           "--thumb-radius",
           getComputedStyle(thumb.current).borderRadius
+        );
+        root.setProperty(
+          "--thumb-zoom",
+          !framing || framing.scale === "none" ? "1" : framing.scale
+        );
+        root.setProperty(
+          "--thumb-shift",
+          !framing || framing.translate === "none" ? "0 0" : framing.translate
         );
       }
     }
@@ -593,6 +626,10 @@ export const Photos = ({
       return;
     }
 
+    if (!thumb.current && full.current) {
+      full.current.style.viewTransitionName = "none";
+    }
+
     await transit({
       update: () => {
         dialog.current?.close();
@@ -601,6 +638,44 @@ export const Photos = ({
       },
     });
     nameThumb("");
+  };
+
+  const rewind = () => {
+    if (rewinding.current) {
+      return true;
+    }
+
+    const parts = document
+      .getAnimations()
+      .filter(
+        (part) =>
+          part.effect instanceof KeyframeEffect &&
+          part.effect.pseudoElement?.startsWith("::view-transition") === true
+      );
+
+    if (parts.length === 0) {
+      return false;
+    }
+
+    rewinding.current = true;
+    let left = parts.length;
+
+    const settle = () => {
+      left -= 1;
+
+      if (left === 0) {
+        rewinding.current = false;
+        dialog.current?.close();
+        lift(false);
+      }
+    };
+
+    for (const part of parts) {
+      part.addEventListener("finish", settle, { once: true });
+      part.reverse();
+    }
+
+    return true;
   };
 
   const opener = (
@@ -743,7 +818,9 @@ export const Photos = ({
           event.preventDefault();
 
           if (moving.current) {
-            void moving.current.finished.then(hide);
+            if (!rewind()) {
+              void moving.current.finished.then(hide);
+            }
 
             return;
           }
