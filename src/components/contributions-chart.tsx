@@ -5,24 +5,15 @@ import { useRef, useState } from "react";
 import type { KeyboardEvent, UIEvent } from "react";
 
 import { Count } from "@/components/count";
+import { useSmooth } from "@/components/smooth";
 import { fmt } from "@/lib/format";
-import { getTranslator, intlLocale } from "@/lib/i18n";
+import type { NamedMonth } from "@/lib/format";
+import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
 import { useInView } from "@/lib/use-in-view";
 import { shared } from "@/styles/shared";
 
 import { color, ease, font, media } from "../styles/tokens.stylex";
-
-interface Month {
-  month: string;
-  contributions: number;
-}
-
-const monthName = (month: string, style: "short" | "narrow", locale: Locale) =>
-  new Date(`${month}-01T00:00:00Z`).toLocaleString(intlLocale(locale), {
-    month: style,
-    timeZone: "UTC",
-  });
 
 const VISIBLE = 13;
 const FADE = "2.5rem";
@@ -106,10 +97,14 @@ const styles = stylex.create({
   },
   head: {
     alignItems: "flex-end",
+    columnGap: "1rem",
     display: "flex",
-    gap: "1rem",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     marginBottom: { default: "1.75rem", [media.narrow]: "1.25rem" },
+  },
+  headLabel: {
+    flexBasis: "100%",
   },
   marker: (order: number) => ({
     borderLeftColor: color.ink,
@@ -173,14 +168,12 @@ const styles = stylex.create({
     color: color.cobalt,
     fontFamily: font.display,
     fontSize: "1.6rem",
-    fontVariantNumeric: "tabular-nums",
     letterSpacing: "-0.03em",
     lineHeight: 1.1,
   },
   total: {
     fontFamily: font.display,
     fontSize: "clamp(2.6rem, 6vw, 3.6rem)",
-    fontVariantNumeric: "tabular-nums",
     fontWeight: 700,
     letterSpacing: "-0.045em",
     lineHeight: 1,
@@ -201,11 +194,13 @@ const styles = stylex.create({
     cursor: "pointer",
     font: "inherit",
     fontSize: "0.8rem",
-    fontVariantNumeric: "tabular-nums",
     fontWeight: 650,
     paddingBlock: "0.3rem",
     paddingInline: "0.65rem",
-    transform: { default: null, ":active": "scale(0.94)" },
+    transform: {
+      default: null,
+      ":active": { default: null, [media.motion]: "scale(0.94)" },
+    },
     transitionDuration: "160ms",
     transitionProperty: "background-color, color, transform",
     transitionTimingFunction: ease.out,
@@ -237,7 +232,7 @@ export const ContributionsChart = ({
   updated,
 }: {
   locale: Locale;
-  monthly: Month[];
+  monthly: NamedMonth[];
   total: number;
   updated: string;
 }) => {
@@ -278,21 +273,15 @@ export const ContributionsChart = ({
   );
 
   const [chart, inView] = useInView<HTMLElement>();
+  useSmooth(chart, 28, true);
   const readout = useRef<HTMLElement>(null);
   const bars = useRef<HTMLOListElement>(null);
   const peak = Math.max(...monthly.map((m) => m.contributions));
 
-  const label = (i: number) => {
-    const month = monthly[i]?.month ?? "";
-
-    return i === last
-      ? `${monthName(month, "short", locale)} ${t("activity.soFar", "so far")}`
-      : new Date(`${month}-01T00:00:00Z`).toLocaleString(intlLocale(locale), {
-          month: "short",
-          year: "numeric",
-          timeZone: "UTC",
-        });
-  };
+  const label = (i: number) =>
+    i === last
+      ? `${monthly[i]?.short ?? ""} ${t("activity.soFar", "so far")}`
+      : (monthly[i]?.dated ?? "");
 
   const select = (i: number) => {
     if (i === active) {
@@ -364,14 +353,12 @@ export const ContributionsChart = ({
   return (
     <figure ref={chart} {...stylex.props(shared.card, styles.card)}>
       <div {...stylex.props(styles.head)}>
-        <div>
-          <p {...stylex.props(shared.cardLabel)}>
-            {t("activity.contributions", "Contributions · last 12 months")}
-          </p>
-          <p {...stylex.props(styles.total)}>
-            <Count locale={locale} value={total} />
-          </p>
-        </div>
+        <p {...stylex.props(shared.cardLabel, styles.headLabel)}>
+          {t("activity.contributions", "Contributions · last 12 months")}
+        </p>
+        <p {...stylex.props(styles.total)}>
+          <Count locale={locale} value={total} />
+        </p>
         <p aria-hidden="true" {...stylex.props(styles.readout)}>
           <strong ref={readout} {...stylex.props(styles.readoutValue)}>
             {fmt(monthly[active]?.contributions ?? 0, locale)}
@@ -444,12 +431,8 @@ export const ContributionsChart = ({
                       i === active && styles.monthActive
                     )}
                   >
-                    <span {...stylex.props(styles.narrow)}>
-                      {monthName(m.month, "narrow", locale)}
-                    </span>
-                    <span {...stylex.props(styles.wide)}>
-                      {monthName(m.month, "short", locale)}
-                    </span>
+                    <span {...stylex.props(styles.narrow)}>{m.narrow}</span>
+                    <span {...stylex.props(styles.wide)}>{m.short}</span>
                   </span>
                   <span aria-hidden="true" {...stylex.props(styles.year)}>
                     {i === 0 || m.month.endsWith("-01")

@@ -8,6 +8,7 @@ import zenShot from "@/assets/shots/zen.jpg";
 import { Count } from "@/components/count";
 import { Arrow, MergedIcon } from "@/components/icons";
 import { Shot } from "@/components/shot";
+import { Smooth } from "@/components/smooth";
 import { compact, day, splitTitle } from "@/lib/format";
 import type { GitHub } from "@/lib/github";
 import { getTranslator } from "@/lib/i18n";
@@ -25,7 +26,6 @@ const styles = stylex.create({
   },
   count: {
     color: color.muted,
-    fontVariantNumeric: "tabular-nums",
   },
   heading: {
     fontSize: "clamp(1.75rem, 3.2vw, 2.5rem)",
@@ -43,21 +43,26 @@ const styles = stylex.create({
     marginTop: "0.45rem",
   },
   point: {
-    color: color.muted,
+    color: color.ink,
     fontSize: "0.9375rem",
+    lineHeight: 1.55,
     paddingLeft: "1.1rem",
     position: "relative",
     "::before": {
-      color: color.line,
-      content: '"—"',
-      left: 0,
+      backgroundColor: color.muted,
+      borderRadius: "50%",
+      content: '""',
+      height: 5,
+      left: 2,
       position: "absolute",
+      top: "calc(0.775em - 2.5px)",
+      width: 5,
     },
   },
   points: {
     display: "grid",
-    gap: "0.35rem",
-    marginBottom: "1.5rem",
+    gap: "0.5rem",
+    marginBottom: "1.75rem",
   },
   repoLink: {
     color: color.ink,
@@ -87,7 +92,7 @@ const styles = stylex.create({
       default: null,
       [stylex.when.ancestor(":hover")]: {
         default: null,
-        [media.hover]: "0 -6px",
+        [media.hover]: { default: null, [media.motion]: "0 -6px" },
       },
     },
   },
@@ -113,7 +118,6 @@ const styles = stylex.create({
     color: color.ink,
     fontFamily: font.display,
     fontSize: "clamp(2rem, 3.4vw, 2.75rem)",
-    fontVariantNumeric: "tabular-nums",
     fontWeight: 700,
     letterSpacing: "-0.045em",
     lineHeight: 1.05,
@@ -159,7 +163,6 @@ const styles = stylex.create({
   ticketNote: {
     color: color.muted,
     fontSize: "0.76rem",
-    fontVariantNumeric: "tabular-nums",
   },
   ticketNumber: {
     color: color.muted,
@@ -202,22 +205,40 @@ const tilts = stylex.create({
   a: {
     transform: {
       default: "translateX(-10px) rotate(-2.5deg)",
-      [media.hover]: { default: null, ":hover": "translateX(-10px)" },
-      ":active": "translateX(-10px) rotate(-2.5deg) scale(0.97)",
+      [media.hover]: {
+        default: null,
+        ":hover": { default: null, [media.motion]: "translateX(-10px)" },
+      },
+      ":active": {
+        default: null,
+        [media.motion]: "translateX(-10px) rotate(-2.5deg) scale(0.97)",
+      },
     },
   },
   b: {
     transform: {
       default: "translateX(12px) rotate(2deg)",
-      [media.hover]: { default: null, ":hover": "translateX(12px)" },
-      ":active": "translateX(12px) rotate(2deg) scale(0.97)",
+      [media.hover]: {
+        default: null,
+        ":hover": { default: null, [media.motion]: "translateX(12px)" },
+      },
+      ":active": {
+        default: null,
+        [media.motion]: "translateX(12px) rotate(2deg) scale(0.97)",
+      },
     },
   },
   c: {
     transform: {
       default: "translateX(-4px) rotate(-1deg)",
-      [media.hover]: { default: null, ":hover": "translateX(-4px)" },
-      ":active": "translateX(-4px) rotate(-1deg) scale(0.97)",
+      [media.hover]: {
+        default: null,
+        ":hover": { default: null, [media.motion]: "translateX(-4px)" },
+      },
+      ":active": {
+        default: null,
+        [media.motion]: "translateX(-4px) rotate(-1deg) scale(0.97)",
+      },
     },
   },
 });
@@ -274,9 +295,14 @@ const Row = ({
         )}
         <a
           href={item.href}
-          {...stylex.props(shared.textLink, shared.pressable)}
+          {...stylex.props(
+            shared.textLink,
+            shared.pressable,
+            stylex.defaultMarker()
+          )}
         >
-          {new URL(item.href).host} <Arrow />
+          {new URL(item.href).host}
+          <Arrow xstyle={shared.trail} />
         </a>
       </div>
       <a
@@ -489,35 +515,40 @@ export const Work = ({
               ))}
             </ul>
           </div>
-          <div {...stylex.props(styles.side, styles.sideFlip, styles.tickets)}>
-            {byReach.slice(0, 3).map(({ repo, prs: [pr] }, i) =>
-              pr === undefined ? null : (
-                <a
-                  href={pr.url}
-                  key={repo}
-                  {...stylex.props(styles.ticket, tiltOrder[i])}
-                >
-                  <span {...stylex.props(styles.ticketState)}>
-                    <MergedIcon />
-                    {t("work.merged", "Merged")}
-                  </span>
-                  <strong {...stylex.props(styles.ticketName)}>
-                    {repo.split("/")[1]}{" "}
-                    <span {...stylex.props(styles.ticketNumber)}>
-                      #{pr.number}
+          <Smooth radius={28}>
+            <div
+              {...stylex.props(styles.side, styles.sideFlip, styles.tickets)}
+            >
+              {byReach.slice(0, 3).map(({ repo, prs: [pr] }, i) =>
+                pr === undefined ? null : (
+                  <a
+                    href={pr.url}
+                    key={repo}
+                    {...stylex.props(styles.ticket, tiltOrder[i])}
+                  >
+                    <span {...stylex.props(styles.ticketState)}>
+                      <MergedIcon />
+                      {t("work.merged", "Merged")}
                     </span>
-                  </strong>
-                  <span {...stylex.props(styles.ticketTitle)}>
-                    {splitTitle(pr.title).text}
-                  </span>
-                  <small {...stylex.props(styles.ticketNote)}>
-                    ★ {compact(pr.stars, locale)} ·{" "}
-                    {t("work.mergedDate", "merged")} {day(pr.mergedAt, locale)}
-                  </small>
-                </a>
-              )
-            )}
-          </div>
+                    <strong {...stylex.props(styles.ticketName)}>
+                      {repo.split("/")[1]}{" "}
+                      <span {...stylex.props(styles.ticketNumber)}>
+                        #{pr.number}
+                      </span>
+                    </strong>
+                    <span {...stylex.props(styles.ticketTitle)}>
+                      {splitTitle(pr.title).text}
+                    </span>
+                    <small {...stylex.props(styles.ticketNote)}>
+                      ★ {compact(pr.stars, locale)} ·{" "}
+                      {t("work.mergedDate", "merged")}{" "}
+                      {day(pr.mergedAt, locale)}
+                    </small>
+                  </a>
+                )
+              )}
+            </div>
+          </Smooth>
         </li>
       )}
     </ul>

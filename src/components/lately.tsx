@@ -3,7 +3,8 @@ import Image from "next/image";
 
 import { ContributionsChart } from "@/components/contributions-chart";
 import { Arrow } from "@/components/icons";
-import { day, fmt, splitTitle } from "@/lib/format";
+import { Smooth } from "@/components/smooth";
+import { day, fmt, nameMonths, splitTitle } from "@/lib/format";
 import type { GitHub } from "@/lib/github";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
@@ -21,7 +22,6 @@ const styles = stylex.create({
   date: {
     color: color.muted,
     fontSize: "0.8rem",
-    fontVariantNumeric: "tabular-nums",
     gridArea: { default: null, [media.narrow]: "1 / 2" },
     justifySelf: { default: null, [media.narrow]: "end" },
     lineHeight: { default: null, [media.narrow]: 1.65 },
@@ -46,8 +46,8 @@ const styles = stylex.create({
       [media.hover]: {
         default: "rgb(228 220 209 / 0.7)",
         ":first-child": "transparent",
-        ":hover": "transparent",
-        ":is(:hover + *)": "transparent",
+        ":has(> :hover)": "transparent",
+        ":is(:has(> :hover) + *)": "transparent",
       },
     },
     borderTopStyle: "solid",
@@ -86,6 +86,7 @@ const styles = stylex.create({
     scrollbarWidth: "thin",
   },
   more: {
+    alignSelf: "flex-start",
     marginTop: "1rem",
   },
   meta: {
@@ -123,7 +124,10 @@ const styles = stylex.create({
     paddingBlock: "0.8rem",
     paddingInline: "0.65rem",
     textDecoration: "none",
-    transform: { default: null, ":active": "scale(0.98)" },
+    transform: {
+      default: null,
+      ":active": { default: null, [media.motion]: "scale(0.98)" },
+    },
     transitionDuration: "160ms, 150ms",
     transitionProperty: "transform, background-color",
     transitionTimingFunction: `${ease.out}, ease`,
@@ -138,7 +142,13 @@ const styles = stylex.create({
     overflow: "hidden",
   },
   type: {
-    backgroundColor: color.paper,
+    backgroundColor: {
+      default: color.paper,
+      [stylex.when.ancestor(":hover")]: {
+        default: null,
+        [media.hover]: color.surface,
+      },
+    },
     borderRadius: 6,
     color: color.muted,
     display: "inline-block",
@@ -148,6 +158,8 @@ const styles = stylex.create({
     marginRight: "0.4rem",
     paddingBlock: "0.05rem",
     paddingInline: "0.4rem",
+    transitionDuration: "150ms",
+    transitionProperty: "background-color",
     verticalAlign: "0.1em",
   },
   typeFeat: {
@@ -155,8 +167,8 @@ const styles = stylex.create({
     color: color.cobaltDeep,
   },
   typeFix: {
-    backgroundColor: color.tangerineSoft,
-    color: color.tangerineInk,
+    backgroundColor: color.vermilionSoft,
+    color: color.vermilionInk,
   },
 });
 
@@ -174,72 +186,84 @@ export const Lately = ({
   const t = getTranslator(locale);
 
   return (
-    <div {...stylex.props(styles.grid)}>
+    <div data-reveal {...stylex.props(styles.grid)}>
       <ContributionsChart
         locale={locale}
-        monthly={monthly}
+        monthly={nameMonths(monthly, locale)}
         total={contributionTotal}
         updated={updated}
       />
 
-      <div data-reveal {...stylex.props(shared.card, styles.feed)}>
-        <p {...stylex.props(shared.cardLabel)}>
-          {t("activity.recentlyMerged", "Recently merged")}
-        </p>
-        <ul data-reveal="stagger" {...stylex.props(styles.list)}>
-          {recent.map((pr) => {
-            const { type, text } = splitTitle(pr.title);
-            const [owner = ""] = pr.repo.split("/");
+      <Smooth edged radius={28}>
+        <div {...stylex.props(shared.card, styles.feed)}>
+          <p {...stylex.props(shared.cardLabel)}>
+            {t("activity.recentlyMerged", "Recently merged")}
+          </p>
+          <ul data-reveal="stagger" {...stylex.props(styles.list)}>
+            {recent.map((pr) => {
+              const { type, text } = splitTitle(pr.title);
+              const [owner = ""] = pr.repo.split("/");
 
-            return (
-              <li key={pr.url} {...stylex.props(styles.item)}>
-                <a href={pr.url} {...stylex.props(styles.row)}>
-                  <Image
-                    alt=""
-                    height={32}
-                    src={`https://avatars.githubusercontent.com/${owner}?s=64`}
-                    width={32}
-                    {...stylex.props(styles.avatar)}
-                  />
-                  <span {...stylex.props(styles.meta)}>
-                    <span {...stylex.props(styles.repo)}>
-                      {pr.repo}{" "}
-                      <span {...stylex.props(styles.number)}>#{pr.number}</span>
-                    </span>
-                    <span {...stylex.props(styles.title)}>
-                      {type !== "" && (
-                        <span
-                          {...stylex.props(
-                            styles.type,
-                            type === "feat" && styles.typeFeat,
-                            type === "fix" && styles.typeFix
-                          )}
-                        >
-                          {type}
+              return (
+                <li key={pr.url} {...stylex.props(styles.item)}>
+                  <a
+                    href={pr.url}
+                    {...stylex.props(styles.row, stylex.defaultMarker())}
+                  >
+                    <Image
+                      alt=""
+                      height={32}
+                      src={`https://avatars.githubusercontent.com/${owner}?s=64`}
+                      width={32}
+                      {...stylex.props(styles.avatar)}
+                    />
+                    <span {...stylex.props(styles.meta)}>
+                      <span {...stylex.props(styles.repo)}>
+                        {pr.repo}{" "}
+                        <span {...stylex.props(styles.number)}>
+                          #{pr.number}
                         </span>
-                      )}
-                      {text}
+                      </span>
+                      <span {...stylex.props(styles.title)}>
+                        {type !== "" && (
+                          <span
+                            {...stylex.props(
+                              styles.type,
+                              type === "feat" && styles.typeFeat,
+                              type === "fix" && styles.typeFix
+                            )}
+                          >
+                            {type}
+                          </span>
+                        )}
+                        {text}
+                      </span>
                     </span>
-                  </span>
-                  <time dateTime={pr.mergedAt} {...stylex.props(styles.date)}>
-                    {day(pr.mergedAt, locale)}
-                  </time>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-        <a
-          href="https://github.com/search?q=author%3Ataroj1205+is%3Apr+is%3Amerged+is%3Apublic&type=pullrequests&s=updated&o=desc"
-          {...stylex.props(shared.textLink, shared.pressable, styles.more)}
-        >
-          {t("activity.allMerged", "All {total} merged PRs on GitHub").replace(
-            "{total}",
-            fmt(total, locale)
-          )}
-          <Arrow />
-        </a>
-      </div>
+                    <time dateTime={pr.mergedAt} {...stylex.props(styles.date)}>
+                      {day(pr.mergedAt, locale)}
+                    </time>
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+          <a
+            href="https://github.com/search?q=author%3Ataroj1205+is%3Apr+is%3Amerged+is%3Apublic&type=pullrequests&s=updated&o=desc"
+            {...stylex.props(
+              shared.textLink,
+              shared.pressable,
+              styles.more,
+              stylex.defaultMarker()
+            )}
+          >
+            {t(
+              "activity.allMerged",
+              "All {total} merged PRs on GitHub"
+            ).replace("{total}", fmt(total, locale))}
+            <Arrow xstyle={shared.trail} />
+          </a>
+        </div>
+      </Smooth>
     </div>
   );
 };

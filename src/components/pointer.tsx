@@ -14,7 +14,7 @@ export const Pointer = () => {
   useEffect(() => {
     let frame = 0;
     let tilted: HTMLElement | null = null;
-    let last: { target: Element | null; x: number; y: number } | null = null;
+    let last: { x: number; y: number } | null = null;
 
     const tilt = (target: Element | null, x: number, y: number) => {
       const el = target?.closest<HTMLElement>("[data-tilt]") ?? null;
@@ -83,7 +83,7 @@ export const Pointer = () => {
       frame = 0;
 
       if (last) {
-        tilt(last.target, last.x, last.y);
+        tilt(document.elementFromPoint(last.x, last.y), last.x, last.y);
         swell(last.x, last.y);
       }
     };
@@ -95,17 +95,13 @@ export const Pointer = () => {
     };
 
     const move = (event: PointerEvent) => {
-      last = {
-        target: event.target instanceof Element ? event.target : null,
-        x: event.clientX,
-        y: event.clientY,
-      };
+      last = { x: event.clientX, y: event.clientY };
       schedule();
     };
 
     const leave = (event: PointerEvent) => {
       if (event.relatedTarget === null) {
-        last = { target: null, x: -1e4, y: -1e4 };
+        last = { x: -1e4, y: -1e4 };
         schedule();
       }
     };
@@ -117,12 +113,14 @@ export const Pointer = () => {
     const sync = () => {
       if (query.matches) {
         addEventListener("pointermove", move, { passive: true });
+        addEventListener("scroll", schedule, { passive: true });
         document.addEventListener("pointerout", leave);
 
         return;
       }
 
       removeEventListener("pointermove", move);
+      removeEventListener("scroll", schedule);
       document.removeEventListener("pointerout", leave);
       cancelAnimationFrame(frame);
       frame = 0;
@@ -142,6 +140,7 @@ export const Pointer = () => {
       query.removeEventListener("change", sync);
       cancelAnimationFrame(frame);
       removeEventListener("pointermove", move);
+      removeEventListener("scroll", schedule);
       document.removeEventListener("pointerout", leave);
     };
   }, []);

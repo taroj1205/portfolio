@@ -1,9 +1,10 @@
 import * as stylex from "@stylexjs/stylex";
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Inter } from "next/font/google";
+import { Mona_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 
 import { Analytics } from "@/components/analytics";
+import { Highlighter } from "@/components/highlighter";
 import { Pointer } from "@/components/pointer";
 import { Reveal } from "@/components/reveal";
 import { Scroll } from "@/components/scroll";
@@ -15,13 +16,11 @@ import { color, media } from "../../styles/tokens.stylex";
 
 import "../globals.css";
 
-const display = Bricolage_Grotesque({
-  axes: ["opsz"],
+const sans = Mona_Sans({
+  axes: ["wdth"],
   subsets: ["latin"],
-  variable: "--font-display",
+  variable: "--font-sans",
 });
-
-const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 
 const currentYear = () => new Date().getFullYear();
 
@@ -92,7 +91,7 @@ const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
   const t = getTranslator(lang);
 
   return (
-    <html className={`${display.variable} ${body.variable}`} lang={lang}>
+    <html className={sans.variable} lang={lang}>
       <body {...stylex.props(styles.body)}>
         <a href="#main" {...stylex.props(styles.skip)}>
           {t("navigation.skip", "Skip to content")}
@@ -101,6 +100,7 @@ const RootLayout = async ({ children, params }: LayoutProps<"/[lang]">) => {
         <main id="main">{children}</main>
         <Reveal />
         <Pointer />
+        <Highlighter />
         <Scroll />
         <footer {...stylex.props(shared.wrap, styles.footer)}>
           <p>© {currentYear()} Shintaro Jokagi</p>

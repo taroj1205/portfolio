@@ -3,22 +3,22 @@
 import * as stylex from "@stylexjs/stylex";
 import Image from "next/image";
 import type { StaticImageData } from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { flushSync } from "react-dom";
 
+import { Smooth } from "@/components/smooth";
 import { getTranslator } from "@/lib/i18n";
 import type { Locale } from "@/lib/i18n";
+import {
+  OUT,
+  canTransition,
+  easedProgress,
+  turnTiming,
+} from "@/lib/view-transition";
 import { shared } from "@/styles/shared";
 
-import {
-  color,
-  ease,
-  font,
-  media,
-  shadow,
-  size,
-} from "../styles/tokens.stylex";
+import { color, ease, font, media, size } from "../styles/tokens.stylex";
 
 export interface Photo {
   src: StaticImageData;
@@ -30,14 +30,68 @@ const morph = {
   old: { height: "100%", objectFit: "cover", overflow: "clip" },
 } as const;
 
+const FULL_RADIUS = "12px";
+const THUMB_RADIUS = `var(--thumb-radius, ${FULL_RADIUS})`;
+
+const grow = stylex.keyframes({ from: { borderRadius: THUMB_RADIUS } });
+const shrink = stylex.keyframes({ from: { borderRadius: FULL_RADIUS } });
+
+const land = stylex.keyframes({
+  "0%": { opacity: 0 },
+  "60%": { opacity: 0 },
+  "100%": { opacity: 1 },
+});
+
+const THUMB_FRAMING = {
+  scale: "var(--thumb-zoom, 1)",
+  translate: "var(--thumb-shift, 0 0)",
+};
+
+const fromThumb = stylex.keyframes({ from: THUMB_FRAMING });
+const toThumb = stylex.keyframes({ to: THUMB_FRAMING });
+
 const opening = stylex.viewTransitionClass({
-  ...morph,
   group: { animationDuration: "420ms", animationTimingFunction: ease.drawer },
+  new: {
+    ...morph.new,
+    animationDuration: "420ms",
+    animationFillMode: "both",
+    animationName: fromThumb,
+    animationTimingFunction: ease.drawer,
+  },
+  old: { ...morph.old, animationName: "none", opacity: 0 },
+  imagePair: {
+    animationDuration: "420ms",
+    animationName: grow,
+    animationTimingFunction: ease.drawer,
+    borderRadius: FULL_RADIUS,
+    overflow: "clip",
+  },
 });
 
 const closing = stylex.viewTransitionClass({
-  ...morph,
   group: { animationDuration: "260ms", animationTimingFunction: ease.out },
+  new: {
+    ...morph.new,
+    animationDuration: "260ms",
+    animationFillMode: "both",
+    animationName: land,
+    animationTimingFunction: ease.out,
+  },
+  old: {
+    ...morph.old,
+    animationDuration: "260ms",
+    animationFillMode: "both",
+    animationName: toThumb,
+    animationTimingFunction: ease.out,
+  },
+  imagePair: {
+    animationDuration: "260ms",
+    animationName: shrink,
+    animationTimingFunction: ease.out,
+    borderRadius: THUMB_RADIUS,
+    overflow: "clip",
+  },
 });
 
 // Prints drift upward at three speeds as they pass, like layered paper.
@@ -127,8 +181,26 @@ const styles = stylex.create({
   print: {
     backgroundColor: "#fff",
     borderRadius: 6,
-    boxShadow:
-      "0 1px 2px rgb(18 16 14 / 0.12), 0 22px 44px -22px rgb(18 16 14 / 0.5)",
+    boxShadow: {
+      default:
+        "0 1px 2px rgb(18 16 14 / 0.12), 0 22px 44px -22px rgb(18 16 14 / 0.5)",
+      ":hover": {
+        default: null,
+        [media.hover]:
+          "0 1px 2px rgb(18 16 14 / 0.1), 0 36px 60px -24px rgb(18 16 14 / 0.45)",
+      },
+    },
+    scale: {
+      default: null,
+      ":hover": {
+        default: null,
+        [media.hover]: { default: null, [media.motion]: 1.04 },
+      },
+    },
+    transitionDuration: "350ms",
+    transitionProperty: "scale, box-shadow, transform",
+    transitionTimingFunction: ease.spring,
+    zIndex: { default: null, ":hover": 1 },
     paddingBlock: "clamp(0.3rem, 0.6vw, 0.5rem) clamp(1rem, 2.2vw, 1.75rem)",
     paddingInline: "clamp(0.3rem, 0.6vw, 0.5rem)",
   },
@@ -149,21 +221,6 @@ const styles = stylex.create({
   }),
   printButton: {
     borderRadius: 2,
-    boxShadow: {
-      default: null,
-      ":hover": { default: null, [media.hover]: shadow.lift },
-    },
-    scale: {
-      default: null,
-      ":hover": { default: null, [media.hover]: 1.05 },
-    },
-    transitionDuration: "450ms",
-    transitionProperty: "scale, translate, box-shadow, transform",
-    transitionTimingFunction: ease.spring,
-    translate: {
-      default: null,
-      ":hover": { default: null, [media.hover]: "0 -0.5rem" },
-    },
     width: "100%",
   },
   printImage: {
@@ -206,7 +263,6 @@ const styles = stylex.create({
     color: color.line,
     fontFamily: font.display,
     fontSize: "clamp(5rem, 13vw, 11rem)",
-    fontVariantNumeric: "tabular-nums",
     fontWeight: 750,
     letterSpacing: "-0.06em",
     lineHeight: 0.8,
@@ -231,6 +287,7 @@ const styles = stylex.create({
   },
   window: {
     borderRadius: 20,
+    outlineOffset: { default: null, ":focus-visible": -4 },
     transitionDuration: "500ms",
     transitionProperty: "transform",
     transitionTimingFunction: ease.out,
@@ -256,16 +313,9 @@ const styles = stylex.create({
     marginTop: "0.9rem",
   },
   close: {
-    backgroundColor: "rgb(255 255 255 / 0.14)",
-    borderRadius: 999,
-    borderWidth: 0,
-    color: "#fff",
-    cursor: "pointer",
     fontSize: "0.9375rem",
-    outlineColor: { default: null, ":focus-visible": "#fff" },
     paddingBlock: "0.5rem",
     paddingInline: "1rem",
-    position: "fixed",
     right: "1rem",
     top: "1rem",
   },
@@ -278,9 +328,10 @@ const styles = stylex.create({
     maxWidth: "100vw",
     overflow: "visible",
     padding: inset,
+    touchAction: "pinch-zoom",
   },
   full: {
-    borderRadius: 12,
+    borderRadius: FULL_RADIUS,
     maxHeight: {
       default: "calc(100dvh - 8rem)",
       [media.tablet]: "calc(100dvh - 12rem)",
@@ -288,8 +339,10 @@ const styles = stylex.create({
     // In vw, not %: a percentage inside the shrink-to-fit dialog collapses it.
     maxWidth: `calc(100vw - 2 * ${inset})`,
     objectFit: "contain",
+    userSelect: "none",
     viewTransitionClass: opening,
     viewTransitionName: "photo",
+    WebkitTouchCallout: "none",
     width: "auto",
   },
   fullFigure: {
@@ -304,33 +357,36 @@ const styles = stylex.create({
     opacity: 0.8,
   },
   count: {
-    fontVariantNumeric: "tabular-nums",
     opacity: 0.6,
   },
   // The global reset makes every img a block, which beats `hidden`.
   preload: {
     display: "none",
   },
-  turn: {
-    alignItems: "center",
+  glass: {
     backgroundColor: {
       default: "rgb(255 255 255 / 0.14)",
-      ":hover": "rgb(255 255 255 / 0.26)",
+      [media.hover]: { default: null, ":hover": "rgb(255 255 255 / 0.26)" },
     },
     borderRadius: 999,
     borderWidth: 0,
-    bottom: { default: null, [media.tablet]: "1.25rem" },
     color: "#fff",
     cursor: "pointer",
-    display: "grid",
-    height: 48,
-    justifyContent: "center",
     outlineColor: { default: null, ":focus-visible": "#fff" },
     position: "fixed",
-    top: { default: "50%", [media.tablet]: "auto" },
     transitionDuration: "200ms",
     transitionProperty: "background-color, transform",
     transitionTimingFunction: ease.out,
+    userSelect: "none",
+    zIndex: 1,
+  },
+  turn: {
+    alignItems: "center",
+    bottom: { default: null, [media.tablet]: "1.25rem" },
+    display: "grid",
+    height: 48,
+    justifyContent: "center",
+    top: { default: "50%", [media.tablet]: "auto" },
     translate: { default: "0 -50%", [media.tablet]: "none" },
     width: 48,
   },
@@ -344,8 +400,141 @@ const styles = stylex.create({
 
 const reduced = "(prefers-reduced-motion: reduce)";
 
-const canMorph = () =>
-  "startViewTransition" in document && !matchMedia(reduced).matches;
+const TURN_MS = 260;
+
+const transitionParts = () =>
+  document
+    .getAnimations()
+    .flatMap((part) =>
+      part.effect instanceof KeyframeEffect &&
+      part.effect.pseudoElement?.startsWith("::view-transition") === true
+        ? [{ effect: part.effect, part }]
+        : []
+    );
+
+const within = (box: DOMRect, point: { clientX: number; clientY: number }) =>
+  point.clientX >= box.left &&
+  point.clientX <= box.right &&
+  point.clientY >= box.top &&
+  point.clientY <= box.bottom;
+
+const corners = (radius: string) => ({
+  borderBottomLeftRadius: radius,
+  borderBottomRightRadius: radius,
+  borderTopLeftRadius: radius,
+  borderTopRightRadius: radius,
+});
+
+const heading = (run: Run) => run.opens !== run.back;
+
+const easeAt = (easing: string, time: number) => {
+  const probe = new Animation(
+    new KeyframeEffect(null, null, { duration: 1, easing, fill: "both" })
+  );
+
+  probe.currentTime = time;
+
+  return probe.effect?.getComputedTiming().progress ?? time;
+};
+
+interface Run {
+  back: boolean;
+  opens: boolean;
+  transition: ViewTransition;
+  turns: number;
+  undo: () => void;
+  want: boolean;
+}
+
+const slideOut = (image: HTMLElement, direction: number) => {
+  const ghost = image.cloneNode();
+  const dialog = image.closest("dialog");
+  const query = matchMedia(reduced);
+
+  if (!(ghost instanceof HTMLElement) || !dialog || query.matches) {
+    return;
+  }
+
+  const box = image.getBoundingClientRect();
+
+  Object.assign(ghost.style, {
+    height: `${box.height}px`,
+    left: `${box.left}px`,
+    margin: "0",
+    maxHeight: "none",
+    maxWidth: "none",
+    pointerEvents: "none",
+    position: "fixed",
+    top: `${box.top}px`,
+    viewTransitionName: "none",
+    width: `${box.width}px`,
+    zIndex: "-1",
+  });
+
+  ghost.removeAttribute("alt");
+  ghost.setAttribute("aria-hidden", "true");
+  dialog.append(ghost);
+
+  const { filter, opacity } = getComputedStyle(image);
+
+  const fade = ghost.animate(
+    [
+      { filter, opacity: Number(opacity) },
+      {
+        filter: "blur(8px)",
+        opacity: 0,
+        translate: `${direction * -0.75}rem 0`,
+      },
+    ],
+    {
+      duration: 200,
+      easing: OUT,
+      fill: "forwards",
+    }
+  );
+
+  const stop = () => {
+    fade.cancel();
+  };
+
+  const remove = () => {
+    ghost.remove();
+    query.removeEventListener("change", stop);
+  };
+
+  query.addEventListener("change", stop, { once: true });
+  fade.addEventListener("finish", remove);
+  fade.addEventListener("cancel", remove);
+};
+
+const slideIn = (image: HTMLElement, direction: number) => {
+  const query = matchMedia(reduced);
+
+  if (query.matches) {
+    return;
+  }
+
+  const slide = image.animate(
+    [
+      {
+        filter: "blur(8px)",
+        opacity: 0,
+        translate: `${direction * 0.75}rem 0`,
+      },
+      { filter: "blur(0px)", opacity: 1, translate: "0 0" },
+    ],
+    { duration: 360, easing: OUT }
+  );
+
+  const settle = () => {
+    slide.cancel();
+  };
+
+  query.addEventListener("change", settle, { once: true });
+  slide.addEventListener("finish", () => {
+    query.removeEventListener("change", settle);
+  });
+};
 
 export const Photos = ({
   variant,
@@ -360,10 +549,16 @@ export const Photos = ({
 }) => {
   const dialog = useRef<HTMLDialogElement>(null);
   const full = useRef<HTMLImageElement>(null);
-  const thumb = useRef<HTMLImageElement | null>(null);
+  const thumb = useRef<HTMLButtonElement | null>(null);
   const list = useRef<HTMLDivElement>(null);
-  const swipe = useRef(0);
-  const moving = useRef<ViewTransition | null>(null);
+
+  const press = useRef<{ target: EventTarget | null; x: number; y: number }>({
+    target: null,
+    x: 0,
+    y: 0,
+  });
+
+  const moving = useRef<Run | null>(null);
   const t = getTranslator(locale);
   const [open, setOpen] = useState<Photo | null>(null);
 
@@ -371,6 +566,33 @@ export const Photos = ({
     if (thumb.current) {
       thumb.current.style.viewTransitionName = name;
       thumb.current.style.viewTransitionClass = name === "" ? "" : closing;
+
+      if (name !== "") {
+        const root = document.documentElement.style;
+        const image = thumb.current.querySelector("img");
+        const framing = image ? getComputedStyle(image) : null;
+
+        root.setProperty(
+          "--thumb-radius",
+          getComputedStyle(thumb.current).borderRadius
+        );
+        root.setProperty(
+          "--thumb-zoom",
+          !framing || framing.scale === "none" ? "1" : framing.scale
+        );
+        root.setProperty(
+          "--thumb-shift",
+          !framing || framing.translate === "none" ? "0 0" : framing.translate
+        );
+      }
+    }
+  };
+
+  const lift = (lifted: boolean) => {
+    const image = thumb.current?.querySelector("img");
+
+    if (image) {
+      image.style.visibility = lifted ? "hidden" : "";
     }
   };
 
@@ -385,13 +607,105 @@ export const Photos = ({
     ]);
   };
 
-  const transit = async (options: StartViewTransitionOptions) => {
+  const turn = () => {
+    const run = moving.current;
+    const parts = transitionParts();
+
+    if (!run || parts.length === 0) {
+      return false;
+    }
+
+    run.back = !run.back;
+    run.turns += 1;
+
+    const { back, turns } = run;
+    let left = parts.length;
+
+    const settle = () => {
+      left -= 1;
+
+      if (left === 0 && run.turns === turns) {
+        run.undo();
+        run.transition.skipTransition();
+      }
+    };
+
+    const thumbRadius =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--thumb-radius")
+        .trim() || FULL_RADIUS;
+
+    const [startRadius, endRadius] = run.opens
+      ? [thumbRadius, FULL_RADIUS]
+      : [FULL_RADIUS, thumbRadius];
+
+    for (const { effect, part } of parts) {
+      const frames = effect.getKeyframes();
+
+      const pair =
+        effect.pseudoElement === "::view-transition-image-pair(photo)";
+
+      const progress = easedProgress(
+        frames,
+        effect.getComputedTiming().progress ?? 1,
+        easeAt
+      );
+
+      const { at, easing } = turnTiming(progress, back);
+
+      effect.setKeyframes(
+        frames.map((frame) => {
+          const flat: Keyframe = {
+            ...frame,
+            easing: "linear",
+            offset: frame.computedOffset,
+          };
+
+          if (pair) {
+            Object.assign(
+              flat,
+              corners(frame.computedOffset === 0 ? startRadius : endRadius)
+            );
+          }
+
+          return flat;
+        })
+      );
+      effect.updateTiming({ duration: TURN_MS, easing });
+      part.currentTime = at * TURN_MS;
+      part.playbackRate = back ? -1 : 1;
+
+      if (back) {
+        part.addEventListener("finish", settle, { once: true });
+      }
+    }
+
+    return true;
+  };
+
+  const transit = async (
+    options: StartViewTransitionOptions,
+    undo: () => void
+  ) => {
     const transition = document.startViewTransition(options);
-    moving.current = transition;
+
+    const opens = dialog.current?.open !== true;
+    const run = { back: false, opens, transition, turns: 0, undo, want: opens };
+
+    moving.current = run;
+    transition.ready.catch(() => null);
     await transition.finished;
 
-    if (moving.current === transition) {
+    if (moving.current === run) {
       moving.current = null;
+    }
+
+    const shown = dialog.current?.open === true;
+
+    lift(shown);
+
+    if (!shown) {
+      setOpen(null);
     }
   };
 
@@ -407,7 +721,7 @@ export const Photos = ({
     photos.at((photos.indexOf(photo) + direction) % photos.length);
 
   const step = (direction: number) => {
-    if (!open) {
+    if (!open || moving.current) {
       return;
     }
 
@@ -417,70 +731,159 @@ export const Photos = ({
       return;
     }
 
+    lift(false);
     // Closing morphs back into this photo only if it is on screen.
     thumb.current =
-      [...(list.current?.querySelectorAll("img") ?? [])].find((img) => {
-        const box = img.getBoundingClientRect();
+      [...(list.current?.querySelectorAll("button") ?? [])].find((button) => {
+        const box = button.getBoundingClientRect();
 
         return (
-          img.alt === next.caption &&
+          button.querySelector("img")?.alt === next.caption &&
           box.right > 0 &&
           box.left < innerWidth &&
           box.bottom > 0 &&
           box.top < innerHeight
         );
       }) ?? null;
+    lift(true);
 
-    const swap = async () => {
-      flushSync(() => {
-        setOpen(next);
-      });
-      await ready();
-    };
+    if (full.current) {
+      slideOut(full.current, direction);
+    }
 
-    if (canMorph()) {
-      void transit({
-        types: [direction < 0 ? "back" : "forward"],
-        update: swap,
-      });
-    } else {
-      void swap();
+    flushSync(() => {
+      setOpen(next);
+    });
+
+    if (full.current) {
+      slideIn(full.current, direction);
     }
   };
 
   const show = (photo: Photo, event: MouseEvent<HTMLButtonElement>) => {
-    thumb.current = event.currentTarget.querySelector("img");
+    thumb.current = event.currentTarget;
 
-    if (!canMorph()) {
+    if (!canTransition()) {
+      lift(true);
       void reveal(photo);
 
       return;
     }
 
     nameThumb("photo");
-    void transit({
-      update: async () => {
-        nameThumb("");
-        await reveal(photo);
+    void transit(
+      {
+        update: async () => {
+          nameThumb("");
+          lift(true);
+          await reveal(photo);
+        },
       },
-    });
+      () => {
+        dialog.current?.close();
+        lift(false);
+      }
+    );
   };
 
   const hide = async () => {
-    if (!canMorph()) {
+    if (dialog.current?.open !== true) {
+      return;
+    }
+
+    if (!canTransition()) {
       dialog.current?.close();
+      lift(false);
 
       return;
     }
 
-    await transit({
-      update: () => {
-        dialog.current?.close();
-        nameThumb("photo");
+    if (full.current) {
+      full.current.style.viewTransitionName = thumb.current ? "" : "none";
+    }
+
+    await transit(
+      {
+        update: () => {
+          dialog.current?.close();
+          lift(false);
+          nameThumb("photo");
+        },
       },
-    });
+      () => {
+        dialog.current?.showModal();
+        lift(true);
+      }
+    );
     nameThumb("");
   };
+
+  const steer = async (toOpen: boolean) => {
+    const run = moving.current;
+
+    if (!run) {
+      if (!toOpen) {
+        await hide();
+      }
+
+      return;
+    }
+
+    run.want = toOpen;
+
+    if (heading(run) === toOpen || turn()) {
+      return;
+    }
+
+    const started = await run.transition.ready.then(
+      () => true,
+      () => false
+    );
+
+    if (heading(run) === run.want || (started && turn())) {
+      return;
+    }
+
+    if (!run.want) {
+      await hide();
+    }
+  };
+
+  const pressDuring = useEffectEvent((event: PointerEvent) => {
+    const run = moving.current;
+
+    if (!run) {
+      return;
+    }
+
+    press.current = { target: null, x: event.clientX, y: event.clientY };
+
+    if (event.button === 0) {
+      const box = thumb.current?.getBoundingClientRect();
+      const onThumb = box !== undefined && within(box, event);
+
+      void steer(onThumb && !run.want);
+    }
+  });
+
+  const escapeDuring = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key === "Escape" && moving.current) {
+      event.preventDefault();
+      void steer(false);
+    }
+  });
+
+  useEffect(() => {
+    const options = { capture: true };
+
+    document.addEventListener("pointerdown", pressDuring, options);
+    document.addEventListener("keydown", escapeDuring, options);
+
+    return () => {
+      document.removeEventListener("pointerdown", pressDuring, options);
+      document.removeEventListener("keydown", escapeDuring, options);
+    };
+  }, []);
 
   const opener = (
     photo: Photo,
@@ -494,9 +897,8 @@ export const Photos = ({
       onClick={(event) => {
         show(photo, event);
       }}
-      data-tilt
       type="button"
-      {...stylex.props(styles.open, shared.tilt, frame)}
+      {...stylex.props(styles.open, frame)}
     >
       <Image
         alt={photo.caption}
@@ -531,8 +933,10 @@ export const Photos = ({
             >
               <figure
                 data-scroll="cover 0% cover 100%"
+                data-tilt
                 {...stylex.props(
                   shared.scrub,
+                  shared.tilt,
                   styles.print,
                   speeds[i % speeds.length],
                   styles.printAt(
@@ -573,36 +977,38 @@ export const Photos = ({
                 >
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <button
-                  aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
-                  onClick={(event) => {
-                    show(photo, event);
-                  }}
-                  data-tilt
-                  type="button"
-                  {...stylex.props(styles.open, shared.tilt, styles.window)}
-                >
-                  <span data-reveal="wipe" {...stylex.props(shared.unveil)}>
-                    <span>
-                      <Image
-                        alt={photo.caption}
-                        data-scroll="cover 0% cover 100%"
-                        placeholder="blur"
-                        sizes={
-                          broad
-                            ? "(max-width: 800px) 100vw, 1180px"
-                            : "(max-width: 800px) 100vw, 480px"
-                        }
-                        src={photo.src}
-                        {...stylex.props(
-                          shared.scrub,
-                          styles.windowImage,
-                          broad ? styles.broad : styles.tall
-                        )}
-                      />
+                <Smooth radius={20}>
+                  <button
+                    aria-label={`${t("photos.viewLarger", "View larger")}: ${photo.caption}`}
+                    onClick={(event) => {
+                      show(photo, event);
+                    }}
+                    data-tilt
+                    type="button"
+                    {...stylex.props(styles.open, shared.tilt, styles.window)}
+                  >
+                    <span data-reveal="wipe" {...stylex.props(shared.unveil)}>
+                      <span>
+                        <Image
+                          alt={photo.caption}
+                          data-scroll="cover 0% cover 100%"
+                          placeholder="blur"
+                          sizes={
+                            broad
+                              ? "(max-width: 800px) 100vw, 1180px"
+                              : "(max-width: 800px) 100vw, 480px"
+                          }
+                          src={photo.src}
+                          {...stylex.props(
+                            shared.scrub,
+                            styles.windowImage,
+                            broad ? styles.broad : styles.tall
+                          )}
+                        />
+                      </span>
                     </span>
-                  </span>
-                </button>
+                  </button>
+                </Smooth>
                 <figcaption {...stylex.props(styles.caption)}>
                   {photo.caption}
                 </figcaption>
@@ -614,16 +1020,15 @@ export const Photos = ({
 
       <dialog
         aria-label={t("photos.dialogTitle", "Photo")}
-        closedby="any"
         onCancel={(event) => {
           event.preventDefault();
-
-          if (!moving.current) {
-            void hide();
-          }
+          void steer(false);
         }}
         onClose={() => {
-          setOpen(null);
+          if (!moving.current) {
+            lift(false);
+            setOpen(null);
+          }
         }}
         onKeyDown={(event) => {
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
@@ -631,13 +1036,42 @@ export const Photos = ({
           }
         }}
         onPointerDown={(event) => {
-          swipe.current = event.clientX;
+          if (!event.isPrimary) {
+            return;
+          }
+
+          press.current = {
+            target: moving.current ? null : event.target,
+            x: event.clientX,
+            y: event.clientY,
+          };
         }}
         onPointerUp={(event) => {
-          const distance = event.clientX - swipe.current;
+          if (!event.isPrimary || press.current.target === null) {
+            return;
+          }
+
+          const distance = event.clientX - press.current.x;
 
           if (event.pointerType !== "mouse" && Math.abs(distance) > 60) {
             step(distance < 0 ? 1 : -1);
+
+            return;
+          }
+
+          const spot = event.target;
+
+          const beside =
+            spot instanceof Element &&
+            spot.closest("img, figcaption, button") === null;
+
+          if (
+            beside &&
+            spot === press.current.target &&
+            event.button === 0 &&
+            Math.hypot(distance, event.clientY - press.current.y) < 10
+          ) {
+            void steer(false);
           }
         }}
         ref={dialog}
@@ -645,10 +1079,10 @@ export const Photos = ({
       >
         <button
           onClick={() => {
-            void hide();
+            void steer(false);
           }}
           type="button"
-          {...stylex.props(styles.close, shared.pressable)}
+          {...stylex.props(shared.pressable, styles.glass, styles.close)}
         >
           {t("photos.close", "Close")}
         </button>
@@ -665,9 +1099,10 @@ export const Photos = ({
             }}
             type="button"
             {...stylex.props(
+              shared.pressable,
+              styles.glass,
               styles.turn,
-              direction < 0 ? styles.turnBack : styles.turnForward,
-              shared.pressable
+              direction < 0 ? styles.turnBack : styles.turnForward
             )}
           >
             {chevron(path)}

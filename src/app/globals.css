@@ -25,12 +25,12 @@
       ),
       radial-gradient(
         900px 500px at 95% 12%,
-        rgb(255 122 69 / 0.08),
+        rgb(224 65 43 / 0.06),
         transparent 50%
       ),
       #f5f1ea;
     color: #12100e;
-    font-family: var(--font-body), system-ui, sans-serif;
+    font-family: var(--font-sans), system-ui, sans-serif;
     font-size: 1.0625rem;
     line-height: 1.65;
     overflow-x: clip;
@@ -45,7 +45,7 @@
   h2,
   h3 {
     margin: 0;
-    font-family: var(--font-display), system-ui, sans-serif;
+    font-family: var(--font-sans), system-ui, sans-serif;
     font-weight: 700;
     letter-spacing: -0.03em;
     line-height: 1.05;
@@ -62,6 +62,10 @@
   h3:lang(ja) {
     line-height: 1.3;
     letter-spacing: -0.02em;
+  }
+
+  :is(h1, h2, h3, dt):lang(ja) {
+    word-break: auto-phrase;
   }
 
   a[aria-current="page"] {
@@ -97,8 +101,16 @@
 
   a {
     color: #2b4cff;
+    text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
     text-decoration-thickness: 1px;
     text-underline-offset: 0.2em;
+    transition: text-decoration-color 200ms ease-out;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    a:hover {
+      text-decoration-color: currentColor;
+    }
   }
 
   button {
@@ -106,8 +118,15 @@
   }
 
   ::selection {
-    background: #2b4cff;
-    color: #fff;
+    background: rgb(224 65 43 / 0.24);
+  }
+
+  [data-highlighter] ::selection {
+    background: transparent;
+  }
+
+  [data-highlighter] dialog ::selection {
+    background: rgb(224 65 43 / 0.4);
   }
 
   :focus-visible {
@@ -124,8 +143,27 @@
     *,
     *::before,
     *::after {
+      transition-delay: 0s !important;
       transition-duration: 0s !important;
     }
+  }
+
+  :root:has(dialog:modal) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  [data-spotlight] > * {
+    transition:
+      opacity 250ms ease-out,
+      filter 250ms ease-out;
+  }
+
+  [data-spotlight]:has(> :hover) > :not(:hover, :focus-within) {
+    filter: blur(2px);
+    opacity: 0.4;
   }
 }
 
@@ -164,42 +202,6 @@
   100% {
     --fade-bottom: 0px;
     --fade-top: 24px;
-  }
-}
-
-:active-view-transition-type(forward) {
-  --turn: 1;
-}
-
-:active-view-transition-type(back) {
-  --turn: -1;
-}
-
-:active-view-transition-type(forward, back)::view-transition-group(photo) {
-  animation-duration: 320ms;
-}
-
-:active-view-transition-type(forward, back)::view-transition-old(photo) {
-  animation: 160ms cubic-bezier(0.4, 0, 1, 1) both photo-out;
-}
-
-:active-view-transition-type(forward, back)::view-transition-new(photo) {
-  animation: 320ms cubic-bezier(0.23, 1, 0.32, 1) both photo-in;
-}
-
-@keyframes photo-out {
-  to {
-    opacity: 0;
-    scale: 0.97;
-    translate: calc(var(--turn) * -2.5rem) 0;
-  }
-}
-
-@keyframes photo-in {
-  from {
-    opacity: 0;
-    scale: 0.97;
-    translate: calc(var(--turn) * 2.5rem) 0;
   }
 }
 

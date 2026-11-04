@@ -12,19 +12,20 @@ export const color = stylex.defineVars({
   paper: "#f5f1ea",
   paperDeep: "#ebe4d8",
   surface: "#fff",
-  tangerine: "#ff7a45",
-  tangerineInk: "#b8461b",
-  tangerineSoft: "#ffede4",
+  vermilion: "#e0412b",
+  vermilionInk: "#a8301e",
+  vermilionSoft: "#fbe6e1",
 });
 
 export const ease = stylex.defineConsts({
   drawer: "cubic-bezier(0.32, 0.72, 0, 1)",
   out: "cubic-bezier(0.23, 1, 0.32, 1)",
+  pen: "cubic-bezier(0.55, 0, 0.15, 1)",
   spring: "cubic-bezier(0.34, 1.3, 0.64, 1)",
 });
 
 export const font = stylex.defineConsts({
-  display: "var(--font-display), system-ui, sans-serif",
+  display: "var(--font-sans), system-ui, sans-serif",
   mono: 'ui-monospace, "SF Mono", Menlo, monospace',
 });
 
