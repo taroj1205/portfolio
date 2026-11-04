@@ -176,7 +176,7 @@ export const WorkTimeline = ({
     {
       end: "2025-10",
       org: "WDCC",
-      paid: true,
+      paid: false,
       role: t(
         "timeline.roles.wdcc",
         "Web developer in the uni web development club"
