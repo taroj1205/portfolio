@@ -1,0 +1,61 @@
+name: Build
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.revision == 'head' && 'Current' || 'Base' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        revision: ${{ github.event_name == 'pull_request' && fromJSON('["head", "base"]') || fromJSON('["head"]') }}
+    defaults:
+      run:
+        working-directory: build
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ matrix.revision == 'base' && github.event.pull_request.base.sha || github.sha }}
+          path: build
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version-file: build/package.json
+
+      - parallel:
+          - name: Install dependencies
+            run: bun ci
+          - name: Cache Next.js
+            uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+            with:
+              path: build/.next/cache
+              key: ${{ runner.os }}-next-${{ hashFiles('build/bun.lock') }}-${{ matrix.revision == 'base' && github.event.pull_request.base.sha || github.sha }}
+              restore-keys: |
+                ${{ runner.os }}-next-${{ hashFiles('build/bun.lock') }}-
+
+      - name: Run build
+        run: bun run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package bundle data
+        if: github.event_name == 'pull_request'
+        run: tar -cf "$RUNNER_TEMP/bundle-$REVISION.tar" .next/diagnostics/route-bundle-stats.json .next/static
+        env:
+          REVISION: ${{ matrix.revision }}
+
+      - name: Upload bundle data
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bundle-${{ matrix.revision }}
+          path: ${{ runner.temp }}/bundle-${{ matrix.revision }}.tar
+          if-no-files-found: error
+          overwrite: true

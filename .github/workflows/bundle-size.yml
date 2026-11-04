@@ -18,50 +18,27 @@ jobs:
           path: head
           persist-credentials: false
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.event.pull_request.base.sha }}
-          path: base
-          persist-credentials: false
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version-file: head/package.json
 
       - parallel:
-          - name: Install base dependencies
-            working-directory: base
-            run: bun ci
-          - name: Install PR dependencies
+          - name: Install report dependencies
             working-directory: head
             run: bun ci
-          - name: Cache base Next.js
-            uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+          - name: Download bundle data
+            uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
             with:
-              path: base/.next/cache
-              key: ${{ runner.os }}-next-base-${{ hashFiles('base/bun.lock') }}-${{ github.event.pull_request.base.sha }}
-              restore-keys: |
-                ${{ runner.os }}-next-base-${{ hashFiles('base/bun.lock') }}-
-          - name: Cache PR Next.js
-            uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-            with:
-              path: head/.next/cache
-              key: ${{ runner.os }}-next-head-${{ hashFiles('head/bun.lock') }}-${{ github.sha }}
-              restore-keys: |
-                ${{ runner.os }}-next-head-${{ hashFiles('head/bun.lock') }}-
+              pattern: bundle-*
+              path: ${{ runner.temp }}/bundles
+              merge-multiple: true
 
-      - parallel:
-          - name: Build base
-            working-directory: base
-            run: bun run build
-            env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          - name: Build this PR
-            working-directory: head
-            run: bun run build
-            env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract bundle data
+        run: |
+          mkdir -p base head
+          tar -xf "$RUNNER_TEMP/bundles/bundle-base.tar" -C base
+          tar -xf "$RUNNER_TEMP/bundles/bundle-head.tar" -C head
 
       - name: Compare builds
         id: report

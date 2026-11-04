@@ -16,39 +16,7 @@ concurrency:
 jobs:
   build:
     name: Build
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: base
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          path: base
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        with:
-          bun-version-file: base/package.json
-
-      - parallel:
-          - name: Install dependencies
-            run: bun ci
-          - name: Cache Next.js
-            uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-            with:
-              path: base/.next/cache
-              key: ${{ runner.os }}-next-base-${{ hashFiles('base/bun.lock') }}-${{ github.sha }}
-              restore-keys: |
-                ${{ runner.os }}-next-base-${{ hashFiles('base/bun.lock') }}-
-
-      # The page reads GitHub at build time. The workflow token only sees
-      # public repos, so private counts come out lower here than in production.
-      - name: Run build
-        run: bun run build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: $/.github/workflows/build.yml
 
   check:
     name: Quality
@@ -60,6 +28,7 @@ jobs:
 
   bundle_size:
     name: Bundle size
+    needs: build
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
