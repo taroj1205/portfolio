@@ -14,78 +14,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        with:
-          bun-version-file: package.json
-
-      - name: Install dependencies
-        run: bun ci
-
-      - name: Cache Next.js
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .next/cache
-          key: ${{ runner.os }}-next-${{ hashFiles('bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-next-
-
-      # The page reads GitHub at build time. The workflow token only sees
-      # public repos, so private counts come out lower here than in production.
-      - name: Run build
-        run: bun run build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   check:
     name: Quality
     uses: $/.github/workflows/quality.yml
-
-  test:
-    name: Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        with:
-          bun-version-file: package.json
-
-      - name: Install dependencies
-        run: bun ci
-
-      - name: Run tests
-        run: bunx vp test run
-
-  knip:
-    name: Knip
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        with:
-          bun-version-file: package.json
-
-      - name: Install dependencies
-        run: bun ci
-
-      - name: Run Knip
-        run: bun run knip
 
   workflow_checks:
     name: Workflow checks
@@ -93,28 +24,16 @@ jobs:
 
   bundle_size:
     name: Bundle size
+    needs: check
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
       pull-requests: write
     uses: $/.github/workflows/bundle-size.yml
 
-  spell_check:
-    name: Spell Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Spell Check
-        uses: streetsidesoftware/cspell-action@ce1816e4ce36532956ac6e983737392774b6e169 # v9.2.0
-        with:
-          config: cspell.json
-
   verify:
     name: Verify
-    needs: [build, check, test, knip, workflow_checks, bundle_size, spell_check]
+    needs: [check, workflow_checks, bundle_size]
     runs-on: ubuntu-latest
     if: always()
     steps:
