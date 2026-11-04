@@ -142,7 +142,13 @@ const styles = stylex.create({
     overflow: "hidden",
   },
   type: {
-    backgroundColor: color.paper,
+    backgroundColor: {
+      default: color.paper,
+      [stylex.when.ancestor(":hover")]: {
+        default: null,
+        [media.hover]: color.surface,
+      },
+    },
     borderRadius: 6,
     color: color.muted,
     display: "inline-block",
@@ -152,6 +158,8 @@ const styles = stylex.create({
     marginRight: "0.4rem",
     paddingBlock: "0.05rem",
     paddingInline: "0.4rem",
+    transitionDuration: "150ms",
+    transitionProperty: "background-color",
     verticalAlign: "0.1em",
   },
   typeFeat: {
@@ -198,7 +206,10 @@ export const Lately = ({
 
               return (
                 <li key={pr.url} {...stylex.props(styles.item)}>
-                  <a href={pr.url} {...stylex.props(styles.row)}>
+                  <a
+                    href={pr.url}
+                    {...stylex.props(styles.row, stylex.defaultMarker())}
+                  >
                     <Image
                       alt=""
                       height={32}

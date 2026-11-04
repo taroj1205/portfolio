@@ -521,8 +521,13 @@ export const Photos = ({
   const full = useRef<HTMLImageElement>(null);
   const thumb = useRef<HTMLButtonElement | null>(null);
   const list = useRef<HTMLDivElement>(null);
-  const swipe = useRef(0);
-  const pressed = useRef<EventTarget | null>(null);
+
+  const press = useRef<{ target: EventTarget | null; x: number; y: number }>({
+    target: null,
+    x: 0,
+    y: 0,
+  });
+
   const moving = useRef<Run | null>(null);
   const t = getTranslator(locale);
   const [open, setOpen] = useState<Photo | null>(null);
@@ -948,11 +953,14 @@ export const Photos = ({
           }
         }}
         onPointerDown={(event) => {
-          pressed.current = event.target;
-          swipe.current = event.clientX;
+          press.current = {
+            target: event.target,
+            x: event.clientX,
+            y: event.clientY,
+          };
         }}
         onPointerUp={(event) => {
-          const distance = event.clientX - swipe.current;
+          const distance = event.clientX - press.current.x;
 
           if (event.pointerType !== "mouse" && Math.abs(distance) > 60) {
             step(distance < 0 ? 1 : -1);
@@ -970,9 +978,9 @@ export const Photos = ({
 
           if (
             beside &&
-            spot === pressed.current &&
+            spot === press.current.target &&
             event.button === 0 &&
-            Math.abs(distance) < 10
+            Math.hypot(distance, event.clientY - press.current.y) < 10
           ) {
             void dismiss();
           }
