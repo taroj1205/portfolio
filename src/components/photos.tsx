@@ -31,9 +31,16 @@ const THUMB_RADIUS = `var(--thumb-radius, ${FULL_RADIUS})`;
 const grow = stylex.keyframes({ from: { borderRadius: THUMB_RADIUS } });
 const shrink = stylex.keyframes({ from: { borderRadius: FULL_RADIUS } });
 
+const land = stylex.keyframes({
+  "0%": { opacity: 0 },
+  "60%": { opacity: 0 },
+  "100%": { opacity: 1 },
+});
+
 const opening = stylex.viewTransitionClass({
-  ...morph,
   group: { animationDuration: "420ms", animationTimingFunction: ease.drawer },
+  new: { ...morph.new, animationName: "none" },
+  old: { ...morph.old, animationName: "none", opacity: 0 },
   imagePair: {
     animationDuration: "420ms",
     animationName: grow,
@@ -44,8 +51,15 @@ const opening = stylex.viewTransitionClass({
 });
 
 const closing = stylex.viewTransitionClass({
-  ...morph,
   group: { animationDuration: "260ms", animationTimingFunction: ease.out },
+  new: {
+    ...morph.new,
+    animationDuration: "260ms",
+    animationFillMode: "both",
+    animationName: land,
+    animationTimingFunction: ease.out,
+  },
+  old: { ...morph.old, animationName: "none" },
   imagePair: {
     animationDuration: "260ms",
     animationName: shrink,
@@ -357,12 +371,54 @@ const styles = stylex.create({
   },
 });
 
-type Scope = HTMLElement & Pick<Document, "startViewTransition">;
-
-const isScope = (el: HTMLElement | null): el is Scope =>
-  el !== null && "startViewTransition" in el;
-
 const reduced = "(prefers-reduced-motion: reduce)";
+
+const slideOut = (image: HTMLElement, direction: number) => {
+  const ghost = image.cloneNode();
+  const dialog = image.closest("dialog");
+
+  if (
+    !(ghost instanceof HTMLElement) ||
+    !dialog ||
+    matchMedia(reduced).matches
+  ) {
+    return;
+  }
+
+  const box = image.getBoundingClientRect();
+
+  Object.assign(ghost.style, {
+    height: `${box.height}px`,
+    left: `${box.left}px`,
+    margin: "0",
+    maxHeight: "none",
+    maxWidth: "none",
+    pointerEvents: "none",
+    position: "fixed",
+    top: `${box.top}px`,
+    viewTransitionName: "none",
+    width: `${box.width}px`,
+  });
+
+  ghost.removeAttribute("alt");
+  ghost.setAttribute("aria-hidden", "true");
+  dialog.append(ghost);
+
+  const fade = ghost.animate(
+    [
+      { opacity: 1 },
+      { opacity: 0, scale: 0.97, translate: `${direction * -2.5}rem 0` },
+    ],
+    { duration: 160, easing: "cubic-bezier(0.4, 0, 1, 1)", fill: "forwards" }
+  );
+
+  const remove = () => {
+    ghost.remove();
+  };
+
+  fade.addEventListener("finish", remove);
+  fade.addEventListener("cancel", remove);
+};
 
 const slideIn = (image: HTMLElement, direction: number) => {
   const query = matchMedia(reduced);
@@ -402,7 +458,6 @@ export const Photos = ({
 }) => {
   const dialog = useRef<HTMLDialogElement>(null);
   const full = useRef<HTMLImageElement>(null);
-  const stage = useRef<HTMLElement>(null);
   const thumb = useRef<HTMLButtonElement | null>(null);
   const list = useRef<HTMLDivElement>(null);
   const swipe = useRef(0);
@@ -443,13 +498,8 @@ export const Photos = ({
     ]);
   };
 
-  const transit = async (
-    options: StartViewTransitionOptions,
-    scope: Scope | null = null
-  ) => {
-    const transition = scope
-      ? scope.startViewTransition(options)
-      : document.startViewTransition(options);
+  const transit = async (options: StartViewTransitionOptions) => {
+    const transition = document.startViewTransition(options);
 
     moving.current = transition;
     transition.ready.catch(() => null);
@@ -498,30 +548,13 @@ export const Photos = ({
       }) ?? null;
     lift(true);
 
-    const swap = () => {
-      flushSync(() => {
-        setOpen(next);
-      });
-    };
-
-    const scope = stage.current;
-
-    if (isScope(scope) && canTransition() && moving.current?.types.size !== 0) {
-      void transit(
-        {
-          types: [direction < 0 ? "back" : "forward"],
-          update: async () => {
-            swap();
-            await ready();
-          },
-        },
-        scope
-      );
-
-      return;
+    if (full.current) {
+      slideOut(full.current, direction);
     }
 
-    swap();
+    flushSync(() => {
+      setOpen(next);
+    });
 
     if (full.current) {
       slideIn(full.current, direction);
@@ -709,13 +742,12 @@ export const Photos = ({
         onCancel={(event) => {
           event.preventDefault();
 
-          if (moving.current?.types.size === 0) {
+          if (moving.current) {
             void moving.current.finished.then(hide);
 
             return;
           }
 
-          moving.current?.skipTransition();
           void hide();
         }}
         onClose={() => {
@@ -771,7 +803,7 @@ export const Photos = ({
           </button>
         ))}
         {open && (
-          <figure ref={stage} {...stylex.props(styles.fullFigure)}>
+          <figure {...stylex.props(styles.fullFigure)}>
             <Image
               alt={open.caption}
               // Lazy images reject decode() before loading starts.

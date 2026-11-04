@@ -29,7 +29,8 @@ Every visual element needs a job a visitor would notice it doing. Do not add dec
 
 - The page has two photo `<dialog>`s, one for the band and one for the gallery. In browser tests target `dialog[open]`.
 - Gate view transitions with `canTransition()` from `src/lib/view-transition.ts`. Safari 18.0–18.1 and Firefox 144–146 have `startViewTransition` but no transition types.
-- Photo steps use a transition scoped to the dialog's `<figure>` where `element.startViewTransition` exists (Chrome) and a WAAPI slide-in elsewhere. A document-wide transition would block clicks on the arrows while it runs.
+- Photo steps don't use a view transition. A clone of the old photo fades out at its own size while the new one slides in, so the frame never morphs between portrait and landscape, and the arrows stay clickable. A document-wide transition blocks clicks while it runs.
+- A group's `view-transition-class` comes from the new element and applies to both `::view-transition-old` and `::view-transition-new`. Style `opening` and `closing` by transition: opening hides the old thumbnail and shows the full photo solid; closing keeps the full photo solid and fades the thumbnail in at the end.
 
 ## Cross-browser checks
 
