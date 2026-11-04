@@ -419,18 +419,29 @@ const slideOut = (image: HTMLElement, direction: number) => {
     top: `${box.top}px`,
     viewTransitionName: "none",
     width: `${box.width}px`,
+    zIndex: "-1",
   });
 
   ghost.removeAttribute("alt");
   ghost.setAttribute("aria-hidden", "true");
   dialog.append(ghost);
 
+  const { filter, opacity } = getComputedStyle(image);
+
   const fade = ghost.animate(
     [
-      { opacity: Number(getComputedStyle(image).opacity) },
-      { opacity: 0, scale: 0.97, translate: `${direction * -2.5}rem 0` },
+      { filter, opacity: Number(opacity) },
+      {
+        filter: "blur(8px)",
+        opacity: 0,
+        translate: `${direction * -0.75}rem 0`,
+      },
     ],
-    { duration: 160, easing: "cubic-bezier(0.4, 0, 1, 1)", fill: "forwards" }
+    {
+      duration: 200,
+      easing: "cubic-bezier(0.23, 1, 0.32, 1)",
+      fill: "forwards",
+    }
   );
 
   const remove = () => {
@@ -450,10 +461,14 @@ const slideIn = (image: HTMLElement, direction: number) => {
 
   const slide = image.animate(
     [
-      { opacity: 0, scale: 0.97, translate: `${direction * 2.5}rem 0` },
-      { opacity: 1, scale: 1, translate: "0 0" },
+      {
+        filter: "blur(8px)",
+        opacity: 0,
+        translate: `${direction * 0.75}rem 0`,
+      },
+      { filter: "blur(0px)", opacity: 1, translate: "0 0" },
     ],
-    { duration: 320, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
+    { duration: 360, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
   );
 
   const settle = () => {
