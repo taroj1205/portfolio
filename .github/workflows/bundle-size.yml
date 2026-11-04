@@ -29,17 +29,39 @@ jobs:
         with:
           bun-version-file: head/package.json
 
-      - name: Build base
-        working-directory: base
-        run: bun ci && bun run build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - parallel:
+          - name: Install base dependencies
+            working-directory: base
+            run: bun ci
+          - name: Install PR dependencies
+            working-directory: head
+            run: bun ci
+          - name: Cache base Next.js
+            uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+            with:
+              path: base/.next/cache
+              key: ${{ runner.os }}-next-base-${{ hashFiles('base/bun.lock') }}-${{ github.event.pull_request.base.sha }}
+              restore-keys: |
+                ${{ runner.os }}-next-base-${{ hashFiles('base/bun.lock') }}-
+          - name: Cache PR Next.js
+            uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+            with:
+              path: head/.next/cache
+              key: ${{ runner.os }}-next-head-${{ hashFiles('head/bun.lock') }}-${{ github.sha }}
+              restore-keys: |
+                ${{ runner.os }}-next-head-${{ hashFiles('head/bun.lock') }}-
 
-      - name: Build this PR
-        working-directory: head
-        run: bun ci && bun run build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - parallel:
+          - name: Build base
+            working-directory: base
+            run: bun run build
+            env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          - name: Build this PR
+            working-directory: head
+            run: bun run build
+            env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Compare builds
         id: report
