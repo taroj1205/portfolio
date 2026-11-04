@@ -418,6 +418,13 @@ const within = (box: DOMRect, point: { clientX: number; clientY: number }) =>
   point.clientY >= box.top &&
   point.clientY <= box.bottom;
 
+const corners = (radius: string) => ({
+  borderBottomLeftRadius: radius,
+  borderBottomRightRadius: radius,
+  borderTopLeftRadius: radius,
+  borderTopRightRadius: radius,
+});
+
 const heading = (run: Run) => run.opens !== run.back;
 
 const easeAt = (easing: string, time: number) => {
@@ -442,12 +449,9 @@ interface Run {
 const slideOut = (image: HTMLElement, direction: number) => {
   const ghost = image.cloneNode();
   const dialog = image.closest("dialog");
+  const query = matchMedia(reduced);
 
-  if (
-    !(ghost instanceof HTMLElement) ||
-    !dialog ||
-    matchMedia(reduced).matches
-  ) {
+  if (!(ghost instanceof HTMLElement) || !dialog || query.matches) {
     return;
   }
 
@@ -489,10 +493,16 @@ const slideOut = (image: HTMLElement, direction: number) => {
     }
   );
 
-  const remove = () => {
-    ghost.remove();
+  const stop = () => {
+    fade.cancel();
   };
 
+  const remove = () => {
+    ghost.remove();
+    query.removeEventListener("change", stop);
+  };
+
+  query.addEventListener("change", stop, { once: true });
   fade.addEventListener("finish", remove);
   fade.addEventListener("cancel", remove);
 };
@@ -620,8 +630,20 @@ export const Photos = ({
       }
     };
 
+    const thumbRadius =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--thumb-radius")
+        .trim() || FULL_RADIUS;
+
+    const [startRadius, endRadius] = run.opens
+      ? [thumbRadius, FULL_RADIUS]
+      : [FULL_RADIUS, thumbRadius];
+
     for (const { effect, part } of parts) {
       const frames = effect.getKeyframes();
+
+      const pair =
+        effect.pseudoElement === "::view-transition-image-pair(photo)";
 
       const progress = easedProgress(
         frames,
@@ -632,11 +654,22 @@ export const Photos = ({
       const { at, easing } = turnTiming(progress, back);
 
       effect.setKeyframes(
-        frames.map((frame) => ({
-          ...frame,
-          easing: "linear",
-          offset: frame.computedOffset,
-        }))
+        frames.map((frame) => {
+          const flat: Keyframe = {
+            ...frame,
+            easing: "linear",
+            offset: frame.computedOffset,
+          };
+
+          if (pair) {
+            Object.assign(
+              flat,
+              corners(frame.computedOffset === 0 ? startRadius : endRadius)
+            );
+          }
+
+          return flat;
+        })
       );
       effect.updateTiming({ duration: TURN_MS, easing });
       part.currentTime = at * TURN_MS;
@@ -660,13 +693,11 @@ export const Photos = ({
     const run = { back: false, opens, transition, turns: 0, undo, want: opens };
 
     moving.current = run;
-    dialog.current?.setAttribute("closedby", "closerequest");
     transition.ready.catch(() => null);
     await transition.finished;
 
     if (moving.current === run) {
       moving.current = null;
-      dialog.current?.setAttribute("closedby", "any");
     }
 
     const shown = dialog.current?.open === true;
@@ -690,7 +721,7 @@ export const Photos = ({
     photos.at((photos.indexOf(photo) + direction) % photos.length);
 
   const step = (direction: number) => {
-    if (!open) {
+    if (!open || moving.current) {
       return;
     }
 
@@ -821,7 +852,13 @@ export const Photos = ({
   const pressDuring = useEffectEvent((event: PointerEvent) => {
     const run = moving.current;
 
-    if (run && event.button === 0) {
+    if (!run) {
+      return;
+    }
+
+    press.current = { target: null, x: event.clientX, y: event.clientY };
+
+    if (event.button === 0) {
       const box = thumb.current?.getBoundingClientRect();
       const onThumb = box !== undefined && within(box, event);
 
@@ -983,7 +1020,6 @@ export const Photos = ({
 
       <dialog
         aria-label={t("photos.dialogTitle", "Photo")}
-        closedby="any"
         onCancel={(event) => {
           event.preventDefault();
           void steer(false);
@@ -1000,6 +1036,10 @@ export const Photos = ({
           }
         }}
         onPointerDown={(event) => {
+          if (!event.isPrimary) {
+            return;
+          }
+
           press.current = {
             target: moving.current ? null : event.target,
             x: event.clientX,
@@ -1007,7 +1047,7 @@ export const Photos = ({
           };
         }}
         onPointerUp={(event) => {
-          if (press.current.target === null) {
+          if (!event.isPrimary || press.current.target === null) {
             return;
           }
 
@@ -1023,9 +1063,7 @@ export const Photos = ({
 
           const beside =
             spot instanceof Element &&
-            spot.closest("img, figcaption, button") === null &&
-            (spot !== event.currentTarget ||
-              within(spot.getBoundingClientRect(), event));
+            spot.closest("img, figcaption, button") === null;
 
           if (
             beside &&
@@ -1041,7 +1079,7 @@ export const Photos = ({
       >
         <button
           onClick={() => {
-            void hide();
+            void steer(false);
           }}
           type="button"
           {...stylex.props(shared.pressable, styles.glass, styles.close)}
