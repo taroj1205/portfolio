@@ -76,11 +76,22 @@ const clipOf = (el: Element | null, seen: Map<Element, Line>): Line => {
 };
 
 const leadingOf = (el: Element | null) => {
-  const value = el ? getComputedStyle(el).lineHeight : "";
+  if (!(el instanceof HTMLElement)) {
+    return Number.POSITIVE_INFINITY;
+  }
 
-  return value.endsWith("px")
-    ? Number(value.slice(0, -2))
-    : Number.POSITIVE_INFINITY;
+  const value = getComputedStyle(el).lineHeight;
+
+  if (!value.endsWith("px")) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const scale =
+    el.offsetHeight > 0
+      ? el.getBoundingClientRect().height / el.offsetHeight
+      : 1;
+
+  return Number(value.slice(0, -2)) * scale;
 };
 
 const measure = (): Line[] => {
