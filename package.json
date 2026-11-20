@@ -19,19 +19,19 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
-    "@shadcn/lint": "0.2.3",
-    "@stylexjs/babel-plugin": "0.19.1",
-    "@stylexjs/postcss-plugin": "0.19.1",
+    "@shadcn/lint": "0.2.5",
+    "@stylexjs/babel-plugin": "0.19.2",
+    "@stylexjs/postcss-plugin": "0.19.2",
     "@types/node": "26.6.5",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "autoprefixer": "10.6.2",
     "babel-plugin-react-compiler": "1.0.0",
-    "cspell": "10.4.0",
+    "cspell": "10.5.1",
     "knip": "6.43.0",
     "typescript": "7.0.2",
-    "ultracite": "8.1.0",
-    "vite-plus": "1.4.0"
+    "ultracite": "8.2.1",
+    "vite-plus": "1.7.0"
   },
   "engines": {
     "node": ">=24"
